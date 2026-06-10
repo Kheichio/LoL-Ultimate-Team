@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>League of Legends Ultimate Team Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-900 font-sans min-h-screen flex flex-col select-none text-sm md:text-base">
+
+    <header class="bg-slate-800 p-4 shadow-xl flex flex-wrap items-center justify-between gap-4 border-b border-slate-700/60 sticky top-0 z-50">
+        <div class="flex items-center gap-3 bg-slate-900/80 px-5 py-2 rounded-full border border-blue-500/40 shadow-sm min-w-max">
+            <span class="text-xl opacity-90">💎</span>
+            <div class="text-sm font-bold tracking-wider text-slate-300">
+                <span id="be-display" class="text-blue-400 font-mono text-lg">1000</span> BE
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-wrap items-center justify-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
+            <button onclick="switchTab('store')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">Store</button>
+            <button onclick="switchTab('quests'); renderQuests();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-amber-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">Quests</button>
+            <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-slate-100 font-black px-10 py-2.5 rounded-lg shadow-md transform hover:scale-105 transition text-base tracking-widest uppercase cursor-pointer border border-blue-500/50 mx-4">Play</button>
+            <button onclick="switchTab('club')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">My Club</button>
+            <button onclick="switchTab('squad')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-slate-600">Squad Builder</button>
+        </div>
+
+        <div class="flex items-center gap-4 min-w-max justify-end">
+            <div id="debt-warning" class="text-xs font-mono font-bold text-red-400 bg-red-950/30 px-3 py-1.5 rounded border border-red-500/20 hidden">Debt: <span id="debt-display">0</span></div>
+            <button onclick="resetData(true)" class="text-xs bg-slate-800 hover:bg-red-900 border border-slate-700 hover:border-red-700 text-slate-400 hover:text-slate-200 font-bold px-4 py-2 rounded cursor-pointer transition">⚠️ Wipe Data</button>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 max-w-7xl mx-auto w-full">
+        
+        <section id="tab-store" class="tab-content">
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-blue-900/30 mb-4 flex flex-wrap gap-4 items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl opacity-80">🏦</span>
+                    <div>
+                        <h4 class="font-bold text-blue-400/90 uppercase text-xs tracking-widest">Credit Hub</h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Active loans apply purchase markup penalties.</p>
+                    </div>
+                </div>
+                <div class="flex gap-2 items-center font-mono text-sm">
+                    <div class="bg-slate-950 px-3 py-2 rounded border border-slate-800 text-slate-400">Premium: <span id="inflation-premium-display" class="text-red-400/90 font-bold">+0 BE</span></div>
+                    <button onclick="takeLoan()" class="bg-blue-700 hover:bg-blue-600 text-slate-200 px-4 py-2 rounded font-bold transition cursor-pointer">Loan +500</button>
+                    <button onclick="payLoan()" class="bg-emerald-700 hover:bg-emerald-600 text-slate-200 px-4 py-2 rounded font-bold transition cursor-pointer">Repay 500</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-end mb-4">
+                <h2 class="text-2xl font-bold flex items-center gap-2 text-slate-200">🛒 Card Store</h2>
+                <div id="starter-pack-container" class="bg-emerald-900/40 px-4 py-2 rounded-lg border border-emerald-700/50 flex items-center gap-2">
+                    <button onclick="buyStarterPack()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-100 px-4 py-1.5 rounded font-bold cursor-pointer text-xs uppercase tracking-wider transition">Claim Free Starter Pack</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                    <div>
+                        <h3 class="text-base font-bold mb-1 text-slate-300">Standard Pack</h3>
+                        <p class="text-slate-500 text-xs mb-3">5 Assets. High Silver/Gold profiles.</p>
+                    </div>
+                    <button onclick="buyPack(400, 'Standard')" data-cost="400" class="store-pack-btn w-full bg-slate-700 hover:bg-slate-600 py-2 rounded font-bold cursor-pointer transition border border-slate-600 text-slate-300 text-sm">400 BE</button>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                    <div>
+                        <h3 class="text-base font-bold mb-1 text-purple-400">Elite Pack</h3>
+                        <p class="text-slate-500 text-xs mb-3">5 Assets. High Plat/Diamond caps.</p>
+                    </div>
+                    <button onclick="buyPack(1000, 'Elite')" data-cost="1000" class="store-pack-btn w-full bg-purple-900/50 hover:bg-purple-800/60 py-2 rounded font-bold cursor-pointer transition border border-purple-700/50 text-purple-300 text-sm">1000 BE</button>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-red-900/30 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                    <div>
+                        <h3 class="text-base font-bold mb-1 text-red-400">Supreme Pack</h3>
+                        <p class="text-slate-500 text-xs mb-3">5 Assets. Drops GM/Challenger.</p>
+                    </div>
+                    <button onclick="buyPack(2000, 'Supreme')" data-cost="2000" class="store-pack-btn w-full bg-red-900/60 hover:bg-red-800/80 py-2 rounded font-bold cursor-pointer transition border border-red-700/50 text-red-200 text-sm">2000 BE</button>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-amber-900/30 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                    <div>
+                        <h3 class="text-base font-bold mb-1 text-amber-500">Legends Pack</h3>
+                        <p class="text-slate-500 text-xs mb-3">5 Players. Legacy historic icons.</p>
+                    </div>
+                    <button onclick="buyPack(1500, 'Legacy')" data-cost="1500" class="store-pack-btn w-full bg-amber-800/50 hover:bg-amber-700/60 py-2 rounded font-bold cursor-pointer transition border border-amber-600/50 text-amber-200 text-sm">1500 BE</button>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-blue-900/30 flex flex-col justify-between hover:bg-slate-800 transition">
+                    <div>
+                        <h3 class="text-base font-bold mb-1 text-blue-400 text-center">Regional Pack</h3>
+                        <p class="text-slate-500 text-xs mb-2 text-center">5 Assets from selected league.</p>
+                        <select id="region-select" class="bg-slate-900 text-slate-300 p-1.5 rounded border border-slate-700 w-full text-xs font-bold mb-3 focus:outline-none">
+                            <option value="LCK">LCK</option><option value="LPL">LPL</option><option value="LEC">LEC</option><option value="LCS">LCS</option>
+                        </select>
+                    </div>
+                    <button onclick="buyTargetPack('region')" data-cost="800" class="store-pack-btn bg-blue-800/50 hover:bg-blue-700/60 py-2 rounded font-bold transition border border-blue-700/50 text-blue-200 text-sm cursor-pointer">800 BE</button>
+                </div>
+            </div>
+
+            <div id="pack-opening-area" class="hidden bg-slate-800/90 p-6 rounded-xl border border-slate-600 mt-4">
+                <h3 id="pack-opening-title" class="text-xl font-bold mb-6 text-center text-slate-200 tracking-wide">Pack Opened!</h3>
+                <div id="pulled-cards" class="flex flex-wrap gap-6 justify-center"></div>
+                <div class="mt-6 text-center">
+                    <button onclick="document.getElementById('pack-opening-area').classList.add('hidden')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-8 py-2.5 rounded-lg font-bold text-sm transition cursor-pointer uppercase tracking-wider">Confirm Allocation</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-club" class="tab-content hidden">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Match Wins</p>
+                    <p class="text-2xl font-mono text-slate-200" id="stat-wins">0</p>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Packs Opened</p>
+                    <p class="text-2xl font-mono text-slate-200" id="stat-packs">0</p>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">BE Liquidated</p>
+                    <p class="text-2xl font-mono text-slate-200" id="stat-liquidated">0</p>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Franchise MVP</p>
+                    <p class="text-lg font-bold text-slate-200 truncate" id="stat-mvp">None</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 mb-4 flex flex-wrap items-center justify-between gap-3">
+                <input type="text" id="club-search-input" oninput="renderClubGrid()" placeholder="Search assets by name..." class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 w-full max-w-xs text-sm focus:outline-none focus:border-blue-500/50 text-slate-200">
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="sellAllLowTier('Silver')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded font-bold text-xs cursor-pointer transition">Liquidate All Silver</button>
+                    <button onclick="sellAllLowTier('Gold')" class="bg-amber-900/40 hover:bg-amber-800/60 text-amber-200/90 px-4 py-2 rounded font-bold text-xs cursor-pointer transition border border-amber-800/30">Liquidate All Gold</button>
+                    <button onclick="quickSellDuplicates()" class="bg-red-900/40 hover:bg-red-800/60 text-red-300/90 px-4 py-2 rounded font-bold text-xs cursor-pointer transition border border-red-800/30">Purge Duplicates</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-4 bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+                <h2 class="text-xl font-bold text-slate-200">My Club Reserves (<span id="club-count" class="text-blue-400/90">0</span>)</h2>
+                <div class="flex gap-2">
+                    <button onclick="sortClub('rating')" class="bg-slate-700 text-slate-300 px-4 py-1.5 rounded font-semibold cursor-pointer hover:bg-slate-600 text-xs">Sort: Rating</button>
+                    <button onclick="sortClub('region')" class="bg-slate-700 text-slate-300 px-4 py-1.5 rounded font-semibold cursor-pointer hover:bg-slate-600 text-xs">Sort: Region</button>
+                </div>
+            </div>
+            <div id="club-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 pb-8"></div>
+        </section>
+
+        <section id="tab-squad" class="tab-content hidden">
+            <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 mb-4 flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <input type="text" id="custom-team-name" oninput="updateTeamCustomization()" value="My Team" class="bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-slate-200 font-bold text-sm focus:border-blue-500/50 focus:outline-none">
+                    <select id="custom-team-logo" onchange="updateTeamCustomization()" class="bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-slate-200 font-bold text-sm focus:border-blue-500/50 focus:outline-none">
+                        <option value="🛡️">🛡️ Shield</option><option value="🐉">🐉 Dragon</option><option value="🦅">🦅 Eagle</option><option value="🐺">🐺 Wolf</option><option value="👑">👑 Crown</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mb-6">
+                <div class="lg:col-span-8 flex gap-6 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 overflow-x-auto">
+                    <div class="flex flex-col gap-4 bg-slate-950/40 p-3 rounded-xl border border-slate-800 justify-start items-center min-w-max">
+                        <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase">Mgmt</span>
+                        <div id="squad-COACH" class="w-52 h-72 bg-slate-800/80 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-emerald-500/50 text-xs font-bold text-slate-500 transition" onclick="selectSlot('COACH')">Coach</div>
+                        
+                        <span class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mt-2">Bench</span>
+                        <div id="squad-SUB1" class="w-52 h-72 bg-slate-800/80 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-blue-500/50 text-xs font-bold text-slate-500 transition" onclick="selectSlot('SUB1')">Sub 1</div>
+                        <div id="squad-SUB2" class="w-52 h-72 bg-slate-800/80 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-blue-500/50 text-xs font-bold text-slate-500 transition" onclick="selectSlot('SUB2')">Sub 2</div>
+                        <div id="squad-SUB3" class="w-52 h-72 bg-slate-800/80 border-2 border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-blue-500/50 text-xs font-bold text-slate-500 transition" onclick="selectSlot('SUB3')">Sub 3</div>
+                    </div>
+
+                    <div class="flex-1 bg-slate-800/20 p-4 rounded-xl border border-slate-700/40 flex flex-col items-center gap-6 justify-center min-w-max">
+                        <div id="squad-TOP" class="squad-slot w-52 h-72 bg-slate-800/80 border border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-blue-500/50 transition text-xs font-bold text-slate-500" onclick="selectSlot('TOP')">TOP Slot</div>
+                        <div class="flex gap-6">
+                            <div id="squad-JNG" class="squad-slot w-52 h-72 bg-slate-800/80 border border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-blue-500/50 transition text-xs font-bold text-slate-500" onclick="selectSlot('JNG')">JNG Slot</div>
+                            <div id="squad-MID" class="squad-slot w-52 h-72 bg-slate-800/80 border border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-blue-500/50 transition text-xs font-bold text-slate-500" onclick="selectSlot('MID')">MID Slot</div>
+                        </div>
+                        <div class="flex gap-6">
+                            <div id="squad-ADC" class="squad-slot w-52 h-72 bg-slate-800/80 border border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-blue-500/50 transition text-xs font-bold text-slate-500" onclick="selectSlot('ADC')">ADC Slot</div>
+                            <div id="squad-SUP" class="squad-slot w-52 h-72 bg-slate-800/80 border border-dashed border-slate-600 rounded-xl flex items-center justify-center relative cursor-pointer hover:border-blue-500/50 transition text-xs font-bold text-slate-500" onclick="selectSlot('SUP')">SUP Slot</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 flex flex-col gap-4">
+                    <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-sm">
+                        <h3 class="text-base font-bold mb-2 border-b border-slate-700 pb-2 uppercase tracking-wide text-blue-300">Lineup Metrics</h3>
+                        <div class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Mean Team Rating:</span>
+                            <span id="overview-average-tier" class="font-bold text-slate-200">None</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Base Starter Power:</span>
+                            <span id="overview-rating" class="font-mono font-bold text-slate-200">0</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Regional Synergy:</span>
+                            <span id="overview-chem-region" class="font-mono font-bold text-blue-300">0 / 5</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Temporal Synergy:</span>
+                            <span id="overview-chem-year" class="font-mono font-bold text-amber-300">0 / 5</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Coach Strategy Bonus:</span>
+                            <span id="overview-coach-bonus" class="font-mono font-bold text-emerald-400">+0</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-slate-700/50">
+                            <span class="text-slate-400">Training Multiplier:</span>
+                            <span id="overview-training-bonus" class="font-mono font-bold text-orange-400">+0</span>
+                        </div>
+                        <div class="flex justify-between py-3 bg-slate-900/60 -mx-4 px-4 mt-2 border-t border-slate-700 text-sm font-bold">
+                            <span class="text-slate-300">TOTAL COMBAT POWER:</span>
+                            <span id="overview-chem-total" class="text-emerald-400 text-xl font-mono">0</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-sm">
+                        <h3 class="text-base font-bold mb-1 uppercase tracking-wide text-orange-400/90">Training Center</h3>
+                        <p class="text-slate-500 text-xs mb-3">Invest 50 BE into bootcamps to grant a temporary +5 combat power multiplier for 60 seconds.</p>
+                        <div class="flex justify-between items-center bg-slate-900/80 p-2.5 rounded border border-slate-800 gap-2">
+                            <span id="training-timer-display" class="font-mono font-bold text-slate-500 text-sm">Facility Idle</span>
+                            <button id="btn-run-training" onclick="executeTeamTraining()" class="bg-orange-600/80 hover:bg-orange-500 text-slate-100 px-4 py-2 rounded font-bold transition cursor-pointer text-xs uppercase tracking-wider">Run Bootcamp (50 BE)</button>
+                        </div>
+                    </div>
+
+                    <button onclick="clearSquad()" class="w-full bg-slate-800 hover:bg-red-900/60 text-slate-400 hover:text-red-200 text-xs py-3 rounded font-bold transition border border-slate-700 hover:border-red-800/50 uppercase tracking-wider">Disband Full Roster</button>
+                </div>
+            </div>
+
+            <div id="squad-picker-area" class="bg-slate-800/90 p-5 rounded-xl border border-slate-700 mt-6 hidden">
+                <div class="border-b border-slate-700 pb-3 mb-4 flex flex-wrap items-center justify-between gap-2">
+                    <h4 class="font-bold text-base text-slate-200 uppercase tracking-wider">Assign Allocation: <span id="picker-role" class="text-blue-300">Select Slot</span></h4>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 bg-slate-900/60 p-3 rounded-lg border border-slate-800 text-xs mb-4">
+                    <div class="flex flex-col">
+                        <label class="font-bold text-slate-500 mb-1">Team Filter</label>
+                        <select id="filter-team-dropdown" onchange="renderFilteredPicker()" class="bg-slate-800 text-slate-300 rounded p-1.5 border border-slate-700 focus:outline-none"></select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-bold text-slate-500 mb-1">Region Filter</label>
+                        <select id="filter-region-dropdown" onchange="renderFilteredPicker()" class="bg-slate-800 text-slate-300 rounded p-1.5 border border-slate-700 focus:outline-none"></select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-bold text-slate-500 mb-1">Year Lineage</label>
+                        <select id="filter-year-dropdown" onchange="renderFilteredPicker()" class="bg-slate-800 text-slate-300 rounded p-1.5 border border-slate-700 focus:outline-none"></select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-bold text-slate-500 mb-1">Role Type</label>
+                        <select id="filter-role-dropdown" onchange="renderFilteredPicker()" class="bg-slate-800 text-slate-300 rounded p-1.5 border border-slate-700 focus:outline-none font-bold">
+                            <option value="ALL">ALL ROLES</option><option value="TOP">TOP</option><option value="JNG">JNG</option><option value="MID">MID</option><option value="ADC">ADC</option><option value="SUP">SUP</option><option value="COACH">COACH</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-bold text-slate-500 mb-1">Sort Rule</label>
+                        <select id="filter-sort-dropdown" onchange="renderFilteredPicker()" class="bg-slate-800 text-slate-300 rounded p-1.5 border border-slate-700 focus:outline-none font-bold">
+                            <option value="highest">Highest Rating FIRST</option><option value="lowest">Lowest Rating FIRST</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="picker-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 max-h-[550px] overflow-y-auto bg-slate-900/60 p-4 rounded-lg border border-slate-800"></div>
+            </div>
+        </section>
+
+        <section id="tab-tournament" class="tab-content hidden">
+            <h2 class="text-2xl font-bold mb-2 text-slate-200">Competitive Arenas</h2>
+            <p class="mb-4 text-slate-500 text-sm">Face structured brackets, or risk it all on the Golden Road.</p>
+            
+            <div id="tournament-lobby">
+                <div class="golden-road-bg p-6 rounded-xl text-center mb-6 relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 opacity-10 text-[100px]">🏆</div>
+                    <h3 class="text-3xl font-black text-amber-400/90 mb-1 tracking-widest uppercase">The Golden Road</h3>
+                    <p class="text-slate-400 text-xs max-w-xl mx-auto mb-4">Complete 19 Matches across all stages without dropping a series for a massive bonus.</p>
+                    <div class="flex justify-center items-center gap-4">
+                        <div class="font-mono text-sm bg-black/40 px-4 py-2 rounded border border-amber-700/50 text-amber-200/80">Buy-In: 1000 BE</div>
+                        <button onclick="startGoldenRoad()" class="bg-amber-600 hover:bg-amber-500 text-slate-100 px-6 py-2 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Embark</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-300 mb-1">Regional Split</h3>
+                            <p class="text-xs text-slate-500 mb-2">Silver / Gold Level. 3 Rounds.</p>
+                            <div class="text-xs font-mono bg-slate-900/60 py-1.5 rounded mb-3 text-slate-400">1st: 400 BE | 2nd: 100</div>
+                        </div>
+                        <button onclick="startTournament('Regional Split', 100, 400, 100, 76, 3)" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 py-2 rounded font-bold cursor-pointer transition text-sm">Enter (100 BE)</button>
+                    </div>
+                    <div class="bg-slate-800/80 p-4 rounded-xl border border-teal-900/40 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                        <div>
+                            <h3 class="text-lg font-bold text-teal-400/90 mb-1">First Stand</h3>
+                            <p class="text-xs text-slate-500 mb-2">Plat / Diamond Level. 3 Rounds.</p>
+                            <div class="text-xs font-mono bg-slate-900/60 py-1.5 rounded mb-3 text-slate-400">1st: 800 BE | 2nd: 200</div>
+                        </div>
+                        <button onclick="startTournament('First Stand', 200, 800, 200, 85, 3)" class="w-full bg-teal-800/60 hover:bg-teal-700/70 text-teal-100 py-2 rounded font-bold cursor-pointer transition text-sm">Enter (200 BE)</button>
+                    </div>
+                    <div class="bg-slate-800/80 p-4 rounded-xl border border-purple-900/40 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                        <div>
+                            <h3 class="text-lg font-bold text-purple-400/90 mb-1">MSI Bracket</h3>
+                            <p class="text-xs text-slate-500 mb-2">Master / GM Level. 3 Rounds.</p>
+                            <div class="text-xs font-mono bg-slate-900/60 py-1.5 rounded mb-3 text-slate-400">1st: 1600 BE | 2nd: 400</div>
+                        </div>
+                        <button onclick="startTournament('MSI', 350, 1600, 400, 91, 3)" class="w-full bg-purple-800/60 hover:bg-purple-700/70 text-purple-100 py-2 rounded font-bold cursor-pointer transition text-sm">Enter (350 BE)</button>
+                    </div>
+                    <div class="bg-slate-800/80 p-4 rounded-xl border border-amber-900/40 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                        <div>
+                            <h3 class="text-lg font-bold text-amber-400/90 mb-1">World Champ</h3>
+                            <p class="text-xs text-slate-500 mb-2">Challenger Tier. 4 Rounds.</p>
+                            <div class="text-xs font-mono bg-slate-900/60 py-1.5 rounded mb-3 text-amber-300/80">1st: 3500 BE | 2nd: 800</div>
+                        </div>
+                        <button onclick="startTournament('Worlds', 600, 3500, 800, 95, 4)" class="w-full bg-amber-700/80 hover:bg-amber-600 text-amber-100 py-2 rounded font-bold cursor-pointer transition text-sm">Enter (600 BE)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tournament-active" class="hidden space-y-4">
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center relative flex justify-between items-center">
+                    <div id="gr-badge" class="hidden bg-amber-700 text-amber-100 font-bold text-xs px-2 py-1 rounded uppercase">Golden Road Active</div>
+                    <h3 id="tour-active-title" class="text-xl font-bold text-slate-200 mx-auto">Tournament Display</h3>
+                    <div id="gr-accrued-display" class="hidden font-mono text-xs bg-slate-900 px-3 py-1.5 rounded border border-amber-800/50 text-amber-300">Total: <span id="gr-accrued-val">0</span> BE</div>
+                </div>
+
+                <div id="bracket-container" class="flex flex-wrap justify-center items-center gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 text-xs font-bold text-slate-300"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                    <div class="bg-slate-800/50 p-3 rounded-xl border border-blue-900/20">
+                        <div class="text-center font-bold text-base text-blue-300 mb-3 border-b border-slate-700/50 pb-2 flex justify-center items-center gap-2">
+                            <span id="live-team-logo">🛡️</span> <span id="live-team-name">My Squad</span> 
+                            <span class="text-xs bg-blue-900/40 font-mono text-slate-200 px-2 py-0.5 rounded border border-blue-800/50">Power: <span id="tour-my-power">0</span></span>
+                        </div>
+                        <div id="live-arena-my-roster" class="flex flex-wrap gap-4 justify-center"></div>
+                    </div>
+                    <div class="bg-slate-800/50 p-3 rounded-xl border border-red-900/20">
+                        <div class="text-center font-bold text-base text-red-300/90 mb-3 border-b border-slate-700/50 pb-2 flex justify-center items-center gap-2">
+                            <span>👹</span> <span id="enemy-team-name">Opponent Team</span> 
+                            <span class="text-xs bg-red-900/40 font-mono text-slate-200 px-2 py-0.5 rounded border border-red-800/50">Power: <span id="tour-enemy-rating">0</span></span>
+                        </div>
+                        <div id="live-arena-enemy-roster" class="flex flex-wrap gap-4 justify-center"></div>
+                    </div>
+                </div>
+
+                <div id="tactical-draft-panel" class="bg-slate-800/90 p-5 rounded-xl border border-slate-600 text-center hidden"></div>
+
+                <div class="relative bg-slate-950/80 p-4 rounded-xl border border-slate-800 h-40 overflow-y-auto font-mono text-xs text-slate-400 shadow-inner leading-relaxed" id="match-log"></div>
+
+                <div class="flex justify-center items-center gap-3">
+                    <button id="btn-play-match" onclick="playMatchStep()" class="hidden bg-blue-700 hover:bg-blue-600 text-slate-100 px-6 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Execute Simulation ⏩</button>
+                    <button id="btn-next-round" onclick="setupNextRound()" class="hidden bg-emerald-700 hover:bg-emerald-600 text-slate-100 px-6 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Advance Bracket 🏆</button>
+                    <button id="btn-gr-next" onclick="advanceGoldenRoadStage()" class="hidden bg-amber-600 hover:bg-amber-500 text-slate-100 px-6 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Begin Next Stage</button>
+                    <button onclick="emergencyResetSim()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-slate-200 px-4 py-2 rounded text-xs font-bold transition cursor-pointer">Forfeit Run</button>
+                </div>
+            </div>
+
+            <div id="tournament-results" class="hidden bg-slate-800/90 p-8 rounded-xl border border-slate-600 text-center max-w-md mx-auto mt-4 shadow-xl">
+                <div id="result-icon" class="text-5xl mb-2">👑</div>
+                <h3 id="result-title" class="text-2xl font-bold mb-1 text-slate-200">Victory!</h3>
+                <p id="result-desc" class="text-slate-400 mb-6 text-sm">Run complete.</p>
+                <button onclick="finishTournamentUI()" class="bg-slate-700 text-slate-200 px-6 py-2.5 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-sm">Return to Lobby</button>
+            </div>
+        </section>
+
+        <section id="tab-quests" class="tab-content hidden max-w-2xl mx-auto">
+            <h2 class="text-2xl font-bold mb-1 text-slate-200">Managerial Quests</h2>
+            <p class="text-slate-500 text-sm mb-4">Complete milestones to earn lucrative bonus payouts.</p>
+            <div id="quests-container" class="space-y-3"></div>
+        </section>
+
+    </main>
+
+    <script src="database.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

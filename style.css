@@ -1,0 +1,32 @@
+/* style.css */
+/* High-Saturation Vivid Gradients for Clear Vision Contrast */
+.card-bg-Silver { background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); color: #000000; border: 3px solid #64748b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); }
+.card-bg-Gold { background: linear-gradient(135deg, #ffe066 0%, #f59e0b 100%); color: #000000; border: 3px solid #b45309; box-shadow: 0 4px 8px rgba(245, 158, 11, 0.25); }
+.card-bg-Platinum { background: linear-gradient(135deg, #a7f3d0 0%, #10b981 100%); color: #000000; border: 3px solid #047857; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25); }
+.card-bg-Diamond { background: linear-gradient(135deg, #bae6fd 0%, #3b82f6 100%); color: #000000; border: 3px solid #1d4ed8; box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25); }
+.card-bg-Master { background: linear-gradient(135deg, #f3e8ff 0%, #a855f7 100%); color: #000000; border: 3px solid #6b21a8; box-shadow: 0 4px 8px rgba(168, 85, 247, 0.25); }
+.card-bg-Grandmaster { background: linear-gradient(135deg, #fee2e2 0%, #ef4444 100%); color: #000000; border: 3px solid #991b1b; box-shadow: 0 4px 8px rgba(239, 68, 68, 0.25); }
+
+/* Dark/Black Cards Strategy Layout */
+.card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #ffffff; border: 3px double #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
+.card-bg-Legacy { background: linear-gradient(135deg, #111827 0%, #000000 100%); color: #ffffff; border: 3px solid #d97706; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); }
+.coach-card-style { background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); color: #ffffff; border: 3px dashed #10b981; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25); }
+
+/* Static Numerical Attributes Grid Setup */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 0.82rem; font-weight: 900; text-align: left; width: 100%; margin-top: 6px; padding-top: 6px; }
+
+/* Structural Divider Contrasts */
+.card-dark-text .stat-grid { border-top: 1px solid rgba(0, 0, 0, 0.25); }
+.card-light-text .stat-grid { border-top: 1px solid rgba(255, 255, 255, 0.25); }
+
+.bracket-step { transition: all 0.3s ease; }
+.bracket-active { border-color: #60a5fa !important; box-shadow: 0 0 10px rgba(96, 165, 250, 0.3); transform: scale(1.05); }
+.bracket-won { border-color: #34d399 !important; opacity: 0.7; background-color: #064e3b !important; color: #a7f3d0 !important; }
+
+.golden-road-bg { background: radial-gradient(circle at center, #291502 0%, #0f172a 100%); border: 2px solid #b45309; box-shadow: 0 0 20px rgba(180, 83, 9, 0.1) inset; }
+
+.tab-content { animation: fadeIn 0.25s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+body { color: #cbd5e1; }
+h1, h2, h3, h4 { color: #f1f5f9; }
