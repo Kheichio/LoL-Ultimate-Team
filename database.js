@@ -1,3 +1,5 @@
+// database.js
+
 window.roleIcons = { TOP: "┪", JNG: "⚔️", MID: "✦", ADC: "🏹", SUP: "🛡️", COACH: "📋" };
 window.regionLogos = { LCK: "🇰🇷 LCK", LPL: "🇨🇳 LPL", LEC: "🇪🇺 LEC", LCS: "🇺🇸 LCS", Legacy: "👑 ICON" };
 window.teamLineageBridges = { "SKT": "T1", "SKT T1": "T1", "SSG": "Gen.G", "SSW": "Gen.G", "Samsung Galaxy": "Gen.G", "FNC": "Fnatic", "ROX": "HLE", "DK": "Dplus KIA", "IG": "Invictus Gaming", "FPX": "FunPlus Phoenix", "DRX": "DragonX" };
@@ -54,6 +56,20 @@ const baseDatabase = [
     { id: 144, name: "Hena", role: "ADC", team: "FOX", year: 2024, rating: 78, quality: "Silver", region: "LCK" },
     { id: 145, name: "Execute", role: "SUP", team: "FOX", year: 2024, rating: 76, quality: "Silver", region: "LCK" },
 
+    // --- KT Rolster (LCK Roster Fill) ---
+    { id: 151, name: "PerfecT", role: "TOP", team: "KT", year: 2024, rating: 82, quality: "Gold", region: "LCK" },
+    { id: 152, name: "Pyosik", role: "JNG", team: "KT", year: 2024, rating: 86, quality: "Platinum", region: "LCK" },
+    { id: 153, name: "Bdd", role: "MID", team: "KT", year: 2024, rating: 89, quality: "Diamond", region: "LCK" },
+    { id: 154, name: "Deft", role: "ADC", team: "KT", year: 2024, rating: 88, quality: "Platinum", region: "LCK" },
+    { id: 155, name: "BeryL", role: "SUP", team: "KT", year: 2024, rating: 87, quality: "Platinum", region: "LCK" },
+
+    // --- Kwangdong Freecs (LCK Lower Tier) ---
+    { id: 161, name: "DuDu", role: "TOP", team: "KDF", year: 2024, rating: 83, quality: "Gold", region: "LCK" },
+    { id: 162, name: "Cuzz", role: "JNG", team: "KDF", year: 2024, rating: 86, quality: "Platinum", region: "LCK" },
+    { id: 163, name: "BullDog", role: "MID", team: "KDF", year: 2024, rating: 80, quality: "Gold", region: "LCK" },
+    { id: 164, name: "Bull", role: "ADC", team: "KDF", year: 2024, rating: 74, quality: "Silver", region: "LCK" },
+    { id: 165, name: "Andil", role: "SUP", team: "KDF", year: 2024, rating: 75, quality: "Silver", region: "LCK" },
+
     // --- BLG (LPL) ---
     { id: 201, name: "Bin", role: "TOP", team: "BLG", year: 2024, rating: 97, quality: "Challenger", region: "LPL" },
     { id: 202, name: "Xun", role: "JNG", team: "BLG", year: 2024, rating: 90, quality: "Diamond", region: "LPL" },
@@ -82,6 +98,13 @@ const baseDatabase = [
     { id: 234, name: "Photic", role: "ADC", team: "NIP", year: 2024, rating: 85, quality: "Platinum", region: "LPL" },
     { id: 235, name: "Zhuo", role: "SUP", team: "NIP", year: 2024, rating: 80, quality: "Gold", region: "LPL" },
 
+    // --- Weibo Gaming (LPL Roster Fill) ---
+    { id: 241, name: "Breathe", role: "TOP", team: "WBG", year: 2024, rating: 86, quality: "Platinum", region: "LPL" },
+    { id: 242, name: "Tarzan", role: "JNG", team: "WBG", year: 2024, rating: 91, quality: "Diamond", region: "LPL" },
+    { id: 243, name: "Xiaohu", role: "MID", team: "WBG", year: 2024, rating: 89, quality: "Diamond", region: "LPL" },
+    { id: 244, name: "Light", role: "ADC", team: "WBG", year: 2024, rating: 87, quality: "Platinum", region: "LPL" },
+    { id: 245, name: "Crisp", role: "SUP", team: "WBG", year: 2024, rating: 88, quality: "Platinum", region: "LPL" },
+
     // --- G2 (LEC) ---
     { id: 301, name: "BrokenBlade", role: "TOP", team: "G2", year: 2024, rating: 87, quality: "Platinum", region: "LEC" },
     { id: 302, name: "Yike", role: "JNG", team: "G2", year: 2024, rating: 87, quality: "Platinum", region: "LEC" },
@@ -102,6 +125,20 @@ const baseDatabase = [
     { id: 323, name: "Fresskowy", role: "MID", team: "MAD", year: 2024, rating: 78, quality: "Silver", region: "LEC" },
     { id: 324, name: "Supa", role: "ADC", team: "MAD", year: 2024, rating: 82, quality: "Gold", region: "LEC" },
     { id: 325, name: "Alvaro", role: "SUP", team: "MAD", year: 2024, rating: 83, quality: "Gold", region: "LEC" },
+
+    // --- Team Vitality (LEC Roster Fill) ---
+    { id: 331, name: "Photon", role: "TOP", team: "VIT", year: 2024, rating: 83, quality: "Gold", region: "LEC" },
+    { id: 332, name: "Lyncas", role: "JNG", team: "VIT", year: 2024, rating: 79, quality: "Silver", region: "LEC" },
+    { id: 333, name: "Vetheo", role: "MID", team: "VIT", year: 2024, rating: 82, quality: "Gold", region: "LEC" },
+    { id: 334, name: "Carzzy", role: "ADC", team: "VIT", year: 2024, rating: 85, quality: "Platinum", region: "LEC" },
+    { id: 335, name: "Hylissang", role: "SUP", team: "VIT", year: 2024, rating: 81, quality: "Gold", region: "LEC" },
+
+    // --- Team Heretics (LEC Lower-Mid Tier) ---
+    { id: 341, name: "Wunder", role: "TOP", team: "TH", year: 2024, rating: 80, quality: "Gold", region: "LEC" },
+    { id: 342, name: "Jankos", role: "JNG", team: "TH", year: 2024, rating: 83, quality: "Gold", region: "LEC" },
+    { id: 343, name: "Zwyroo", role: "MID", team: "TH", year: 2024, rating: 75, quality: "Silver", region: "LEC" },
+    { id: 344, name: "Flakked", role: "ADC", team: "TH", year: 2024, rating: 79, quality: "Silver", region: "LEC" },
+    { id: 345, name: "Trymbi", role: "SUP", team: "TH", year: 2024, rating: 81, quality: "Gold", region: "LEC" },
 
     // --- Team Liquid (LCS) ---
     { id: 401, name: "Impact", role: "TOP", team: "TL", year: 2024, rating: 86, quality: "Platinum", region: "LCS" },
@@ -131,11 +168,25 @@ const baseDatabase = [
     { id: 434, name: "Berserker", role: "ADC", team: "C9", year: 2024, rating: 88, quality: "Platinum", region: "LCS" },
     { id: 435, name: "Vulcan", role: "SUP", team: "C9", year: 2024, rating: 83, quality: "Gold", region: "LCS" },
 
+    // --- 100 Thieves (LCS Lower Tier) ---
+    { id: 441, name: "Sniper", role: "TOP", team: "100T", year: 2024, rating: 76, quality: "Silver", region: "LCS" },
+    { id: 442, name: "River", role: "JNG", team: "100T", year: 2024, rating: 83, quality: "Gold", region: "LCS" },
+    { id: 443, name: "Quid", role: "MID", team: "100T", year: 2024, rating: 81, quality: "Gold", region: "LCS" },
+    { id: 444, name: "Meech", role: "ADC", team: "100T", year: 2024, rating: 72, quality: "Silver", region: "LCS" },
+    { id: 445, name: "Eyla", role: "SUP", team: "100T", year: 2024, rating: 74, quality: "Silver", region: "LCS" },
+
+    // --- Dignitas (LCS Lower Tier) ---
+    { id: 451, name: "Rich", role: "TOP", team: "DIG", year: 2024, rating: 77, quality: "Silver", region: "LCS" },
+    { id: 452, name: "Spica", role: "JNG", team: "DIG", year: 2024, rating: 81, quality: "Gold", region: "LCS" },
+    { id: 453, name: "Dove", role: "MID", team: "DIG", year: 2024, rating: 76, quality: "Silver", region: "LCS" },
+    { id: 454, name: "Zven", role: "ADC", team: "DIG", year: 2024, rating: 82, quality: "Gold", region: "LCS" },
+    { id: 455, name: "Isles", role: "SUP", team: "DIG", year: 2024, rating: 73, quality: "Silver", region: "LCS" },
+
     // --- HISTORIC LEGENDS (Legacy works as a chemistry wildcard) ---
     { id: 901, name: "Faker", role: "MID", team: "SKT", year: 2015, rating: 99, quality: "Legacy", region: "Legacy" },
     { id: 902, name: "TheShy", role: "TOP", team: "IG", year: 2018, rating: 97, quality: "Legacy", region: "Legacy" },
     { id: 903, name: "Mata", role: "SUP", team: "SSW", year: 2014, rating: 96, quality: "Legacy", region: "Legacy" },
-    { id: 904, name: "Ambition", role: "JNG", team: "SSG", year: 2017, rating: 94, quality: "Legacy", region: "Legacy" },
+    { id: 904, name: "Ambition", team: "SSG", role: "JNG", year: 2017, rating: 94, quality: "Legacy", region: "Legacy" },
     { id: 905, name: "Uzi", role: "ADC", team: "RNG", year: 2018, rating: 96, quality: "Legacy", region: "Legacy" },
     { id: 906, name: "Rookie", role: "MID", team: "IG", year: 2018, rating: 97, quality: "Legacy", region: "Legacy" },
     { id: 907, name: "ShowMaker", role: "MID", team: "DK", year: 2020, rating: 98, quality: "Legacy", region: "Legacy" },
@@ -151,7 +202,18 @@ const baseDatabase = [
     { id: 917, name: "Tian", role: "JNG", team: "FPX", year: 2019, rating: 95, quality: "Legacy", region: "Legacy" },
     { id: 918, name: "Crisp", role: "SUP", team: "FPX", year: 2019, rating: 94, quality: "Legacy", region: "Legacy" },
     { id: 919, name: "Lwx", role: "ADC", team: "FPX", year: 2019, rating: 93, quality: "Legacy", region: "Legacy" },
-    { id: 920, name: "GimGoon", role: "TOP", team: "FPX", year: 2019, rating: 91, quality: "Legacy", region: "Legacy" }
+    { id: 920, name: "GimGoon", role: "TOP", team: "FPX", year: 2019, rating: 91, quality: "Legacy", region: "Legacy" },
+    
+    // --- ADDITIONAL LEGACY EXPANSION ROSTERS ---
+    { id: 921, name: "Looper", role: "TOP", team: "SSW", year: 2014, rating: 93, quality: "Legacy", region: "Legacy" },
+    { id: 922, name: "DanDy", role: "JNG", team: "SSW", year: 2014, rating: 96, quality: "Legacy", region: "Legacy" },
+    { id: 923, name: "PawN", role: "MID", team: "SSW", year: 2014, rating: 94, quality: "Legacy", region: "Legacy" },
+    { id: 924, name: "imp", role: "ADC", team: "SSW", year: 2014, rating: 95, quality: "Legacy", region: "Legacy" },
+    { id: 925, name: "MaMarin", role: "TOP", team: "SKT T1", year: 2015, rating: 96, quality: "Legacy", region: "Legacy" },
+    { id: 926, name: "Bang", role: "ADC", team: "SKT T1", year: 2015, rating: 95, quality: "Legacy", region: "Legacy" },
+    { id: 927, name: "Wolf", role: "SUP", team: "SKT T1", year: 2015, rating: 95, quality: "Legacy", region: "Legacy" },
+    { id: 928, name: "Broxah", role: "JNG", team: "FNC", year: 2018, rating: 91, quality: "Legacy", region: "Legacy" },
+    { id: 929, name: "Rekkles", role: "ADC", team: "FNC", year: 2018, rating: 94, quality: "Legacy", region: "Legacy" }
 ];
 
 window.playerDatabase = baseDatabase.map(p => {
