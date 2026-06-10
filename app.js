@@ -437,7 +437,6 @@ function renderFilteredPicker() {
 
     pool = pool.filter(p => !usedUniqueIds.includes(p.uniqueId) && !usedPlayerNames.includes(p.name));
 
-    // COACH SLOT FILTER FIX: Prevent Coaches from ever showing up in standard bench/starting slots
     if (activeSlot === "COACH") {
         pool = pool.filter(p => p.role === "COACH");
     } else {
@@ -503,7 +502,6 @@ function getTierFromRating(rating) {
 function computeChemistry() {
     let totalRating = 0; let count = 0; let active = [];
     
-    // Core Mean Score specifically calculated ONLY from active pitch starting slots
     ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(role => {
         if (squad[role]) {
             let penalty = (squad[role].role !== role) ? 20 : 0;
@@ -534,7 +532,6 @@ function computeChemistry() {
         
         if (uniqueTeams <= 1) regionChem += 2; 
 
-        // STRICT REGION CHEM CAP ENFORCEMENT
         regionChem = Math.min(5, regionChem);
     }
 
@@ -543,7 +540,6 @@ function computeChemistry() {
     document.getElementById("overview-coach-bonus").innerText = `+${coachBonus}`;
     document.getElementById("overview-training-bonus").innerText = `+${trainBonus}`;
     
-    // Total calculation off the Mean Rating base
     let totalPower = avgRating + regionChem + yearChem + coachBonus + trainBonus;
     document.getElementById("overview-chem-total").innerText = totalPower;
 
@@ -553,6 +549,14 @@ function computeChemistry() {
         avgStats.tmf = active.reduce((acc, c) => acc + c.stats.tmf, 0) / count;
         avgStats.map = active.reduce((acc, c) => acc + c.stats.map, 0) / count;
     }
+
+    // UPDATE NEW UI STATS FOR MEC, TMF, MAP
+    if (document.getElementById("overview-avg-mec")) {
+        document.getElementById("overview-avg-mec").innerText = Math.round(avgStats.mec);
+        document.getElementById("overview-avg-tmf").innerText = Math.round(avgStats.tmf);
+        document.getElementById("overview-avg-map").innerText = Math.round(avgStats.map);
+    }
+
     return { rating: avgRating, chem: (regionChem + yearChem), coach: coachBonus, training: trainBonus, totalPower: totalPower, rawStats: avgStats };
 }
 
