@@ -1,3 +1,5 @@
+// app.js
+
 function getSellValue(quality) {
     const vals = { Silver: 50, Gold: 100, Platinum: 200, Diamond: 400, Master: 800, Grandmaster: 1500, Challenger: 3000, Legacy: 2000, Coach: 150 };
     return vals[quality] || 50;
@@ -171,7 +173,6 @@ function updateDisplays() {
         document.getElementById("debt-warning").classList.add("hidden"); 
     }
 
-    // UPDATED LOGIC: Pull base cost from the HTML element's data-cost property to prevent inflation bugs
     document.querySelectorAll(".store-pack-btn").forEach(btn => {
         let basePrice = parseInt(btn.getAttribute("data-cost"));
         if (!isNaN(basePrice)) {
@@ -436,9 +437,13 @@ function renderFilteredPicker() {
 
     pool = pool.filter(p => !usedUniqueIds.includes(p.uniqueId) && !usedPlayerNames.includes(p.name));
 
-    if (activeSlot === "COACH") pool = pool.filter(p => p.role === "COACH");
-    else if (targetRole !== "ALL") pool = pool.filter(p => p.role === targetRole);
-    else if (["TOP", "JNG", "MID", "ADC", "SUP"].includes(activeSlot)) pool = pool.filter(p => p.role !== "COACH");
+    // COACH SLOT FILTER FIX: Prevent Coaches from ever showing up in standard bench/starting slots
+    if (activeSlot === "COACH") {
+        pool = pool.filter(p => p.role === "COACH");
+    } else {
+        pool = pool.filter(p => p.role !== "COACH");
+        if (targetRole !== "ALL") pool = pool.filter(p => p.role === targetRole);
+    }
 
     if (targetT !== "ALL") pool = pool.filter(p => p.team === targetT);
     if (targetR !== "ALL") pool = pool.filter(p => p.region === targetR);
@@ -497,10 +502,14 @@ function getTierFromRating(rating) {
 
 function computeChemistry() {
     let totalRating = 0; let count = 0; let active = [];
+    
+    // Core Mean Score specifically calculated ONLY from active pitch starting slots
     ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(role => {
         if (squad[role]) {
             let penalty = (squad[role].role !== role) ? 20 : 0;
-            totalRating += Math.max(0, squad[role].rating - penalty); count++; active.push(squad[role]);
+            totalRating += Math.max(0, squad[role].rating - penalty); 
+            count++; 
+            active.push(squad[role]);
         }
     });
 
@@ -522,7 +531,11 @@ function computeChemistry() {
 
         let nonLegacyTeams = active.filter(c => c.quality !== "Legacy").map(c => window.teamLineageBridges[c.team] || c.team);
         let uniqueTeams = new Set(nonLegacyTeams).size;
+        
         if (uniqueTeams <= 1) regionChem += 2; 
+
+        // STRICT REGION CHEM CAP ENFORCEMENT
+        regionChem = Math.min(5, regionChem);
     }
 
     document.getElementById("overview-chem-region").innerText = `${regionChem} / 5`;
@@ -530,6 +543,7 @@ function computeChemistry() {
     document.getElementById("overview-coach-bonus").innerText = `+${coachBonus}`;
     document.getElementById("overview-training-bonus").innerText = `+${trainBonus}`;
     
+    // Total calculation off the Mean Rating base
     let totalPower = avgRating + regionChem + yearChem + coachBonus + trainBonus;
     document.getElementById("overview-chem-total").innerText = totalPower;
 
