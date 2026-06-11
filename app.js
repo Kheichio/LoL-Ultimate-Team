@@ -388,6 +388,7 @@ function setCollectionRegion(reg) {
     renderCollection();
 }
 
+// Fixed function signature layout mapping duplicate triggers
 function setCollectionSort(sort) {
     currentCollectionSort = sort;
     renderCollection();
@@ -698,6 +699,69 @@ function payLoan() {
     activeLoans--; blueEssence -= 500; saveGame(); showToast("Loan amortized!", "success");
 }
 
+// --- PVE BRACKET SIMULATION FIXED INITIALIZATION ---
+function checkSquadReady() {
+    if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { 
+        showToast("Matrix incomplete. Fill all 5 starting lane allocations.", "error"); 
+        return false; 
+    } 
+    return true;
+}
+
+function startTournament(name, cost, r1, r2, baseDiff, rounds) {
+    if (!checkSquadReady()) return; 
+    if (blueEssence < cost) { showToast("Insufficient BE reserves.", "error"); return; }
+    if(simIntervalId) clearTimeout(simIntervalId); 
+    
+    blueEssence -= cost; 
+    isGoldenRoad = false; 
+    tourActive = true; 
+    tourRound = 0; 
+    tacticalBonus = 0; 
+    
+    // Explicit sequence order allows tourData object mapping before transitions handle DOM values
+    tourData = { name: name, reward1: r1, reward2: r2, maxRounds: rounds };
+    generateRealPlayerEnemies(baseDiff, rounds);
+    
+    document.getElementById("gr-badge").classList.add("hidden"); 
+    document.getElementById("gr-accrued-display").classList.add("hidden");
+    
+    saveGame();
+    transitionToArena(name);
+}
+
+function startGoldenRoad() {
+    if (!checkSquadReady()) return; 
+    if (blueEssence < 1000) { showToast("Insufficient assets for Golden Road.", "error"); return; }
+    if(simIntervalId) clearTimeout(simIntervalId); 
+    
+    blueEssence -= 1000; 
+    isGoldenRoad = true; 
+    tourActive = true; 
+    grStageIndex = 0; 
+    grAccruedEssence = 0; 
+    tacticalBonus = 0;
+    
+    // Setup first step baseline structural requirements
+    let stageInfo = grStages[grStageIndex];
+    tourData = { name: stageInfo.name, reward1: stageInfo.r1, reward2: stageInfo.r2, maxRounds: stageInfo.rounds };
+    generateRealPlayerEnemies(stageInfo.diff, stageInfo.rounds);
+    
+    document.getElementById("gr-badge").classList.remove("hidden"); 
+    document.getElementById("gr-accrued-display").classList.remove("hidden");
+    document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
+    
+    saveGame();
+    transitionToArena("Golden Road: " + stageInfo.name);
+}
+
+function loadGoldenRoadStage() {
+    let stageInfo = grStages[grStageIndex];
+    tourData = { name: stageInfo.name, reward1: stageInfo.r1, reward2: stageInfo.r2, maxRounds: stageInfo.rounds };
+    tourRound = 0; 
+    generateRealPlayerEnemies(stageInfo.diff, stageInfo.rounds);
+}
+
 function updateTeamCustomization() {
     teamIdentity.name = document.getElementById("custom-team-name").value || "My Team";
     teamIdentity.logo = document.getElementById("custom-team-logo").value || "🛡️";
@@ -710,6 +774,7 @@ function triggerWipe() {
     });
 }
 
+// Trigger explicit forfeit mod hooks
 function triggerForfeit() {
     showConfirm("Forfeit Tournament?", "You will lose your current bracket progress and buy-in.", () => {
         emergencyResetSim();
@@ -774,62 +839,6 @@ function updateDisplays() {
     renderSquadView(); 
     renderQuests();
     if(currentCollectionRegion) renderCollection();
-}
-
-function switchTab(tabId) {
-    if (tourActive && tabId !== 'tournament') {
-        showConfirm("Dropping out forfeits current bracket position.", "Do you want to abandon the current run?", () => {
-            emergencyResetSim();
-            executeTabSwitch(tabId);
-        });
-        return;
-    }
-    executeTabSwitch(tabId);
-}
-
-function executeTabSwitch(tabId) {
-    document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
-    document.getElementById(`tab-${tabId}`).classList.remove("hidden");
-    
-    if (tabId === 'club') { 
-        hasNewClubItems = false; 
-        saveGame(); 
-        updateBadges(); 
-    }
-}
-
-function populateDropdownFilters() {
-    if(!window.playerDatabase) return;
-    
-    const teams = ["ALL", ...new Set(window.playerDatabase.map(p => p.team))];
-    const regions = ["ALL", ...new Set(window.playerDatabase.map(p => p.region))];
-    const years = ["ALL", ...new Set(window.playerDatabase.map(p => p.year))];
-
-    document.getElementById("filter-team-dropdown").innerHTML = teams.map(t => `<option value="${t}">${t}</option>`).join("");
-    document.getElementById("filter-region-dropdown").innerHTML = regions.map(r => `<option value="${r}">${r}</option>`).join("");
-    document.getElementById("filter-year-dropdown").innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
-}
-
-function renderQuests() {
-    const container = document.getElementById("quests-container"); if (!container) return; container.innerHTML = "";
-    quests.forEach(q => {
-        let progress = trackStats[q.type] || 0; let isComplete = progress >= q.target;
-        const qDiv = document.createElement("div");
-        qDiv.className = `p-4 rounded-xl border flex justify-between items-center transition ${q.claimed ? 'bg-slate-900 border-slate-800 opacity-50' : 'bg-slate-800/80 border-slate-700 shadow-sm'}`;
-        let btnHtml = q.claimed ? `<button disabled class="bg-slate-700 text-slate-500 px-4 py-2 rounded font-bold text-xs">Claimed</button>` : isComplete ? `<button onclick="claimQuest('${q.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-slate-100 px-4 py-2 rounded font-bold text-xs cursor-pointer transition">Claim ${q.reward}</button>` : `<div class="text-slate-400 font-mono text-xs">${Math.min(progress, q.target)} / ${q.target}</div>`;
-        qDiv.innerHTML = `<div><h4 class="font-bold text-sm text-slate-300">${q.desc}</h4><p class="text-xs text-amber-400/90 font-mono mt-0.5">+${q.reward} BE</p></div><div>${btnHtml}</div>`;
-        container.appendChild(qDiv);
-    });
-}
-
-function claimQuest(id) { 
-    let q = quests.find(x => x.id === id); 
-    if(q && !q.claimed) { 
-        q.claimed = true; 
-        blueEssence += q.reward; 
-        saveGame(); 
-        updateBadges(); 
-    } 
 }
 
 function rollTier(packType) {
@@ -954,515 +963,6 @@ function buyTargetPack(targetType) {
     }
     processNewCards(pulled);
     saveGame(); showPulls(pulled, `${regionVal} ${tierVal} Allocation Pack`);
-}
-
-function buyStarterPack() {
-    if (hasBoughtStarter) return; hasBoughtStarter = true; trackStats.packs++;
-    const roles = ["TOP", "JNG", "MID", "ADC", "SUP"]; let pulled = [];
-    roles.forEach(role => {
-        let rolledTier = rollTier('Starter');
-        let pool = window.playerDatabase.filter(p => p.role === role && p.quality === rolledTier);
-        if(pool.length === 0) pool = window.playerDatabase.filter(p => p.role === role && (p.quality === "Silver" || p.quality === "Gold"));
-        let p = pool[Math.floor(Math.random() * pool.length)];
-        let cardInst = {...p, uniqueId: Date.now() + Math.random().toString(36).substring(2)};
-        pulled.push(cardInst); club.push(cardInst);
-    });
-    addXP(10);
-    processNewCards(pulled);
-    saveGame(); showPulls(pulled, "Starter Package Configured!");
-}
-
-function showPulls(pulledCards, titleText) {
-    const area = document.getElementById("pack-opening-area"); area.classList.remove("hidden");
-    document.getElementById("pack-opening-title").innerText = titleText;
-    const container = document.getElementById("pulled-cards"); container.innerHTML = "";
-    pulledCards.forEach(card => {
-        const wrapper = document.createElement("div"); wrapper.className = "flex flex-col items-center gap-2";
-        wrapper.appendChild(createCardElement(card, false, null, null)); 
-        container.appendChild(wrapper);
-    });
-    hasNewClubItems = true;
-    updateBadges();
-    saveGame();
-    area.scrollIntoView({ behavior: "smooth" });
-}
-
-function sellAllLowTier(tierName) {
-    let before = club.length;
-    club = club.filter(card => {
-        if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) return true;
-        if (card.quality === tierName) { 
-            let val = getSellValue(card.quality);
-            blueEssence += val; trackStats.soldCount++; trackStats.soldBE += val; 
-            return false; 
-        }
-        return true;
-    });
-    if(club.length !== before) {
-        showToast(`Bulk liquidation processed.`, "success");
-        saveGame();
-    }
-}
-
-function quickSellDuplicates() {
-    let counts = {}; let before = club.length;
-    club = club.filter(card => {
-        if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) return true;
-        let key = `${card.name}_${card.year}_${card.team}`;
-        if (counts[key]) { 
-            let val = getSellValue(card.quality);
-            blueEssence += val; trackStats.soldCount++; trackStats.soldBE += val; 
-            return false; 
-        }
-        counts[key] = true; return true;
-    });
-    if(club.length !== before) {
-        showToast("Duplicates purged!", "success");
-        saveGame();
-    }
-}
-
-function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
-    const cardDiv = document.createElement("div");
-    let calculatedRating = card.rating;
-    let isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
-    if (isOutOfPosition && card.role !== "COACH") { calculatedRating = Math.max(0, card.rating - 20); }
-
-    let baseClass = `card-bg-${card.quality}`;
-    if (card.role === 'COACH') { baseClass = 'coach-card-style'; }
-
-    const isDarkCard = ['Challenger', 'Champion', 'MVP'].includes(card.quality) || card.role === 'COACH';
-    const textStyleClass = isDarkCard ? 'text-white card-light-text' : 'text-black card-dark-text';
-    const badgeBgClass = isDarkCard ? 'bg-white/10 text-slate-200 border-white/10' : 'bg-black/10 text-slate-900 border-black/10';
-
-    cardDiv.className = `${baseClass} ${textStyleClass} rounded-xl p-3 w-52 flex flex-col items-center select-none relative transition-all shadow-lg shrink-0 overflow-hidden ${!onClickAction ? 'opacity-95' : 'hover:-translate-y-1 hover:shadow-2xl cursor-pointer'}`;
-    if (onClickAction) { cardDiv.onclick = onClickAction; }
-
-    const cleanName = card.name.replace(/[^a-zA-Z0-9]/g, '');
-    const wikiImg = `https://lol.fandom.com/wiki/Special:FilePath/${cleanName}Square.png`;
-    const avatarFallback = `https://ui-avatars.com/api/?name=${cleanName}&background=0f172a&color=cbd5e1&size=128&bold=true`;
-    
-    let headerHTML = "";
-    if (card.role === 'COACH') {
-        headerHTML = `
-            <div class="w-full flex justify-between text-[11px] font-bold uppercase mb-1 drop-shadow opacity-90 text-emerald-200">
-                <span class="flex gap-0.5">📋 COACH</span>
-                <span class="tracking-tight">${window.regionLogos[card.region] ? card.region : card.region}</span>
-            </div>
-        `;
-    } else {
-        headerHTML = `
-            <div class="w-full flex justify-between text-[11px] font-black uppercase mb-1 drop-shadow items-center">
-                <span class="bg-black/20 px-1.5 py-0.5 rounded flex gap-0.5">${window.roleIcons[card.role] || ''} ${card.role}</span>
-                <span class="opacity-90 tracking-tight">${window.regionLogos[card.region] ? card.region : card.region}</span>
-            </div>
-        `;
-    }
-    
-    cardDiv.innerHTML = `
-        ${headerHTML}
-        <div class="flex items-center gap-1 w-full mt-1">
-            <div class="text-3xl font-black tracking-tighter drop-shadow-md flex flex-col items-center w-1/3">
-                <span>${calculatedRating}</span>
-            </div>
-            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${avatarFallback}';" alt="" class="w-14 h-14 rounded-full border-2 border-white/20 shadow mx-auto object-cover bg-slate-900/40">
-        </div>
-        <div class="font-black text-base truncate w-full mt-2 tracking-tight drop-shadow-sm text-center">${card.name}</div>
-        <div class="text-[11px] font-bold opacity-80 truncate w-full text-center mb-0.5">${card.team} [${card.year}]</div>
-        
-        <div class="text-[10px] font-black tracking-widest uppercase border px-2 py-0.5 rounded-full ${badgeBgClass} mt-1.5 mb-1.5 shadow-sm font-mono text-center w-max mx-auto">
-            ${card.role === 'COACH' ? 'COACH PLATFORM' : `${card.quality === 'Champion' ? 'WORLD CHAMP' : `${card.quality === 'MVP' ? 'MVP AWARD' : `${card.quality} TIER`}`}`}
-        </div>
-
-        <div class="stat-grid mt-1">
-            <div class="flex flex-col gap-0.5">
-                <div><span class="opacity-70">MEC</span> ${card.stats.mec}</div>
-                <div><span class="opacity-70">TMF</span> ${card.stats.tmf}</div>
-                <div><span class="opacity-70">MAP</span> ${card.stats.map}</div>
-            </div>
-            <div class="flex flex-col gap-0.5 text-right pl-2 border-l" style="border-color: inherit;">
-                <div><span class="opacity-70">FRM</span> ${card.stats.frm}</div>
-                <div><span class="opacity-70">CMP</span> ${card.stats.cmp}</div>
-                <div><span class="opacity-70">LDR</span> ${card.stats.ldr}</div>
-            </div>
-        </div>
-    `;
-    return cardDiv;
-}
-
-function renderClubGrid() {
-    const grid = document.getElementById("club-grid"); if (!grid) return; grid.innerHTML = "";
-    const qStr = document.getElementById("club-search-input").value.toLowerCase();
-    let filteredClub = club.filter(c => c.name.toLowerCase().includes(qStr));
-
-    if (filteredClub.length === 0) { grid.innerHTML = `<p class="col-span-full text-slate-500 py-6 text-center font-mono text-sm">No matching club assets logged.</p>`; return; }
-
-    filteredClub.forEach((card, idx) => {
-        const wrapper = document.createElement("div"); wrapper.className = "flex flex-col items-center gap-2";
-        wrapper.appendChild(createCardElement(card, false, null, null));
-        const btnSell = document.createElement("button"); const sellPrice = getSellValue(card.quality);
-        
-        if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) {
-            btnSell.className = "text-xs bg-slate-800 text-slate-500 px-2 py-1.5 rounded w-52 font-bold cursor-not-allowed border border-slate-700";
-            btnSell.innerText = `Locked (In Squad)`; btnSell.disabled = true;
-        } else {
-            btnSell.className = "text-xs bg-red-900/30 hover:bg-red-800/60 border border-red-900/50 text-red-300 px-2 py-1.5 rounded transition w-52 font-bold cursor-pointer shadow-sm";
-            btnSell.innerHTML = `Liquidate (+${sellPrice})`;
-            btnSell.onclick = () => { 
-                blueEssence += sellPrice; 
-                trackStats.soldCount++; trackStats.soldBE += sellPrice;
-                club = club.filter(c => c.uniqueId !== card.uniqueId); 
-                saveGame(); 
-            };
-        }
-        wrapper.appendChild(btnSell); grid.appendChild(wrapper);
-    });
-}
-
-function sortClub(by) {
-    if (by === 'rating') club.sort((a,b) => b.rating - a.rating);
-    if (by === 'region') club.sort((a,b) => a.region.localeCompare(b.region));
-    renderClubGrid();
-}
-
-let activeSlot = null; let pickerSortBy = 'highest';
-
-function renderFilteredPicker() {
-    const grid = document.getElementById("picker-grid"); grid.innerHTML = "";
-    const targetT = document.getElementById("filter-team-dropdown").value;
-    const targetR = document.getElementById("filter-region-dropdown").value;
-    const targetY = document.getElementById("filter-year-dropdown").value;
-    const targetRole = document.getElementById("filter-role-dropdown").value;
-    const rankSort = document.getElementById("filter-sort-dropdown").value;
-
-    let pool = [...club];
-    const otherCardsInSquad = Object.entries(squad).filter(([slot, card]) => slot !== activeSlot && card !== null).map(([slot, card]) => card);
-    const usedUniqueIds = otherCardsInSquad.map(c => c.uniqueId);
-    const usedPlayerNames = otherCardsInSquad.map(c => c.name);
-
-    pool = pool.filter(p => !usedUniqueIds.includes(p.uniqueId) && !usedPlayerNames.includes(p.name));
-
-    if (activeSlot === "COACH") {
-        pool = pool.filter(p => p.role === "COACH");
-    } else {
-        pool = pool.filter(p => p.role !== "COACH");
-        if (targetRole !== "ALL") pool = pool.filter(p => p.role === targetRole);
-    }
-
-    if (targetT !== "ALL") pool = pool.filter(p => p.team === targetT);
-    if (targetR !== "ALL") pool = pool.filter(p => p.region === targetR);
-    if (targetY !== "ALL") pool = pool.filter(p => p.year == targetY);
-
-    pool.sort((a, b) => {
-        if (rankSort === "highest") return b.rating - a.rating;
-        if (rankSort === "lowest") return a.rating - b.rating;
-        if (rankSort === "highest_mec") return b.stats.mec - a.stats.mec;
-        if (rankSort === "highest_tmf") return b.stats.tmf - a.stats.tmf;
-        if (rankSort === "highest_map") return b.stats.map - a.stats.map;
-        return b.rating - a.rating;
-    });
-
-    if(pool.length === 0) { grid.innerHTML = `<p class="col-span-full text-center text-sm text-slate-500 py-8 font-mono">No matching club assets available.</p>`; return; }
-
-    pool.forEach(card => {
-        const wrapper = document.createElement("div");
-        wrapper.className = "flex flex-col items-center gap-2 p-2 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:border-blue-500/50 transition-all shadow-sm";
-        
-        const cardEl = createCardElement(card, false, () => {
-            squad[activeSlot] = card;
-            saveGame();
-            document.getElementById(`squad-${activeSlot}`).scrollIntoView({ behavior: "smooth", block: "center" });
-        }, activeSlot);
-        
-        wrapper.appendChild(cardEl); grid.appendChild(wrapper);
-    });
-}
-
-function selectSlot(role) {
-    activeSlot = role; document.getElementById("picker-role").innerText = role;
-    const roleDropdown = document.getElementById("filter-role-dropdown");
-    if (["COACH", "TOP", "JNG", "MID", "ADC", "SUP"].includes(role)) roleDropdown.value = role; else roleDropdown.value = "ALL";
-    document.getElementById("squad-picker-area").classList.remove("hidden");
-    renderFilteredPicker();
-    document.getElementById("squad-picker-area").scrollIntoView({ behavior: "smooth" });
-}
-
-function renderSquadView() {
-    const slots = ["COACH", "TOP", "JNG", "MID", "ADC", "SUP", "SUB1", "SUB2", "SUB3"];
-    slots.forEach(role => {
-        const slot = document.getElementById(`squad-${role}`); if(!slot) return; slot.innerHTML = "";
-        if (squad[role]) {
-            const cardEl = createCardElement(squad[role], false, () => selectSlot(role), role);
-            const del = document.createElement("button");
-            del.className = "absolute -top-2 -right-2 bg-red-800 hover:bg-red-600 rounded-full w-6 h-6 text-xs font-black flex items-center justify-center cursor-pointer border border-slate-900 shadow-lg text-white z-30 transition";
-            del.innerText = "✕"; del.onclick = (e) => { e.stopPropagation(); squad[role] = null; saveGame(); };
-            cardEl.appendChild(del); slot.appendChild(cardEl);
-        } else {
-            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-xs flex flex-col items-center justify-center h-full w-full opacity-60"><span class="text-3xl block mb-2">${window.roleIcons[role] || '+'}</span><span>${role}</span></div>`;
-        }
-    });
-    computeChemistry();
-}
-
-function clearSquad() { squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null }; saveGame(); }
-
-function getTierFromRating(rating) {
-    if (rating >= 97) return "Challenger"; if (rating >= 95) return "Grandmaster"; if (rating >= 92) return "Master";
-    if (rating >= 89) return "Diamond"; if (rating >= 85) return "Platinum"; if (rating >= 80) return "Gold"; return "Silver";
-}
-
-function computeChemistry() {
-    let totalRating = 0; let count = 0; let active = [];
-    
-    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(role => {
-        if (squad[role]) {
-            let penalty = (squad[role].role !== role) ? 20 : 0;
-            totalRating += Math.max(0, squad[role].rating - penalty); 
-            count++; 
-            active.push(squad[role]);
-        }
-    });
-
-    let avgRating = count > 0 ? Math.round(totalRating / count) : 0;
-    document.getElementById("overview-rating").innerText = avgRating;
-    document.getElementById("overview-average-tier").innerText = count > 0 ? getTierFromRating(avgRating) : "None";
-
-    let regionChem = 0; let yearChem = 0;
-    let coachBonus = squad["COACH"] ? 5 : 0; let trainBonus = getTrainingBonus();
-
-    if (count === 5) {
-        let nonLegacyRegions = active.filter(c => c.quality !== "Champion").map(c => c.region);
-        let uReg = new Set(nonLegacyRegions).size;
-        if (uReg <= 1) regionChem = 5; else if (uReg === 2) regionChem = 3; else if (uReg === 3) regionChem = 2; else regionChem = 1;
-
-        let nonLegacyYears = active.filter(c => c.quality !== "Champion").map(c => c.year);
-        let uYear = new Set(nonLegacyYears).size;
-        if (uYear <= 1) yearChem = 5; else if (uYear === 2) yearChem = 3; else yearChem = 1;
-
-        let nonLegacyTeams = active.filter(c => c.quality !== "Champion").map(c => window.teamLineageBridges[c.team] || c.team);
-        let uniqueTeams = new Set(nonLegacyTeams).size;
-        
-        if (uniqueTeams <= 1) regionChem += 2; 
-
-        regionChem = Math.min(5, regionChem);
-    }
-
-    document.getElementById("overview-chem-region").innerText = `${regionChem} / 5`;
-    document.getElementById("overview-chem-year").innerText = `${yearChem} / 5`;
-    document.getElementById("overview-coach-bonus").innerText = `+${coachBonus}`;
-    document.getElementById("overview-training-bonus").innerText = `+${trainBonus}`;
-    
-    let totalPower = avgRating + regionChem + yearChem + coachBonus + trainBonus;
-    document.getElementById("overview-chem-total").innerText = totalPower;
-
-    let avgStats = { mec: 0, tmf: 0, map: 0 };
-    if (count > 0) {
-        avgStats.mec = active.reduce((acc, c) => acc + c.stats.mec, 0) / count;
-        avgStats.tmf = active.reduce((acc, c) => acc + c.stats.tmf, 0) / count;
-        avgStats.map = active.reduce((acc, c) => acc + c.stats.map, 0) / count;
-    }
-
-    if (document.getElementById("overview-avg-mec")) {
-        document.getElementById("overview-avg-mec").innerText = Math.round(avgStats.mec);
-        document.getElementById("overview-avg-tmf").innerText = Math.round(avgStats.tmf);
-        document.getElementById("overview-avg-map").innerText = Math.round(avgStats.map);
-    }
-
-    return { rating: avgRating, chem: (regionChem + yearChem), coach: coachBonus, training: trainBonus, totalPower: totalPower, rawStats: avgStats };
-}
-
-// --- PVE COMBAT BRACKET ---
-function generateRealPlayerEnemies(baseDiff, rounds) {
-    enemies = []; const nomenclaturePool = ["SKT T1 Legacy", "Gen.G Superteam", "BLG Vanguard", "G2 Army", "Team Liquid Elite", "Fnatic Core"];
-    if (!window.playerDatabase) return;
-
-    const realProNames = [...new Set(window.playerDatabase.filter(p => p.role !== "COACH").map(p => p.name))];
-    for(let i = 0; i < rounds; i++) {
-        let diffCurve = baseDiff + (i * 3) + Math.floor(Math.random() * 4);
-        let chosenTeamName = nomenclaturePool[Math.floor(Math.random() * nomenclaturePool.length)] + ` [S${i+1}]`;
-        let activeDraft = []; let localNames = [...realProNames];
-        for (let r = 0; r < 5; r++) { activeDraft.push(localNames.splice(Math.floor(Math.random() * localNames.length), 1)[0]); }
-        
-        let enemyStats = {
-            mec: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10)),
-            tmf: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10)),
-            map: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10))
-        };
-        
-        enemies.push({ name: chosenTeamName, power: diffCurve, rosterNames: activeDraft, stats: enemyStats });
-    }
-}
-
-function populateLiveArenaVisualizer() {
-    const myRosterBox = document.getElementById("live-arena-my-roster"); const enemyRosterBox = document.getElementById("live-arena-enemy-roster");
-    myRosterBox.innerHTML = ""; enemyRosterBox.innerHTML = "";
-    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(role => { if (squad[role]) myRosterBox.appendChild(createCardElement(squad[role], false, null, role)); });
-    let enemyPowerRef = enemies[tourRound].power; let currentEnemyRoster = enemies[tourRound].rosterNames;
-    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach((role, idx) => {
-        let dummyCard = {
-            name: currentEnemyRoster[idx] || `Pro ${role}`, role: role, rating: Math.floor(enemyPowerRef - 3 + idx),
-            quality: getTierFromRating(enemyPowerRef), region: "GLOBAL", team: "NPC", year: 2024, stats: { mec: 80, tmf: 80, frm: 80, cmp: 80, map: 80, ldr: 80 }
-        };
-        enemyRosterBox.appendChild(createCardElement(dummyCard, false, null, role));
-    });
-}
-
-function transitionToArena(title) {
-    document.getElementById("tournament-lobby").classList.add("hidden"); document.getElementById("tournament-results").classList.add("hidden");
-    document.getElementById("tournament-active").classList.remove("hidden"); document.getElementById("tour-active-title").innerText = title;
-    setupBracketUI(); setupNextRoundUI();
-}
-
-function setupNextRoundUI() {
-    tacticalBonus = 0; let sData = computeChemistry(); let currentEnemy = enemies[tourRound];
-    document.getElementById("tour-my-power").innerText = sData.totalPower;
-    document.getElementById("enemy-team-name").innerText = currentEnemy.name;
-    document.getElementById("tour-enemy-rating").innerText = currentEnemy.power;
-    populateLiveArenaVisualizer();
-    
-    let managerBuff = (skills.tactics * 2);
-    let managerUI = managerBuff > 0 
-        ? `<div class="text-center mt-2 mb-4"><span class="text-emerald-400 text-xs font-bold border border-emerald-800/50 bg-emerald-900/30 px-3 py-1 rounded-full shadow-sm">Manager Tactics Skill Active: +${managerBuff} Power</span></div>`
-        : '';
-
-    const draftPanel = document.getElementById("tactical-draft-panel");
-    draftPanel.classList.remove("hidden");
-    draftPanel.innerHTML = `
-        <h4 class="text-base font-bold text-blue-300 mb-1 uppercase tracking-widest border-b border-slate-700/50 pb-2">Tactical Draft Phase</h4>
-        <p class="text-xs text-slate-400 mb-4 mt-2">Compare your lineup's stats against the opponent. Exploiting their weaknesses grants massive power multipliers, while drafting into their strengths penalizes you.</p>
-        
-        ${managerUI}
-
-        <div class="flex justify-center gap-6 mb-5 text-sm font-mono bg-slate-900/50 p-3 rounded border border-slate-700/50 shadow-inner">
-            <div class="text-center"><span class="text-slate-500 block text-[10px]">Avg MEC</span> <span class="text-slate-200">${Math.round(sData.rawStats.mec)}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400/90">${currentEnemy.stats.mec}</span></div>
-            <div class="text-center"><span class="text-slate-500 block text-[10px]">Avg TMF</span> <span class="text-slate-200">${Math.round(sData.rawStats.tmf)}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400/90">${currentEnemy.stats.tmf}</span></div>
-            <div class="text-center"><span class="text-slate-500 block text-[10px]">Avg MAP</span> <span class="text-slate-200">${Math.round(sData.rawStats.map)}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400/90">${currentEnemy.stats.map}</span></div>
-        </div>
-
-        <div class="flex flex-wrap justify-center gap-3">
-            <button onclick="lockInDraft('MEC')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-5 py-2.5 rounded font-bold transition text-xs text-slate-200 cursor-pointer shadow-md">Early Aggression (MEC)</button>
-            <button onclick="lockInDraft('TMF')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-5 py-2.5 rounded font-bold transition text-xs text-slate-200 cursor-pointer shadow-md">Front-to-Back (TMF)</button>
-            <button onclick="lockInDraft('MAP')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-5 py-2.5 rounded font-bold transition text-xs text-slate-200 cursor-pointer shadow-md">Objective Control (MAP)</button>
-        </div>
-    `;
-
-    document.getElementById("btn-play-match").classList.add("hidden");
-    document.getElementById("btn-next-round").classList.add("hidden");
-    document.getElementById("btn-gr-next").classList.add("hidden");
-    let stagePrefix = isGoldenRoad ? `[STAGE ${grStageIndex+1}/6] ` : ``;
-    document.getElementById("match-log").innerHTML = `<div class="text-blue-400 font-bold border-b border-slate-800 pb-1 mb-2">${stagePrefix}Entering Rift Canvas for ${getRoundLabel(tourRound, tourData.maxRounds)}. Awaiting Tactical Focus.</div>`;
-}
-
-function lockInDraft(statFocus) {
-    document.getElementById("tactical-draft-panel").classList.add("hidden");
-    let sData = computeChemistry(); let currentEnemy = enemies[tourRound];
-    
-    let myStat = sData.rawStats[statFocus.toLowerCase()];
-    let enemyStat = currentEnemy.stats[statFocus.toLowerCase()];
-    
-    let diff = myStat - enemyStat;
-    let baseBonus = Math.round(diff / 1.5);
-    let managerBuff = (skills.tactics * 2);
-    
-    tacticalBonus = baseBonus + managerBuff; 
-    
-    document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
-    
-    let sign = tacticalBonus >= 0 ? '+' : '';
-    let colorClass = tacticalBonus > 0 ? 'text-emerald-400' : (tacticalBonus < 0 ? 'text-red-400' : 'text-slate-300');
-    
-    appendLog(`[DRAFT PHASE] Strategic focus: ${statFocus}. Our ${statFocus}: ${Math.round(myStat)} vs Enemy ${statFocus}: ${enemyStat}.`, "text-slate-300 font-bold");
-    
-    if (managerBuff > 0) {
-        appendLog(`Manager Tactics Skill Bonus: +${managerBuff} Power.`, "text-emerald-300 font-bold italic");
-    }
-
-    appendLog(`Modifier Calculation: Applied ${sign}${tacticalBonus} Power to Squad Rating.`, `${colorClass} font-bold`);
-
-    const playBtn = document.getElementById("btn-play-match"); playBtn.classList.remove("hidden"); playBtn.disabled = false;
-    playBtn.classList.replace("bg-slate-600", "bg-blue-700"); playBtn.innerText = "Execute Simulation ⏩";
-}
-
-function getRoundLabel(idx, total) { if (idx === total - 1) return "Grand Finals"; if (idx === total - 2) return "Semifinals"; if (idx === total - 3) return "Quarterfinals"; return `Round of ${Math.pow(2, total - idx)}`; }
-
-function setupBracketUI() {
-    const container = document.getElementById("bracket-container"); container.innerHTML = "";
-    for(let i=0; i<tourData.maxRounds; i++) {
-        const badge = document.createElement("div");
-        badge.className = `bracket-step bg-slate-800 px-3 py-1.5 rounded border border-slate-700 ${i === tourRound ? 'bracket-active text-blue-300 bg-slate-800/80' : ''} ${i < tourRound ? 'bracket-won' : ''}`;
-        badge.innerText = getRoundLabel(i, tourData.maxRounds); container.appendChild(badge);
-    }
-}
-
-function appendLog(msg, colorClass = "text-slate-400") {
-    const logBox = document.getElementById("match-log");
-    logBox.innerHTML += `<div class="py-0.5 ${colorClass}"><span class="opacity-30 text-[10px] mr-2">${new Date().toLocaleTimeString()}</span>${msg}</div>`;
-    logBox.scrollTop = logBox.scrollHeight;
-}
-
-function recordMatchStats() {
-    ["TOP", "JNG", "MID", "ADC", "SUP", "COACH"].forEach(role => {
-        if (squad[role]) {
-            let n = squad[role].name;
-            trackStats.matchesPlayed[n] = (trackStats.matchesPlayed[n] || 0) + 1;
-        }
-    });
-}
-
-function playMatchStep() {
-    let sData = computeChemistry(); let myPower = sData.totalPower + tacticalBonus; let currentEnemy = enemies[tourRound];
-    const playBtn = document.getElementById("btn-play-match"); playBtn.disabled = true; playBtn.classList.replace("bg-blue-700", "bg-slate-700"); playBtn.innerText = "Crunching Telemetry...";
-    appendLog(`Drafting phase concluded. Opponent core: [${currentEnemy.rosterNames.join(", ")}] active.`, "text-slate-500");
-    simIntervalId = setTimeout(() => {
-        appendLog(`Skirmish Phase active. Cross-map macro checks engaged.`, "text-slate-300");
-        simIntervalId = setTimeout(() => {
-            let finalCalculation = myPower + ((Math.random() * 14) - 7);
-            appendLog("Late Phase: Contesting around the Baron Nashor pit...", "text-slate-400");
-            simIntervalId = setTimeout(() => {
-                recordMatchStats(); 
-                
-                if (finalCalculation >= currentEnemy.power) {
-                    appendLog(`🏆 Series Secured! Enemy team Nexus structures collapsed!`, "text-emerald-400 font-bold");
-                    if (tourRound >= tourData.maxRounds - 1) handleTournamentWin();
-                    else { playBtn.classList.add("hidden"); document.getElementById("btn-next-round").classList.remove("hidden"); }
-                } else {
-                    appendLog(`💀 Defeat. Squad power failed to match opposing push lines.`, "text-red-400/90 font-bold");
-                    handleTournamentLoss();
-                }
-            }, 600);
-        }, 800);
-    }, 700);
-}
-
-function checkSquadReady() {
-    if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { 
-        showToast("Matrix incomplete. Fill all 5 starting lane allocations.", "error"); 
-        return false; 
-    } 
-    return true;
-}
-
-function startTournament(name, cost, r1, r2, baseDiff, rounds) {
-    if (!checkSquadReady()) return; 
-    if (blueEssence < cost) { showToast("Insufficient BE reserves.", "error"); return; }
-    if(simIntervalId) clearTimeout(simIntervalId); 
-    blueEssence -= cost; saveGame();
-    isGoldenRoad = false; tourActive = true; tourData = { name, reward1: r1, reward2: r2, maxRounds: rounds };
-    tourRound = 0; tacticalBonus = 0; generateRealPlayerEnemies(baseDiff, rounds);
-    document.getElementById("gr-badge").classList.add("hidden"); document.getElementById("gr-accrued-display").classList.add("hidden");
-    transitionToArena(name);
-}
-
-function startGoldenRoad() {
-    if (!checkSquadReady()) return; 
-    if (blueEssence < 1000) { showToast("Insufficient assets for Golden Road.", "error"); return; }
-    if(simIntervalId) clearTimeout(simIntervalId); 
-    blueEssence -= 1000; saveGame();
-    isGoldenRoad = true; tourActive = true; grStageIndex = 0; grAccruedEssence = 0; tacticalBonus = 0;
-    loadGoldenRoadStage();
-    document.getElementById("gr-badge").classList.remove("hidden"); document.getElementById("gr-accrued-display").classList.remove("hidden");
-    document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
-    transitionToArena("Golden Road Run: " + tourData.name);
 }
 
 function handleTournamentWin() {
