@@ -74,7 +74,7 @@ function showToast(message, type = 'info') {
     if (type === 'error') colorClasses = 'bg-red-950/90 text-red-200 border-red-800';
     if (type === 'success') colorClasses = 'bg-emerald-950/90 text-emerald-200 border-emerald-800';
 
-    toast.className = `p-4 rounded-xl shadow-2xl font-bold text-sm transform transition-all duration-300 translate-y-full opacity-0 flex items-center gap-3 border ${colorClasses}`;
+    toast.className = `p-3 rounded-xl shadow-2xl font-bold text-xs transform transition-all duration-300 translate-y-full opacity-0 flex items-center gap-3 border ${colorClasses}`;
     toast.innerHTML = `<span>${message}</span>`;
     
     container.appendChild(toast);
@@ -388,7 +388,6 @@ function setCollectionRegion(reg) {
     renderCollection();
 }
 
-// Fixed function signature layout mapping duplicate triggers
 function setCollectionSort(sort) {
     currentCollectionSort = sort;
     renderCollection();
@@ -397,26 +396,24 @@ function setCollectionSort(sort) {
 function renderCollection() {
     if(!window.playerDatabase) return;
     
-    // Update Region Tabs Nav
     ["LCK", "LPL", "LEC", "LCS", "Legacy"].forEach(r => {
         let btn = document.getElementById(`col-reg-${r}`);
         if(!btn) return;
         if (r === currentCollectionRegion) {
-            btn.className = "flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-blue-600/20 border border-blue-500/50 text-blue-300 shadow-inner";
+            btn.className = "flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-blue-600/20 border border-blue-500/50 text-blue-300 shadow-inner cursor-pointer";
         } else {
             let extra = r === 'Legacy' ? 'border border-amber-900/50 text-slate-400' : 'border border-transparent text-slate-400';
-            btn.className = `flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 hover:text-slate-200 hover:bg-slate-700 ${extra}`;
+            btn.className = `flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 hover:text-slate-200 hover:bg-slate-700 cursor-pointer ${extra}`;
         }
     });
 
-    // Update Sort Tabs Nav
     ["team", "completion", "latest"].forEach(s => {
         let btn = document.getElementById(`col-sort-${s}`);
         if(!btn) return;
         if (s === currentCollectionSort) {
-            btn.className = "flex-1 py-1.5 px-4 rounded-lg font-black text-xs transition bg-slate-600 border border-slate-500 text-slate-100 uppercase tracking-widest shadow-inner";
+            btn.className = "flex-1 py-1.5 px-4 rounded-lg font-black text-xs transition bg-slate-600 border border-slate-500 text-slate-100 uppercase tracking-widest shadow-inner cursor-pointer";
         } else {
-            btn.className = "flex-1 py-1.5 px-4 rounded-lg font-bold text-xs transition text-slate-400 hover:text-slate-200 uppercase tracking-widest bg-slate-800 border border-transparent";
+            btn.className = "flex-1 py-1.5 px-4 rounded-lg font-bold text-xs transition text-slate-400 hover:text-slate-200 uppercase tracking-widest bg-slate-800 border border-transparent cursor-pointer";
         }
     });
 
@@ -424,10 +421,8 @@ function renderCollection() {
     if(!grid) return;
     grid.innerHTML = "";
     
-    // Filter database for currently viewed region tab
     let dbCards = window.playerDatabase.filter(c => c.region === currentCollectionRegion);
 
-    // Calculate claimable BE purely for this region
     let claimableBE = 0;
     dbCards.forEach(c => {
         let rec = collectionRegistry[c.id];
@@ -445,7 +440,6 @@ function renderCollection() {
         }
     }
 
-    // Sort: Latest Addition rendering (Flat layout)
     if (currentCollectionSort === 'latest') {
         let ownedCards = dbCards.filter(c => collectionRegistry[c.id]).sort((a, b) => {
             return (collectionRegistry[b.id].acquiredAt || 0) - (collectionRegistry[a.id].acquiredAt || 0);
@@ -479,7 +473,6 @@ function renderCollection() {
         return;
     }
 
-    // Sort: Team & Completion Rendering (Grouped Layout)
     let grouped = {};
     dbCards.forEach(c => {
         let tName = window.teamLineageBridges[c.team] || c.team;
@@ -493,40 +486,38 @@ function renderCollection() {
     let groupArray = Object.values(grouped);
 
     if (currentCollectionSort === 'completion') {
-        // Most to Collect (Highest deficit first)
         groupArray.sort((a, b) => (b.total - b.owned) - (a.total - a.owned));
     } else {
-        // Default Team Sort
         groupArray.sort((a, b) => a.team.localeCompare(b.team));
     }
 
     groupArray.forEach(group => {
         const roleOrder = { "TOP":1, "JNG":2, "MID":3, "ADC":4, "SUP":5, "COACH":6 };
         group.cards.sort((a, b) => {
-            if (b.year !== a.year) return b.year - a.year; // newest year first
-            return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99); // role strict order
+            if (b.year !== a.year) return b.year - a.year;
+            return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99);
         });
 
         let section = document.createElement("div");
-        section.className = "bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50";
+        section.className = "bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 mb-3 shadow";
         
-        let completionText = `<span class="text-sm font-mono float-right ${group.owned === group.total ? 'text-emerald-400' : 'text-slate-500'}">${group.owned} / ${group.total}</span>`;
-        section.innerHTML = `<h3 class="text-xl font-black text-slate-300 mb-4 border-b border-slate-700/50 pb-2 flex items-center justify-between">
+        let completionText = `<span class="text-xs font-mono float-right ${group.owned === group.total ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${group.owned} / ${group.total}</span>`;
+        section.innerHTML = `<h3 class="text-sm font-black text-slate-300 mb-3 border-b border-slate-700/50 pb-1.5 flex items-center justify-between">
             <span>${group.team} Lineages</span>
             ${completionText}
         </h3>`;
         
         let cardContainer = document.createElement("div");
-        cardContainer.className = "flex overflow-x-auto gap-4 pb-4 snap-x";
+        cardContainer.className = "flex overflow-x-auto gap-3 pb-2 snap-x";
         
         group.cards.forEach(c => {
             let isOwned = !!collectionRegistry[c.id];
             let wrapper = document.createElement("div");
-            wrapper.className = `snap-start shrink-0 transition duration-500 ${isOwned ? 'relative' : 'grayscale opacity-30 scale-95 hover:opacity-50'}`;
+            wrapper.className = `snap-start shrink-0 transition duration-500 ${isOwned ? 'relative' : 'grayscale opacity-25 scale-95 hover:opacity-40'}`;
             
             if (isOwned && !collectionRegistry[c.id].claimed) {
                 let dot = document.createElement("div");
-                dot.className = "absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-slate-900 shadow-[0_0_10px_rgba(250,204,21,0.8)] z-20 animate-pulse";
+                dot.className = "absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-yellow-400 rounded-full border border-slate-900 shadow z-20 animate-pulse";
                 wrapper.appendChild(dot);
             }
             
@@ -565,7 +556,6 @@ function claimCollectionRewards() {
 // --- XP & PROGRESSION LOGIC ---
 function addXP(amount) {
     managerXP += amount;
-    // Massive EXP Curve increase per instruction
     let needed = managerLevel * 250; 
     let leveledUp = false;
     
@@ -585,7 +575,7 @@ function addXP(amount) {
 
 function upgradeSkill(skillName) {
     let currentLvl = skills[skillName];
-    let cost = currentLvl + 1; // 1 SP for Lvl 1, 2 SP for Lvl 2, etc.
+    let cost = currentLvl + 1;
 
     if (skillPoints >= cost && currentLvl < 5) {
         skillPoints -= cost;
@@ -624,19 +614,19 @@ function renderSkillsUI() {
         let dotsHTML = "";
         for(let i=1; i<=5; i++) {
             let active = i <= currentLvl ? `bg-${def.color}-400 border-${def.color}-500 shadow-[0_0_8px_theme(colors.${def.color}.400)]` : "bg-slate-800 border-slate-700";
-            dotsHTML += `<div class="w-4 h-4 rounded-full border ${active}"></div>`;
+            dotsHTML += `<div class="w-3 h-3 rounded-full border ${active}"></div>`;
         }
 
         let btnHTML = maxed 
-            ? `<button disabled class="w-full bg-slate-800 text-slate-500 py-2 rounded-lg font-bold text-xs cursor-not-allowed">MAX LEVEL</button>`
-            : `<button onclick="upgradeSkill('${def.key}')" class="w-full ${canUpgrade ? `bg-${def.color}-600 hover:bg-${def.color}-500 text-white cursor-pointer` : `bg-slate-700 text-slate-400 cursor-not-allowed`} py-2 rounded-lg font-bold transition text-xs shadow-md" ${!canUpgrade ? 'disabled' : ''}>UPGRADE (${cost} SP)</button>`;
+            ? `<button disabled class="w-full bg-slate-800 text-slate-500 py-1.5 rounded-lg font-bold text-xs cursor-not-allowed">MAX LEVEL</button>`
+            : `<button onclick="upgradeSkill('${def.key}')" class="w-full ${canUpgrade ? `bg-${def.color}-600 hover:bg-${def.color}-500 text-white cursor-pointer shadow` : `bg-slate-700 text-slate-400 cursor-not-allowed`} py-1.5 rounded-lg font-bold transition text-xs" ${!canUpgrade ? 'disabled' : ''}>UPGRADE (${cost} SP)</button>`;
 
         container.innerHTML += `
-            <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex flex-col justify-between">
                 <div>
-                    <h3 class="text-lg font-bold text-${def.color}-400 mb-2">${def.name}</h3>
-                    <p class="text-xs text-slate-400 mb-4 h-12">${def.desc}</p>
-                    <div class="flex gap-2 mb-4 justify-center">
+                    <h3 class="text-sm font-black text-${def.color}-400 mb-1">${def.name}</h3>
+                    <p class="text-[11px] text-slate-400 mb-3 h-10">${def.desc}</p>
+                    <div class="flex gap-1.5 mb-3 justify-center">
                         ${dotsHTML}
                     </div>
                 </div>
@@ -669,17 +659,17 @@ function startTrainingVisualCountdown() {
     const btn = document.getElementById("btn-run-training");
     if(!display || !btn) return;
 
-    btn.disabled = true; btn.classList.replace("bg-orange-600/80", "bg-slate-700"); btn.classList.add("cursor-not-allowed");
+    btn.disabled = true; btn.classList.replace("bg-orange-500", "bg-slate-700"); btn.classList.add("cursor-not-allowed");
 
     trainingTimerInterval = setInterval(() => {
         let remaining = Math.round((trainingActiveUntil - Date.now()) / 1000);
         if (remaining <= 0) {
             clearInterval(trainingTimerInterval);
-            display.innerText = "Facility Idle"; display.className = "font-mono font-bold text-slate-500 text-sm";
-            btn.disabled = false; btn.classList.replace("bg-slate-700", "bg-orange-600/80"); btn.classList.remove("cursor-not-allowed");
+            display.innerText = "Facility Idle"; display.className = "font-mono font-bold text-slate-500 text-xs";
+            btn.disabled = false; btn.classList.replace("bg-slate-700", "bg-orange-500"); btn.classList.remove("cursor-not-allowed");
             computeChemistry();
         } else {
-            display.innerText = `Live: ${remaining}s left`; display.className = "font-mono font-bold text-orange-400 animate-pulse text-sm";
+            display.innerText = `Live: ${remaining}s left`; display.className = "font-mono font-bold text-orange-400 animate-pulse text-xs";
             computeChemistry();
         }
     }, 1000);
@@ -702,7 +692,7 @@ function payLoan() {
 // --- PVE BRACKET SIMULATION FIXED INITIALIZATION ---
 function checkSquadReady() {
     if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { 
-        showToast("Matrix incomplete. Fill all 5 starting lane allocations.", "error"); 
+        showToast("Lineup incomplete! Fill all 5 starting lane positions.", "error"); 
         return false; 
     } 
     return true;
@@ -719,7 +709,6 @@ function startTournament(name, cost, r1, r2, baseDiff, rounds) {
     tourRound = 0; 
     tacticalBonus = 0; 
     
-    // Explicit sequence order allows tourData object mapping before transitions handle DOM values
     tourData = { name: name, reward1: r1, reward2: r2, maxRounds: rounds };
     generateRealPlayerEnemies(baseDiff, rounds);
     
@@ -742,7 +731,6 @@ function startGoldenRoad() {
     grAccruedEssence = 0; 
     tacticalBonus = 0;
     
-    // Setup first step baseline structural requirements
     let stageInfo = grStages[grStageIndex];
     tourData = { name: stageInfo.name, reward1: stageInfo.r1, reward2: stageInfo.r2, maxRounds: stageInfo.rounds };
     generateRealPlayerEnemies(stageInfo.diff, stageInfo.rounds);
@@ -774,9 +762,8 @@ function triggerWipe() {
     });
 }
 
-// Trigger explicit forfeit mod hooks
 function triggerForfeit() {
-    showConfirm("Forfeit Tournament?", "You will lose your current bracket progress and buy-in.", () => {
+    showConfirm("Forfeit Tournament?", "You will lose your current bracket progress and buy-in run.", () => {
         emergencyResetSim();
     });
 }
@@ -810,7 +797,7 @@ function recalculateRegionalPrice() {
 
 function updateDisplays() {
     document.getElementById("be-display").innerText = blueEssence;
-    document.getElementById("club-count").innerText = club.length;
+    document.getElementById("club-count-val").innerText = club.length;
     
     const premium = getLoanPremium();
     document.getElementById("inflation-premium-display").innerText = `+${premium} BE`;
@@ -841,40 +828,21 @@ function updateDisplays() {
     if(currentCollectionRegion) renderCollection();
 }
 
-function rollTier(packType) {
-    const roll = (Math.random() * 100) + (skills.scouting * 2);
-    
-    if (packType === 'Starter') { 
-        if (roll < 80) return "Silver"; 
-        return "Gold"; 
-    }
-    if (packType === 'Standard') { 
-        if (roll < 75) return "Silver"; 
-        return "Gold"; 
-    }
-    if (packType === 'Elite') { 
-        if (roll < 50) return "Gold"; 
-        if (roll < 80) return "Platinum"; 
-        if (roll < 96) return "Diamond"; 
-        return "Master"; 
-    }
-    if (packType === 'Supreme') { 
-        if (roll < 40) return "Platinum"; 
-        if (roll < 70) return "Diamond"; 
-        if (roll < 88) return "Master"; 
-        if (roll < 97) return "Grandmaster"; 
-        return "Challenger"; 
-    }
-    return "Silver";
+function buyStarterPack() {
+    if (hasBoughtStarter) return; hasBoughtStarter = true; trackStats.packs++;
+    const roles = ["TOP", "JNG", "MID", "ADC", "SUP"]; let pulled = [];
+    roles.forEach(role => {
+        let pool = window.playerDatabase.filter(p => p.role === role && p.rating <= 84);
+        let p = pool[Math.floor(Math.random() * pool.length)];
+        let inst = {...p, uniqueId: Date.now() + Math.random().toString(36).substring(2)};
+        pulled.push(inst); club.push(inst);
+    });
+    processNewCards(pulled); saveGame(); showPulls(pulled, "Starter Package Claimed");
 }
 
 function buyPack(baseCost, type) {
-    let actualCost = baseCost + getLoanPremium();
-    if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
-    blueEssence -= actualCost; trackStats.packs++;
-    
-    addXP(25);
-    let pulled = [];
+    let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
+    blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
     
     if (type === 'Champion') {
         let legPool = window.playerDatabase.filter(p => p.quality === "Champion");
@@ -962,15 +930,268 @@ function buyTargetPack(targetType) {
         pulled.push(cardInst); club.push(cardInst);
     }
     processNewCards(pulled);
-    saveGame(); showPulls(pulled, `${regionVal} ${tierVal} Allocation Pack`);
+    saveGame(); showPulls(pulled, `${regionVal} Regional Allocation Pack`);
+}
+
+function renderClubGrid() {
+    const grid = document.getElementById("club-grid"); if(!grid) return; grid.innerHTML = "";
+    let q = document.getElementById("club-search-input").value.toLowerCase();
+    let filtered = club.filter(c => c.name.toLowerCase().includes(q));
+    
+    filtered.forEach((card, idx) => {
+        let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1";
+        wrap.appendChild(createCardElement(card, true, null, null));
+        let btn = document.createElement("button"); let price = getSellValue(card.quality);
+        if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) {
+            btn.className = "text-[10px] bg-slate-700 text-slate-400 px-2 py-0.5 rounded w-full font-bold cursor-not-allowed"; btn.innerText = "In Squad"; btn.disabled = true;
+        } else {
+            btn.className = "text-[10px] bg-red-950/60 text-red-300 px-2 py-0.5 rounded w-full font-bold cursor-pointer transition hover:bg-red-900"; btn.innerHTML = `Sell (+${price})`;
+            btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
+        }
+        wrap.appendChild(btn); grid.appendChild(wrap);
+    });
+}
+
+function sortClub(by) {
+    if (by === 'rating') club.sort((a,b) => b.rating - a.rating);
+    if (by === 'region') club.sort((a,b) => a.region.localeCompare(b.region));
+    renderClubGrid();
+}
+
+function populateDropdownFilters() {
+    if(!window.playerDatabase) return;
+    const teams = ["ALL", ...new Set(window.playerDatabase.map(p => p.team))];
+    const regions = ["ALL", ...new Set(window.playerDatabase.map(p => p.region))];
+    const years = ["ALL", ...new Set(window.playerDatabase.map(p => p.year))];
+    document.getElementById("filter-team-dropdown").innerHTML = teams.map(t => `<option value="${t}">${t}</option>`).join("");
+    document.getElementById("filter-region-dropdown").innerHTML = regions.map(r => `<option value="${r}">${r}</option>`).join("");
+    document.getElementById("filter-year-dropdown").innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
+}
+
+function renderFilteredPicker() {
+    const grid = document.getElementById("picker-grid"); if(!grid) return; grid.innerHTML = "";
+    const targetT = document.getElementById("filter-team-dropdown").value;
+    const targetR = document.getElementById("filter-region-dropdown").value;
+    const targetY = document.getElementById("filter-year-dropdown").value;
+    const targetRole = document.getElementById("filter-role-dropdown").value;
+    const rankSort = document.getElementById("filter-sort-dropdown").value;
+
+    let pool = [...club];
+    const activeSquadMembers = Object.entries(squad).filter(([slot, card]) => slot !== activeSlot && card !== null).map(([slot, card]) => card);
+    pool = pool.filter(p => !activeSquadMembers.map(c=>c.uniqueId).includes(p.uniqueId) && !activeSquadMembers.map(c=>c.name).includes(p.name));
+
+    if (activeSlot === "COACH") pool = pool.filter(p => p.role === "COACH");
+    else if (targetRole !== "ALL") pool = pool.filter(p => p.role === targetRole);
+    else if (["TOP", "JNG", "MID", "ADC", "SUP"].includes(activeSlot)) pool = pool.filter(p => p.role !== "COACH");
+
+    if (targetT !== "ALL") pool = pool.filter(p => p.team === targetT);
+    if (targetR !== "ALL") pool = pool.filter(p => p.region === targetR);
+    if (targetY !== "ALL") pool = pool.filter(p => p.year == targetY);
+
+    if (rankSort === "highest") pool.sort((a,b) => b.rating - a.rating);
+    else if (rankSort === "lowest") pool.sort((a,b) => a.rating - b.rating);
+    else if (rankSort === "highest_mec") pool.sort((a,b) => b.stats.mec - a.stats.mec);
+    else if (rankSort === "highest_tmf") pool.sort((a,b) => b.stats.tmf - a.stats.tmf);
+    else if (rankSort === "highest_map") pool.sort((a,b) => b.stats.map - a.stats.map);
+
+    if(pool.length === 0) { grid.innerHTML = `<p class="col-span-full text-center text-xs text-slate-500 py-4 font-mono">No reserves match metrics.</p>`; return; }
+    pool.forEach(card => {
+        let row = document.createElement("div"); row.className = "flex justify-between items-center bg-slate-900/80 hover:bg-slate-800 p-2 rounded-lg border border-slate-700 cursor-pointer transition text-xs";
+        row.onclick = () => { squad[activeSlot] = card; document.getElementById("squad-picker-area").classList.add("hidden"); saveGame(); };
+        row.innerHTML = `<div class="flex items-center gap-2"><span class="font-mono font-black text-blue-400 bg-slate-950 px-1.5 py-0.5 rounded text-[10px]">${card.rating}</span><div><div class="font-black text-white leading-tight">${card.name}</div><div class="text-[9px] text-slate-400">${card.team} • ${card.role}</div></div></div>`;
+        grid.appendChild(row);
+    });
+}
+
+function selectSlot(role) {
+    activeSlot = role; document.getElementById("picker-role").innerText = role;
+    const roleDropdown = document.getElementById("filter-role-dropdown");
+    if (["COACH", "TOP", "JNG", "MID", "ADC", "SUP"].includes(role)) roleDropdown.value = role; else roleDropdown.value = "ALL";
+    document.getElementById("squad-picker-area").classList.remove("hidden"); renderFilteredPicker();
+}
+
+function renderSquadView() {
+    const slots = ["COACH", "TOP", "JNG", "MID", "ADC", "SUP", "SUB1", "SUB2", "SUB3"];
+    slots.forEach(role => {
+        const slot = document.getElementById(`squad-${role}`); if(!slot) return; slot.innerHTML = "";
+        if(squad[role]) {
+            let cardEl = createCardElement(squad[role], true, () => selectSlot(role), role);
+            let del = document.createElement("button"); del.className = "absolute -top-1 -right-1 bg-red-700 hover:bg-red-600 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-black cursor-pointer border border-slate-900 shadow"; del.innerText = "✕";
+            del.onclick = (e) => { e.stopPropagation(); squad[role] = null; saveGame(); };
+            cardEl.appendChild(del); slot.appendChild(cardEl);
+        } else {
+            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-[10px] flex flex-col items-center justify-center h-full"><span class="text-lg opacity-40 mb-0.5">${window.roleIcons[role] || '+'}</span><span>${role}</span></div>`;
+        }
+    });
+    computeChemistry();
+}
+
+function clearSquad() { squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null }; saveGame(); }
+
+function getTierFromRating(rating) {
+    if (rating >= 97) return "Challenger"; if (rating >= 95) return "Grandmaster"; if (rating >= 92) return "Master";
+    if (rating >= 89) return "Diamond"; if (rating >= 85) return "Platinum"; if (rating >= 80) return "Gold"; return "Silver";
+}
+
+function computeChemistry() {
+    let totalRating = 0; let count = 0; let active = []; let sums = { mec:0, tmf:0, map:0 };
+    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(role => {
+        if(squad[role]) {
+            let p = (squad[role].role !== role) ? 20 : 0;
+            let finalR = Math.max(0, squad[role].rating - p);
+            totalRating += finalR; count++; active.push(squad[role]);
+            sums.mec += squad[role].stats.mec; sums.tmf += squad[role].stats.tmf; sums.map += squad[role].stats.map;
+        }
+    });
+
+    let avgRating = count > 0 ? Math.round(totalRating / count) : 0;
+    document.getElementById("overview-rating").innerText = avgRating;
+    document.getElementById("overview-average-tier").innerText = count > 0 ? getTierFromRating(avgRating) : "None";
+    document.getElementById("overview-avg-mec").innerText = count > 0 ? Math.round(sums.mec / count) : 0;
+    document.getElementById("overview-avg-tmf").innerText = count > 0 ? Math.round(sums.tmf / count) : 0;
+    document.getElementById("overview-avg-map").innerText = count > 0 ? Math.round(sums.map / count) : 0;
+
+    let regionChem = 0; let yearChem = 0; let coachBonus = squad["COACH"] ? 5 : 0; let trainBonus = getTrainingBonus();
+    if(count === 5) {
+        let regs = active.map(c => c.region); let uReg = new Set(regs).size;
+        if(uReg === 1) regionChem = 5; else if(uReg <= 2) regionChem = 3; else if(uReg <= 3) regionChem = 2; else regionChem = 1;
+        let yrs = active.map(c => c.year); let uY = new Set(yrs).size;
+        if(uY === 1) yearChem = 5; else if(uY <= 2) yearChem = 3; else yearChem = 1;
+        if(new Set(active.map(c => window.teamLineageBridges[c.team] || c.team)).size === 1) regionChem += 2;
+    }
+    document.getElementById("overview-chem-region").innerText = `${regionChem} / 5`;
+    document.getElementById("overview-chem-year").innerText = `${yearChem} / 5`;
+    document.getElementById("overview-coach-bonus").innerText = `+${coachBonus}`;
+    document.getElementById("overview-training-bonus").innerText = `+${trainBonus}`;
+    
+    let totalPower = avgRating + regionChem + yearChem + coachBonus + trainBonus;
+    document.getElementById("overview-chem-total").innerText = totalPower;
+    return { totalPower, avgStats: { mec: count>0?sums.mec/count:0, tmf: count>0?sums.tmf/count:0, map: count>0?sums.map/count:0 } };
+}
+
+function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
+    const cardDiv = document.createElement("div");
+    let isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
+    let displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
+
+    cardDiv.className = `card-bg-${card.quality} rounded-xl p-2.5 w-40 flex flex-col items-center select-none relative transition-transform ${isMini ? 'scale-[0.85]' : 'hover:scale-105'}`;
+    if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
+
+    const cleanName = card.name.replace(/[^a-zA-Z0-9]/g, '');
+    const wikiImg = `https://lol.fandom.com/wiki/Special:FilePath/${cleanName}Square.png`;
+    const fallback = `https://ui-avatars.com/api/?name=${cleanName}&background=0f172a&color=cbd5e1&size=128&bold=true`;
+    const textClass = (card.quality === 'Silver' || card.quality === 'Gold') ? 'text-slate-700' : 'text-slate-300';
+    
+    cardDiv.innerHTML = `
+        <div class="w-full flex justify-between text-[9px] font-black uppercase mb-1 items-center">
+            <span class="bg-black/30 text-white px-1 rounded flex gap-0.5">${window.roleIcons[card.role] || ''} ${card.role}</span>
+            <span class="opacity-90 tracking-tight text-white/80">${window.regionLogos[card.region] ? card.region : card.region}</span>
+        </div>
+        <div class="flex items-center gap-1 w-full mt-0.5">
+            <div class="text-2xl font-black tracking-tighter drop-shadow-md flex flex-col items-center"><span>${displayRating}</span></div>
+            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-10 h-10 rounded-full border border-white/30 shadow mx-auto object-cover bg-slate-800">
+        </div>
+        <div class="font-black text-xs truncate w-full mt-1 text-center drop-shadow-sm">${card.name}</div>
+        <div class="text-[9px] font-bold opacity-80 truncate w-full mb-0.5 text-center">${card.team} [${card.year}]</div>
+        ${card.role === 'COACH' ? `<div class="mt-4 text-[9px] font-black text-center uppercase text-emerald-600 tracking-wider">Staff Leader</div>` : `
+        <div class="stat-grid mt-1 border-0">
+            <div><span class="${textClass}">MEC</span> ${card.stats.mec}</div>
+            <div><span class="${textClass}">TMF</span> ${card.stats.tmf}</div>
+            <div><span class="${textClass}">FRM</span> ${card.stats.frm}</div>
+            <div><span class="${textClass}">CMP</span> ${card.stats.cmp}</div>
+            <div><span class="${textClass}">MAP</span> ${card.stats.map}</div>
+            <div><span class="${textClass}">LDR</span> ${card.stats.ldr}</div>
+        </div>`}
+    `;
+    return cardDiv;
+}
+
+function generateRealPlayerEnemies(baseDiff, rounds) {
+    enemies = []; const teams = ["SKT T1 Legacy", "Gen.G Superteam", "BLG Vanguard", "G2 Army", "Team Liquid Elite", "Fnatic Core"];
+    const realProNames = [...new Set(window.playerDatabase.filter(p => p.role !== "COACH").map(p => p.name))];
+    for(let i = 0; i < rounds; i++) {
+        let diff = baseDiff + (i * 3) + Math.floor(Math.random() * 4);
+        let activeDraft = []; let localNames = [...realProNames];
+        for (let r = 0; r < 5; r++) { activeDraft.push(localNames.splice(Math.floor(Math.random() * localNames.length), 1)[0]); }
+        enemies.push({ name: teams[Math.floor(Math.random() * teams.length)] + ` [S${i+1}]`, power: diff, rosterNames: activeDraft });
+    }
+}
+
+function transitionToArena(title) {
+    document.getElementById("tournament-lobby").classList.add("hidden");
+    document.getElementById("tournament-results").classList.add("hidden");
+    document.getElementById("tournament-active").classList.remove("hidden");
+    document.getElementById("tour-active-title").innerText = title;
+    setupBracketUI(); setupNextRoundUI();
+}
+
+function setupNextRoundUI() {
+    tacticalBonus = 0; let sData = computeChemistry(); let currentEnemy = enemies[tourRound];
+    document.getElementById("tour-my-power").innerText = sData.totalPower;
+    document.getElementById("enemy-team-name").innerText = currentEnemy.name;
+    document.getElementById("tour-enemy-rating").innerText = currentEnemy.power;
+    populateLiveArenaVisualizer();
+    document.getElementById("tactical-draft-panel").classList.remove("hidden");
+    document.getElementById("btn-play-match").classList.add("hidden");
+    document.getElementById("btn-next-round").classList.add("hidden");
+    document.getElementById("btn-gr-next").classList.add("hidden");
+    
+    const panel = document.getElementById("tactical-draft-panel");
+    panel.innerHTML = `
+        <h4 class="text-sm font-black text-purple-400 mb-1 uppercase tracking-widest">Tactical Draft Phase</h4>
+        <p class="text-[10px] text-slate-400 mb-3">Select your strategic focus against [ ${currentEnemy.rosterNames.join(", ")} ]</p>
+        <div class="flex flex-wrap justify-center gap-2">
+            <button onclick="lockInDraft('MEC')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold transition text-xs">Early Aggression (MEC)</button>
+            <button onclick="lockInDraft('TMF')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold transition text-xs">Front-to-Back (TMF)</button>
+            <button onclick="lockInDraft('MAP')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold transition text-xs">Objective Control (MAP)</button>
+        </div>
+    `;
+}
+
+function lockInDraft(statFocus) {
+    document.getElementById("tactical-draft-panel").classList.add("hidden");
+    let sData = computeChemistry(); 
+    let baseStat = sData.avgStats[statFocus.toLowerCase()] || 70;
+    tacticalBonus = Math.floor(baseStat / 15) + (skills.tactics * 2);
+    
+    document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
+    appendLog(`[DRAFT PHASE] Strategic focus locked on ${statFocus}. Attributes generated: +${tacticalBonus} Combat Power Boost!`, "text-purple-400 font-bold");
+    const playBtn = document.getElementById("btn-play-match"); playBtn.classList.remove("hidden"); playBtn.disabled = false;
+    playBtn.classList.replace("bg-slate-600", "bg-blue-600"); playBtn.innerText = "Execute Simulation ⏩";
+}
+
+function playMatchStep() {
+    let sData = computeChemistry(); let myPower = sData.totalPower + tacticalBonus; let currentEnemy = enemies[tourRound];
+    const playBtn = document.getElementById("btn-play-match"); playBtn.disabled = true; playBtn.classList.replace("bg-blue-600", "bg-slate-600"); playBtn.innerText = "Processing Telemetry...";
+    appendLog(`Series launched against [ ${currentEnemy.rosterNames.join(", ")} ].`, "text-slate-400");
+    
+    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(r => { if(squad[r]) { let name = squad[r].name; trackStats.matchesPlayed[name] = (trackStats.matchesPlayed[name] || 0) + 1; } });
+
+    simIntervalId = setTimeout(() => {
+        appendLog(`Skirmish Phase. Tactical execution boost yields: +${tacticalBonus}.`, "text-slate-300");
+        simIntervalId = setTimeout(() => {
+            let finalCalculation = myPower + ((Math.random() * 14) - 7);
+            appendLog("Late Phase Macro contesting around the Baron Nashor pit...", "text-slate-400");
+            simIntervalId = setTimeout(() => {
+                if (finalCalculation >= currentEnemy.power) {
+                    appendLog(`🏆 Series Secured! Nexus mainframe collapsed!`, "text-green-400 font-bold");
+                    if (tourRound >= tourData.maxRounds - 1) handleTournamentWin();
+                    else { playBtn.classList.add("hidden"); document.getElementById("btn-next-round").classList.remove("hidden"); }
+                } else {
+                    appendLog(`💀 Defeat. Strategic macro lines compromised.`, "text-red-400 font-bold");
+                    handleTournamentLoss();
+                }
+            }, 600);
+        }, 800);
+    }, 700);
 }
 
 function handleTournamentWin() {
     blueEssence += tourData.reward1;
-    addXP(100); 
+    addXP(100);
     if (isGoldenRoad) {
         grAccruedEssence += tourData.reward1; document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
-        appendLog(`[STAGE CLEARED] Credited +${tourData.reward1} BE. Run Total: ${grAccruedEssence} BE`, "text-amber-400 font-bold");
+        appendLog(`[STAGE CLEARED] Credited +${tourData.reward1} BE. Run Total: ${grAccruedEssence} BE`, "text-yellow-400 font-black");
         if (grStageIndex === grStages.length - 1) { blueEssence += 5000; trackStats.goldenRoads++; saveGame(); endTournament(true, true); }
         else { saveGame(); document.getElementById("btn-play-match").classList.add("hidden"); document.getElementById("btn-gr-next").classList.remove("hidden"); }
     } else { trackStats.tournamentsWon++; saveGame(); endTournament(true, false); }
@@ -988,14 +1209,14 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
     const outcomeDiv = document.getElementById("tournament-results"); outcomeDiv.classList.remove("hidden");
     const title = document.getElementById("result-title"); const desc = document.getElementById("result-desc"); const icon = document.getElementById("result-icon");
     if (isGRCompletion) {
-        title.innerText = "GOLDEN ROAD ACHIEVED!"; title.className = "text-2xl font-black mb-1 text-amber-400 drop-shadow-md";
+        title.innerText = "GOLDEN ROAD ACHIEVED!"; title.className = "text-2xl font-black mb-1 text-yellow-400 drop-shadow-[0_0_15px_rgba(234,179,8,1)]";
         icon.innerText = "🏆"; desc.innerText = `Sensational perfection! Stage prizes banked, plus the grand +5,000 BE bonus yield! Run total extraction: ${grAccruedEssence + 5000} BE.`;
     } else if (isWin) {
         title.innerText = "Tournament Champions!"; title.className = "text-xl font-bold mb-1 text-emerald-400";
         icon.innerText = "👑"; desc.innerText = `Run complete. Main collection account credited with ${tourData.reward1} BE payout metrics.`;
     } else {
         title.innerText = "Bracket Knockout"; title.className = "text-xl font-bold mb-1 text-red-500";
-        icon.innerText = "💀"; desc.innerText = reachedFinals ? `Knocked out in the Grand Finals stage. Consolidated runner-up payout of ${tourData.reward2} BE cleared.` : `Roster path severed mid-bracket. Performance yields cancelled.`;
+        icon.innerText = "💀"; desc.innerText = reachedFinals ? `Knocked out in the Grand Finals stage. Consolidated runner-up payout of ${tourData.reward2} BE successfully cleared.` : `Roster path severed mid-bracket. Performance yields cancelled.`;
     }
     isGoldenRoad = false;
 }
@@ -1004,3 +1225,35 @@ function setupNextRound() { if (tourRound < tourData.maxRounds - 1) { tourRound+
 function advanceGoldenRoadStage() { grStageIndex++; loadGoldenRoadStage(); document.getElementById("tour-active-title").innerText = "Golden Road Run: " + tourData.name; setupBracketUI(); setupNextRoundUI(); }
 function emergencyResetSim() { if(simIntervalId) clearTimeout(simIntervalId); tourActive = false; isGoldenRoad = false; document.getElementById("tournament-active").classList.add("hidden"); document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); }
 function finishTournamentUI() { document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
+function setupBracketUI() {
+    const container = document.getElementById("bracket-container"); container.innerHTML = "";
+    for(let i=0; i<tourData.maxRounds; i++) {
+        const badge = document.createElement("div"); badge.className = `bracket-step bg-slate-700 px-2 py-1 rounded border border-slate-600 ${i === tourRound ? 'bracket-active text-blue-400 bg-slate-800' : ''} ${i < tourRound ? 'bracket-won' : ''}`;
+        badge.innerText = getRoundLabel(i, tourData.maxRounds); container.appendChild(badge);
+    }
+}
+function appendLog(msg, colorClass = "text-slate-300") {
+    const logBox = document.getElementById("match-log"); logBox.innerHTML += `<div class="py-0.5 ${colorClass}"><span class="opacity-40 text-[9px] mr-2">${new Date().toLocaleTimeString()}</span>${msg}</div>`; logBox.scrollTop = logBox.scrollHeight;
+}
+function recalculateRegionalPrice() {
+    const tierSelect = document.getElementById("region-tier-select");
+    const regBtn = document.getElementById("btn-buy-regional"); if(!tierSelect || !regBtn) return;
+    let price = 800;
+    if(tierSelect.value === "Platinum") price = 1500;
+    if(tierSelect.value === "Diamond") price = 2500;
+    if(tierSelect.value === "Master") price = 4500;
+    regBtn.setAttribute("data-cost", price);
+    const premium = getLoanPremium(); regBtn.innerText = `${price + premium} BE`;
+}
+function updateClubStatsUI() {
+    document.getElementById("stat-wins").innerText = (trackStats.tournamentsWon || 0) + (trackStats.goldenRoads || 0);
+    document.getElementById("stat-packs").innerText = trackStats.packs || 0;
+    document.getElementById("stat-liquidated").innerText = trackStats.soldBE || 0;
+    let mvp = "None"; let highestMatches = 0;
+    for (const [playerName, count] of Object.entries(trackStats.matchesPlayed)) {
+        if (count > highestMatches) { highestMatches = count; mvp = playerName; }
+    }
+    document.getElementById("stat-mvp").innerText = highestMatches > 0 ? `${mvp} (${highestMatches}m)` : "None";
+}
+function triggerWipe() { showConfirm("Wipe All Data?", "Permanently delete Club, Essences, and Levels.", () => { localStorage.clear(); location.reload(); }); }
+function triggerForfeit() { showConfirm("Forfeit Tournament?", "Lose your bracket positioning and stake.", () => emergencyResetSim()); }
