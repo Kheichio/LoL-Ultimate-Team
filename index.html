@@ -7,7 +7,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-900 font-sans min-h-screen flex flex-col select-none text-sm md:text-base">
+<body class="bg-slate-900 font-sans min-h-screen flex flex-col select-none text-sm md:text-base overflow-x-hidden">
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <div id="confirm-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-800 p-8 rounded-2xl border border-slate-600 max-w-sm w-full shadow-2xl text-center transform scale-95 transition-transform duration-200" id="confirm-modal-box">
+            <div class="text-4xl mb-4">⚠️</div>
+            <h3 class="text-xl font-bold text-slate-200 mb-2" id="confirm-title">Are you sure?</h3>
+            <p class="text-sm text-slate-400 mb-6" id="confirm-desc">This action cannot be undone.</p>
+            <div class="flex gap-4 justify-center">
+                <button id="confirm-btn-cancel" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-6 py-2.5 rounded-lg font-bold transition w-full">Cancel</button>
+                <button id="confirm-btn-yes" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-bold transition w-full">Confirm</button>
+            </div>
+        </div>
+    </div>
 
     <header class="bg-slate-800 p-4 shadow-xl flex flex-wrap items-center justify-between gap-4 border-b border-slate-700/60 sticky top-0 z-50">
         <div class="flex items-center gap-3 bg-slate-900/80 px-5 py-2 rounded-full border border-blue-500/40 shadow-sm min-w-max">
@@ -20,16 +34,30 @@
         <div class="flex-1 flex flex-wrap items-center justify-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
             <button onclick="switchTab('store')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">Store</button>
             <button onclick="switchTab('quests'); renderQuests();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-amber-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">Quests</button>
-            <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-slate-100 font-black px-10 py-2.5 rounded-lg shadow-md transform hover:scale-105 transition text-base tracking-widest uppercase cursor-pointer border border-blue-500/50 mx-4">Play</button>
-            <button onclick="switchTab('club')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">My Club</button>
-            <button onclick="switchTab('squad')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-slate-600">Squad</button>
-            <button onclick="switchTab('skills'); renderSkillsUI();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-emerald-400 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-emerald-900/50">Skills</button>
             <button onclick="switchTab('guide')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-purple-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-purple-900/50">Guide</button>
+            
+            <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-slate-100 font-black px-10 py-2.5 rounded-lg shadow-md transform hover:scale-105 transition text-base tracking-widest uppercase cursor-pointer border border-blue-500/50 mx-4">Play</button>
+            
+            <button onclick="switchTab('club')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm relative">
+                My Club
+                <span id="badge-club" class="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 hidden">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border border-slate-900"></span>
+                </span>
+            </button>
+            <button onclick="switchTab('squad')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-slate-600">Squad</button>
+            <button onclick="switchTab('skills'); renderSkillsUI();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-emerald-400 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-emerald-900/50 relative">
+                Skills
+                <span id="badge-skills" class="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 hidden">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border border-slate-900"></span>
+                </span>
+            </button>
         </div>
 
         <div class="flex items-center gap-4 min-w-max justify-end">
             <div id="debt-warning" class="text-xs font-mono font-bold text-red-400 bg-red-950/30 px-3 py-1.5 rounded border border-red-500/20 hidden">Debt: <span id="debt-display">0</span></div>
-            <button onclick="resetData(true)" class="text-xs bg-slate-800 hover:bg-red-900 border border-slate-700 hover:border-red-700 text-slate-400 hover:text-slate-200 font-bold px-4 py-2 rounded cursor-pointer transition">⚠️ Wipe Data</button>
+            <button onclick="triggerWipe()" class="text-xs bg-slate-800 hover:bg-red-900 border border-slate-700 hover:border-red-700 text-slate-400 hover:text-slate-200 font-bold px-4 py-2 rounded cursor-pointer transition">⚠️ Wipe Data</button>
         </div>
     </header>
 
@@ -356,7 +384,7 @@
                     <button id="btn-play-match" onclick="playMatchStep()" class="hidden bg-blue-700 hover:bg-blue-600 text-slate-100 px-6 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Execute Simulation ⏩</button>
                     <button id="btn-next-round" onclick="setupNextRound()" class="hidden bg-emerald-700 hover:bg-emerald-600 text-slate-100 px-6 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Advance Bracket 🏆</button>
                     <button id="btn-gr-next" onclick="advanceGoldenRoadStage()" class="hidden bg-amber-600 hover:bg-amber-500 text-slate-100 px-6 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Begin Next Stage</button>
-                    <button onclick="emergencyResetSim()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-slate-200 px-4 py-2 rounded text-xs font-bold transition cursor-pointer">Forfeit Run</button>
+                    <button onclick="triggerForfeit()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-slate-200 px-4 py-2 rounded text-xs font-bold transition cursor-pointer">Forfeit Run</button>
                 </div>
             </div>
 

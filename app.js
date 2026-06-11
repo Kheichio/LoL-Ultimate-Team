@@ -12,6 +12,7 @@ let club = [];
 let squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null };
 let hasBoughtStarter = false;
 let teamIdentity = { name: "My Team", logo: "🛡️" };
+let hasNewClubItems = false; // Notification state
 
 // Progression State
 let managerXP = 0;
@@ -52,6 +53,68 @@ let tacticalBonus = 0;
 let trainingActiveUntil = 0;
 let trainingTimerInterval = null;
 
+// --- CUSTOM UI ALERTS & MODALS ---
+function showToast(message, type = 'info') {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    
+    let colorClasses = 'bg-slate-800/90 text-slate-200 border-slate-600'; // default info
+    if (type === 'error') colorClasses = 'bg-red-950/90 text-red-200 border-red-800';
+    if (type === 'success') colorClasses = 'bg-emerald-950/90 text-emerald-200 border-emerald-800';
+
+    toast.className = `p-4 rounded-xl shadow-2xl font-bold text-sm transform transition-all duration-300 translate-y-full opacity-0 flex items-center gap-3 border ${colorClasses}`;
+    toast.innerHTML = `<span>${message}</span>`;
+    
+    container.appendChild(toast);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.classList.remove("translate-y-full", "opacity-0");
+        toast.classList.add("translate-y-0", "opacity-100");
+    });
+
+    // Animate out and remove
+    setTimeout(() => {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-4", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function showConfirm(message, description, onConfirm) {
+    const modal = document.getElementById("confirm-modal");
+    const modalBox = document.getElementById("confirm-modal-box");
+    const btnYes = document.getElementById("confirm-btn-yes");
+    const btnCancel = document.getElementById("confirm-btn-cancel");
+    
+    document.getElementById("confirm-title").innerText = message;
+    document.getElementById("confirm-desc").innerText = description;
+    
+    modal.classList.remove("hidden");
+    // Trigger fade in
+    requestAnimationFrame(() => {
+        modal.classList.remove("opacity-0");
+        modalBox.classList.remove("scale-95");
+        modalBox.classList.add("scale-100");
+    });
+
+    const closeModal = () => {
+        modal.classList.add("opacity-0");
+        modalBox.classList.remove("scale-100");
+        modalBox.classList.add("scale-95");
+        setTimeout(() => { modal.classList.add("hidden"); }, 200);
+        btnYes.onclick = null;
+        btnCancel.onclick = null;
+    };
+
+    btnCancel.onclick = closeModal;
+    btnYes.onclick = () => {
+        closeModal();
+        onConfirm();
+    };
+}
+
+// --- CORE LIFECYCLE ---
 window.onload = () => {
     const savedBE = localStorage.getItem("lol_be_v7_pro");
     if (savedBE) blueEssence = parseInt(savedBE, 10);
@@ -72,6 +135,9 @@ window.onload = () => {
     const savedStats = localStorage.getItem("lol_stats_v7_pro");
     if (savedStats) trackStats = JSON.parse(savedStats);
     
+    const savedNewItems = localStorage.getItem("lol_new_items_v7_pro");
+    if (savedNewItems === "true") hasNewClubItems = true;
+
     const savedProg = localStorage.getItem("lol_prog_v7_pro");
     if (savedProg) {
         let p = JSON.parse(savedProg);
@@ -103,7 +169,19 @@ function saveGame() {
     localStorage.setItem("lol_stats_v7_pro", JSON.stringify(trackStats));
     localStorage.setItem("lol_quests_v7_pro", JSON.stringify(quests));
     localStorage.setItem("lol_prog_v7_pro", JSON.stringify({managerXP, managerLevel, skillPoints, skills}));
+    localStorage.setItem("lol_new_items_v7_pro", hasNewClubItems);
     updateDisplays();
+}
+
+function updateBadges() {
+    const clubBadge = document.getElementById("badge-club");
+    const skillsBadge = document.getElementById("badge-skills");
+    
+    if (hasNewClubItems) clubBadge.classList.remove("hidden");
+    else clubBadge.classList.add("hidden");
+
+    if (skillPoints > 0) skillsBadge.classList.remove("hidden");
+    else skillsBadge.classList.add("hidden");
 }
 
 // --- XP & PROGRESSION LOGIC ---
@@ -121,7 +199,7 @@ function addXP(amount) {
     }
     
     if (leveledUp) {
-        alert(`LEVEL UP! You are now Manager Level ${managerLevel}. You gained 1 Skill Point!`);
+        showToast(`LEVEL UP! You are now Level ${managerLevel}. +1 Skill Point!`, "success");
     }
     saveGame();
 }
@@ -132,6 +210,7 @@ function upgradeSkill(skillName) {
         skills[skillName]++;
         saveGame();
         renderSkillsUI();
+        updateBadges();
     }
 }
 
@@ -184,22 +263,13 @@ function renderSkillsUI() {
     });
 }
 
-// --- TRAINING LOGIC ---
 function executeTeamTraining() {
-    if (blueEssence < 50) { alert("Insufficient assets."); return; }
+    if (blueEssence < 50) { showToast("Insufficient assets.", "error"); return; }
     blueEssence -= 50;
     trainingActiveUntil = Date.now() + 60000;
     localStorage.setItem("lol_training_expiry", trainingActiveUntil);
     saveGame();
     startTrainingVisualCountdown();
-}
-
-function checkAndRecoverTrainingTimer() {
-    const savedExpiry = localStorage.getItem("lol_training_expiry");
-    if (savedExpiry) {
-        trainingActiveUntil = parseInt(savedExpiry, 10);
-        if (trainingActiveUntil > Date.now()) startTrainingVisualCountdown();
-    }
 }
 
 function startTrainingVisualCountdown() {
@@ -225,16 +295,15 @@ function startTrainingVisualCountdown() {
 function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? 5 : 0; }
 
 function getLoanPremium() { 
-    // NEGOTIATION SKILL EFFECT: Reduces baseline premium cost (Max level = -100 BE penalty per loan)
     let basePremium = 150 - (skills.negotiation * 20); 
     return activeLoans * Math.max(0, basePremium); 
 }
 
-function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); alert("Credit allocated!"); }
+function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); showToast("Credit allocated!", "success"); }
 function payLoan() {
-    if (blueEssence < 500) { alert("Insufficient liquidity."); return; }
-    if (activeLoans <= 0) { alert("No active debt."); return; }
-    activeLoans--; blueEssence -= 500; saveGame(); alert("Loan amortized!");
+    if (blueEssence < 500) { showToast("Insufficient liquidity.", "error"); return; }
+    if (activeLoans <= 0) { showToast("No active debt.", "error"); return; }
+    activeLoans--; blueEssence -= 500; saveGame(); showToast("Loan amortized!", "success");
 }
 
 function updateTeamCustomization() {
@@ -243,8 +312,16 @@ function updateTeamCustomization() {
     saveGame();
 }
 
-function resetData(force = false) {
-    if (force || confirm("Perform complete wipe?")) { localStorage.clear(); location.reload(); }
+function triggerWipe() {
+    showConfirm("Wipe All Data?", "This will permanently delete your Club, Essences, and Progress.", () => {
+        localStorage.clear(); location.reload();
+    });
+}
+
+function triggerForfeit() {
+    showConfirm("Forfeit Tournament?", "You will lose your current bracket progress and buy-in.", () => {
+        emergencyResetSim();
+    });
 }
 
 function updateClubStatsUI() {
@@ -284,16 +361,33 @@ function updateDisplays() {
     if (hasBoughtStarter) starterBtn.classList.add("hidden");
     else starterBtn.classList.remove("hidden");
 
-    updateClubStatsUI(); renderClubGrid(); renderSquadView(); renderQuests();
+    updateBadges();
+    updateClubStatsUI(); 
+    renderClubGrid(); 
+    renderSquadView(); 
+    renderQuests();
 }
 
 function switchTab(tabId) {
     if (tourActive && tabId !== 'tournament') {
-        if (!confirm("Dropping out forfeits current bracket position. Execute dropout?")) return;
-        emergencyResetSim();
+        showConfirm("Dropping out forfeits current bracket position.", "Do you want to abandon the current run?", () => {
+            emergencyResetSim();
+            executeTabSwitch(tabId);
+        });
+        return;
     }
+    executeTabSwitch(tabId);
+}
+
+function executeTabSwitch(tabId) {
     document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
     document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+    
+    if (tabId === 'club') { 
+        hasNewClubItems = false; 
+        saveGame(); 
+        updateBadges(); 
+    }
 }
 
 function populateDropdownFilters() {
@@ -321,14 +415,12 @@ function renderQuests() {
 function claimQuest(id) { let q = quests.find(x => x.id === id); if(q && !q.claimed) { q.claimed = true; blueEssence += q.reward; saveGame(); } }
 
 function rollTier(packType) {
-    // SCOUTING SKILL EFFECT: Adds +2 to the RNG roll per skill level, effectively making high drops more common.
     const roll = (Math.random() * 100) + (skills.scouting * 2);
-    
     if (packType === 'Starter') { if (roll < 80) return "Silver"; return "Gold"; }
     else if (packType === 'Standard') { if (roll < 70) return "Silver"; if (roll < 92) return "Gold"; if (roll < 98) return "Platinum"; return "Diamond"; }
     else if (packType === 'Elite') { if (roll < 45) return "Gold"; if (roll < 80) return "Platinum"; if (roll < 95) return "Diamond"; return "Master"; }
     else if (packType === 'Supreme') { if (roll < 20) return "Platinum"; if (roll < 55) return "Diamond"; if (roll < 80) return "Master"; if (roll < 95) return "Grandmaster"; return "Challenger"; }
-    else if (packType === 'Legacy') { return "Legacy"; } // Usually overridden in custom Legacy logic anyway
+    else if (packType === 'Legacy') { return "Legacy"; }
     return "Silver";
 }
 
@@ -349,23 +441,20 @@ function buyStarterPack() {
 
 function buyPack(baseCost, type) {
     let actualCost = baseCost + getLoanPremium();
-    if (blueEssence < actualCost) { alert("Insufficient BE reserves."); return; }
+    if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     blueEssence -= actualCost; trackStats.packs++;
     
-    addXP(25); // Manager Progression via Pack Opens
+    addXP(25);
     let pulled = [];
     
-    // CUSTOM LOGIC FOR NERFED LEGENDS PACK
     if (type === 'Legacy') {
-        // Guarantee exactly 1 Legacy Card
         let legPool = window.playerDatabase.filter(p => p.quality === "Legacy");
         let legCard = legPool[Math.floor(Math.random() * legPool.length)];
         let p1 = {...legCard, uniqueId: Date.now() + "L1" + Math.random().toString(36).substring(2)};
         pulled.push(p1); club.push(p1);
         
-        // Add 4 Random Low/Mid-Tier Fillers
         for (let i = 0; i < 4; i++) {
-            let fillerTier = Math.random() < 0.85 ? "Silver" : "Gold"; // 85% chance for Silver fillers
+            let fillerTier = Math.random() < 0.85 ? "Silver" : "Gold";
             let filPool = window.playerDatabase.filter(p => p.quality === fillerTier);
             if(filPool.length === 0) filPool = window.playerDatabase.filter(p => p.quality !== "Legacy");
             let pF = filPool[Math.floor(Math.random() * filPool.length)];
@@ -373,7 +462,6 @@ function buyPack(baseCost, type) {
             pulled.push(cardF); club.push(cardF);
         }
     } else {
-        // STANDARD PACK LOGIC
         for (let i=0; i<5; i++) {
             let rolledTier = rollTier(type);
             let pool = window.playerDatabase.filter(p => p.quality === rolledTier);
@@ -389,7 +477,7 @@ function buyPack(baseCost, type) {
 
 function buyTargetPack(targetType) {
     let actualCost = 800 + getLoanPremium();
-    if (blueEssence < actualCost) { alert("Insufficient BE reserves."); return; }
+    if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     let val = document.getElementById(`${targetType}-select`).value;
     blueEssence -= actualCost; trackStats.packs++;
     addXP(25);
@@ -416,6 +504,9 @@ function showPulls(pulledCards, titleText) {
         wrapper.appendChild(createCardElement(card, false, null, null)); 
         container.appendChild(wrapper);
     });
+    hasNewClubItems = true;
+    updateBadges();
+    saveGame();
     area.scrollIntoView({ behavior: "smooth" });
 }
 
@@ -430,7 +521,10 @@ function sellAllLowTier(tierName) {
         }
         return true;
     });
-    if(club.length !== before) alert(`Bulk liquidation processed.`); saveGame();
+    if(club.length !== before) {
+        showToast(`Bulk liquidation processed.`, "success");
+        saveGame();
+    }
 }
 
 function quickSellDuplicates() {
@@ -445,7 +539,10 @@ function quickSellDuplicates() {
         }
         counts[key] = true; return true;
     });
-    if(club.length !== before) alert("Duplicates purged!"); saveGame();
+    if(club.length !== before) {
+        showToast("Duplicates purged!", "success");
+        saveGame();
+    }
 }
 
 function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
@@ -690,11 +787,15 @@ function computeChemistry() {
 
 // --- PVE COMBAT BRACKET ---
 function checkSquadReady() {
-    if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { alert("Matrix incomplete. Fill all 5 starting lane allocations."); return false; } return true;
+    if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { 
+        showToast("Matrix incomplete. Fill all 5 starting lane allocations.", "error"); 
+        return false; 
+    } 
+    return true;
 }
 
 function startTournament(name, cost, r1, r2, baseDiff, rounds) {
-    if (!checkSquadReady()) return; if (blueEssence < cost) { alert("Insufficient BE reserves."); return; }
+    if (!checkSquadReady()) return; if (blueEssence < cost) { showToast("Insufficient BE reserves.", "error"); return; }
     if(simIntervalId) clearTimeout(simIntervalId); blueEssence -= cost; saveGame();
     isGoldenRoad = false; tourActive = true; tourData = { name, reward1: r1, reward2: r2, maxRounds: rounds };
     tourRound = 0; tacticalBonus = 0; generateRealPlayerEnemies(baseDiff, rounds);
@@ -703,7 +804,7 @@ function startTournament(name, cost, r1, r2, baseDiff, rounds) {
 }
 
 function startGoldenRoad() {
-    if (!checkSquadReady()) return; if (blueEssence < 1000) { alert("Insufficient assets to secure Golden Road clearance."); return; }
+    if (!checkSquadReady()) return; if (blueEssence < 1000) { showToast("Insufficient assets for Golden Road.", "error"); return; }
     if(simIntervalId) clearTimeout(simIntervalId); blueEssence -= 1000; saveGame();
     isGoldenRoad = true; tourActive = true; grStageIndex = 0; grAccruedEssence = 0; tacticalBonus = 0;
     loadGoldenRoadStage();
@@ -799,8 +900,13 @@ function lockInDraft(statFocus) {
     
     let diff = myStat - enemyStat;
     
-    // TACTICS SKILL EFFECT: Up to +10 flat boost to drafting power multiplier 
-    tacticalBonus = Math.floor(diff / 1.5) + (skills.tactics * 2); 
+    // FIXED TACTICS MATH
+    // Base bonus rounds the difference mathematically. E.g., -1/1.5 = -1. 1/1.5 = 1.
+    let baseBonus = Math.round(diff / 1.5);
+    
+    // You ONLY get your skill tree tactics buff if you drafted a neutral or winning matchup.
+    // This stops the exploit of getting a positive power boost when you made a bad draft choice.
+    tacticalBonus = baseBonus + (baseBonus >= 0 ? (skills.tactics * 2) : 0); 
     
     document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
     
@@ -867,7 +973,7 @@ function playMatchStep() {
 
 function handleTournamentWin() {
     blueEssence += tourData.reward1;
-    addXP(100); // Manager Progression via Wins
+    addXP(100); 
     if (isGoldenRoad) {
         grAccruedEssence += tourData.reward1; document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
         appendLog(`[STAGE CLEARED] Credited +${tourData.reward1} BE. Run Total: ${grAccruedEssence} BE`, "text-amber-400 font-bold");
@@ -903,4 +1009,4 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
 function setupNextRound() { if (tourRound < tourData.maxRounds - 1) { tourRound++; setupBracketUI(); setupNextRoundUI(); } }
 function advanceGoldenRoadStage() { grStageIndex++; loadGoldenRoadStage(); document.getElementById("tour-active-title").innerText = "Golden Road Run: " + tourData.name; setupBracketUI(); setupNextRoundUI(); }
 function emergencyResetSim() { if(simIntervalId) clearTimeout(simIntervalId); tourActive = false; isGoldenRoad = false; document.getElementById("tournament-active").classList.add("hidden"); document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); }
-function finishTournamentUI() { document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); }
+function finishTournamentUI() { document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
