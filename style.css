@@ -1,27 +1,82 @@
 /* style.css */
 
-/* High-Saturation Vivid Gradients for Clear Vision Contrast */
-.card-bg-Silver { background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); color: #000000; border: 3px solid #64748b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); }
-.card-bg-Gold { background: linear-gradient(135deg, #ffe066 0%, #f59e0b 100%); color: #000000; border: 3px solid #b45309; box-shadow: 0 4px 8px rgba(245, 158, 11, 0.25); }
-.card-bg-Platinum { background: linear-gradient(135deg, #a7f3d0 0%, #10b981 100%); color: #000000; border: 3px solid #047857; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25); }
-.card-bg-Diamond { background: linear-gradient(135deg, #bae6fd 0%, #3b82f6 100%); color: #000000; border: 3px solid #1d4ed8; box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25); }
-.card-bg-Master { background: linear-gradient(135deg, #f3e8ff 0%, #a855f7 100%); color: #000000; border: 3px solid #6b21a8; box-shadow: 0 4px 8px rgba(168, 85, 247, 0.25); }
-.card-bg-Grandmaster { background: linear-gradient(135deg, #fee2e2 0%, #ef4444 100%); color: #000000; border: 3px solid #991b1b; box-shadow: 0 4px 8px rgba(239, 68, 68, 0.25); }
+/* Global Smooth Transitions and Core Aesthetics Pass */
+* {
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease-out;
+}
 
-/* Dark/Black Cards Strategy Layout */
-.card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #ffffff; border: 3px double #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
-.card-bg-Champion { background: linear-gradient(135deg, #111827 0%, #000000 100%); color: #ffffff; border: 3px solid #d97706; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); }
-.card-bg-MVP { background: linear-gradient(135deg, #be185d 0%, #4c1d95 100%); color: #ffffff; border: 3px solid #f472b6; box-shadow: 0 6px 20px rgba(190, 24, 93, 0.4); }
+/* Custom Scrollbar Polish for Picker Grids */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+}
 
-.card-bg-MVP .stat-grid { border-top: 1px solid rgba(255, 255, 255, 0.25); color: #f1f5f9; }
-.card-bg-MVP .stat-grid span { color: #cbd5e1; opacity: 0.8; }
-.coach-card-style { background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); color: #ffffff; border: 3px dashed #10b981; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25); }
+/* Premium Store Card Packs Glassmorphism Effect */
+.pack-glass {
+    background: rgba(30, 41, 59, 0.45) !important;
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+.pack-glass:hover {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.2);
+}
 
-/* Static Numerical Attributes Grid Setup - White/Black divider line removed */
-.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 0.82rem; font-weight: 900; text-align: left; width: 100%; margin-top: 6px; padding-top: 6px; border: none !important; }
+/* High-Saturation Vivid Gradients for Clear Vision Contrast (Bright Tiers -> Black Ink) */
+.card-bg-Silver { background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%); border: 3px solid #64748b; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+.card-bg-Gold { background: linear-gradient(135deg, #fef08a 0%, #f59e0b 100%); border: 3px solid #b45309; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3); }
+.card-bg-Platinum { background: linear-gradient(135deg, #a7f3d0 0%, #10b981 100%); border: 3px solid #047857; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); }
+.card-bg-Diamond { background: linear-gradient(135deg, #e0f2fe 0%, #3b82f6 100%); border: 3px solid #1d4ed8; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3); }
+
+/* Premium Master and Grandmaster Frames */
+.card-bg-Master { background: linear-gradient(135deg, #f3e8ff 0%, #a855f7 100%); border: 3px solid #6b21a8; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35); }
+.card-bg-Grandmaster { background: linear-gradient(135deg, #fee2e2 0%, #ef4444 100%); border: 3px solid #991b1b; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35); }
+
+/* Dark-Themed Premium Cards Layout (Dark Tiers -> Light Ink) */
+.card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 3px double #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45); }
+.card-bg-Champion { background: linear-gradient(135deg, #111827 0%, #000000 100%); border: 3px solid #d97706; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5); }
+.card-bg-MVP { background: linear-gradient(135deg, #be185d 0%, #4c1d95 100%); border: 3px solid #f472b6; box-shadow: 0 6px 20px rgba(190, 24, 93, 0.5); }
+
+/* Distinct High-Contrast Scheme for Coach Cards */
+.coach-card-style { 
+    background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); 
+    border: 3px dashed #10b981; 
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35); 
+}
+.coach-card-style .stat-grid {
+    border-top: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Static Numerical Attributes Grid Setup */
+.stat-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 4px 10px; 
+    font-size: 0.82rem; 
+    font-weight: 900; 
+    text-align: left; 
+    width: 100%; 
+    margin-top: 6px; 
+    padding-top: 6px; 
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
 
 /* Dynamic Foil Pack Store Graphics */
-.pack-foil { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 6px); }
+.pack-foil { 
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 6px); 
+}
 @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 .animate-shimmer { animation: shimmer 2s infinite; }
 
