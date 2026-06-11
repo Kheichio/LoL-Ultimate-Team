@@ -9,15 +9,11 @@
 
 /* Dark/Black Cards Strategy Layout */
 .card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #ffffff; border: 3px double #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
-.card-bg-Legacy { background: linear-gradient(135deg, #111827 0%, #000000 100%); color: #ffffff; border: 3px solid #d97706; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); }
+.card-bg-Champion { background: linear-gradient(135deg, #111827 0%, #000000 100%); color: #ffffff; border: 3px solid #d97706; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); }
 .coach-card-style { background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); color: #ffffff; border: 3px dashed #10b981; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25); }
 
-/* Static Numerical Attributes Grid Setup */
-.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 0.82rem; font-weight: 900; text-align: left; width: 100%; margin-top: 6px; padding-top: 6px; }
-
-/* Structural Divider Contrasts */
-.card-dark-text .stat-grid { border-top: 1px solid rgba(0, 0, 0, 0.25); }
-.card-light-text .stat-grid { border-top: 1px solid rgba(255, 255, 255, 0.25); }
+/* Static Numerical Attributes Grid Setup - White/Black divider line removed */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 0.82rem; font-weight: 900; text-align: left; width: 100%; margin-top: 6px; padding-top: 6px; border: none !important; }
 
 .bracket-step { transition: all 0.3s ease; }
 .bracket-active { border-color: #60a5fa !important; box-shadow: 0 0 10px rgba(96, 165, 250, 0.3); transform: scale(1.05); }
