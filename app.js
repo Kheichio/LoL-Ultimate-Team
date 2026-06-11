@@ -23,8 +23,8 @@ let skillPoints = 0;
 let skills = { scouting: 0, negotiation: 0, tactics: 0 };
 
 // New Systems State
-let collectionRegistry = {}; // { baseId: { owned: true, claimed: false } }
-let tradeMarket = { expires: 0, offers: [] }; // offers: [ { rewardId: 101, reqType: 'Diamond', reqCount: 2 } ]
+let collectionRegistry = {}; 
+let tradeMarket = { expires: 0, offers: [] };
 
 let trackStats = { 
     packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {} 
@@ -223,7 +223,7 @@ function secretMoneyCheat() {
 function processNewCards(cards) {
     cards.forEach(c => {
         if (!collectionRegistry[c.id]) {
-            collectionRegistry[c.id] = { claimed: false };
+            collectionRegistry[c.id] = { claimed: false, acquiredAt: Date.now() };
         }
     });
 }
@@ -231,7 +231,7 @@ function processNewCards(cards) {
 // --- TRADE MARKET LOGIC ---
 function startTradeMarketTimer() {
     if (marketTimerInterval) clearInterval(marketTimerInterval);
-    checkTradeMarket(); // initial check
+    checkTradeMarket(); 
     marketTimerInterval = setInterval(checkTradeMarket, 1000);
 }
 
@@ -253,34 +253,46 @@ function checkTradeMarket() {
 }
 
 function generateTradeOffers() {
-    // Generate 3 Elite offers
     let elitePool = window.playerDatabase.filter(p => ["Master", "Grandmaster", "Challenger", "Champion", "MVP"].includes(p.quality));
     let offers = [];
-    
-    // Req Types
-    const reqQualities = ["Platinum", "Diamond"];
     
     for(let i=0; i<3; i++) {
         if(elitePool.length === 0) break;
         let cIdx = Math.floor(Math.random() * elitePool.length);
         let rewardCard = elitePool[cIdx];
-        elitePool.splice(cIdx, 1); // remove to prevent dupes in same rotation
+        elitePool.splice(cIdx, 1); 
         
-        let rQual = reqQualities[Math.floor(Math.random() * reqQualities.length)];
-        let rCount = rQual === "Diamond" ? (Math.floor(Math.random() * 2) + 1) : (Math.floor(Math.random() * 3) + 2); // 1-2 Diamond OR 2-4 Plat
+        let reqQuality = "Platinum";
+        let reqCount = 3;
+        
+        if (rewardCard.quality === "Master") {
+            reqQuality = Math.random() > 0.5 ? "Platinum" : "Diamond";
+            reqCount = reqQuality === "Platinum" ? 5 : 2;
+        } else if (rewardCard.quality === "Grandmaster") {
+            reqQuality = Math.random() > 0.5 ? "Diamond" : "Master";
+            reqCount = reqQuality === "Diamond" ? 4 : 2;
+        } else if (rewardCard.quality === "Challenger") {
+            reqQuality = Math.random() > 0.5 ? "Diamond" : "Master";
+            reqCount = reqQuality === "Diamond" ? 7 : 3;
+        } else if (rewardCard.quality === "MVP" || rewardCard.quality === "Champion") {
+            reqQuality = Math.random() > 0.5 ? "Master" : "Grandmaster";
+            reqCount = reqQuality === "Master" ? 4 : 2;
+        }
         
         offers.push({
             id: Date.now() + i,
             rewardBaseId: rewardCard.id,
-            reqQuality: rQual,
-            reqCount: rCount,
+            reqQuality: reqQuality,
+            reqCount: reqCount,
             completed: false
         });
     }
     
     tradeMarket = { expires: Date.now() + (15 * 60 * 1000), offers: offers };
     saveGame();
-    renderTradeMarket();
+    if(document.getElementById("tab-trade") && !document.getElementById("tab-trade").classList.contains("hidden")) {
+        renderTradeMarket();
+    }
 }
 
 function forceTradeRefresh() {
@@ -305,12 +317,10 @@ function renderTradeMarket() {
         const wrapper = document.createElement("div");
         wrapper.className = `bg-slate-800/80 p-5 rounded-2xl border ${offer.completed ? 'border-emerald-900/50 opacity-50' : 'border-orange-900/40'} flex flex-col items-center shadow-lg relative overflow-hidden`;
         
-        // Card Visual
         let cardObj = { ...rewardCardDef, uniqueId: "preview" };
         let visual = createCardElement(cardObj, false, null, null);
         wrapper.appendChild(visual);
         
-        // Requirement Block
         let reqBlock = document.createElement("div");
         reqBlock.className = "mt-4 w-full text-center bg-slate-900/60 rounded-xl p-3 border border-slate-700/50";
         
@@ -347,13 +357,11 @@ function executeTrade(offerId) {
         return;
     }
     
-    // Burn the fodder
     for(let i=0; i<offer.reqCount; i++) {
         let burnId = availableFodder[i].uniqueId;
         club = club.filter(c => c.uniqueId !== burnId);
     }
     
-    // Grant reward
     let rewardDef = window.playerDatabase.find(p => p.id === offer.rewardBaseId);
     let newCard = { ...rewardDef, uniqueId: Date.now() + "T" + Math.random().toString(36).substring(2) };
     club.push(newCard);
@@ -367,17 +375,16 @@ function executeTrade(offerId) {
 }
 
 // --- COLLECTION ARCHIVE LOGIC ---
-let currentCollectionRole = 'TOP';
+let currentCollectionSort = 'region';
 
-function renderCollection(role) {
-    currentCollectionRole = role || currentCollectionRole;
+function renderCollection(sortMode) {
+    currentCollectionSort = sortMode || currentCollectionSort;
     if(!window.playerDatabase) return;
     
-    // Update Role Tabs styling
-    ["TOP", "JNG", "MID", "ADC", "SUP", "COACH"].forEach(r => {
+    ["region", "completion", "latest"].forEach(r => {
         let btn = document.getElementById(`col-btn-${r}`);
         if(!btn) return;
-        if (r === currentCollectionRole) {
+        if (r === currentCollectionSort) {
             btn.className = "flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-yellow-600/20 border border-yellow-500/50 text-yellow-300 shadow-inner";
         } else {
             btn.className = "flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-700";
@@ -388,19 +395,10 @@ function renderCollection(role) {
     if(!grid) return;
     grid.innerHTML = "";
     
-    let roleCards = window.playerDatabase.filter(p => p.role === currentCollectionRole);
+    let dbCards = window.playerDatabase;
     
-    // Group by Team, then sort by Year descending
-    let teams = {};
-    roleCards.forEach(c => {
-        let tName = window.teamLineageBridges[c.team] || c.team; // Group legacy rosters
-        if (!teams[tName]) teams[tName] = [];
-        teams[tName].push(c);
-    });
-    
-    // Calculate Claimable for Role
     let claimableBE = 0;
-    roleCards.forEach(c => {
+    dbCards.forEach(c => {
         let rec = collectionRegistry[c.id];
         if (rec && !rec.claimed) {
             claimableBE += (collectionRewards[c.quality] || 10);
@@ -410,36 +408,94 @@ function renderCollection(role) {
     let claimBtn = document.getElementById("btn-claim-collection");
     if(claimBtn) {
         if (claimableBE > 0) {
-            claimBtn.innerText = `Claim Role Rewards (${claimableBE} BE)`;
+            claimBtn.innerText = `Claim All Rewards (${claimableBE} BE)`;
             claimBtn.disabled = false;
         } else {
-            claimBtn.innerText = `Claim Role Rewards (0 BE)`;
+            claimBtn.innerText = `Claim All Rewards (0 BE)`;
             claimBtn.disabled = true;
         }
     }
-    
-    // Render Sections
-    Object.keys(teams).sort().forEach(tName => {
-        let teamGroup = teams[tName];
-        teamGroup.sort((a, b) => b.year - a.year); // Newest first
+
+    if (currentCollectionSort === 'latest') {
+        let ownedCards = dbCards.filter(c => collectionRegistry[c.id]).sort((a, b) => {
+            return (collectionRegistry[b.id].acquiredAt || 0) - (collectionRegistry[a.id].acquiredAt || 0);
+        });
+
+        if(ownedCards.length === 0) {
+            grid.innerHTML = `<p class="text-slate-500 text-center py-10 font-mono">No cards archived yet.</p>`;
+            return;
+        }
+
+        let section = document.createElement("div");
+        section.className = "bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50";
+        section.innerHTML = `<h3 class="text-xl font-black text-slate-300 mb-4 border-b border-slate-700/50 pb-2">Recently Acquired</h3>`;
         
+        let cardContainer = document.createElement("div");
+        cardContainer.className = "flex flex-wrap gap-4 justify-center";
+
+        ownedCards.forEach(c => {
+            let wrapper = document.createElement("div");
+            wrapper.className = `shrink-0 transition duration-500 relative`;
+            if (!collectionRegistry[c.id].claimed) {
+                let dot = document.createElement("div");
+                dot.className = "absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-slate-900 shadow-[0_0_10px_rgba(250,204,21,0.8)] z-20 animate-pulse";
+                wrapper.appendChild(dot);
+            }
+            wrapper.appendChild(createCardElement(c, false, null, null));
+            cardContainer.appendChild(wrapper);
+        });
+        section.appendChild(cardContainer);
+        grid.appendChild(section);
+        return;
+    }
+
+    let grouped = {};
+    dbCards.forEach(c => {
+        let reg = c.region;
+        let tName = window.teamLineageBridges[c.team] || c.team;
+        let key = `${reg}_${tName}`;
+        if(!grouped[key]) grouped[key] = { region: reg, team: tName, cards: [], owned: 0, total: 0 };
+        grouped[key].cards.push(c);
+        grouped[key].total++;
+        if(collectionRegistry[c.id]) grouped[key].owned++;
+    });
+
+    let groupArray = Object.values(grouped);
+
+    if (currentCollectionSort === 'completion') {
+        groupArray.sort((a, b) => (b.total - b.owned) - (a.total - a.owned));
+    } else {
+        groupArray.sort((a, b) => {
+            if (a.region !== b.region) return a.region.localeCompare(b.region);
+            return a.team.localeCompare(b.team);
+        });
+    }
+
+    groupArray.forEach(group => {
+        const roleOrder = { "TOP":1, "JNG":2, "MID":3, "ADC":4, "SUP":5, "COACH":6 };
+        group.cards.sort((a, b) => {
+            if (b.year !== a.year) return b.year - a.year;
+            return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99);
+        });
+
         let section = document.createElement("div");
         section.className = "bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50";
         
-        section.innerHTML = `<h3 class="text-xl font-black text-slate-300 mb-4 border-b border-slate-700/50 pb-2">${tName} History</h3>`;
+        let completionText = `<span class="text-sm font-mono float-right ${group.owned === group.total ? 'text-emerald-400' : 'text-slate-500'}">${group.owned} / ${group.total}</span>`;
+        section.innerHTML = `<h3 class="text-xl font-black text-slate-300 mb-4 border-b border-slate-700/50 pb-2 flex items-center justify-between">
+            <span>${window.regionLogos[group.region] || group.region} - ${group.team}</span>
+            ${completionText}
+        </h3>`;
         
         let cardContainer = document.createElement("div");
         cardContainer.className = "flex overflow-x-auto gap-4 pb-4 snap-x";
         
-        teamGroup.forEach(c => {
-            let wrapper = document.createElement("div");
+        group.cards.forEach(c => {
             let isOwned = !!collectionRegistry[c.id];
+            let wrapper = document.createElement("div");
+            wrapper.className = `snap-start shrink-0 transition duration-500 ${isOwned ? 'relative' : 'grayscale opacity-30 scale-95 hover:opacity-50'}`;
             
-            wrapper.className = `snap-start shrink-0 transition duration-500 ${isOwned ? '' : 'grayscale opacity-30 scale-95 hover:opacity-50'}`;
-            
-            // Notification dot for newly owned but unclaimed
             if (isOwned && !collectionRegistry[c.id].claimed) {
-                wrapper.classList.add("relative");
                 let dot = document.createElement("div");
                 dot.className = "absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-slate-900 shadow-[0_0_10px_rgba(250,204,21,0.8)] z-20 animate-pulse";
                 wrapper.appendChild(dot);
@@ -457,10 +513,9 @@ function renderCollection(role) {
 
 function claimCollectionRewards() {
     if(!window.playerDatabase) return;
-    let roleCards = window.playerDatabase.filter(p => p.role === currentCollectionRole);
     
     let claimedAmount = 0;
-    roleCards.forEach(c => {
+    window.playerDatabase.forEach(c => {
         let rec = collectionRegistry[c.id];
         if (rec && !rec.claimed) {
             claimedAmount += (collectionRewards[c.quality] || 10);
@@ -472,7 +527,8 @@ function claimCollectionRewards() {
         blueEssence += claimedAmount;
         showToast(`Extracted ${claimedAmount} BE from Archive Archives!`, "success");
         saveGame();
-        renderCollection(currentCollectionRole); // Re-render to clear dots
+        renderCollection(currentCollectionSort);
+        updateBadges();
     }
 }
 
@@ -683,7 +739,7 @@ function updateDisplays() {
     renderClubGrid(); 
     renderSquadView(); 
     renderQuests();
-    if(currentCollectionRole) renderCollection(currentCollectionRole);
+    if(currentCollectionSort) renderCollection(currentCollectionSort);
 }
 
 function switchTab(tabId) {

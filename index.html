@@ -33,6 +33,7 @@
 
         <div class="flex-1 flex flex-wrap items-center justify-center gap-2 lg:gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
             <button onclick="switchTab('store')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 lg:px-4 py-2 rounded font-bold cursor-pointer transition text-xs lg:text-sm">Store</button>
+            <button onclick="switchTab('trade'); renderTradeMarket();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-orange-400 px-3 lg:px-4 py-2 rounded font-bold cursor-pointer transition text-xs lg:text-sm border border-orange-900/50 shadow-sm">Trade</button>
             <button onclick="switchTab('quests'); renderQuests();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 lg:px-4 py-2 rounded font-bold cursor-pointer transition text-xs lg:text-sm relative">
                 Quests
                 <span id="badge-quests" class="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 hidden">
@@ -41,11 +42,10 @@
                 </span>
             </button>
             <button onclick="switchTab('guide')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-purple-300 px-3 lg:px-4 py-2 rounded font-bold cursor-pointer transition text-xs lg:text-sm border border-purple-900/50">Guide</button>
-            <button onclick="switchTab('trade'); renderTradeMarket();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-orange-400 px-3 lg:px-4 py-2 rounded font-bold cursor-pointer transition text-xs lg:text-sm border border-orange-900/50">Trade</button>
             
             <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-slate-100 font-black px-6 lg:px-8 py-2.5 rounded-lg shadow-md transform hover:scale-105 transition text-sm lg:text-base tracking-widest uppercase cursor-pointer border border-blue-500/50 mx-2">Play</button>
             
-            <button onclick="switchTab('collection'); renderCollection('TOP');" class="nav-btn bg-slate-800 hover:bg-slate-700 text-yellow-200 px-3 lg:px-4 py-2 rounded font-bold cursor-pointer transition text-xs lg:text-sm border border-yellow-900/50 relative">
+            <button onclick="switchTab('collection'); renderCollection();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-yellow-200 px-3 lg:px-4 py-2 rounded font-bold cursor-pointer transition text-xs lg:text-sm border border-yellow-900/50 relative">
                 Collection
                 <span id="badge-collection" class="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 hidden">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
@@ -110,6 +110,7 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10 justify-items-center">
+                
                 <div onclick="buyPack(400, 'Standard')" class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl shadow-xl overflow-hidden group cursor-pointer hover:-translate-y-3 transition-all duration-300 border-[3px] border-yellow-600">
                     <div class="absolute inset-0 bg-gradient-to-br from-yellow-300 via-amber-500 to-orange-700 opacity-90"></div>
                     <div class="absolute inset-0 opacity-20 mix-blend-overlay pack-foil"></div>
@@ -229,7 +230,7 @@
         </section>
 
         <section id="tab-trade" class="tab-content hidden max-w-5xl mx-auto">
-            <div class="flex justify-between items-end mb-6">
+            <div class="flex justify-between items-end mb-6 border-b border-slate-700/50 pb-4">
                 <div>
                     <h2 class="text-3xl font-black text-orange-400 uppercase tracking-wider">Black Market Exchange</h2>
                     <p class="text-slate-400 mt-1 text-sm">Trade excess Club cards for guaranteed Elite acquisitions.</p>
@@ -237,7 +238,7 @@
                 <div class="text-right">
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Market Rotates In</p>
                     <div class="bg-slate-900 px-4 py-2 rounded-lg border border-orange-900/50 inline-block font-mono text-xl text-orange-300 shadow-inner" id="trade-timer">15:00</div>
-                    <button onclick="forceTradeRefresh()" class="block mt-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 px-3 py-1 rounded border border-slate-600 transition cursor-pointer">Refresh (500 BE)</button>
+                    <button onclick="forceTradeRefresh()" class="block mt-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 px-3 py-1 rounded border border-slate-600 transition cursor-pointer w-full">Refresh (500 BE)</button>
                 </div>
             </div>
 
@@ -246,23 +247,20 @@
         </section>
 
         <section id="tab-collection" class="tab-content hidden max-w-7xl mx-auto">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-wrap justify-between items-end mb-6 border-b border-slate-700/50 pb-4">
                 <div>
                     <h2 class="text-3xl font-black text-yellow-400 uppercase tracking-wider">The Archive</h2>
                     <p class="text-slate-400 mt-1 text-sm">Discover unique cards to unlock one-time BE bonuses.</p>
                 </div>
-                <button id="btn-claim-collection" onclick="claimCollectionRewards()" class="bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase tracking-widest shadow-[0_0_15px_rgba(202,138,4,0.4)] transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                    Claim Role Rewards (0 BE)
+                <button id="btn-claim-collection" onclick="claimCollectionRewards()" class="bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase tracking-widest shadow-[0_0_15px_rgba(202,138,4,0.4)] transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4 md:mt-0">
+                    Claim All Rewards (0 BE)
                 </button>
             </div>
 
-            <div class="flex gap-2 mb-6 bg-slate-800/50 p-2 rounded-xl border border-slate-700 overflow-x-auto">
-                <button onclick="renderCollection('TOP')" id="col-btn-TOP" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">TOP</button>
-                <button onclick="renderCollection('JNG')" id="col-btn-JNG" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">JUNGLE</button>
-                <button onclick="renderCollection('MID')" id="col-btn-MID" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">MID</button>
-                <button onclick="renderCollection('ADC')" id="col-btn-ADC" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">ADC</button>
-                <button onclick="renderCollection('SUP')" id="col-btn-SUP" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">SUPPORT</button>
-                <button onclick="renderCollection('COACH')" id="col-btn-COACH" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">COACH</button>
+            <div class="flex flex-wrap gap-2 mb-6 bg-slate-800/50 p-2 rounded-xl border border-slate-700">
+                <button onclick="renderCollection('region')" id="col-btn-region" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">Sort: Region & Team</button>
+                <button onclick="renderCollection('completion')" id="col-btn-completion" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">Sort: Most to Collect</button>
+                <button onclick="renderCollection('latest')" id="col-btn-latest" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">Sort: Latest Additions</button>
             </div>
 
             <div id="collection-grid" class="space-y-8">
@@ -653,9 +651,9 @@
                         <span class="text-xs bg-blue-900/60 text-blue-300 px-3 py-1 rounded-full border border-blue-700/50 shadow-sm uppercase tracking-widest">Alpha.Patch.0.0.3 (A.P.0.03)</span>
                     </h3>
                     <ul class="list-disc list-inside text-slate-400 text-sm space-y-2 ml-2">
-                        <li><strong>Feature Added: Player Collection.</strong> Track all unique players you've obtained. Discovering new base cards unlocks BE rewards claimable per role.</li>
-                        <li><strong>Feature Added: Trade Market.</strong> A rotating Black Market has opened! Trade lower-tier cards from your club to securely target specific elite (Master+) assets. Refreshes every 15 minutes.</li>
-                        <li>Adjusted Top Navigation Bar. Split into Play vs non-Play elements.</li>
+                        <li><strong>Feature Added: Player Collection Archive.</strong> Track all unique players you've ever unpacked. Grouped cleanly by Region and Team. First-time discoveries unlock Role Collection Rewards.</li>
+                        <li><strong>Feature Added: Trade Market.</strong> A rotating Black Market has opened on the left navigation bar! Trade lower-tier cards from your club to acquire rotating Elite, Champion, and MVP assets. Refreshes every 15 minutes.</li>
+                        <li>Adjusted Top Navigation Bar. Split into Commerce/Play vs Management elements for cleaner UI flows.</li>
                         <li>Added missing custom in-game confirmation modals and toast alerts.</li>
                         <li>Repaired missing logic preventing simulated matches from executing correctly.</li>
                     </ul>
