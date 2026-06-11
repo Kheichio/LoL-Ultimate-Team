@@ -13,6 +13,12 @@ let squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null
 let hasBoughtStarter = false;
 let teamIdentity = { name: "My Team", logo: "🛡️" };
 
+// Progression State
+let managerXP = 0;
+let managerLevel = 1;
+let skillPoints = 0;
+let skills = { scouting: 0, negotiation: 0, tactics: 0 };
+
 let trackStats = { 
     packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {} 
 };
@@ -66,6 +72,15 @@ window.onload = () => {
     const savedStats = localStorage.getItem("lol_stats_v7_pro");
     if (savedStats) trackStats = JSON.parse(savedStats);
     
+    const savedProg = localStorage.getItem("lol_prog_v7_pro");
+    if (savedProg) {
+        let p = JSON.parse(savedProg);
+        managerXP = p.managerXP || 0; 
+        managerLevel = p.managerLevel || 1; 
+        skillPoints = p.skillPoints || 0; 
+        skills = p.skills || { scouting: 0, negotiation: 0, tactics: 0 };
+    }
+    
     if(!trackStats.soldCount) trackStats.soldCount = 0;
     if(!trackStats.soldBE) trackStats.soldBE = 0;
     if(!trackStats.matchesPlayed) trackStats.matchesPlayed = {};
@@ -87,9 +102,89 @@ function saveGame() {
     localStorage.setItem("lol_identity_v7_pro", JSON.stringify(teamIdentity));
     localStorage.setItem("lol_stats_v7_pro", JSON.stringify(trackStats));
     localStorage.setItem("lol_quests_v7_pro", JSON.stringify(quests));
+    localStorage.setItem("lol_prog_v7_pro", JSON.stringify({managerXP, managerLevel, skillPoints, skills}));
     updateDisplays();
 }
 
+// --- XP & PROGRESSION LOGIC ---
+function addXP(amount) {
+    managerXP += amount;
+    let needed = managerLevel * 100;
+    let leveledUp = false;
+    
+    while(managerXP >= needed) {
+        managerXP -= needed;
+        managerLevel++;
+        skillPoints++;
+        needed = managerLevel * 100;
+        leveledUp = true;
+    }
+    
+    if (leveledUp) {
+        alert(`LEVEL UP! You are now Manager Level ${managerLevel}. You gained 1 Skill Point!`);
+    }
+    saveGame();
+}
+
+function upgradeSkill(skillName) {
+    if (skillPoints > 0 && skills[skillName] < 5) {
+        skillPoints--;
+        skills[skillName]++;
+        saveGame();
+        renderSkillsUI();
+    }
+}
+
+function renderSkillsUI() {
+    document.getElementById("ui-manager-level").innerText = managerLevel;
+    document.getElementById("ui-manager-xp").innerText = managerXP;
+    document.getElementById("ui-manager-xp-needed").innerText = managerLevel * 100;
+    document.getElementById("ui-skill-points").innerText = skillPoints;
+    
+    let pct = (managerXP / (managerLevel * 100)) * 100;
+    document.getElementById("ui-xp-bar").style.width = `${pct}%`;
+
+    const container = document.getElementById("skills-container");
+    if (!container) return;
+
+    const skillDefs = [
+        { key: "scouting", name: "Scouting Network", desc: "Permanently boosts RNG values during pack openings, increasing the chance of pulling higher-tier drops.", color: "blue" },
+        { key: "negotiation", name: "Corporate Negotiation", desc: "Reduces the baseline markup penalty on loan inflations by 20 BE per level.", color: "amber" },
+        { key: "tactics", name: "Tactical Acumen", desc: "Increases the flat power multiplier gained from exploiting enemy weaknesses in the Tactical Draft phase.", color: "emerald" }
+    ];
+
+    container.innerHTML = "";
+    skillDefs.forEach(def => {
+        let currentLvl = skills[def.key];
+        let maxed = currentLvl >= 5;
+        let canUpgrade = skillPoints > 0 && !maxed;
+        
+        let dotsHTML = "";
+        for(let i=1; i<=5; i++) {
+            let active = i <= currentLvl ? `bg-${def.color}-400 border-${def.color}-500 shadow-[0_0_8px_theme(colors.${def.color}.400)]` : "bg-slate-800 border-slate-700";
+            dotsHTML += `<div class="w-4 h-4 rounded-full border ${active}"></div>`;
+        }
+
+        let btnHTML = maxed 
+            ? `<button disabled class="w-full bg-slate-800 text-slate-500 py-2 rounded-lg font-bold text-xs cursor-not-allowed">MAX LEVEL</button>`
+            : `<button onclick="upgradeSkill('${def.key}')" class="w-full ${canUpgrade ? `bg-${def.color}-600 hover:bg-${def.color}-500 text-white cursor-pointer` : `bg-slate-700 text-slate-400 cursor-not-allowed`} py-2 rounded-lg font-bold transition text-xs shadow-md" ${!canUpgrade ? 'disabled' : ''}>UPGRADE (1 SP)</button>`;
+
+        container.innerHTML += `
+            <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-${def.color}-400 mb-2">${def.name}</h3>
+                    <p class="text-xs text-slate-400 mb-4 h-12">${def.desc}</p>
+                    <div class="flex gap-2 mb-4 justify-center">
+                        ${dotsHTML}
+                    </div>
+                </div>
+                ${btnHTML}
+            </div>
+        `;
+    });
+}
+
+// --- TRAINING LOGIC ---
 function executeTeamTraining() {
     if (blueEssence < 50) { alert("Insufficient assets."); return; }
     blueEssence -= 50;
@@ -128,7 +223,12 @@ function startTrainingVisualCountdown() {
 }
 
 function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? 5 : 0; }
-function getLoanPremium() { return activeLoans * 150; }
+
+function getLoanPremium() { 
+    // NEGOTIATION SKILL EFFECT: Reduces baseline premium cost (Max level = -100 BE penalty per loan)
+    let basePremium = 150 - (skills.negotiation * 20); 
+    return activeLoans * Math.max(0, basePremium); 
+}
 
 function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); alert("Credit allocated!"); }
 function payLoan() {
@@ -221,12 +321,14 @@ function renderQuests() {
 function claimQuest(id) { let q = quests.find(x => x.id === id); if(q && !q.claimed) { q.claimed = true; blueEssence += q.reward; saveGame(); } }
 
 function rollTier(packType) {
-    const roll = Math.random() * 100;
+    // SCOUTING SKILL EFFECT: Adds +2 to the RNG roll per skill level, effectively making high drops more common.
+    const roll = (Math.random() * 100) + (skills.scouting * 2);
+    
     if (packType === 'Starter') { if (roll < 80) return "Silver"; return "Gold"; }
     else if (packType === 'Standard') { if (roll < 70) return "Silver"; if (roll < 92) return "Gold"; if (roll < 98) return "Platinum"; return "Diamond"; }
     else if (packType === 'Elite') { if (roll < 45) return "Gold"; if (roll < 80) return "Platinum"; if (roll < 95) return "Diamond"; return "Master"; }
     else if (packType === 'Supreme') { if (roll < 20) return "Platinum"; if (roll < 55) return "Diamond"; if (roll < 80) return "Master"; if (roll < 95) return "Grandmaster"; return "Challenger"; }
-    else if (packType === 'Legacy') { return "Legacy"; }
+    else if (packType === 'Legacy') { return "Legacy"; } // Usually overridden in custom Legacy logic anyway
     return "Silver";
 }
 
@@ -241,6 +343,7 @@ function buyStarterPack() {
         let cardInst = {...p, uniqueId: Date.now() + Math.random().toString(36).substring(2)};
         pulled.push(cardInst); club.push(cardInst);
     });
+    addXP(10);
     saveGame(); showPulls(pulled, "Starter Package Configured!");
 }
 
@@ -248,15 +351,39 @@ function buyPack(baseCost, type) {
     let actualCost = baseCost + getLoanPremium();
     if (blueEssence < actualCost) { alert("Insufficient BE reserves."); return; }
     blueEssence -= actualCost; trackStats.packs++;
+    
+    addXP(25); // Manager Progression via Pack Opens
     let pulled = [];
-    for (let i=0; i<5; i++) {
-        let rolledTier = rollTier(type);
-        let pool = window.playerDatabase.filter(p => p.quality === rolledTier);
-        if(pool.length === 0) pool = window.playerDatabase.filter(p => p.quality !== "Legacy");
-        let p = pool[Math.floor(Math.random() * pool.length)];
-        let cardInst = {...p, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
-        pulled.push(cardInst); club.push(cardInst);
+    
+    // CUSTOM LOGIC FOR NERFED LEGENDS PACK
+    if (type === 'Legacy') {
+        // Guarantee exactly 1 Legacy Card
+        let legPool = window.playerDatabase.filter(p => p.quality === "Legacy");
+        let legCard = legPool[Math.floor(Math.random() * legPool.length)];
+        let p1 = {...legCard, uniqueId: Date.now() + "L1" + Math.random().toString(36).substring(2)};
+        pulled.push(p1); club.push(p1);
+        
+        // Add 4 Random Low/Mid-Tier Fillers
+        for (let i = 0; i < 4; i++) {
+            let fillerTier = Math.random() < 0.85 ? "Silver" : "Gold"; // 85% chance for Silver fillers
+            let filPool = window.playerDatabase.filter(p => p.quality === fillerTier);
+            if(filPool.length === 0) filPool = window.playerDatabase.filter(p => p.quality !== "Legacy");
+            let pF = filPool[Math.floor(Math.random() * filPool.length)];
+            let cardF = {...pF, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
+            pulled.push(cardF); club.push(cardF);
+        }
+    } else {
+        // STANDARD PACK LOGIC
+        for (let i=0; i<5; i++) {
+            let rolledTier = rollTier(type);
+            let pool = window.playerDatabase.filter(p => p.quality === rolledTier);
+            if(pool.length === 0) pool = window.playerDatabase.filter(p => p.quality !== "Legacy");
+            let p = pool[Math.floor(Math.random() * pool.length)];
+            let cardInst = {...p, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
+            pulled.push(cardInst); club.push(cardInst);
+        }
     }
+    
     saveGame(); showPulls(pulled, `${type} Package Opened`);
 }
 
@@ -265,6 +392,8 @@ function buyTargetPack(targetType) {
     if (blueEssence < actualCost) { alert("Insufficient BE reserves."); return; }
     let val = document.getElementById(`${targetType}-select`).value;
     blueEssence -= actualCost; trackStats.packs++;
+    addXP(25);
+    
     let pulled = [];
     for (let i=0; i<5; i++) {
         let rolledTier = rollTier('Standard');
@@ -550,7 +679,6 @@ function computeChemistry() {
         avgStats.map = active.reduce((acc, c) => acc + c.stats.map, 0) / count;
     }
 
-    // UPDATE NEW UI STATS FOR MEC, TMF, MAP
     if (document.getElementById("overview-avg-mec")) {
         document.getElementById("overview-avg-mec").innerText = Math.round(avgStats.mec);
         document.getElementById("overview-avg-tmf").innerText = Math.round(avgStats.tmf);
@@ -670,7 +798,9 @@ function lockInDraft(statFocus) {
     let enemyStat = currentEnemy.stats[statFocus.toLowerCase()];
     
     let diff = myStat - enemyStat;
-    tacticalBonus = Math.floor(diff / 1.5); 
+    
+    // TACTICS SKILL EFFECT: Up to +10 flat boost to drafting power multiplier 
+    tacticalBonus = Math.floor(diff / 1.5) + (skills.tactics * 2); 
     
     document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
     
@@ -737,6 +867,7 @@ function playMatchStep() {
 
 function handleTournamentWin() {
     blueEssence += tourData.reward1;
+    addXP(100); // Manager Progression via Wins
     if (isGoldenRoad) {
         grAccruedEssence += tourData.reward1; document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
         appendLog(`[STAGE CLEARED] Credited +${tourData.reward1} BE. Run Total: ${grAccruedEssence} BE`, "text-amber-400 font-bold");

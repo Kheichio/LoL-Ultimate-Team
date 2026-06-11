@@ -23,6 +23,7 @@
             <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-slate-100 font-black px-10 py-2.5 rounded-lg shadow-md transform hover:scale-105 transition text-base tracking-widest uppercase cursor-pointer border border-blue-500/50 mx-4">Play</button>
             <button onclick="switchTab('club')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">My Club</button>
             <button onclick="switchTab('squad')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-slate-600">Squad</button>
+            <button onclick="switchTab('skills'); renderSkillsUI();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-emerald-400 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-emerald-900/50">Skills</button>
             <button onclick="switchTab('guide')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-purple-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-purple-900/50">Guide</button>
         </div>
 
@@ -79,12 +80,12 @@
                     </div>
                     <button onclick="buyPack(2000, 'Supreme')" data-cost="2000" class="store-pack-btn w-full bg-red-900/60 hover:bg-red-800/80 py-2 rounded font-bold cursor-pointer transition border border-red-700/50 text-red-200 text-sm">2000 BE</button>
                 </div>
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-amber-900/30 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-amber-900/50 text-center flex flex-col justify-between hover:bg-slate-800 transition shadow-[0_0_15px_rgba(180,83,9,0.2)]">
                     <div>
-                        <h3 class="text-base font-bold mb-1 text-amber-500">Legends Pack</h3>
-                        <p class="text-slate-500 text-xs mb-3">5 Players. Legacy historic icons.</p>
+                        <h3 class="text-base font-black mb-1 text-amber-500">Legends Pack</h3>
+                        <p class="text-slate-400 text-xs mb-3">1 Guaranteed Legacy. 4 Fillers.</p>
                     </div>
-                    <button onclick="buyPack(3000, 'Legacy')" data-cost="3000" class="store-pack-btn w-full bg-amber-800/50 hover:bg-amber-700/60 py-2 rounded font-bold cursor-pointer transition border border-amber-600/50 text-amber-200 text-sm">3000 BE</button>
+                    <button onclick="buyPack(6000, 'Legacy')" data-cost="6000" class="store-pack-btn w-full bg-amber-800 hover:bg-amber-700 py-2 rounded font-bold cursor-pointer transition border border-amber-600 text-amber-100 text-sm shadow-md">6000 BE</button>
                 </div>
                 <div class="bg-slate-800/80 p-4 rounded-xl border border-blue-900/30 flex flex-col justify-between hover:bg-slate-800 transition">
                     <div>
@@ -371,6 +372,34 @@
             <h2 class="text-2xl font-bold mb-1 text-slate-200">Managerial Quests</h2>
             <p class="text-slate-500 text-sm mb-4">Complete milestones to earn lucrative bonus payouts.</p>
             <div id="quests-container" class="space-y-3"></div>
+        </section>
+
+        <section id="tab-skills" class="tab-content hidden max-w-4xl mx-auto pb-10">
+            <div class="bg-slate-800/80 p-8 rounded-2xl border border-emerald-900/50 shadow-2xl mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
+                    <div>
+                        <h2 class="text-3xl font-black text-emerald-400">Manager Profile</h2>
+                        <p class="text-slate-400 mt-1">Level up by opening packs and winning tournaments.</p>
+                    </div>
+                    <div class="bg-slate-900/60 px-6 py-3 rounded-xl border border-emerald-800/50 text-center shadow-inner">
+                        <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-1">Unspent Skill Points</p>
+                        <p class="text-3xl font-black text-emerald-300 font-mono" id="ui-skill-points">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950/50 p-5 rounded-xl border border-slate-700/50">
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-lg font-bold text-slate-200">Level <span id="ui-manager-level" class="text-emerald-400 font-black">1</span></span>
+                        <span class="text-xs font-mono text-slate-400"><span id="ui-manager-xp">0</span> / <span id="ui-manager-xp-needed">100</span> XP</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-4 border border-slate-700 overflow-hidden">
+                        <div id="ui-xp-bar" class="bg-gradient-to-r from-emerald-600 to-teal-400 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="skills-container">
+                </div>
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-4xl mx-auto pb-10">
