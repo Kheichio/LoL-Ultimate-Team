@@ -840,19 +840,19 @@ function rollTier(packType) {
         return "Gold"; 
     }
     if (packType === 'Standard') { 
-        if (roll < 65) return "Silver"; 
-        if (roll < 95) return "Gold"; 
-        return "Platinum"; 
+        if (roll < 75) return "Silver"; 
+        return "Gold"; 
     }
     if (packType === 'Elite') { 
-        if (roll < 45) return "Gold"; 
-        if (roll < 85) return "Platinum"; 
-        return "Diamond"; 
+        if (roll < 50) return "Gold"; 
+        if (roll < 80) return "Platinum"; 
+        if (roll < 96) return "Diamond"; 
+        return "Master"; 
     }
     if (packType === 'Supreme') { 
-        if (roll < 30) return "Platinum"; 
+        if (roll < 40) return "Platinum"; 
         if (roll < 70) return "Diamond"; 
-        if (roll < 90) return "Master"; 
+        if (roll < 88) return "Master"; 
         if (roll < 97) return "Grandmaster"; 
         return "Challenger"; 
     }
@@ -884,11 +884,17 @@ function buyPack(baseCost, type) {
     } else if (type === 'MVP') {
         for (let i = 0; i < 5; i++) {
             let pCard;
-            if (Math.random() < 0.25) {
+            let mvpChance = 0.20 + (skills.scouting * 0.02);
+            if (Math.random() < mvpChance) {
                 let mvpPool = window.playerDatabase.filter(p => p.quality === "MVP");
                 pCard = mvpPool[Math.floor(Math.random() * mvpPool.length)];
             } else {
-                let fillerTier = Math.random() < 0.70 ? "Platinum" : "Diamond";
+                let roll = (Math.random() * 100) + (skills.scouting * 2);
+                let fillerTier = "Platinum";
+                if (roll > 50) fillerTier = "Diamond";
+                if (roll > 80) fillerTier = "Master";
+                if (roll > 95) fillerTier = "Grandmaster";
+                
                 let fillPool = window.playerDatabase.filter(p => p.quality === fillerTier);
                 pCard = fillPool[Math.floor(Math.random() * fillPool.length)];
             }
@@ -1356,9 +1362,8 @@ function lockInDraft(statFocus) {
     
     let diff = myStat - enemyStat;
     let baseBonus = Math.round(diff / 1.5);
-    
-    // TACTICAL ACUMEN ALWAYS APPLIES TO BUFFER BAD MATCHUPS
     let managerBuff = (skills.tactics * 2);
+    
     tacticalBonus = baseBonus + managerBuff; 
     
     document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
