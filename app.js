@@ -64,6 +64,135 @@ let trainingActiveUntil = 0;
 let trainingTimerInterval = null;
 let marketTimerInterval = null;
 
+// --- UTILITY LOGIC MISSING ---
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    const target = document.getElementById('tab-' + tabId);
+    if(target) target.classList.remove('hidden');
+}
+
+function showPulls(cards, title) {
+    const area = document.getElementById("pack-opening-area");
+    const container = document.getElementById("pulled-cards");
+    const titleEl = document.getElementById("pack-opening-title");
+    
+    if(!area || !container || !titleEl) return;
+    
+    titleEl.innerText = title || "Pack Opened!";
+    container.innerHTML = "";
+    
+    cards.forEach(card => {
+        container.appendChild(createCardElement(card, false, null, null));
+    });
+    
+    area.classList.remove("hidden");
+    area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function rollTier(type) {
+    let rng = (Math.random() * 100) + (skills.scouting * 2);
+    
+    if (type === 'Standard') {
+        return rng > 80 ? 'Gold' : 'Silver';
+    } else if (type === 'Elite') {
+        if (rng > 95) return 'Master';
+        if (rng > 80) return 'Diamond';
+        if (rng > 50) return 'Platinum';
+        return 'Gold';
+    } else if (type === 'Supreme') {
+        if (rng > 98) return 'Challenger';
+        if (rng > 85) return 'Grandmaster';
+        if (rng > 60) return 'Master';
+        if (rng > 30) return 'Diamond';
+        return 'Platinum';
+    }
+    return 'Silver';
+}
+
+function getRoundLabel(current, max) {
+    let left = max - current;
+    if (left === 1) return "Finals";
+    if (left === 2) return "Semifinals";
+    if (left === 3) return "Quarterfinals";
+    return `Round ${current + 1}`;
+}
+
+function populateLiveArenaVisualizer() {
+    const myContainer = document.getElementById("live-arena-my-roster");
+    const enemyContainer = document.getElementById("live-arena-enemy-roster");
+    if(!myContainer || !enemyContainer) return;
+    
+    myContainer.innerHTML = "";
+    enemyContainer.innerHTML = "";
+    
+    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(r => {
+        if(squad[r]) myContainer.appendChild(createCardElement(squad[r], true));
+    });
+    
+    let currentEnemy = enemies[tourRound];
+    if(currentEnemy && currentEnemy.rosterNames) {
+        currentEnemy.rosterNames.forEach((name, i) => {
+            let roles = ["TOP", "JNG", "MID", "ADC", "SUP"];
+            let dummyCard = {
+                name: name, role: roles[i], team: "Opponent", 
+                quality: "Challenger", region: "Unknown", year: "2026",
+                rating: "???", stats: {mec: "?", tmf: "?", frm: "?", cmp: "?", map: "?", ldr: "?"}
+            };
+            enemyContainer.appendChild(createCardElement(dummyCard, true));
+        });
+    }
+    
+    document.getElementById("live-team-name").innerText = teamIdentity.name;
+    document.getElementById("live-team-logo").innerText = teamIdentity.logo;
+}
+
+// --- QUEST LOGIC MISSING ---
+function renderQuests() {
+    const container = document.getElementById("quests-container");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    quests.forEach(q => {
+        let progress = trackStats[q.type] || 0;
+        let isDone = progress >= q.target;
+        let pct = Math.min(100, (progress / q.target) * 100);
+        
+        let btnHTML = "";
+        if (q.claimed) {
+            btnHTML = `<button disabled class="bg-slate-800 text-slate-600 px-5 py-2.5 rounded-lg font-bold cursor-not-allowed">Claimed</button>`;
+        } else if (isDone) {
+            btnHTML = `<button onclick="claimQuest('${q.id}')" class="bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-5 py-2.5 rounded-lg font-black shadow-[0_0_10px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider">Claim ${q.reward} BE</button>`;
+        } else {
+            btnHTML = `<button disabled class="bg-slate-700 text-slate-400 px-5 py-2.5 rounded-lg font-bold cursor-not-allowed">${progress} / ${q.target}</button>`;
+        }
+        
+        container.innerHTML += `
+            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex justify-between items-center shadow-md">
+                <div class="w-2/3 pr-4">
+                    <h4 class="font-bold text-slate-200 text-lg mb-2">${q.desc}</h4>
+                    <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-700">
+                        <div class="bg-yellow-500 h-full transition-all duration-500" style="width: ${pct}%"></div>
+                    </div>
+                </div>
+                <div>${btnHTML}</div>
+            </div>
+        `;
+    });
+}
+
+function claimQuest(id) {
+    let q = quests.find(x => x.id === id);
+    if (q && !q.claimed && (trackStats[q.type] || 0) >= q.target) {
+        q.claimed = true;
+        blueEssence += q.reward;
+        showToast(`Quest completed! +${q.reward} BE`, "success");
+        saveGame();
+        renderQuests();
+    }
+}
+
 // --- CUSTOM UI ALERTS & MODALS ---
 function showToast(message, type = 'info') {
     const container = document.getElementById("toast-container");
@@ -74,7 +203,7 @@ function showToast(message, type = 'info') {
     if (type === 'error') colorClasses = 'bg-red-950/90 text-red-200 border-red-800';
     if (type === 'success') colorClasses = 'bg-emerald-950/90 text-emerald-200 border-emerald-800';
 
-    toast.className = `p-3 rounded-xl shadow-2xl font-bold text-xs transform transition-all duration-300 translate-y-full opacity-0 flex items-center gap-3 border ${colorClasses}`;
+    toast.className = `p-4 rounded-xl shadow-2xl font-bold text-sm transform transition-all duration-300 translate-y-full opacity-0 flex items-center gap-3 border ${colorClasses}`;
     toast.innerHTML = `<span>${message}</span>`;
     
     container.appendChild(toast);
@@ -330,7 +459,7 @@ function renderTradeMarket() {
         reqBlock.className = "mt-4 w-full text-center bg-slate-900/60 rounded-xl p-3 border border-slate-700/50";
         
         if (offer.completed) {
-            reqBlock.innerHTML = `<span class="text-emerald-400 font-black tracking-widest uppercase">Acquired</span>`;
+            reqBlock.innerHTML = `<span class="text-emerald-400 font-black tracking-widest uppercase text-lg">Acquired</span>`;
         } else {
             let colorClass = hasEnough ? 'text-emerald-400' : 'text-red-400';
             reqBlock.innerHTML = `
@@ -614,19 +743,19 @@ function renderSkillsUI() {
         let dotsHTML = "";
         for(let i=1; i<=5; i++) {
             let active = i <= currentLvl ? `bg-${def.color}-400 border-${def.color}-500 shadow-[0_0_8px_theme(colors.${def.color}.400)]` : "bg-slate-800 border-slate-700";
-            dotsHTML += `<div class="w-3 h-3 rounded-full border ${active}"></div>`;
+            dotsHTML += `<div class="w-4 h-4 rounded-full border ${active}"></div>`;
         }
 
         let btnHTML = maxed 
-            ? `<button disabled class="w-full bg-slate-800 text-slate-500 py-1.5 rounded-lg font-bold text-xs cursor-not-allowed">MAX LEVEL</button>`
-            : `<button onclick="upgradeSkill('${def.key}')" class="w-full ${canUpgrade ? `bg-${def.color}-600 hover:bg-${def.color}-500 text-white cursor-pointer shadow` : `bg-slate-700 text-slate-400 cursor-not-allowed`} py-1.5 rounded-lg font-bold transition text-xs" ${!canUpgrade ? 'disabled' : ''}>UPGRADE (${cost} SP)</button>`;
+            ? `<button disabled class="w-full bg-slate-800 text-slate-500 py-2 rounded-lg font-bold text-sm cursor-not-allowed">MAX LEVEL</button>`
+            : `<button onclick="upgradeSkill('${def.key}')" class="w-full ${canUpgrade ? `bg-${def.color}-600 hover:bg-${def.color}-500 text-white cursor-pointer shadow` : `bg-slate-700 text-slate-400 cursor-not-allowed`} py-2 rounded-lg font-bold transition text-sm" ${!canUpgrade ? 'disabled' : ''}>UPGRADE (${cost} SP)</button>`;
 
         container.innerHTML += `
-            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+            <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-700/50 flex flex-col justify-between">
                 <div>
-                    <h3 class="text-sm font-black text-${def.color}-400 mb-1">${def.name}</h3>
-                    <p class="text-[11px] text-slate-400 mb-3 h-10">${def.desc}</p>
-                    <div class="flex gap-1.5 mb-3 justify-center">
+                    <h3 class="text-base font-black text-${def.color}-400 mb-2">${def.name}</h3>
+                    <p class="text-sm text-slate-400 mb-4 h-12">${def.desc}</p>
+                    <div class="flex gap-2 mb-4 justify-center">
                         ${dotsHTML}
                     </div>
                 </div>
@@ -665,11 +794,11 @@ function startTrainingVisualCountdown() {
         let remaining = Math.round((trainingActiveUntil - Date.now()) / 1000);
         if (remaining <= 0) {
             clearInterval(trainingTimerInterval);
-            display.innerText = "Facility Idle"; display.className = "font-mono font-bold text-slate-500 text-xs";
+            display.innerText = "Facility Idle"; display.className = "font-mono font-bold text-slate-500 text-sm";
             btn.disabled = false; btn.classList.replace("bg-slate-700", "bg-orange-500"); btn.classList.remove("cursor-not-allowed");
             computeChemistry();
         } else {
-            display.innerText = `Live: ${remaining}s left`; display.className = "font-mono font-bold text-orange-400 animate-pulse text-xs";
+            display.innerText = `Live: ${remaining}s left`; display.className = "font-mono font-bold text-orange-400 animate-pulse text-sm";
             computeChemistry();
         }
     }, 1000);
@@ -754,18 +883,6 @@ function updateTeamCustomization() {
     teamIdentity.name = document.getElementById("custom-team-name").value || "My Team";
     teamIdentity.logo = document.getElementById("custom-team-logo").value || "🛡️";
     saveGame();
-}
-
-function triggerWipe() {
-    showConfirm("Wipe All Data?", "This will permanently delete your Club, Essences, and Progress.", () => {
-        localStorage.clear(); location.reload();
-    });
-}
-
-function triggerForfeit() {
-    showConfirm("Forfeit Tournament?", "You will lose your current bracket progress and buy-in run.", () => {
-        emergencyResetSim();
-    });
 }
 
 function updateClubStatsUI() {
@@ -866,11 +983,11 @@ function buyPack(baseCost, type) {
                 let mvpPool = window.playerDatabase.filter(p => p.quality === "MVP");
                 pCard = mvpPool[Math.floor(Math.random() * mvpPool.length)];
             } else {
-                let roll = (Math.random() * 100) + (skills.scouting * 2);
+                let rng = (Math.random() * 100) + (skills.scouting * 2);
                 let fillerTier = "Platinum";
-                if (roll > 50) fillerTier = "Diamond";
-                if (roll > 80) fillerTier = "Master";
-                if (roll > 95) fillerTier = "Grandmaster";
+                if (rng > 50) fillerTier = "Diamond";
+                if (rng > 80) fillerTier = "Master";
+                if (rng > 95) fillerTier = "Grandmaster";
                 
                 let fillPool = window.playerDatabase.filter(p => p.quality === fillerTier);
                 pCard = fillPool[Math.floor(Math.random() * fillPool.length)];
@@ -939,13 +1056,13 @@ function renderClubGrid() {
     let filtered = club.filter(c => c.name.toLowerCase().includes(q));
     
     filtered.forEach((card, idx) => {
-        let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1";
+        let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1.5";
         wrap.appendChild(createCardElement(card, true, null, null));
         let btn = document.createElement("button"); let price = getSellValue(card.quality);
         if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) {
-            btn.className = "text-[10px] bg-slate-700 text-slate-400 px-2 py-0.5 rounded w-full font-bold cursor-not-allowed"; btn.innerText = "In Squad"; btn.disabled = true;
+            btn.className = "text-[11px] bg-slate-700 text-slate-400 px-3 py-1 rounded-lg w-full font-bold cursor-not-allowed"; btn.innerText = "In Squad"; btn.disabled = true;
         } else {
-            btn.className = "text-[10px] bg-red-950/60 text-red-300 px-2 py-0.5 rounded w-full font-bold cursor-pointer transition hover:bg-red-900"; btn.innerHTML = `Sell (+${price})`;
+            btn.className = "text-[11px] bg-red-950/60 text-red-300 px-3 py-1 rounded-lg w-full font-bold cursor-pointer transition hover:bg-red-900"; btn.innerHTML = `Sell (+${price})`;
             btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
         }
         wrap.appendChild(btn); grid.appendChild(wrap);
@@ -998,7 +1115,7 @@ function renderFilteredPicker() {
     pool.forEach(card => {
         let row = document.createElement("div"); row.className = "flex justify-between items-center bg-slate-900/80 hover:bg-slate-800 p-2 rounded-lg border border-slate-700 cursor-pointer transition text-xs";
         row.onclick = () => { squad[activeSlot] = card; document.getElementById("squad-picker-area").classList.add("hidden"); saveGame(); };
-        row.innerHTML = `<div class="flex items-center gap-2"><span class="font-mono font-black text-blue-400 bg-slate-950 px-1.5 py-0.5 rounded text-[10px]">${card.rating}</span><div><div class="font-black text-white leading-tight">${card.name}</div><div class="text-[9px] text-slate-400">${card.team} • ${card.role}</div></div></div>`;
+        row.innerHTML = `<div class="flex items-center gap-3"><span class="font-mono font-black text-blue-400 bg-slate-950 px-2 py-1 rounded text-[11px]">${card.rating}</span><div><div class="font-black text-white leading-tight">${card.name}</div><div class="text-[10px] text-slate-400">${card.team} • ${card.role}</div></div></div>`;
         grid.appendChild(row);
     });
 }
@@ -1016,11 +1133,11 @@ function renderSquadView() {
         const slot = document.getElementById(`squad-${role}`); if(!slot) return; slot.innerHTML = "";
         if(squad[role]) {
             let cardEl = createCardElement(squad[role], true, () => selectSlot(role), role);
-            let del = document.createElement("button"); del.className = "absolute -top-1 -right-1 bg-red-700 hover:bg-red-600 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-black cursor-pointer border border-slate-900 shadow"; del.innerText = "✕";
+            let del = document.createElement("button"); del.className = "absolute -top-1.5 -right-1.5 bg-red-700 hover:bg-red-600 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center font-black cursor-pointer border border-slate-900 shadow-md"; del.innerText = "✕";
             del.onclick = (e) => { e.stopPropagation(); squad[role] = null; saveGame(); };
             cardEl.appendChild(del); slot.appendChild(cardEl);
         } else {
-            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-[10px] flex flex-col items-center justify-center h-full"><span class="text-lg opacity-40 mb-0.5">${window.roleIcons[role] || '+'}</span><span>${role}</span></div>`;
+            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-[11px] flex flex-col items-center justify-center h-full"><span class="text-2xl opacity-40 mb-1">${window.roleIcons[role] || '+'}</span><span>${role}</span></div>`;
         }
     });
     computeChemistry();
@@ -1074,7 +1191,7 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     let isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
     let displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
 
-    cardDiv.className = `card-bg-${card.quality} rounded-xl p-2.5 w-40 flex flex-col items-center select-none relative transition-transform ${isMini ? 'scale-[0.85]' : 'hover:scale-105'}`;
+    cardDiv.className = `card-bg-${card.quality} rounded-xl p-3 w-44 flex flex-col items-center select-none relative transition-transform ${isMini ? 'scale-[0.85]' : 'hover:scale-105'} shadow-md`;
     if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
 
     const cleanName = card.name.replace(/[^a-zA-Z0-9]/g, '');
@@ -1083,18 +1200,18 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     const textClass = (card.quality === 'Silver' || card.quality === 'Gold') ? 'text-slate-700' : 'text-slate-300';
     
     cardDiv.innerHTML = `
-        <div class="w-full flex justify-between text-[9px] font-black uppercase mb-1 items-center">
-            <span class="bg-black/30 text-white px-1 rounded flex gap-0.5">${window.roleIcons[card.role] || ''} ${card.role}</span>
+        <div class="w-full flex justify-between text-[10px] font-black uppercase mb-1 items-center">
+            <span class="bg-black/30 text-white px-1.5 py-0.5 rounded flex gap-1">${window.roleIcons[card.role] || ''} ${card.role}</span>
             <span class="opacity-90 tracking-tight text-white/80">${window.regionLogos[card.region] ? card.region : card.region}</span>
         </div>
-        <div class="flex items-center gap-1 w-full mt-0.5">
-            <div class="text-2xl font-black tracking-tighter drop-shadow-md flex flex-col items-center"><span>${displayRating}</span></div>
-            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-10 h-10 rounded-full border border-white/30 shadow mx-auto object-cover bg-slate-800">
+        <div class="flex items-center gap-2 w-full mt-1">
+            <div class="text-3xl font-black tracking-tighter drop-shadow-md flex flex-col items-center"><span>${displayRating}</span></div>
+            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-12 h-12 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
         </div>
-        <div class="font-black text-xs truncate w-full mt-1 text-center drop-shadow-sm">${card.name}</div>
-        <div class="text-[9px] font-bold opacity-80 truncate w-full mb-0.5 text-center">${card.team} [${card.year}]</div>
-        ${card.role === 'COACH' ? `<div class="mt-4 text-[9px] font-black text-center uppercase text-emerald-600 tracking-wider">Staff Leader</div>` : `
-        <div class="stat-grid mt-1 border-0">
+        <div class="font-black text-sm truncate w-full mt-2 text-center drop-shadow-sm">${card.name}</div>
+        <div class="text-[10px] font-bold opacity-80 truncate w-full mb-1 text-center">${card.team} [${card.year}]</div>
+        ${card.role === 'COACH' ? `<div class="mt-5 text-[10px] font-black text-center uppercase text-emerald-600 tracking-wider">Staff Leader</div>` : `
+        <div class="stat-grid mt-2 border-0 text-[10px]">
             <div><span class="${textClass}">MEC</span> ${card.stats.mec}</div>
             <div><span class="${textClass}">TMF</span> ${card.stats.tmf}</div>
             <div><span class="${textClass}">FRM</span> ${card.stats.frm}</div>
@@ -1138,12 +1255,12 @@ function setupNextRoundUI() {
     
     const panel = document.getElementById("tactical-draft-panel");
     panel.innerHTML = `
-        <h4 class="text-sm font-black text-purple-400 mb-1 uppercase tracking-widest">Tactical Draft Phase</h4>
-        <p class="text-[10px] text-slate-400 mb-3">Select your strategic focus against [ ${currentEnemy.rosterNames.join(", ")} ]</p>
-        <div class="flex flex-wrap justify-center gap-2">
-            <button onclick="lockInDraft('MEC')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold transition text-xs">Early Aggression (MEC)</button>
-            <button onclick="lockInDraft('TMF')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold transition text-xs">Front-to-Back (TMF)</button>
-            <button onclick="lockInDraft('MAP')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold transition text-xs">Objective Control (MAP)</button>
+        <h4 class="text-base font-black text-purple-400 mb-2 uppercase tracking-widest">Tactical Draft Phase</h4>
+        <p class="text-sm text-slate-400 mb-4">Select your strategic focus against [ ${currentEnemy.rosterNames.join(", ")} ]</p>
+        <div class="flex flex-wrap justify-center gap-3">
+            <button onclick="lockInDraft('MEC')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold transition text-sm shadow">Early Aggression (MEC)</button>
+            <button onclick="lockInDraft('TMF')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold transition text-sm shadow">Front-to-Back (TMF)</button>
+            <button onclick="lockInDraft('MAP')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold transition text-sm shadow">Objective Control (MAP)</button>
         </div>
     `;
 }
@@ -1209,13 +1326,13 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
     const outcomeDiv = document.getElementById("tournament-results"); outcomeDiv.classList.remove("hidden");
     const title = document.getElementById("result-title"); const desc = document.getElementById("result-desc"); const icon = document.getElementById("result-icon");
     if (isGRCompletion) {
-        title.innerText = "GOLDEN ROAD ACHIEVED!"; title.className = "text-2xl font-black mb-1 text-yellow-400 drop-shadow-[0_0_15px_rgba(234,179,8,1)]";
+        title.innerText = "GOLDEN ROAD ACHIEVED!"; title.className = "text-3xl font-black mb-2 text-yellow-400 drop-shadow-[0_0_15px_rgba(234,179,8,1)]";
         icon.innerText = "🏆"; desc.innerText = `Sensational perfection! Stage prizes banked, plus the grand +5,000 BE bonus yield! Run total extraction: ${grAccruedEssence + 5000} BE.`;
     } else if (isWin) {
-        title.innerText = "Tournament Champions!"; title.className = "text-xl font-bold mb-1 text-emerald-400";
+        title.innerText = "Tournament Champions!"; title.className = "text-3xl font-bold mb-2 text-emerald-400";
         icon.innerText = "👑"; desc.innerText = `Run complete. Main collection account credited with ${tourData.reward1} BE payout metrics.`;
     } else {
-        title.innerText = "Bracket Knockout"; title.className = "text-xl font-bold mb-1 text-red-500";
+        title.innerText = "Bracket Knockout"; title.className = "text-3xl font-bold mb-2 text-red-500";
         icon.innerText = "💀"; desc.innerText = reachedFinals ? `Knocked out in the Grand Finals stage. Consolidated runner-up payout of ${tourData.reward2} BE successfully cleared.` : `Roster path severed mid-bracket. Performance yields cancelled.`;
     }
     isGoldenRoad = false;
@@ -1228,32 +1345,30 @@ function finishTournamentUI() { document.getElementById("tournament-results").cl
 function setupBracketUI() {
     const container = document.getElementById("bracket-container"); container.innerHTML = "";
     for(let i=0; i<tourData.maxRounds; i++) {
-        const badge = document.createElement("div"); badge.className = `bracket-step bg-slate-700 px-2 py-1 rounded border border-slate-600 ${i === tourRound ? 'bracket-active text-blue-400 bg-slate-800' : ''} ${i < tourRound ? 'bracket-won' : ''}`;
+        const badge = document.createElement("div"); badge.className = `bracket-step bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-600 ${i === tourRound ? 'bracket-active text-blue-400 bg-slate-800' : ''} ${i < tourRound ? 'bracket-won' : ''}`;
         badge.innerText = getRoundLabel(i, tourData.maxRounds); container.appendChild(badge);
     }
 }
 function appendLog(msg, colorClass = "text-slate-300") {
-    const logBox = document.getElementById("match-log"); logBox.innerHTML += `<div class="py-0.5 ${colorClass}"><span class="opacity-40 text-[9px] mr-2">${new Date().toLocaleTimeString()}</span>${msg}</div>`; logBox.scrollTop = logBox.scrollHeight;
-}
-function recalculateRegionalPrice() {
-    const tierSelect = document.getElementById("region-tier-select");
-    const regBtn = document.getElementById("btn-buy-regional"); if(!tierSelect || !regBtn) return;
-    let price = 800;
-    if(tierSelect.value === "Platinum") price = 1500;
-    if(tierSelect.value === "Diamond") price = 2500;
-    if(tierSelect.value === "Master") price = 4500;
-    regBtn.setAttribute("data-cost", price);
-    const premium = getLoanPremium(); regBtn.innerText = `${price + premium} BE`;
-}
-function updateClubStatsUI() {
-    document.getElementById("stat-wins").innerText = (trackStats.tournamentsWon || 0) + (trackStats.goldenRoads || 0);
-    document.getElementById("stat-packs").innerText = trackStats.packs || 0;
-    document.getElementById("stat-liquidated").innerText = trackStats.soldBE || 0;
-    let mvp = "None"; let highestMatches = 0;
-    for (const [playerName, count] of Object.entries(trackStats.matchesPlayed)) {
-        if (count > highestMatches) { highestMatches = count; mvp = playerName; }
-    }
-    document.getElementById("stat-mvp").innerText = highestMatches > 0 ? `${mvp} (${highestMatches}m)` : "None";
+    const logBox = document.getElementById("match-log"); logBox.innerHTML += `<div class="py-1 ${colorClass}"><span class="opacity-40 text-[10px] mr-2">${new Date().toLocaleTimeString()}</span>${msg}</div>`; logBox.scrollTop = logBox.scrollHeight;
 }
 function triggerWipe() { showConfirm("Wipe All Data?", "Permanently delete Club, Essences, and Levels.", () => { localStorage.clear(); location.reload(); }); }
 function triggerForfeit() { showConfirm("Forfeit Tournament?", "Lose your bracket positioning and stake.", () => emergencyResetSim()); }
+function sellAllLowTier(tier) {
+    let sold = 0; let val = 0; let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
+    let toSell = club.filter(c => c.quality === tier && !activeIds.includes(c.uniqueId));
+    toSell.forEach(c => { sold++; val += getSellValue(c.quality); club = club.filter(cl => cl.uniqueId !== c.uniqueId); });
+    if(sold > 0) { blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; showToast(`Purged ${sold} ${tier}s for ${val} BE!`, "success"); saveGame(); }
+    else showToast(`No unassigned ${tier}s found.`, "info");
+}
+function quickSellDuplicates() {
+    let sold = 0; let val = 0; let seen = new Set(); let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
+    let toKeep = [];
+    club.forEach(c => {
+        let isAct = activeIds.includes(c.uniqueId);
+        if(!isAct && seen.has(c.id)) { sold++; val += getSellValue(c.quality); }
+        else { seen.add(c.id); toKeep.push(c); }
+    });
+    if(sold > 0) { club = toKeep; blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; showToast(`Purged ${sold} Duplicates for ${val} BE!`, "success"); saveGame(); }
+    else showToast("No duplicates found.", "info");
+}
