@@ -1,7 +1,6 @@
 // app.js
 
 function getSellValue(quality) {
-    // HEAVILY LOWERED RESALE MARGINS TO PREVENT FLIPPING
     const vals = { Silver: 5, Gold: 15, Platinum: 30, Diamond: 50, Master: 90, Grandmaster: 150, Challenger: 300, Champion: 250, Coach: 20 };
     return vals[quality] || 5;
 }
@@ -191,6 +190,12 @@ function updateBadges() {
     else questsBadge.classList.add("hidden");
 }
 
+function secretMoneyCheat() {
+    blueEssence += 10000;
+    saveGame();
+    showToast("Cheat Activated: +10,000 BE!", "success");
+}
+
 // --- XP & PROGRESSION LOGIC ---
 function addXP(amount) {
     managerXP += amount;
@@ -277,6 +282,34 @@ function executeTeamTraining() {
     localStorage.setItem("lol_training_expiry", trainingActiveUntil);
     saveGame();
     startTrainingVisualCountdown();
+}
+
+function checkAndRecoverTrainingTimer() {
+    const savedExpiry = localStorage.getItem("lol_training_expiry");
+    if (savedExpiry) {
+        trainingActiveUntil = parseInt(savedExpiry, 10);
+        if (trainingActiveUntil > Date.now()) startTrainingVisualCountdown();
+    }
+}
+
+function startTrainingVisualCountdown() {
+    if(trainingTimerInterval) clearInterval(trainingTimerInterval);
+    const display = document.getElementById("training-timer-display");
+    const btn = document.getElementById("btn-run-training");
+    btn.disabled = true; btn.classList.replace("bg-orange-600/80", "bg-slate-700"); btn.classList.add("cursor-not-allowed");
+
+    trainingTimerInterval = setInterval(() => {
+        let remaining = Math.round((trainingActiveUntil - Date.now()) / 1000);
+        if (remaining <= 0) {
+            clearInterval(trainingTimerInterval);
+            display.innerText = "Facility Idle"; display.className = "font-mono font-bold text-slate-500 text-sm";
+            btn.disabled = false; btn.classList.replace("bg-slate-700", "bg-orange-600/80"); btn.classList.remove("cursor-not-allowed");
+            computeChemistry();
+        } else {
+            display.innerText = `Live: ${remaining}s left`; display.className = "font-mono font-bold text-orange-400 animate-pulse text-sm";
+            computeChemistry();
+        }
+    }, 1000);
 }
 
 function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? 5 : 0; }
@@ -378,6 +411,9 @@ function executeTabSwitch(tabId) {
 }
 
 function populateDropdownFilters() {
+    // Failsafe initialization check
+    if(!window.playerDatabase) return;
+    
     const teams = ["ALL", ...new Set(window.playerDatabase.map(p => p.team))];
     const regions = ["ALL", ...new Set(window.playerDatabase.map(p => p.region))];
     const years = ["ALL", ...new Set(window.playerDatabase.map(p => p.year))];
@@ -505,6 +541,41 @@ function showPulls(pulledCards, titleText) {
     area.scrollIntoView({ behavior: "smooth" });
 }
 
+function sellAllLowTier(tierName) {
+    let before = club.length;
+    club = club.filter(card => {
+        if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) return true;
+        if (card.quality === tierName) { 
+            let val = getSellValue(card.quality);
+            blueEssence += val; trackStats.soldCount++; trackStats.soldBE += val; 
+            return false; 
+        }
+        return true;
+    });
+    if(club.length !== before) {
+        showToast(`Bulk liquidation processed.`, "success");
+        saveGame();
+    }
+}
+
+function quickSellDuplicates() {
+    let counts = {}; let before = club.length;
+    club = club.filter(card => {
+        if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) return true;
+        let key = `${card.name}_${card.year}_${card.team}`;
+        if (counts[key]) { 
+            let val = getSellValue(card.quality);
+            blueEssence += val; trackStats.soldCount++; trackStats.soldBE += val; 
+            return false; 
+        }
+        counts[key] = true; return true;
+    });
+    if(club.length !== before) {
+        showToast("Duplicates purged!", "success");
+        saveGame();
+    }
+}
+
 function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     const cardDiv = document.createElement("div");
     let calculatedRating = card.rating;
@@ -564,7 +635,7 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
                 <div><span class="opacity-70">TMF</span> ${card.stats.tmf}</div>
                 <div><span class="opacity-70">MAP</span> ${card.stats.map}</div>
             </div>
-            <div class="flex flex-col gap-0.5 text-right pl-2">
+            <div class="flex flex-col gap-0.5 text-right pl-2 border-l" style="border-color: inherit;">
                 <div><span class="opacity-70">FRM</span> ${card.stats.frm}</div>
                 <div><span class="opacity-70">CMP</span> ${card.stats.cmp}</div>
                 <div><span class="opacity-70">LDR</span> ${card.stats.ldr}</div>
@@ -608,6 +679,8 @@ function sortClub(by) {
     if (by === 'region') club.sort((a,b) => a.region.localeCompare(b.region));
     renderClubGrid();
 }
+
+let activeSlot = null; let pickerSortBy = 'highest';
 
 function renderFilteredPicker() {
     const grid = document.getElementById("picker-grid"); grid.innerHTML = "";
@@ -686,24 +759,11 @@ function renderSquadView() {
     computeChemistry();
 }
 
-// --- PVE COMBAT BRACKET ---
-function generateRealPlayerEnemies(baseDiff, rounds) {
-    enemies = []; const nomenclaturePool = ["SKT T1 Legacy", "Gen.G Superteam", "BLG Vanguard", "G2 Army", "Team Liquid Elite", "Fnatic Core"];
-    const realProNames = [...new Set(window.playerDatabase.filter(p => p.role !== "COACH").map(p => p.name))];
-    for(let i = 0; i < rounds; i++) {
-        let diffCurve = baseDiff + (i * 3) + Math.floor(Math.random() * 4);
-        let chosenTeamName = nomenclaturePool[Math.floor(Math.random() * nomenclaturePool.length)] + ` [S${i+1}]`;
-        let activeDraft = []; let localNames = [...realProNames];
-        for (let r = 0; r < 5; r++) { activeDraft.push(localNames.splice(Math.floor(Math.random() * localNames.length), 1)[0]); }
-        
-        let enemyStats = {
-            mec: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10)),
-            tmf: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10)),
-            map: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10))
-        };
-        
-        enemies.push({ name: chosenTeamName, power: diffCurve, rosterNames: activeDraft, stats: enemyStats });
-    }
+function clearSquad() { squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null }; saveGame(); }
+
+function getTierFromRating(rating) {
+    if (rating >= 97) return "Challenger"; if (rating >= 95) return "Grandmaster"; if (rating >= 92) return "Master";
+    if (rating >= 89) return "Diamond"; if (rating >= 85) return "Platinum"; if (rating >= 80) return "Gold"; return "Silver";
 }
 
 function computeChemistry() {
@@ -726,7 +786,6 @@ function computeChemistry() {
     let coachBonus = squad["COACH"] ? 5 : 0; let trainBonus = getTrainingBonus();
 
     if (count === 5) {
-        // Champion card acting as full variable synergy bypass link
         let nonLegacyRegions = active.filter(c => c.quality !== "Champion").map(c => c.region);
         let uReg = new Set(nonLegacyRegions).size;
         if (uReg <= 1) regionChem = 5; else if (uReg === 2) regionChem = 3; else if (uReg === 3) regionChem = 2; else regionChem = 1;
@@ -766,3 +825,237 @@ function computeChemistry() {
 
     return { rating: avgRating, chem: (regionChem + yearChem), coach: coachBonus, training: trainBonus, totalPower: totalPower, rawStats: avgStats };
 }
+
+// --- PVE COMBAT BRACKET ---
+function generateRealPlayerEnemies(baseDiff, rounds) {
+    enemies = []; const nomenclaturePool = ["SKT T1 Legacy", "Gen.G Superteam", "BLG Vanguard", "G2 Army", "Team Liquid Elite", "Fnatic Core"];
+    
+    // Safefall if DB is unloaded
+    if (!window.playerDatabase) return;
+
+    const realProNames = [...new Set(window.playerDatabase.filter(p => p.role !== "COACH").map(p => p.name))];
+    for(let i = 0; i < rounds; i++) {
+        let diffCurve = baseDiff + (i * 3) + Math.floor(Math.random() * 4);
+        let chosenTeamName = nomenclaturePool[Math.floor(Math.random() * nomenclaturePool.length)] + ` [S${i+1}]`;
+        let activeDraft = []; let localNames = [...realProNames];
+        for (let r = 0; r < 5; r++) { activeDraft.push(localNames.splice(Math.floor(Math.random() * localNames.length), 1)[0]); }
+        
+        let enemyStats = {
+            mec: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10)),
+            tmf: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10)),
+            map: Math.max(50, diffCurve + Math.floor(Math.random() * 20 - 10))
+        };
+        
+        enemies.push({ name: chosenTeamName, power: diffCurve, rosterNames: activeDraft, stats: enemyStats });
+    }
+}
+
+function populateLiveArenaVisualizer() {
+    const myRosterBox = document.getElementById("live-arena-my-roster"); const enemyRosterBox = document.getElementById("live-arena-enemy-roster");
+    myRosterBox.innerHTML = ""; enemyRosterBox.innerHTML = "";
+    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(role => { if (squad[role]) myRosterBox.appendChild(createCardElement(squad[role], false, null, role)); });
+    let enemyPowerRef = enemies[tourRound].power; let currentEnemyRoster = enemies[tourRound].rosterNames;
+    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach((role, idx) => {
+        let dummyCard = {
+            name: currentEnemyRoster[idx] || `Pro ${role}`, role: role, rating: Math.floor(enemyPowerRef - 3 + idx),
+            quality: getTierFromRating(enemyPowerRef), region: "GLOBAL", team: "NPC", year: 2024, stats: { mec: 80, tmf: 80, frm: 80, cmp: 80, map: 80, ldr: 80 }
+        };
+        enemyRosterBox.appendChild(createCardElement(dummyCard, false, null, role));
+    });
+}
+
+function setupNextRoundUI() {
+    tacticalBonus = 0; let sData = computeChemistry(); let currentEnemy = enemies[tourRound];
+    document.getElementById("tour-my-power").innerText = sData.totalPower;
+    document.getElementById("enemy-team-name").innerText = currentEnemy.name;
+    document.getElementById("tour-enemy-rating").innerText = currentEnemy.power;
+    populateLiveArenaVisualizer();
+    
+    let managerBuff = (skills.tactics * 2);
+    let managerUI = managerBuff > 0 
+        ? `<div class="text-center mt-2 mb-4"><span class="text-emerald-400 text-xs font-bold border border-emerald-800/50 bg-emerald-900/30 px-3 py-1 rounded-full shadow-sm">Manager Tactics Skill Active: +${managerBuff} Power</span></div>`
+        : '';
+
+    const draftPanel = document.getElementById("tactical-draft-panel");
+    draftPanel.classList.remove("hidden");
+    draftPanel.innerHTML = `
+        <h4 class="text-base font-bold text-blue-300 mb-1 uppercase tracking-widest border-b border-slate-700/50 pb-2">Tactical Draft Phase</h4>
+        <p class="text-xs text-slate-400 mb-4 mt-2">Compare your lineup's stats against the opponent. Exploiting their weaknesses grants massive power multipliers, while drafting into their strengths penalizes you.</p>
+        
+        ${managerUI}
+
+        <div class="flex justify-center gap-6 mb-5 text-sm font-mono bg-slate-900/50 p-3 rounded border border-slate-700/50 shadow-inner">
+            <div class="text-center"><span class="text-slate-500 block text-[10px]">Avg MEC</span> <span class="text-slate-200">${Math.round(sData.rawStats.mec)}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400/90">${currentEnemy.stats.mec}</span></div>
+            <div class="text-center"><span class="text-slate-500 block text-[10px]">Avg TMF</span> <span class="text-slate-200">${Math.round(sData.rawStats.tmf)}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400/90">${currentEnemy.stats.tmf}</span></div>
+            <div class="text-center"><span class="text-slate-500 block text-[10px]">Avg MAP</span> <span class="text-slate-200">${Math.round(sData.rawStats.map)}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400/90">${currentEnemy.stats.map}</span></div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-3">
+            <button onclick="lockInDraft('MEC')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-5 py-2.5 rounded font-bold transition text-xs text-slate-200 cursor-pointer shadow-md">Early Aggression (MEC)</button>
+            <button onclick="lockInDraft('TMF')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-5 py-2.5 rounded font-bold transition text-xs text-slate-200 cursor-pointer shadow-md">Front-to-Back (TMF)</button>
+            <button onclick="lockInDraft('MAP')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-5 py-2.5 rounded font-bold transition text-xs text-slate-200 cursor-pointer shadow-md">Objective Control (MAP)</button>
+        </div>
+    `;
+
+    document.getElementById("btn-play-match").classList.add("hidden");
+    document.getElementById("btn-next-round").classList.add("hidden");
+    document.getElementById("btn-gr-next").classList.add("hidden");
+    let stagePrefix = isGoldenRoad ? `[STAGE ${grStageIndex+1}/6] ` : ``;
+    document.getElementById("match-log").innerHTML = `<div class="text-blue-400 font-bold border-b border-slate-800 pb-1 mb-2">${stagePrefix}Entering Rift Canvas for ${getRoundLabel(tourRound, tourData.maxRounds)}. Awaiting Tactical Focus.</div>`;
+}
+
+function lockInDraft(statFocus) {
+    document.getElementById("tactical-draft-panel").classList.add("hidden");
+    let sData = computeChemistry(); let currentEnemy = enemies[tourRound];
+    
+    let myStat = sData.rawStats[statFocus.toLowerCase()];
+    let enemyStat = currentEnemy.stats[statFocus.toLowerCase()];
+    
+    let diff = myStat - enemyStat;
+    
+    // Base bonus from the stat differential
+    let baseBonus = Math.round(diff / 1.5);
+    
+    // The Manager Tactics tree provides a guaranteed raw power modifier IF the stat matchup was neutral or winning.
+    // If you draft into a horrible losing matchup, the manager skill will NOT save you from negative penalties.
+    let managerBuff = (skills.tactics * 2);
+    let appliedManagerBuff = baseBonus >= 0 ? managerBuff : 0;
+    
+    tacticalBonus = baseBonus + appliedManagerBuff; 
+    
+    document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
+    
+    let sign = tacticalBonus >= 0 ? '+' : '';
+    let colorClass = tacticalBonus > 0 ? 'text-emerald-400' : (tacticalBonus < 0 ? 'text-red-400' : 'text-slate-300');
+    
+    appendLog(`[DRAFT PHASE] Strategic focus: ${statFocus}. Our ${statFocus}: ${Math.round(myStat)} vs Enemy ${statFocus}: ${enemyStat}.`, "text-slate-300 font-bold");
+    
+    if (appliedManagerBuff > 0) {
+        appendLog(`Manager Tactics Skill Bonus: +${appliedManagerBuff} Power.`, "text-emerald-300 font-bold italic");
+    } else if (managerBuff > 0 && baseBonus < 0) {
+        appendLog(`Manager Tactics Skill nullified. You drafted into an opponent strength!`, "text-red-400 font-bold italic");
+    }
+
+    appendLog(`Modifier Calculation: Applied ${sign}${tacticalBonus} Power to Squad Rating.`, `${colorClass} font-bold`);
+
+    const playBtn = document.getElementById("btn-play-match"); playBtn.classList.remove("hidden"); playBtn.disabled = false;
+    playBtn.classList.replace("bg-slate-600", "bg-blue-700"); playBtn.innerText = "Execute Simulation ⏩";
+}
+
+function getRoundLabel(idx, total) { if (idx === total - 1) return "Grand Finals"; if (idx === total - 2) return "Semifinals"; if (idx === total - 3) return "Quarterfinals"; return `Round of ${Math.pow(2, total - idx)}`; }
+
+function setupBracketUI() {
+    const container = document.getElementById("bracket-container"); container.innerHTML = "";
+    for(let i=0; i<tourData.maxRounds; i++) {
+        const badge = document.createElement("div");
+        badge.className = `bracket-step bg-slate-800 px-3 py-1.5 rounded border border-slate-700 ${i === tourRound ? 'bracket-active text-blue-300 bg-slate-800/80' : ''} ${i < tourRound ? 'bracket-won' : ''}`;
+        badge.innerText = getRoundLabel(i, tourData.maxRounds); container.appendChild(badge);
+    }
+}
+
+function appendLog(msg, colorClass = "text-slate-400") {
+    const logBox = document.getElementById("match-log");
+    logBox.innerHTML += `<div class="py-0.5 ${colorClass}"><span class="opacity-30 text-[10px] mr-2">${new Date().toLocaleTimeString()}</span>${msg}</div>`;
+    logBox.scrollTop = logBox.scrollHeight;
+}
+
+function recordMatchStats() {
+    ["TOP", "JNG", "MID", "ADC", "SUP", "COACH"].forEach(role => {
+        if (squad[role]) {
+            let n = squad[role].name;
+            trackStats.matchesPlayed[n] = (trackStats.matchesPlayed[n] || 0) + 1;
+        }
+    });
+}
+
+function playMatchStep() {
+    let sData = computeChemistry(); let myPower = sData.totalPower + tacticalBonus; let currentEnemy = enemies[tourRound];
+    const playBtn = document.getElementById("btn-play-match"); playBtn.disabled = true; playBtn.classList.replace("bg-blue-700", "bg-slate-700"); playBtn.innerText = "Crunching Telemetry...";
+    appendLog(`Drafting phase concluded. Opponent core: [${currentEnemy.rosterNames.join(", ")}] active.`, "text-slate-500");
+    simIntervalId = setTimeout(() => {
+        appendLog(`Skirmish Phase active. Cross-map macro checks engaged.`, "text-slate-300");
+        simIntervalId = setTimeout(() => {
+            let finalCalculation = myPower + ((Math.random() * 14) - 7);
+            appendLog("Late Phase: Contesting around the Baron Nashor pit...", "text-slate-400");
+            simIntervalId = setTimeout(() => {
+                recordMatchStats(); 
+                
+                if (finalCalculation >= currentEnemy.power) {
+                    appendLog(`🏆 Series Secured! Enemy team Nexus structures collapsed!`, "text-emerald-400 font-bold");
+                    if (tourRound >= tourData.maxRounds - 1) handleTournamentWin();
+                    else { playBtn.classList.add("hidden"); document.getElementById("btn-next-round").classList.remove("hidden"); }
+                } else {
+                    appendLog(`💀 Defeat. Squad power failed to match opposing push lines.`, "text-red-400/90 font-bold");
+                    handleTournamentLoss();
+                }
+            }, 600);
+        }, 800);
+    }, 700);
+}
+
+function checkSquadReady() {
+    if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { 
+        showToast("Matrix incomplete. Fill all 5 starting lane allocations.", "error"); 
+        return false; 
+    } 
+    return true;
+}
+
+function startTournament(name, cost, r1, r2, baseDiff, rounds) {
+    if (!checkSquadReady()) return; if (blueEssence < cost) { showToast("Insufficient BE reserves.", "error"); return; }
+    if(simIntervalId) clearTimeout(simIntervalId); blueEssence -= cost; saveGame();
+    isGoldenRoad = false; tourActive = true; tourData = { name, reward1: r1, reward2: r2, maxRounds: rounds };
+    tourRound = 0; tacticalBonus = 0; generateRealPlayerEnemies(baseDiff, rounds);
+    document.getElementById("gr-badge").classList.add("hidden"); document.getElementById("gr-accrued-display").classList.add("hidden");
+    transitionToArena(name);
+}
+
+function startGoldenRoad() {
+    if (!checkSquadReady()) return; if (blueEssence < 1000) { showToast("Insufficient assets for Golden Road.", "error"); return; }
+    if(simIntervalId) clearTimeout(simIntervalId); blueEssence -= 1000; saveGame();
+    isGoldenRoad = true; tourActive = true; grStageIndex = 0; grAccruedEssence = 0; tacticalBonus = 0;
+    loadGoldenRoadStage();
+    document.getElementById("gr-badge").classList.remove("hidden"); document.getElementById("gr-accrued-display").classList.remove("hidden");
+    document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
+    transitionToArena("Golden Road Run: " + tourData.name);
+}
+
+function handleTournamentWin() {
+    blueEssence += tourData.reward1;
+    addXP(100); 
+    if (isGoldenRoad) {
+        grAccruedEssence += tourData.reward1; document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
+        appendLog(`[STAGE CLEARED] Credited +${tourData.reward1} BE. Run Total: ${grAccruedEssence} BE`, "text-amber-400 font-bold");
+        if (grStageIndex === grStages.length - 1) { blueEssence += 5000; trackStats.goldenRoads++; saveGame(); endTournament(true, true); }
+        else { saveGame(); document.getElementById("btn-play-match").classList.add("hidden"); document.getElementById("btn-gr-next").classList.remove("hidden"); }
+    } else { trackStats.tournamentsWon++; saveGame(); endTournament(true, false); }
+}
+
+function handleTournamentLoss() {
+    let reachedFinals = (tourRound === tourData.maxRounds - 1);
+    if (reachedFinals) { blueEssence += tourData.reward2; if(isGoldenRoad) grAccruedEssence += tourData.reward2; }
+    saveGame(); endTournament(false, false, reachedFinals);
+}
+
+function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
+    tourActive = false; if(simIntervalId) clearTimeout(simIntervalId);
+    document.getElementById("tournament-active").classList.add("hidden");
+    const outcomeDiv = document.getElementById("tournament-results"); outcomeDiv.classList.remove("hidden");
+    const title = document.getElementById("result-title"); const desc = document.getElementById("result-desc"); const icon = document.getElementById("result-icon");
+    if (isGRCompletion) {
+        title.innerText = "GOLDEN ROAD ACHIEVED!"; title.className = "text-2xl font-black mb-1 text-amber-400 drop-shadow-md";
+        icon.innerText = "🏆"; desc.innerText = `Sensational perfection! Stage prizes banked, plus the grand +5,000 BE bonus yield! Run total extraction: ${grAccruedEssence + 5000} BE.`;
+    } else if (isWin) {
+        title.innerText = "Tournament Champions!"; title.className = "text-xl font-bold mb-1 text-emerald-400";
+        icon.innerText = "👑"; desc.innerText = `Run complete. Main collection account credited with ${tourData.reward1} BE payout metrics.`;
+    } else {
+        title.innerText = "Bracket Knockout"; title.className = "text-xl font-bold mb-1 text-red-500";
+        icon.innerText = "💀"; desc.innerText = reachedFinals ? `Knocked out in the Grand Finals stage. Consolidated runner-up payout of ${tourData.reward2} BE cleared.` : `Roster path severed mid-bracket. Performance yields cancelled.`;
+    }
+    isGoldenRoad = false;
+}
+
+function setupNextRound() { if (tourRound < tourData.maxRounds - 1) { tourRound++; setupBracketUI(); setupNextRoundUI(); } }
+function advanceGoldenRoadStage() { grStageIndex++; loadGoldenRoadStage(); document.getElementById("tour-active-title").innerText = "Golden Road Run: " + tourData.name; setupBracketUI(); setupNextRoundUI(); }
+function emergencyResetSim() { if(simIntervalId) clearTimeout(simIntervalId); tourActive = false; isGoldenRoad = false; document.getElementById("tournament-active").classList.add("hidden"); document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); }
+function finishTournamentUI() { document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
