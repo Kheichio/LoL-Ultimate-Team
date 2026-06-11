@@ -10,6 +10,9 @@
 /* Dark/Black Cards Strategy Layout */
 .card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #ffffff; border: 3px double #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
 .card-bg-Champion { background: linear-gradient(135deg, #111827 0%, #000000 100%); color: #ffffff; border: 3px solid #d97706; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); }
+.card-bg-MVP { background: linear-gradient(135deg, #be185d 0%, #4c1d95 100%); color: #ffffff; border: 3px solid #f472b6; box-shadow: 0 6px 20px rgba(190, 24, 93, 0.4); }
+.card-bg-MVP .stat-grid { border-top: 1px solid rgba(255, 255, 255, 0.25); color: #f1f5f9; }
+.card-bg-MVP .stat-grid span { color: #cbd5e1; opacity: 0.8; }
 .coach-card-style { background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); color: #ffffff; border: 3px dashed #10b981; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25); }
 
 /* Static Numerical Attributes Grid Setup - White/Black divider line removed */

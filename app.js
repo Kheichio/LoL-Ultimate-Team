@@ -1,7 +1,7 @@
 // app.js
 
 function getSellValue(quality) {
-    const vals = { Silver: 5, Gold: 15, Platinum: 30, Diamond: 50, Master: 90, Grandmaster: 150, Challenger: 300, Champion: 250, Coach: 20 };
+    const vals = { Silver: 5, Gold: 15, Platinum: 30, Diamond: 50, Master: 90, Grandmaster: 150, MVP: 175, Challenger: 300, Champion: 250, Coach: 20 };
     return vals[quality] || 5;
 }
 
