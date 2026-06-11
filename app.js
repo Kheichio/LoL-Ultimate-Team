@@ -619,7 +619,7 @@ function renderSkillsUI() {
     const skillDefs = [
         { key: "scouting", name: "Scouting Network", desc: "Permanently boosts RNG values during pack openings, increasing the chance of pulling higher-tier drops.", color: "blue" },
         { key: "negotiation", name: "Corporate Negotiation", desc: "Reduces the baseline markup penalty on loan inflations by 20 BE per level.", color: "amber" },
-        { key: "tactics", name: "Tactical Acumen", desc: "Grants a guaranteed flat power bonus (+2 per level) to your squad during the Tactical Draft phase.", color: "emerald" }
+        { key: "tactics", name: "Tactical Acumen", desc: "Grants a guaranteed flat power bonus (+3 per level) to your squad during the Tactical Draft phase.", color: "emerald" }
     ];
     container.innerHTML = "";
     skillDefs.forEach(def => {
@@ -672,7 +672,6 @@ function payLoan() {
 }
 
 function checkSquadReady() {
-    // Coach requirement removed completely
     if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { 
         showToast("Lineup incomplete! Fill all 5 starting lane positions.", "error"); 
         return false; 
@@ -933,8 +932,6 @@ function renderSquadView() {
         const slot = document.getElementById(`squad-${role}`); if(!slot) return; slot.innerHTML = "";
         if(squad[role]) {
             let cardEl = createCardElement(squad[role], true, () => selectSlot(role), role);
-            
-            // Explicitly dropped generic overlay removal X triggers to keep UI pristine
             slot.appendChild(cardEl);
         } else {
             slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-sm flex flex-col items-center justify-center h-full w-full"><span class="text-4xl opacity-40 mb-3">${window.roleIcons[role] || '+'}</span><span class="uppercase">${role}</span></div>`;
@@ -1093,24 +1090,85 @@ function setupNextRoundUI() {
     document.getElementById("pre-match-stats").classList.remove("hidden");
 
     let diff = sData.totalPower - currentEnemy.power;
+
+    // Dynamically rebuild the original Tactical Draft Buttons block
+    const draftPanel = document.getElementById("tactical-draft-panel");
+    draftPanel.innerHTML = `
+        <h4 class="text-lg font-black text-purple-400 mb-2 uppercase tracking-widest">Tactical Draft Phase</h4>
+        <div id="power-diff-display" class="text-sm font-mono mb-4 text-slate-300 font-bold bg-slate-950 p-2 rounded-lg border border-slate-700 inline-block"></div>
+        <div class="flex flex-col gap-3">
+            <button onclick="lockInDraft('MEC')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Aggression (MEC)</button>
+            <button onclick="lockInDraft('TMF')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Teamfight (TMF)</button>
+            <button onclick="lockInDraft('MAP')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Objective (MAP)</button>
+        </div>
+    `;
+
     let diffEl = document.getElementById("power-diff-display");
     if (diff >= 0) diffEl.innerHTML = `Power Advantage: <span class="text-green-400 text-lg ml-1">+${diff}</span>`;
     else diffEl.innerHTML = `Power Deficit: <span class="text-red-400 text-lg ml-1">${diff}</span>`;
-    
-    document.getElementById("tactical-draft-panel").classList.remove("hidden");
+
+    draftPanel.classList.remove("hidden");
     document.getElementById("btn-play-match").classList.add("hidden");
     document.getElementById("btn-next-round").classList.add("hidden");
     document.getElementById("btn-gr-next").classList.add("hidden");
 }
 
 function lockInDraft(statFocus) {
-    document.getElementById("tactical-draft-panel").classList.add("hidden");
     let sData = computeChemistry(); 
-    let baseStat = sData.avgStats[statFocus.toLowerCase()] || 70;
-    tacticalBonus = Math.floor(baseStat / 15) + (skills.tactics * 2);
-    
+    let currentEnemy = enemies[tourRound];
+
+    // Compute specifically selected stat average for user
+    let myStat = Math.round(sData.avgStats[statFocus.toLowerCase()] || 0);
+
+    // Compute specifically selected stat average for enemy based on their random card rolls
+    let eStat = 0;
+    if(currentEnemy.generatedStats) {
+        currentEnemy.generatedStats.forEach(st => { eStat += st[statFocus.toLowerCase()]; });
+        eStat = Math.round(eStat / 6);
+    } else {
+        eStat = currentEnemy.power;
+    }
+
+    let statDiff = myStat - eStat;
+
+    // +1 Power per every 2 points advantage, -1 Power per every 2 points disadvantage
+    let h2hModifier = Math.floor(statDiff / 2);
+
+    // Manager Tactical Acumen Skill provides +3 guaranteed power per level to offset negatives or stack positives
+    let managerBonus = skills.tactics * 3; 
+
+    // Final mathematical tactical modification applied to power output
+    tacticalBonus = h2hModifier + managerBonus;
+
     document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
-    appendLog(`[DRAFT PHASE] Strategic focus locked on ${statFocus}. Attributes generated: +${tacticalBonus} Combat Power Boost!`, "text-purple-400 font-bold");
+
+    let h2hColor = h2hModifier > 0 ? "text-green-400" : (h2hModifier < 0 ? "text-red-400" : "text-slate-400");
+    let h2hSign = h2hModifier > 0 ? "+" : "";
+
+    let totalColor = tacticalBonus >= 0 ? "text-green-400" : "text-red-400";
+    let totalSign = tacticalBonus >= 0 ? "+" : "";
+
+    // Repaint the draft panel strictly displaying the computed draft math receipts
+    const panel = document.getElementById("tactical-draft-panel");
+    panel.innerHTML = `
+        <h4 class="text-lg font-black text-purple-400 mb-2 uppercase tracking-widest">Draft Execution</h4>
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 text-sm font-mono text-left inline-block w-full shadow-inner">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-slate-400">Head-to-Head (${statFocus})</span>
+                <span class="font-black ${h2hColor}">${h2hSign}${h2hModifier} Pwr</span>
+            </div>
+            <div class="flex justify-between items-center mb-3 border-b border-slate-700/50 pb-3">
+                <span class="text-slate-400">Manager Skill (Lvl ${skills.tactics})</span>
+                <span class="font-black text-emerald-400">+${managerBonus} Pwr</span>
+            </div>
+            <div class="flex justify-between items-center font-black text-base">
+                <span>NET MODIFIER</span>
+                <span class="${totalColor} text-xl">${totalSign}${tacticalBonus}</span>
+            </div>
+        </div>
+    `;
+
+    appendLog(`[DRAFT PHASE] Focus: ${statFocus}. H2H Mod: ${h2hSign}${h2hModifier}, Skill Mod: +${managerBonus}. Total: ${totalSign}${tacticalBonus} Power.`, "text-purple-400 font-bold");
     const playBtn = document.getElementById("btn-play-match"); playBtn.classList.remove("hidden"); playBtn.disabled = false;
     playBtn.classList.replace("bg-slate-600", "bg-blue-600"); playBtn.innerText = "Execute Match ⏩";
 }
@@ -1123,7 +1181,7 @@ function playMatchStep() {
     ["TOP", "JNG", "MID", "ADC", "SUP", "COACH"].forEach(r => { if(squad[r]) { let name = squad[r].name; trackStats.matchesPlayed[name] = (trackStats.matchesPlayed[name] || 0) + 1; } });
 
     simIntervalId = setTimeout(() => {
-        appendLog(`Skirmish Phase. Tactical execution boost yields: +${tacticalBonus}.`, "text-slate-300");
+        appendLog(`Skirmish Phase. Tactical execution boost yields: ${tacticalBonus >= 0 ? '+' : ''}${tacticalBonus}.`, "text-slate-300");
         simIntervalId = setTimeout(() => {
             let finalCalculation = myPower + ((Math.random() * 14) - 7);
             appendLog("Late Phase Macro contesting around the Baron Nashor pit...", "text-slate-400");
