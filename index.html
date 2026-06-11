@@ -560,19 +560,63 @@
 
                 <h3 class="text-xl font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">3. Tactical Draft Phase</h3>
                 <p class="text-slate-300 mb-2">Before every match simulation, you must lock in a Strategic Focus: <strong class="text-emerald-400">MEC</strong>, <strong class="text-blue-400">TMF</strong>, or <strong class="text-orange-400">MAP</strong>.</p>
-                <p class="text-slate-300 bg-slate-900 p-4 rounded-lg border border-slate-700">The game calculates your Squad's average score in that chosen stat and compares it to the Opponent's generated stat. <strong>Exploiting a weak enemy stat</strong> grants your team a massive temporary Combat Power multiplier. However, if you draft into an opponent's core strength, your team will be heavily penalized.</p>
+                <p class="text-slate-300 bg-slate-900 p-4 rounded-lg border border-slate-700 mb-8">The game calculates your Squad's average score in that chosen stat and compares it to the Opponent's generated stat. <strong>Exploiting a weak enemy stat</strong> grants your team a massive temporary Combat Power multiplier. However, if you draft into an opponent's core strength, your team will be heavily penalized.</p>
 
-                <h3 class="text-xl font-bold text-slate-200 mt-8 mb-4 border-b border-slate-700 pb-2">4. Manager Progression & Skills</h3>
+                <h3 class="text-xl font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">4. Manager Progression & Skills</h3>
                 <p class="text-slate-300 mb-2">As you play, you will earn Manager XP for opening packs (+25 XP) and winning tournaments (+100 XP). Each time you level up, you earn a Skill Point.</p>
-                <ul class="list-disc list-inside text-slate-300 space-y-2 ml-4">
+                <ul class="list-disc list-inside text-slate-300 space-y-2 mb-8 ml-4">
                     <li><strong>Scouting Network:</strong> Upgrading this skill permanently boosts your open luck rate modifiers, significantly increasing your chances of finding high-tier (Diamond, Master, GM, Challenger) cards.</li>
                     <li><strong>Corporate Negotiation:</strong> Decreases the baseline inflation penalty whenever you take out Corporate Credit Hub loans.</li>
                     <li><strong>Tactical Acumen:</strong> This skill applies a <strong class="text-emerald-400">guaranteed flat power bonus</strong> (+2 Power per Level) to your squad during the Tactical Draft phase, acting as an unconditional baseline anchor that buffers losing matchups.</li>
                 </ul>
+
+                <h3 class="text-xl font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">5. Card Tiers & Managers</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-sm text-slate-300 bg-slate-900/40 p-4 rounded-xl border border-slate-700/50">
+                    <ul class="list-disc list-inside space-y-1.5 ml-2">
+                        <li><strong class="text-slate-400">Silver:</strong> 70-79 OVR</li>
+                        <li><strong class="text-yellow-500">Gold:</strong> 80-84 OVR</li>
+                        <li><strong class="text-emerald-400">Platinum:</strong> 85-87 OVR</li>
+                        <li><strong class="text-blue-400">Diamond:</strong> 88-91 OVR</li>
+                        <li><strong class="text-purple-400">Master:</strong> 92-94 OVR</li>
+                        <li><strong class="text-red-400">Grandmaster:</strong> 95-96 OVR</li>
+                        <li><strong class="text-slate-100">Challenger:</strong> 97-99 OVR</li>
+                    </ul>
+                    <ul class="list-disc list-inside space-y-1.5 ml-2">
+                        <li><strong class="text-pink-400">MVP:</strong> Historical standout performers.</li>
+                        <li><strong class="text-amber-400">Champion:</strong> World winners. Grants Universal Chemistry links across all eras/regions.</li>
+                        <li><strong class="text-emerald-300">Coach Platform:</strong> Placed in the MGMT slot. Grants a flat +5 Team Power bonus. Coaches have low Mechanics/Farming but extreme Leadership/Map Awareness to boost your tactical averages.</li>
+                    </ul>
+                </div>
+
+                <h3 class="text-xl font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">6. Store Packs Overview</h3>
+                <ul class="list-disc list-inside text-slate-300 space-y-2 mb-8 ml-4 text-sm bg-slate-900/40 p-4 rounded-xl border border-slate-700/50">
+                    <li><strong>Starter Pack:</strong> Free one-time claim. Grants 5 base assets to kickstart your club.</li>
+                    <li><strong>Standard Pack (400 BE):</strong> 5 assets. Great for building early depth with Silver/Gold profiles.</li>
+                    <li><strong>Elite Pack (1000 BE):</strong> 5 assets. Increases chances for Platinum and Diamond drops.</li>
+                    <li><strong>Supreme Pack (2000 BE):</strong> High risk, high reward. Unlocks the possibility of pulling Master, GM, and Challenger cards.</li>
+                    <li><strong class="text-pink-400">MVP Pack (4000 BE):</strong> Guaranteed Platinum+ floors with an isolated 25% chance to pull an elite MVP veteran.</li>
+                    <li><strong class="text-amber-400">Champions Pack (6000 BE):</strong> 1 Guaranteed Champion (Universal Synergy link) and 4 filler cards.</li>
+                    <li><strong>Regional Pack (800+ BE):</strong> Target specific leagues (LCK, LPL, LEC, LCS) and customize the tier ceiling. Pricing scales dynamically with the chosen maximum tier.</li>
+                </ul>
+
+                <div class="bg-slate-900/80 p-6 rounded-xl border border-slate-700/80 mt-10 shadow-inner">
+                    <h3 class="text-xl font-black text-slate-100 mb-4 flex items-center justify-between">
+                        Patch Notes
+                        <span class="text-xs bg-blue-900/60 text-blue-300 px-3 py-1 rounded-full border border-blue-700/50 shadow-sm uppercase tracking-widest">Alpha.Patch.0.0.2 (A.P.0.0.2)</span>
+                    </h3>
+                    <ul class="list-disc list-inside text-slate-400 text-sm space-y-2 ml-2">
+                        <li>Overhauled pack UI with dynamic animated foil wrappers matching top-tier drops.</li>
+                        <li>Added the <strong class="text-pink-400">MVP</strong> card rarity and dedicated 4000 BE Store Pack.</li>
+                        <li>Rebalanced player resale values (nerfed to 10-15%) to prevent immediate market flipping exploits.</li>
+                        <li>Massive database expansion: integrated highly accurate 2026 start-of-season LCK, LPL, and LEC active rosters.</li>
+                        <li>Corrected 2018 historical data (iG upgraded to Champions).</li>
+                        <li>Fixed critical DOM bugs preventing PvE brackets from properly simulating drafting bonuses.</li>
+                        <li>Refined Regional Pack functionality to dynamically adjust BE pricing based on the tier ceiling.</li>
+                        <li>Squad builder UI improved: Stats strictly aligned to the left, wider cards, and specific Top/Bottom stat filters added.</li>
+                    </ul>
+                </div>
             </div>
         </section>
-
-    </main>
 
     <script src="database.js"></script>
     <script src="app.js"></script>
