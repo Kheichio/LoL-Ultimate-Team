@@ -33,7 +33,13 @@
 
         <div class="flex-1 flex flex-wrap items-center justify-center gap-3 bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
             <button onclick="switchTab('store')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">Store</button>
-            <button onclick="switchTab('quests'); renderQuests();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-amber-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm">Quests</button>
+            <button onclick="switchTab('quests'); renderQuests();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-amber-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm relative">
+                Quests
+                <span id="badge-quests" class="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 hidden">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 border border-slate-900"></span>
+                </span>
+            </button>
             <button onclick="switchTab('guide')" class="nav-btn bg-slate-800 hover:bg-slate-700 text-purple-300 px-5 py-2 rounded font-bold cursor-pointer transition text-sm border border-purple-900/50">Guide</button>
             
             <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-slate-100 font-black px-10 py-2.5 rounded-lg shadow-md transform hover:scale-105 transition text-base tracking-widest uppercase cursor-pointer border border-blue-500/50 mx-4">Play</button>
@@ -290,7 +296,11 @@
                     <div class="flex flex-col">
                         <label class="font-bold text-slate-500 mb-1">Sort Rule</label>
                         <select id="filter-sort-dropdown" onchange="renderFilteredPicker()" class="bg-slate-800 text-slate-300 rounded p-1.5 border border-slate-700 focus:outline-none font-bold">
-                            <option value="highest">Highest Rating FIRST</option><option value="lowest">Lowest Rating FIRST</option>
+                            <option value="highest">Highest Rating</option>
+                            <option value="lowest">Lowest Rating</option>
+                            <option value="highest_mec" class="text-emerald-400">Highest MEC</option>
+                            <option value="highest_tmf" class="text-blue-400">Highest TMF</option>
+                            <option value="highest_map" class="text-orange-400">Highest MAP</option>
                         </select>
                     </div>
                 </div>
@@ -396,7 +406,7 @@
             </div>
         </section>
 
-        <section id="tab-quests" class="tab-content hidden max-w-2xl mx-auto">
+        <section id="tab-quests" class="tab-content hidden max-w-3xl mx-auto">
             <h2 class="text-2xl font-bold mb-1 text-slate-200">Managerial Quests</h2>
             <p class="text-slate-500 text-sm mb-4">Complete milestones to earn lucrative bonus payouts.</p>
             <div id="quests-container" class="space-y-3"></div>
@@ -473,6 +483,14 @@
                 <h3 class="text-xl font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">3. Tactical Draft Phase</h3>
                 <p class="text-slate-300 mb-2">Before every match simulation, you must lock in a Strategic Focus: <strong class="text-emerald-400">MEC</strong>, <strong class="text-blue-400">TMF</strong>, or <strong class="text-orange-400">MAP</strong>.</p>
                 <p class="text-slate-300 bg-slate-900 p-4 rounded-lg border border-slate-700">The game calculates your Squad's average score in that chosen stat and compares it to the Opponent's generated stat. <strong>Exploiting a weak enemy stat</strong> grants your team a massive temporary Combat Power multiplier. However, if you draft into an opponent's core strength, your team will be heavily penalized.</p>
+
+                <h3 class="text-xl font-bold text-slate-200 mt-8 mb-4 border-b border-slate-700 pb-2">4. Manager Progression & Skills</h3>
+                <p class="text-slate-300 mb-2">As you play, you will earn Manager XP for opening packs (+25 XP) and winning tournaments (+100 XP). Each time you level up, you earn a Skill Point.</p>
+                <ul class="list-disc list-inside text-slate-300 space-y-2 ml-4">
+                    <li><strong>Scouting Network:</strong> Upgrading this skill permanently boosts your RNG logic during pack openings, significantly increasing your chances of finding high-tier (Diamond, Master, GM, Challenger) cards.</li>
+                    <li><strong>Corporate Negotiation:</strong> Decreases the baseline inflation penalty whenever you take out Corporate Credit Hub loans.</li>
+                    <li><strong>Tactical Acumen:</strong> This skill applies a <strong class="text-emerald-400">guaranteed flat power bonus</strong> (+2 Power per Level) to your squad during the Tactical Draft phase, regardless of whether you win or lose the stat comparison against the enemy.</li>
+                </ul>
             </div>
         </section>
 

@@ -24,11 +24,16 @@ let trackStats = {
     packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {} 
 };
 
+// Expanded Quests
 let quests = [
     { id: 'q1', desc: 'Open 5 Card Packs', target: 5, type: 'packs', reward: 800, claimed: false },
+    { id: 'q5', desc: 'Open 25 Card Packs', target: 25, type: 'packs', reward: 2500, claimed: false },
     { id: 'q2', desc: 'Liquidate 10 Players', target: 10, type: 'soldCount', reward: 500, claimed: false },
+    { id: 'q6', desc: 'Liquidate 50 Players', target: 50, type: 'soldCount', reward: 2000, claimed: false },
     { id: 'q3', desc: 'Win 2 Tournaments', target: 2, type: 'tournamentsWon', reward: 1200, claimed: false },
-    { id: 'q4', desc: 'Complete the Golden Road', target: 1, type: 'goldenRoads', reward: 5000, claimed: false }
+    { id: 'q7', desc: 'Win 10 Tournaments', target: 10, type: 'tournamentsWon', reward: 5000, claimed: false },
+    { id: 'q4', desc: 'Complete the Golden Road', target: 1, type: 'goldenRoads', reward: 5000, claimed: false },
+    { id: 'q8', desc: 'Complete 3 Golden Roads', target: 3, type: 'goldenRoads', reward: 15000, claimed: false }
 ];
 
 let isGoldenRoad = false;
@@ -67,13 +72,11 @@ function showToast(message, type = 'info') {
     
     container.appendChild(toast);
     
-    // Animate in
     requestAnimationFrame(() => {
         toast.classList.remove("translate-y-full", "opacity-0");
         toast.classList.add("translate-y-0", "opacity-100");
     });
 
-    // Animate out and remove
     setTimeout(() => {
         toast.classList.remove("translate-y-0", "opacity-100");
         toast.classList.add("translate-y-4", "opacity-0");
@@ -91,7 +94,6 @@ function showConfirm(message, description, onConfirm) {
     document.getElementById("confirm-desc").innerText = description;
     
     modal.classList.remove("hidden");
-    // Trigger fade in
     requestAnimationFrame(() => {
         modal.classList.remove("opacity-0");
         modalBox.classList.remove("scale-95");
@@ -176,12 +178,17 @@ function saveGame() {
 function updateBadges() {
     const clubBadge = document.getElementById("badge-club");
     const skillsBadge = document.getElementById("badge-skills");
+    const questsBadge = document.getElementById("badge-quests");
     
     if (hasNewClubItems) clubBadge.classList.remove("hidden");
     else clubBadge.classList.add("hidden");
 
     if (skillPoints > 0) skillsBadge.classList.remove("hidden");
     else skillsBadge.classList.add("hidden");
+
+    let hasClaimableQuest = quests.some(q => (trackStats[q.type] || 0) >= q.target && !q.claimed);
+    if (hasClaimableQuest) questsBadge.classList.remove("hidden");
+    else questsBadge.classList.add("hidden");
 }
 
 // --- XP & PROGRESSION LOGIC ---
@@ -229,7 +236,7 @@ function renderSkillsUI() {
     const skillDefs = [
         { key: "scouting", name: "Scouting Network", desc: "Permanently boosts RNG values during pack openings, increasing the chance of pulling higher-tier drops.", color: "blue" },
         { key: "negotiation", name: "Corporate Negotiation", desc: "Reduces the baseline markup penalty on loan inflations by 20 BE per level.", color: "amber" },
-        { key: "tactics", name: "Tactical Acumen", desc: "Increases the flat power multiplier gained from exploiting enemy weaknesses in the Tactical Draft phase.", color: "emerald" }
+        { key: "tactics", name: "Tactical Acumen", desc: "Grants a guaranteed flat power bonus (+2 per level) to your squad during the Tactical Draft phase.", color: "emerald" }
     ];
 
     container.innerHTML = "";
@@ -270,6 +277,14 @@ function executeTeamTraining() {
     localStorage.setItem("lol_training_expiry", trainingActiveUntil);
     saveGame();
     startTrainingVisualCountdown();
+}
+
+function checkAndRecoverTrainingTimer() {
+    const savedExpiry = localStorage.getItem("lol_training_expiry");
+    if (savedExpiry) {
+        trainingActiveUntil = parseInt(savedExpiry, 10);
+        if (trainingActiveUntil > Date.now()) startTrainingVisualCountdown();
+    }
 }
 
 function startTrainingVisualCountdown() {
@@ -412,7 +427,15 @@ function renderQuests() {
     });
 }
 
-function claimQuest(id) { let q = quests.find(x => x.id === id); if(q && !q.claimed) { q.claimed = true; blueEssence += q.reward; saveGame(); } }
+function claimQuest(id) { 
+    let q = quests.find(x => x.id === id); 
+    if(q && !q.claimed) { 
+        q.claimed = true; 
+        blueEssence += q.reward; 
+        saveGame(); 
+        updateBadges(); 
+    } 
+}
 
 function rollTier(packType) {
     const roll = (Math.random() * 100) + (skills.scouting * 2);
@@ -583,6 +606,7 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
         `;
     }
     
+    // REORDERED STATS: MEC, TMF, MAP strictly down the left column.
     cardDiv.innerHTML = `
         ${headerHTML}
         <div class="flex items-center gap-1 w-full mt-1">
@@ -599,12 +623,16 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
         </div>
 
         <div class="stat-grid mt-1">
-            <div><span>MEC</span> ${card.stats.mec}</div>
-            <div><span>TMF</span> ${card.stats.tmf}</div>
-            <div><span>FRM</span> ${card.stats.frm}</div>
-            <div><span>CMP</span> ${card.stats.cmp}</div>
-            <div><span>MAP</span> ${card.stats.map}</div>
-            <div><span>LDR</span> ${card.stats.ldr}</div>
+            <div class="flex flex-col gap-0.5">
+                <div><span class="opacity-70">MEC</span> ${card.stats.mec}</div>
+                <div><span class="opacity-70">TMF</span> ${card.stats.tmf}</div>
+                <div><span class="opacity-70">MAP</span> ${card.stats.map}</div>
+            </div>
+            <div class="flex flex-col gap-0.5 text-right border-l border-black/10 pl-2" style="border-color: inherit;">
+                <div><span class="opacity-70">FRM</span> ${card.stats.frm}</div>
+                <div><span class="opacity-70">CMP</span> ${card.stats.cmp}</div>
+                <div><span class="opacity-70">LDR</span> ${card.stats.ldr}</div>
+            </div>
         </div>
     `;
     return cardDiv;
@@ -645,9 +673,7 @@ function sortClub(by) {
     renderClubGrid();
 }
 
-let activeSlot = null; let pickerSortBy = 'rating';
-function sortPicker(by) { pickerSortBy = by; selectSlot(activeSlot); }
-
+let activeSlot = null; let pickerSortBy = 'highest';
 function renderFilteredPicker() {
     const grid = document.getElementById("picker-grid"); grid.innerHTML = "";
     const targetT = document.getElementById("filter-team-dropdown").value;
@@ -674,7 +700,15 @@ function renderFilteredPicker() {
     if (targetR !== "ALL") pool = pool.filter(p => p.region === targetR);
     if (targetY !== "ALL") pool = pool.filter(p => p.year == targetY);
 
-    pool.sort((a, b) => rankSort === "highest" ? b.rating - a.rating : a.rating - b.rating);
+    // NEW DYNAMIC SORTING
+    pool.sort((a, b) => {
+        if (rankSort === "highest") return b.rating - a.rating;
+        if (rankSort === "lowest") return a.rating - b.rating;
+        if (rankSort === "highest_mec") return b.stats.mec - a.stats.mec;
+        if (rankSort === "highest_tmf") return b.stats.tmf - a.stats.tmf;
+        if (rankSort === "highest_map") return b.stats.map - a.stats.map;
+        return b.rating - a.rating;
+    });
 
     if(pool.length === 0) { grid.innerHTML = `<p class="col-span-full text-center text-sm text-slate-500 py-8 font-mono">No matching club assets available.</p>`; return; }
 
@@ -865,12 +899,19 @@ function setupNextRoundUI() {
     document.getElementById("tour-enemy-rating").innerText = currentEnemy.power;
     populateLiveArenaVisualizer();
     
+    let managerBuff = (skills.tactics * 2);
+    let managerUI = managerBuff > 0 
+        ? `<div class="text-center mt-2 mb-4"><span class="text-emerald-400 text-xs font-bold border border-emerald-800/50 bg-emerald-900/30 px-3 py-1 rounded-full">Manager Tactics Bonus Active: +${managerBuff} Power</span></div>`
+        : '';
+
     const draftPanel = document.getElementById("tactical-draft-panel");
     draftPanel.classList.remove("hidden");
     draftPanel.innerHTML = `
         <h4 class="text-base font-bold text-blue-300 mb-1 uppercase tracking-widest border-b border-slate-700/50 pb-2">Tactical Draft Phase</h4>
         <p class="text-xs text-slate-400 mb-4 mt-2">Compare your lineup's stats against the opponent. Exploiting their weaknesses grants massive power multipliers, while drafting into their strengths penalizes you.</p>
         
+        ${managerUI}
+
         <div class="flex justify-center gap-6 mb-5 text-sm font-mono bg-slate-900/50 p-3 rounded border border-slate-700/50">
             <div class="text-center"><span class="text-slate-500 block text-[10px]">Avg MEC</span> <span class="text-slate-200">${Math.round(sData.rawStats.mec)}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400/90">${currentEnemy.stats.mec}</span></div>
             <div class="text-center"><span class="text-slate-500 block text-[10px]">Avg TMF</span> <span class="text-slate-200">${Math.round(sData.rawStats.tmf)}</span> <span class="text-slate-600 text-[10px]">vs</span> <span class="text-red-400/90">${currentEnemy.stats.tmf}</span></div>
@@ -899,14 +940,11 @@ function lockInDraft(statFocus) {
     let enemyStat = currentEnemy.stats[statFocus.toLowerCase()];
     
     let diff = myStat - enemyStat;
-    
-    // FIXED TACTICS MATH
-    // Base bonus rounds the difference mathematically. E.g., -1/1.5 = -1. 1/1.5 = 1.
     let baseBonus = Math.round(diff / 1.5);
+    let managerBuff = (skills.tactics * 2);
     
-    // You ONLY get your skill tree tactics buff if you drafted a neutral or winning matchup.
-    // This stops the exploit of getting a positive power boost when you made a bad draft choice.
-    tacticalBonus = baseBonus + (baseBonus >= 0 ? (skills.tactics * 2) : 0); 
+    // Unconditional addition: Your manager bonus applies even if baseBonus is negative
+    tacticalBonus = baseBonus + managerBuff; 
     
     document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
     
@@ -914,6 +952,9 @@ function lockInDraft(statFocus) {
     let colorClass = tacticalBonus > 0 ? 'text-emerald-400' : (tacticalBonus < 0 ? 'text-red-400' : 'text-slate-300');
     
     appendLog(`[DRAFT PHASE] Strategic focus: ${statFocus}. Our ${statFocus}: ${Math.round(myStat)} vs Enemy ${statFocus}: ${enemyStat}.`, "text-slate-300 font-bold");
+    if(managerBuff > 0) {
+        appendLog(`Manager Tactics Skill Bonus: +${managerBuff} Power.`, "text-emerald-300 font-bold italic");
+    }
     appendLog(`Modifier Calculation: Applied ${sign}${tacticalBonus} Power to Squad Rating.`, `${colorClass} font-bold`);
 
     const playBtn = document.getElementById("btn-play-match"); playBtn.classList.remove("hidden"); playBtn.disabled = false;
