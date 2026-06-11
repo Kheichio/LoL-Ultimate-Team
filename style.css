@@ -24,36 +24,36 @@
 /* Premium Store Card Packs Glassmorphism Effect */
 .pack-glass {
     background: rgba(30, 41, 59, 0.45) !important;
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    backdrop-filter: blur(12px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
 }
 .pack-glass:hover {
-    border-color: rgba(255, 255, 255, 0.25) !important;
-    box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.2);
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.2) !important;
 }
 
 /* High-Saturation Vivid Gradients for Clear Vision Contrast (Bright Tiers -> Black Ink) */
-.card-bg-Silver { background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%); border: 3px solid #64748b; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
-.card-bg-Gold { background: linear-gradient(135deg, #fef08a 0%, #f59e0b 100%); border: 3px solid #b45309; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3); }
-.card-bg-Platinum { background: linear-gradient(135deg, #a7f3d0 0%, #10b981 100%); border: 3px solid #047857; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); }
-.card-bg-Diamond { background: linear-gradient(135deg, #e0f2fe 0%, #3b82f6 100%); border: 3px solid #1d4ed8; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3); }
+.card-bg-Silver { background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%) !important; border: 3px solid #64748b !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+.card-bg-Gold { background: linear-gradient(135deg, #fef08a 0%, #f59e0b 100%) !important; border: 3px solid #b45309 !important; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3); }
+.card-bg-Platinum { background: linear-gradient(135deg, #a7f3d0 0%, #10b981 100%) !important; border: 3px solid #047857 !important; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); }
+.card-bg-Diamond { background: linear-gradient(135deg, #e0f2fe 0%, #3b82f6 100%) !important; border: 3px solid #1d4ed8 !important; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3); }
 
 /* Premium Master and Grandmaster Frames */
-.card-bg-Master { background: linear-gradient(135deg, #f3e8ff 0%, #a855f7 100%); border: 3px solid #6b21a8; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35); }
-.card-bg-Grandmaster { background: linear-gradient(135deg, #fee2e2 0%, #ef4444 100%); border: 3px solid #991b1b; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35); }
+.card-bg-Master { background: linear-gradient(135deg, #f3e8ff 0%, #a855f7 100%) !important; border: 3px solid #6b21a8 !important; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35); }
+.card-bg-Grandmaster { background: linear-gradient(135deg, #fee2e2 0%, #ef4444 100%) !important; border: 3px solid #991b1b !important; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35); }
 
 /* Dark-Themed Premium Cards Layout (Dark Tiers -> Light Ink) */
-.card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border: 3px double #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45); }
-.card-bg-Champion { background: linear-gradient(135deg, #111827 0%, #000000 100%); border: 3px solid #d97706; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5); }
-.card-bg-MVP { background: linear-gradient(135deg, #be185d 0%, #4c1d95 100%); border: 3px solid #f472b6; box-shadow: 0 6px 20px rgba(190, 24, 93, 0.5); }
+.card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%) !important; border: 3px double #f59e0b !important; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45); }
+.card-bg-Champion { background: linear-gradient(135deg, #111827 0%, #000000 100%) !important; border: 3px solid #d97706 !important; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5); }
+.card-bg-MVP { background: linear-gradient(135deg, #be185d 0%, #4c1d95 100%) !important; border: 3px solid #f472b6 !important; box-shadow: 0 6px 20px rgba(190, 24, 93, 0.5); }
 
 /* Distinct High-Contrast Scheme for Coach Cards */
 .coach-card-style { 
-    background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); 
-    border: 3px dashed #10b981; 
-    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35); 
+    background: linear-gradient(135deg, #022c22 0%, #064e3b 100%) !important; 
+    border: 3px dashed #10b981 !important; 
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35) !important; 
 }
 .coach-card-style .stat-grid {
     border-top: 1px solid rgba(16, 185, 129, 0.3) !important;
@@ -61,13 +61,13 @@
 
 /* Static Numerical Attributes Grid Setup */
 .stat-grid { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 4px 10px; 
+    display: grid !important; 
+    grid-template-columns: 1fr 1fr !important; 
+    gap: 4px 10px !important; 
     font-size: 0.82rem; 
     font-weight: 900; 
     text-align: left; 
-    width: 100%; 
+    width: 100% !important; 
     margin-top: 6px; 
     padding-top: 6px; 
     border-top: 1px solid rgba(0, 0, 0, 0.08);
@@ -85,7 +85,7 @@
 .bracket-won { border-color: #34d399 !important; opacity: 0.7; background-color: #064e3b !important; color: #a7f3d0 !important; }
 .golden-road-bg { background: radial-gradient(circle at center, #291502 0%, #0f172a 100%); border: 2px solid #b45309; box-shadow: 0 0 20px rgba(180, 83, 9, 0.1) inset; }
 
-.tab-content { animation: fadeIn 0.25s ease-out; }
+.tab-content { animation: fadeIn 0.25s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
 body { color: #cbd5e1; }

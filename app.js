@@ -75,8 +75,6 @@ function switchTab(tabId) {
     });
     const target = document.getElementById('tab-' + tabId);
     if(target) target.classList.remove('hidden');
-    
-    // Smooth scrolling window layout adjustments on tab swap
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -200,7 +198,6 @@ function claimQuest(id) {
     }
 }
 
-// --- CORE UTILITY DISPLAY LOGIC ---
 function showToast(message, type = 'info') {
     const container = document.getElementById("toast-container");
     if(!container) return;
@@ -337,6 +334,7 @@ function updateBadges() {
     if (hasClaimableQuest && questsBadge) questsBadge.classList.remove("hidden");
     else if(questsBadge) questsBadge.classList.add("hidden");
 
+    let hasClaimableCollection = false;
     let db = getDB();
     if(db) {
         let dbRegionFilt = db.filter(c => c.region === currentCollectionRegion);
@@ -667,16 +665,14 @@ function startTrainingVisualCountdown() {
 function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? 5 : 0; }
 function getLoanPremium() { let basePremium = 150 - (skills.negotiation * 20); return activeLoans * Math.max(0, basePremium); }
 function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); showToast("Credit allocated!", "success"); }
-// --- REPAY CREDIT ENGINE ---
 function payLoan() {
     if (blueEssence < 500) { showToast("Insufficient liquidity.", "error"); return; }
     if (activeLoans <= 0) { showToast("No active debt.", "error"); return; }
     activeLoans--; blueEssence -= 500; saveGame(); showToast("Loan amortized!", "success");
 }
 
-// --- OPTIONAL COACH UPDATE SYSTEM ---
 function checkSquadReady() {
-    // Coach is now optional: Check only the primary lane positions to enter match brackets
+    // Coach requirement removed completely
     if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { 
         showToast("Lineup incomplete! Fill all 5 starting lane positions.", "error"); 
         return false; 
@@ -911,13 +907,10 @@ function renderFilteredPicker() {
         let wrap = document.createElement("div"); 
         wrap.className = "flex flex-col items-center gap-2 transform transition hover:-translate-y-1";
         
-        // Removed redundant separate assign button, clicking card executes slot loading directly
         let cardVisual = createCardElement(card, false, () => {
             squad[activeSlot] = card; 
             document.getElementById("squad-picker-area").classList.add("hidden"); 
             saveGame();
-            
-            // Smooth auto-scrolling back to top structure on item placement
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }, null);
         
@@ -931,8 +924,6 @@ function selectSlot(role) {
     const roleDropdown = document.getElementById("filter-role-dropdown");
     if (["COACH", "TOP", "JNG", "MID", "ADC", "SUP"].includes(role)) roleDropdown.value = role; else roleDropdown.value = "ALL";
     document.getElementById("squad-picker-area").classList.remove("hidden"); renderFilteredPicker();
-    
-    // Smooth auto-scrolling layout down to picker viewport
     document.getElementById("squad-picker-area").scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -943,18 +934,20 @@ function renderSquadView() {
         if(squad[role]) {
             let cardEl = createCardElement(squad[role], true, () => selectSlot(role), role);
             
-            // X button moved cleanly to top edge to fix overlapping region badge constraints
-            let del = document.createElement("button"); 
-            del.className = "absolute -top-2 left-1/2 -translate-x-1/2 bg-red-700 hover:bg-red-600 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center font-black cursor-pointer border-2 border-slate-900 shadow-xl z-30 transition hover:scale-110"; 
-            del.innerText = "✕";
-            del.onclick = (e) => { e.stopPropagation(); squad[role] = null; saveGame(); };
-            
-            cardEl.appendChild(del); slot.appendChild(cardEl);
+            // Explicitly dropped generic overlay removal X triggers to keep UI pristine
+            slot.appendChild(cardEl);
         } else {
             slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-sm flex flex-col items-center justify-center h-full w-full"><span class="text-4xl opacity-40 mb-3">${window.roleIcons[role] || '+'}</span><span class="uppercase">${role}</span></div>`;
         }
     });
     computeChemistry();
+}
+
+function clearSquad() { squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null }; saveGame(); }
+
+function getTierFromRating(rating) {
+    if (rating >= 97) return "Challenger"; if (rating >= 95) return "Grandmaster"; if (rating >= 92) return "Master";
+    if (rating >= 89) return "Diamond"; if (rating >= 85) return "Platinum"; if (rating >= 80) return "Gold"; return "Silver";
 }
 
 function computeChemistry() {
@@ -1001,7 +994,6 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     let isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
     let displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
 
-    // Apply distinct coach layout background matrix styles if applicable
     let bgClass = `card-bg-${card.quality}`;
     if (card.role === "COACH") bgClass = "coach-card-style";
 
@@ -1012,7 +1004,6 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     const wikiImg = `https://lol.fandom.com/wiki/Special:FilePath/${cleanName}Square.png`;
     const fallback = `https://ui-avatars.com/api/?name=${cleanName}&background=0f172a&color=cbd5e1&size=128&bold=true`;
     
-    // Text Color Logic: Use white text for dark styles, default to crisp black prose elsewhere
     const isDarkCard = ["Master", "Grandmaster", "Challenger", "Champion", "MVP"].includes(card.quality) || card.role === "COACH";
     const textBase = isDarkCard ? "text-white" : "text-black";
     const textMuted = isDarkCard ? "text-slate-300" : "text-black/80 font-black";
@@ -1075,8 +1066,6 @@ function transitionToArena(title) {
     document.getElementById("tournament-active").classList.remove("hidden");
     document.getElementById("tour-active-title").innerText = title;
     setupBracketUI(); setupNextRoundUI();
-    
-    // Smooth scroll auto-adjust window positioning down to simulation console directly
     document.getElementById("tournament-active").scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -1087,7 +1076,6 @@ function setupNextRoundUI() {
     document.getElementById("tour-enemy-rating").innerText = currentEnemy.power;
     populateLiveArenaVisualizer();
     
-    // Calculate Enemy Team Averages based on generated stats profiles
     let eMec = 0, eTmf = 0, eMap = 0;
     if(currentEnemy.generatedStats) {
         currentEnemy.generatedStats.forEach(st => { eMec += st.mec; eTmf += st.tmf; eMap += st.map; });
@@ -1096,7 +1084,6 @@ function setupNextRoundUI() {
         eMec = currentEnemy.power; eTmf = currentEnemy.power; eMap = currentEnemy.power;
     }
     
-    // Update pre-match VS stats nodes
     document.getElementById("tour-my-mec").innerText = Math.round(sData.avgStats.mec);
     document.getElementById("tour-enemy-mec").innerText = eMec;
     document.getElementById("tour-my-tmf").innerText = Math.round(sData.avgStats.tmf);
@@ -1203,6 +1190,15 @@ function setupBracketUI() {
 function appendLog(msg, colorClass = "text-slate-300") {
     const logBox = document.getElementById("match-log"); logBox.innerHTML += `<div class="py-1 ${colorClass}"><span class="opacity-40 text-[10px] mr-2">${new Date().toLocaleTimeString()}</span>${msg}</div>`; logBox.scrollTop = logBox.scrollHeight;
 }
+
+function triggerWipe() {
+    showConfirm("Wipe All Data?", "Permanently delete Club, Essences, and Levels.", () => {
+        localStorage.clear();
+        location.reload();
+    });
+}
+
+function triggerForfeit() { showConfirm("Forfeit Tournament?", "Lose your bracket positioning and stake.", () => emergencyResetSim()); }
 function sellAllLowTier(tier) {
     let sold = 0; let val = 0; let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
     let toSell = club.filter(c => c.quality === tier && !activeIds.includes(c.uniqueId));
