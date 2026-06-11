@@ -1,4 +1,5 @@
 /* style.css */
+
 /* High-Saturation Vivid Gradients for Clear Vision Contrast */
 .card-bg-Silver { background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); color: #000000; border: 3px solid #64748b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); }
 .card-bg-Gold { background: linear-gradient(135deg, #ffe066 0%, #f59e0b 100%); color: #000000; border: 3px solid #b45309; box-shadow: 0 4px 8px rgba(245, 158, 11, 0.25); }
@@ -11,6 +12,7 @@
 .card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #ffffff; border: 3px double #f59e0b; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35); }
 .card-bg-Champion { background: linear-gradient(135deg, #111827 0%, #000000 100%); color: #ffffff; border: 3px solid #d97706; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); }
 .card-bg-MVP { background: linear-gradient(135deg, #be185d 0%, #4c1d95 100%); color: #ffffff; border: 3px solid #f472b6; box-shadow: 0 6px 20px rgba(190, 24, 93, 0.4); }
+
 .card-bg-MVP .stat-grid { border-top: 1px solid rgba(255, 255, 255, 0.25); color: #f1f5f9; }
 .card-bg-MVP .stat-grid span { color: #cbd5e1; opacity: 0.8; }
 .coach-card-style { background: linear-gradient(135deg, #022c22 0%, #064e3b 100%); color: #ffffff; border: 3px dashed #10b981; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25); }
@@ -18,10 +20,14 @@
 /* Static Numerical Attributes Grid Setup - White/Black divider line removed */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 0.82rem; font-weight: 900; text-align: left; width: 100%; margin-top: 6px; padding-top: 6px; border: none !important; }
 
+/* Dynamic Foil Pack Store Graphics */
+.pack-foil { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 6px); }
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.animate-shimmer { animation: shimmer 2s infinite; }
+
 .bracket-step { transition: all 0.3s ease; }
 .bracket-active { border-color: #60a5fa !important; box-shadow: 0 0 10px rgba(96, 165, 250, 0.3); transform: scale(1.05); }
 .bracket-won { border-color: #34d399 !important; opacity: 0.7; background-color: #064e3b !important; color: #a7f3d0 !important; }
-
 .golden-road-bg { background: radial-gradient(circle at center, #291502 0%, #0f172a 100%); border: 2px solid #b45309; box-shadow: 0 0 20px rgba(180, 83, 9, 0.1) inset; }
 
 .tab-content { animation: fadeIn 0.25s ease-out; }

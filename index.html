@@ -70,7 +70,7 @@
     <main class="flex-1 p-4 max-w-7xl mx-auto w-full">
         
         <section id="tab-store" class="tab-content">
-            <div class="bg-slate-900/80 p-4 rounded-xl border border-blue-900/30 mb-4 flex flex-wrap gap-4 items-center justify-between">
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-blue-900/30 mb-6 flex flex-wrap gap-4 items-center justify-between">
                 <div class="flex items-center gap-3">
                     <span class="text-2xl opacity-80">🏦</span>
                     <div>
@@ -85,67 +85,121 @@
                 </div>
             </div>
 
+            <div id="starter-pack-container" class="mb-10 w-full transform hover:scale-[1.02] transition duration-300 cursor-pointer hidden" onclick="buyStarterPack()">
+                <div class="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 p-1 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                    <div class="bg-slate-900 rounded-xl p-8 text-center flex flex-col md:flex-row items-center justify-between border-2 border-emerald-400/50">
+                        <div class="text-left mb-4 md:mb-0">
+                            <h2 class="text-3xl md:text-4xl font-black text-emerald-400 mb-2 uppercase tracking-widest drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]">Free Starter Pack</h2>
+                            <p class="text-slate-300 font-bold text-lg">Kickstart your franchise with 5 guaranteed Base Assets.</p>
+                        </div>
+                        <button class="bg-emerald-500 text-slate-950 font-black px-10 py-4 rounded-xl text-xl w-full md:w-auto shadow-lg uppercase tracking-wider">Claim Roster</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex justify-between items-end mb-4">
-                <h2 class="text-2xl font-bold flex items-center gap-2 text-slate-200">🛒 Card Store</h2>
-                <div id="starter-pack-container" class="bg-emerald-900/40 px-4 py-2 rounded-lg border border-emerald-700/50 flex items-center gap-2">
-                    <button onclick="buyStarterPack()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-100 px-4 py-1.5 rounded font-bold cursor-pointer text-xs uppercase tracking-wider transition">Claim Free Starter Pack</button>
+                <h2 class="text-2xl font-bold flex items-center gap-2 text-slate-200">🛒 The Pack Store</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10 justify-items-center">
+                
+                <div onclick="buyPack(400, 'Standard')" class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl shadow-xl overflow-hidden group cursor-pointer hover:-translate-y-3 transition-all duration-300 border-[3px] border-yellow-600">
+                    <div class="absolute inset-0 bg-gradient-to-br from-yellow-300 via-amber-500 to-orange-700 opacity-90"></div>
+                    <div class="absolute inset-0 opacity-20 mix-blend-overlay pack-foil"></div>
+                    <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white to-transparent opacity-0 group-hover:opacity-40 transition duration-500 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10">
+                        <div class="w-full text-center mt-2">
+                            <h3 class="font-black text-3xl uppercase tracking-widest text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Standard</h3>
+                            <span class="bg-black/60 text-yellow-400 text-xs font-black px-3 py-1 rounded-full mt-2 inline-block border border-yellow-500/50 shadow-md">MAX: GOLD</span>
+                        </div>
+                        <div class="text-center w-full">
+                            <div class="text-white/90 text-sm font-bold mb-2 drop-shadow-md">5 Player Cards</div>
+                            <button class="w-full bg-black/60 group-hover:bg-black/80 text-yellow-400 font-black py-3 rounded-lg border border-yellow-500/50 transition-colors shadow-lg"><span class="store-pack-btn" data-cost="400">400 BE</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="buyPack(1000, 'Elite')" class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl shadow-xl overflow-hidden group cursor-pointer hover:-translate-y-3 transition-all duration-300 border-[3px] border-purple-500">
+                    <div class="absolute inset-0 bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-800 opacity-90"></div>
+                    <div class="absolute inset-0 opacity-30 mix-blend-overlay pack-foil"></div>
+                    <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white to-transparent opacity-0 group-hover:opacity-40 transition duration-500 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10">
+                        <div class="w-full text-center mt-2">
+                            <h3 class="font-black text-3xl uppercase tracking-widest text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Elite</h3>
+                            <span class="bg-black/60 text-purple-300 text-xs font-black px-3 py-1 rounded-full mt-2 inline-block border border-purple-400/50 shadow-md">MAX: MASTER</span>
+                        </div>
+                        <div class="text-center w-full">
+                            <div class="text-white/90 text-sm font-bold mb-2 drop-shadow-md">5 Player Cards</div>
+                            <button class="w-full bg-black/60 group-hover:bg-black/80 text-purple-300 font-black py-3 rounded-lg border border-purple-500/50 transition-colors shadow-lg"><span class="store-pack-btn" data-cost="1000">1000 BE</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="buyPack(2000, 'Supreme')" class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl shadow-xl overflow-hidden group cursor-pointer hover:-translate-y-3 transition-all duration-300 border-[3px] border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]">
+                    <div class="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-900 to-black opacity-95"></div>
+                    <div class="absolute inset-0 opacity-40 mix-blend-overlay pack-foil"></div>
+                    <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-red-500 to-transparent opacity-0 group-hover:opacity-30 transition duration-500 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10">
+                        <div class="w-full text-center mt-2">
+                            <h3 class="font-black text-3xl uppercase tracking-widest text-red-500 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">Supreme</h3>
+                            <span class="bg-black/80 text-red-400 text-xs font-black px-3 py-1 rounded-full mt-2 inline-block border border-red-500/50 shadow-md">CHALLENGER DROPS</span>
+                        </div>
+                        <div class="text-center w-full">
+                            <div class="text-red-200 text-sm font-bold mb-2 drop-shadow-md">5 High-Tier Assets</div>
+                            <button class="w-full bg-red-950/80 group-hover:bg-red-900 text-red-300 font-black py-3 rounded-lg border border-red-600 transition-colors shadow-lg"><span class="store-pack-btn" data-cost="2000">2000 BE</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="buyPack(4000, 'MVP')" class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl shadow-xl overflow-hidden group cursor-pointer hover:-translate-y-3 transition-all duration-300 border-[3px] border-pink-500 shadow-[0_0_15px_rgba(244,114,182,0.3)]">
+                    <div class="absolute inset-0 bg-gradient-to-br from-pink-400 via-pink-600 to-purple-900 opacity-90"></div>
+                    <div class="absolute inset-0 opacity-30 mix-blend-overlay pack-foil"></div>
+                    <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white to-transparent opacity-0 group-hover:opacity-40 transition duration-500 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10">
+                        <div class="w-full text-center mt-2">
+                            <h3 class="font-black text-3xl uppercase tracking-widest text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">MVP Pool</h3>
+                            <span class="bg-black/60 text-pink-300 text-xs font-black px-3 py-1 rounded-full mt-2 inline-block border border-pink-400/50 shadow-md">25% MVP PULL</span>
+                        </div>
+                        <div class="text-center w-full">
+                            <div class="text-white/90 text-sm font-bold mb-2 drop-shadow-md">Plat+ Guarantee</div>
+                            <button class="w-full bg-black/60 group-hover:bg-black/80 text-pink-300 font-black py-3 rounded-lg border border-pink-500/50 transition-colors shadow-lg"><span class="store-pack-btn" data-cost="4000">4000 BE</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="buyPack(6000, 'Champion')" class="relative w-full max-w-[240px] aspect-[2/3] rounded-2xl shadow-xl overflow-hidden group cursor-pointer hover:-translate-y-3 transition-all duration-300 border-[3px] border-amber-500 shadow-[0_0_20px_rgba(217,119,6,0.4)]">
+                    <div class="absolute inset-0 bg-gradient-to-br from-orange-400 via-red-600 to-black opacity-95"></div>
+                    <div class="absolute inset-0 opacity-40 mix-blend-overlay pack-foil"></div>
+                    <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-yellow-400 to-transparent opacity-0 group-hover:opacity-40 transition duration-500 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10">
+                        <div class="w-full text-center mt-2">
+                            <h3 class="font-black text-2xl uppercase tracking-widest text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] mt-1">Champion</h3>
+                            <span class="bg-black/80 text-amber-500 text-[10px] font-black px-2 py-1 rounded-full mt-2 inline-block border border-amber-600/50 shadow-md uppercase tracking-wider">Universal Link</span>
+                        </div>
+                        <div class="text-center w-full">
+                            <div class="text-amber-100/90 text-[11px] font-bold mb-2 drop-shadow-md">1 Champ. 4 Fillers.</div>
+                            <button class="w-full bg-black/80 group-hover:bg-black text-amber-400 font-black py-3 rounded-lg border border-amber-500 transition-colors shadow-lg"><span class="store-pack-btn" data-cost="6000">6000 BE</span></button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center flex flex-col justify-between hover:bg-slate-800 transition">
+            <div class="max-w-3xl mx-auto bg-slate-800/80 p-8 rounded-2xl border border-blue-500/30 shadow-[0_0_25px_rgba(59,130,246,0.1)] mt-8">
+                <h3 class="text-2xl font-black text-blue-400 text-center mb-1 uppercase tracking-widest">Regional Scouting Hub</h3>
+                <p class="text-sm text-slate-400 text-center mb-6">Target specific franchise leagues. Define your tier ceiling to set market price.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                        <h3 class="text-base font-bold mb-1 text-slate-300">Standard Pack</h3>
-                        <p class="text-slate-500 text-xs mb-3">5 Assets. High Silver/Gold profiles.</p>
-                    </div>
-                    <button onclick="buyPack(400, 'Standard')" data-cost="400" class="store-pack-btn w-full bg-slate-700 hover:bg-slate-600 py-2 rounded font-bold cursor-pointer transition border border-slate-600 text-slate-300 text-sm">400 BE</button>
-                </div>
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center flex flex-col justify-between hover:bg-slate-800 transition">
-                    <div>
-                        <h3 class="text-base font-bold mb-1 text-purple-400">Elite Pack</h3>
-                        <p class="text-slate-500 text-xs mb-3">5 Assets. High Plat/Diamond limits.</p>
-                    </div>
-                    <button onclick="buyPack(1000, 'Elite')" data-cost="1000" class="store-pack-btn w-full bg-purple-900/50 hover:bg-purple-800/60 py-2 rounded font-bold cursor-pointer transition border border-purple-700/50 text-purple-300 text-sm">1000 BE</button>
-                </div>
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-red-900/30 text-center flex flex-col justify-between hover:bg-slate-800 transition">
-                    <div>
-                        <h3 class="text-base font-bold mb-1 text-red-400">Supreme Pack</h3>
-                        <p class="text-slate-500 text-xs mb-3">5 Slots. Drops up to Challenger.</p>
-                    </div>
-                    <button onclick="buyPack(2000, 'Supreme')" data-cost="2000" class="store-pack-btn w-full bg-red-900/60 hover:bg-red-800/80 py-2 rounded font-bold cursor-pointer transition border border-red-700/50 text-red-200 text-sm">2000 BE</button>
-                </div>
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-pink-900/40 text-center flex flex-col justify-between hover:bg-slate-800 transition shadow-[0_0_15px_rgba(219,39,119,0.15)]">
-                    <div>
-                        <h3 class="text-base font-black mb-1 text-pink-400">MVP Pack</h3>
-                        <p class="text-slate-500 text-xs mb-3">High rate for isolated MVP Veteran cards.</p>
-                    </div>
-                    <button onclick="buyPack(4000, 'MVP')" data-cost="4000" class="store-pack-btn w-full bg-pink-900/60 hover:bg-pink-800/80 py-2 rounded font-bold cursor-pointer transition border border-pink-700/50 text-pink-200 text-sm">4000 BE</button>
-                </div>
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-amber-900/50 text-center flex flex-col justify-between hover:bg-slate-800 transition shadow-[0_0_15px_rgba(180,83,9,0.2)]">
-                    <div>
-                        <h3 class="text-base font-black mb-1 text-amber-500">Champions Pack</h3>
-                        <p class="text-slate-400 text-xs mb-3">1 Guaranteed Champion. 4 Fillers.</p>
-                    </div>
-                    <button onclick="buyPack(6000, 'Champion')" data-cost="6000" class="store-pack-btn w-full bg-amber-800 hover:bg-amber-700 py-2 rounded font-bold cursor-pointer transition border border-amber-600 text-amber-100 text-sm shadow-md">6000 BE</button>
-                </div>
-            </div>
-
-            <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-700/80 mb-6 max-w-xl">
-                <h3 class="text-lg font-bold text-blue-400 mb-2">Custom Regional Allocation Module</h3>
-                <p class="text-xs text-slate-400 mb-4">Select your region and target cap ceiling. Pricing recalibrates directly to match tiers.</p>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Region</label>
-                        <select id="region-select" class="bg-slate-900 text-slate-200 p-2 rounded-xl border border-slate-700 w-full font-bold text-sm focus:outline-none focus:border-blue-500">
-                            <option value="LCK">LCK League</option>
-                            <option value="LPL">LPL League</option>
-                            <option value="LEC">LEC League</option>
-                            <option value="LCS">LCS League</option>
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Select Region</label>
+                        <select id="region-select" class="bg-slate-900 text-slate-200 p-3 rounded-xl border border-slate-700 w-full font-bold text-base focus:outline-none focus:border-blue-500 shadow-inner">
+                            <option value="LCK">LCK League (Korea)</option>
+                            <option value="LPL">LPL League (China)</option>
+                            <option value="LEC">LEC League (Europe)</option>
+                            <option value="LCS">LCS League (NA)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Ceiling Tier Limit</label>
-                        <select id="region-tier-select" onchange="recalculateRegionalPrice()" class="bg-slate-900 text-slate-200 p-2 rounded-xl border border-slate-700 w-full font-bold text-sm focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Ceiling Tier Limit</label>
+                        <select id="region-tier-select" onchange="recalculateRegionalPrice()" class="bg-slate-900 text-slate-200 p-3 rounded-xl border border-slate-700 w-full font-bold text-base focus:outline-none focus:border-blue-500 shadow-inner">
                             <option value="Standard">Standard Tier (Gold Cap) - 800 BE</option>
                             <option value="Platinum">Platinum Ceiling Pool - 1500 BE</option>
                             <option value="Diamond">Diamond Ceiling Pool - 2500 BE</option>
@@ -153,14 +207,16 @@
                         </select>
                     </div>
                 </div>
-                <button onclick="buyTargetPack('region')" id="btn-buy-regional" data-cost="800" class="store-pack-btn w-full bg-blue-700 hover:bg-blue-600 py-3 rounded-xl font-black text-slate-100 uppercase tracking-widest transition text-sm shadow-md cursor-pointer border border-blue-500/50">Buy Regional Allocation (800 BE)</button>
+                <button onclick="buyTargetPack('region')" class="w-full bg-blue-700 hover:bg-blue-600 py-4 rounded-xl font-black text-slate-100 uppercase tracking-widest transition text-lg shadow-lg cursor-pointer border border-blue-500/50">
+                    Buy Regional Allocation (<span id="btn-buy-regional" class="store-pack-btn" data-cost="800">800 BE</span>)
+                </button>
             </div>
 
-            <div id="pack-opening-area" class="hidden bg-slate-800/90 p-6 rounded-xl border border-slate-600 mt-4">
-                <h3 id="pack-opening-title" class="text-xl font-bold mb-6 text-center text-slate-200 tracking-wide">Pack Opened!</h3>
+            <div id="pack-opening-area" class="hidden bg-slate-800/90 p-8 rounded-2xl border border-slate-600 mt-10 shadow-2xl">
+                <h3 id="pack-opening-title" class="text-2xl font-black mb-8 text-center text-slate-200 tracking-wider">Pack Opened!</h3>
                 <div id="pulled-cards" class="flex flex-wrap gap-6 justify-center"></div>
-                <div class="mt-6 text-center">
-                    <button onclick="document.getElementById('pack-opening-area').classList.add('hidden')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-8 py-2.5 rounded-lg font-bold text-sm transition cursor-pointer uppercase tracking-wider">Confirm Allocation</button>
+                <div class="mt-10 text-center">
+                    <button onclick="document.getElementById('pack-opening-area').classList.add('hidden')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-10 py-3 rounded-xl font-bold text-sm transition cursor-pointer uppercase tracking-widest shadow-md">Confirm Allocation</button>
                 </div>
             </div>
         </section>
@@ -347,7 +403,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center flex flex-col justify-between hover:bg-slate-800 transition">
                         <div>
                             <h3 class="text-lg font-bold text-slate-300 mb-1">Regional Split</h3>
@@ -427,6 +483,12 @@
                 <p id="result-desc" class="text-slate-400 mb-6 text-sm">Run complete.</p>
                 <button onclick="finishTournamentUI()" class="bg-slate-700 text-slate-200 px-6 py-2.5 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-sm">Return to Lobby</button>
             </div>
+        </section>
+
+        <section id="tab-quests" class="tab-content hidden max-w-3xl mx-auto">
+            <h2 class="text-2xl font-bold mb-1 text-slate-200">Managerial Quests</h2>
+            <p class="text-slate-500 text-sm mb-4">Complete milestones to earn lucrative bonus payouts.</p>
+            <div id="quests-container" class="space-y-3"></div>
         </section>
 
         <section id="tab-skills" class="tab-content hidden max-w-4xl mx-auto pb-10">
