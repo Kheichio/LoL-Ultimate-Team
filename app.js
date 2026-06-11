@@ -127,18 +127,28 @@ function populateLiveArenaVisualizer() {
     myContainer.innerHTML = "";
     enemyContainer.innerHTML = "";
     
-    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(r => {
+    ["TOP", "JNG", "MID", "ADC", "SUP", "COACH"].forEach(r => {
         if(squad[r]) myContainer.appendChild(createCardElement(squad[r], true));
     });
     
     let currentEnemy = enemies[tourRound];
     if(currentEnemy && currentEnemy.rosterNames) {
         currentEnemy.rosterNames.forEach((name, i) => {
-            let roles = ["TOP", "JNG", "MID", "ADC", "SUP"];
+            let roles = ["TOP", "JNG", "MID", "ADC", "SUP", "COACH"];
+            let baseP = currentEnemy.power;
+            
             let dummyCard = {
-                name: name, role: roles[i], team: "Opponent", 
-                quality: "Challenger", region: "Unknown", year: "2026",
-                rating: "???", stats: {mec: "?", tmf: "?", frm: "?", cmp: "?", map: "?", ldr: "?"}
+                name: name, role: roles[i], team: currentEnemy.name.split('[')[0].trim(), 
+                quality: getTierFromRating(baseP), region: "CPU", year: "2026",
+                rating: baseP + Math.floor(Math.random()*7 - 3), 
+                stats: {
+                    mec: baseP + Math.floor(Math.random()*12 - 6), 
+                    tmf: baseP + Math.floor(Math.random()*12 - 6), 
+                    frm: baseP + Math.floor(Math.random()*12 - 6), 
+                    cmp: baseP + Math.floor(Math.random()*12 - 6), 
+                    map: baseP + Math.floor(Math.random()*12 - 6), 
+                    ldr: baseP + Math.floor(Math.random()*12 - 6)
+                }
             };
             enemyContainer.appendChild(createCardElement(dummyCard, true));
         });
@@ -481,33 +491,6 @@ function renderTradeMarket() {
     });
 }
 
-function executeTrade(offerId) {
-    let offer = tradeMarket.offers.find(o => o.id === offerId);
-    if(!offer || offer.completed) return;
-    
-    let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId));
-    if (availableFodder.length < offer.reqCount) {
-        showToast("Not enough unlocked assets to trade.", "error");
-        return;
-    }
-    
-    for(let i=0; i<offer.reqCount; i++) {
-        let burnId = availableFodder[i].uniqueId;
-        club = club.filter(c => c.uniqueId !== burnId);
-    }
-    
-    let rewardDef = window.playerDatabase.find(p => p.id === offer.rewardBaseId);
-    let newCard = { ...rewardDef, uniqueId: Date.now() + "T" + Math.random().toString(36).substring(2) };
-    club.push(newCard);
-    processNewCards([newCard]);
-    
-    offer.completed = true;
-    hasNewClubItems = true;
-    saveGame();
-    renderTradeMarket();
-    showToast(`${rewardDef.name} securely extracted to Club!`, "success");
-}
-
 // --- COLLECTION ARCHIVE LOGIC ---
 let currentCollectionRegion = 'LCK';
 let currentCollectionSort = 'team';
@@ -818,10 +801,9 @@ function payLoan() {
     activeLoans--; blueEssence -= 500; saveGame(); showToast("Loan amortized!", "success");
 }
 
-// --- PVE BRACKET SIMULATION FIXED INITIALIZATION ---
 function checkSquadReady() {
-    if (["TOP", "JNG", "MID", "ADC", "SUP"].some(role => squad[role] === null)) { 
-        showToast("Lineup incomplete! Fill all 5 starting lane positions.", "error"); 
+    if (["TOP", "JNG", "MID", "ADC", "SUP", "COACH"].some(role => squad[role] === null)) { 
+        showToast("Lineup incomplete! Fill all 5 starting slots and 1 Coach position.", "error"); 
         return false; 
     } 
     return true;
@@ -1056,13 +1038,13 @@ function renderClubGrid() {
     let filtered = club.filter(c => c.name.toLowerCase().includes(q));
     
     filtered.forEach((card, idx) => {
-        let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1.5";
+        let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1.5 transform transition hover:-translate-y-1";
         wrap.appendChild(createCardElement(card, true, null, null));
         let btn = document.createElement("button"); let price = getSellValue(card.quality);
         if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) {
-            btn.className = "text-[11px] bg-slate-700 text-slate-400 px-3 py-1 rounded-lg w-full font-bold cursor-not-allowed"; btn.innerText = "In Squad"; btn.disabled = true;
+            btn.className = "text-xs bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg w-full font-bold cursor-not-allowed shadow-md"; btn.innerText = "In Squad"; btn.disabled = true;
         } else {
-            btn.className = "text-[11px] bg-red-950/60 text-red-300 px-3 py-1 rounded-lg w-full font-bold cursor-pointer transition hover:bg-red-900"; btn.innerHTML = `Sell (+${price})`;
+            btn.className = "text-xs bg-red-950/60 text-red-300 px-3 py-1.5 rounded-lg w-full font-bold cursor-pointer transition hover:bg-red-900 shadow-md"; btn.innerHTML = `Sell (+${price})`;
             btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
         }
         wrap.appendChild(btn); grid.appendChild(wrap);
@@ -1111,12 +1093,25 @@ function renderFilteredPicker() {
     else if (rankSort === "highest_tmf") pool.sort((a,b) => b.stats.tmf - a.stats.tmf);
     else if (rankSort === "highest_map") pool.sort((a,b) => b.stats.map - a.stats.map);
 
-    if(pool.length === 0) { grid.innerHTML = `<p class="col-span-full text-center text-xs text-slate-500 py-4 font-mono">No reserves match metrics.</p>`; return; }
+    if(pool.length === 0) { grid.innerHTML = `<p class="col-span-full text-center text-sm text-slate-500 py-8 font-mono">No reserves match metrics.</p>`; return; }
+    
     pool.forEach(card => {
-        let row = document.createElement("div"); row.className = "flex justify-between items-center bg-slate-900/80 hover:bg-slate-800 p-2 rounded-lg border border-slate-700 cursor-pointer transition text-xs";
-        row.onclick = () => { squad[activeSlot] = card; document.getElementById("squad-picker-area").classList.add("hidden"); saveGame(); };
-        row.innerHTML = `<div class="flex items-center gap-3"><span class="font-mono font-black text-blue-400 bg-slate-950 px-2 py-1 rounded text-[11px]">${card.rating}</span><div><div class="font-black text-white leading-tight">${card.name}</div><div class="text-[10px] text-slate-400">${card.team} • ${card.role}</div></div></div>`;
-        grid.appendChild(row);
+        let wrap = document.createElement("div"); 
+        wrap.className = "flex flex-col items-center gap-2 transform transition hover:-translate-y-1";
+        let cardVisual = createCardElement(card, true, () => {
+            squad[activeSlot] = card; 
+            document.getElementById("squad-picker-area").classList.add("hidden"); 
+            saveGame();
+        }, null);
+        
+        let assignBtn = document.createElement("button");
+        assignBtn.className = "bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-md w-full uppercase tracking-wider transition cursor-pointer";
+        assignBtn.innerText = "Assign";
+        assignBtn.onclick = () => { squad[activeSlot] = card; document.getElementById("squad-picker-area").classList.add("hidden"); saveGame(); };
+
+        wrap.appendChild(cardVisual);
+        wrap.appendChild(assignBtn);
+        grid.appendChild(wrap);
     });
 }
 
@@ -1125,6 +1120,7 @@ function selectSlot(role) {
     const roleDropdown = document.getElementById("filter-role-dropdown");
     if (["COACH", "TOP", "JNG", "MID", "ADC", "SUP"].includes(role)) roleDropdown.value = role; else roleDropdown.value = "ALL";
     document.getElementById("squad-picker-area").classList.remove("hidden"); renderFilteredPicker();
+    document.getElementById("squad-picker-area").scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderSquadView() {
@@ -1133,11 +1129,11 @@ function renderSquadView() {
         const slot = document.getElementById(`squad-${role}`); if(!slot) return; slot.innerHTML = "";
         if(squad[role]) {
             let cardEl = createCardElement(squad[role], true, () => selectSlot(role), role);
-            let del = document.createElement("button"); del.className = "absolute -top-1.5 -right-1.5 bg-red-700 hover:bg-red-600 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center font-black cursor-pointer border border-slate-900 shadow-md"; del.innerText = "✕";
+            let del = document.createElement("button"); del.className = "absolute -top-2 -right-2 bg-red-700 hover:bg-red-600 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center font-black cursor-pointer border border-slate-900 shadow-lg z-20"; del.innerText = "✕";
             del.onclick = (e) => { e.stopPropagation(); squad[role] = null; saveGame(); };
             cardEl.appendChild(del); slot.appendChild(cardEl);
         } else {
-            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-[11px] flex flex-col items-center justify-center h-full"><span class="text-2xl opacity-40 mb-1">${window.roleIcons[role] || '+'}</span><span>${role}</span></div>`;
+            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-xs flex flex-col items-center justify-center h-full"><span class="text-3xl opacity-40 mb-2">${window.roleIcons[role] || '+'}</span><span>${role}</span></div>`;
         }
     });
     computeChemistry();
@@ -1152,7 +1148,7 @@ function getTierFromRating(rating) {
 
 function computeChemistry() {
     let totalRating = 0; let count = 0; let active = []; let sums = { mec:0, tmf:0, map:0 };
-    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(role => {
+    ["TOP", "JNG", "MID", "ADC", "SUP", "COACH"].forEach(role => {
         if(squad[role]) {
             let p = (squad[role].role !== role) ? 20 : 0;
             let finalR = Math.max(0, squad[role].rating - p);
@@ -1168,8 +1164,8 @@ function computeChemistry() {
     document.getElementById("overview-avg-tmf").innerText = count > 0 ? Math.round(sums.tmf / count) : 0;
     document.getElementById("overview-avg-map").innerText = count > 0 ? Math.round(sums.map / count) : 0;
 
-    let regionChem = 0; let yearChem = 0; let coachBonus = squad["COACH"] ? 5 : 0; let trainBonus = getTrainingBonus();
-    if(count === 5) {
+    let regionChem = 0; let yearChem = 0; let trainBonus = getTrainingBonus();
+    if(count === 6) {
         let regs = active.map(c => c.region); let uReg = new Set(regs).size;
         if(uReg === 1) regionChem = 5; else if(uReg <= 2) regionChem = 3; else if(uReg <= 3) regionChem = 2; else regionChem = 1;
         let yrs = active.map(c => c.year); let uY = new Set(yrs).size;
@@ -1178,10 +1174,9 @@ function computeChemistry() {
     }
     document.getElementById("overview-chem-region").innerText = `${regionChem} / 5`;
     document.getElementById("overview-chem-year").innerText = `${yearChem} / 5`;
-    document.getElementById("overview-coach-bonus").innerText = `+${coachBonus}`;
     document.getElementById("overview-training-bonus").innerText = `+${trainBonus}`;
     
-    let totalPower = avgRating + regionChem + yearChem + coachBonus + trainBonus;
+    let totalPower = avgRating + regionChem + yearChem + trainBonus;
     document.getElementById("overview-chem-total").innerText = totalPower;
     return { totalPower, avgStats: { mec: count>0?sums.mec/count:0, tmf: count>0?sums.tmf/count:0, map: count>0?sums.map/count:0 } };
 }
@@ -1191,47 +1186,41 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     let isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
     let displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
 
-    cardDiv.className = `card-bg-${card.quality} rounded-xl p-3 w-44 flex flex-col items-center select-none relative transition-transform ${isMini ? 'scale-[0.85]' : 'hover:scale-105'} shadow-md`;
+    cardDiv.className = `card-bg-${card.quality} rounded-xl p-4 w-48 flex flex-col items-center select-none relative transition-transform ${isMini ? 'scale-[0.85]' : 'hover:scale-105'} shadow-xl`;
     if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
 
     const cleanName = card.name.replace(/[^a-zA-Z0-9]/g, '');
     const wikiImg = `https://lol.fandom.com/wiki/Special:FilePath/${cleanName}Square.png`;
     const fallback = `https://ui-avatars.com/api/?name=${cleanName}&background=0f172a&color=cbd5e1&size=128&bold=true`;
-    const textClass = (card.quality === 'Silver' || card.quality === 'Gold') ? 'text-slate-700' : 'text-slate-300';
     
+    const isBright = ["Silver", "Gold", "Platinum", "Diamond"].includes(card.quality);
+    const textBase = isBright ? "text-slate-900" : "text-white";
+    const textMuted = isBright ? "text-slate-800 font-bold" : "text-slate-300";
+    const textOpacity = isBright ? "text-slate-900 font-bold" : "text-white/80";
+
     cardDiv.innerHTML = `
-        <div class="w-full flex justify-between text-[10px] font-black uppercase mb-1 items-center">
-            <span class="bg-black/30 text-white px-1.5 py-0.5 rounded flex gap-1">${window.roleIcons[card.role] || ''} ${card.role}</span>
-            <span class="opacity-90 tracking-tight text-white/80">${window.regionLogos[card.region] ? card.region : card.region}</span>
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-950 text-white px-3 py-1 rounded-full text-[9px] font-black border border-slate-600 z-10 shadow-lg uppercase tracking-widest whitespace-nowrap">${card.quality}</div>
+        <div class="w-full flex justify-between text-[11px] font-black uppercase mb-1 items-center mt-2">
+            <span class="bg-black/20 ${textBase} px-2 py-0.5 rounded flex gap-1">${window.roleIcons[card.role] || ''} ${card.role}</span>
+            <span class="${textOpacity} tracking-tight">${window.regionLogos[card.region] ? card.region : card.region}</span>
         </div>
-        <div class="flex items-center gap-2 w-full mt-1">
-            <div class="text-3xl font-black tracking-tighter drop-shadow-md flex flex-col items-center"><span>${displayRating}</span></div>
-            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-12 h-12 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
+        <div class="flex items-center gap-3 w-full mt-2">
+            <div class="text-4xl font-black tracking-tighter drop-shadow-md flex flex-col items-center ${textBase}"><span>${displayRating}</span></div>
+            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-14 h-14 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
         </div>
-        <div class="font-black text-sm truncate w-full mt-2 text-center drop-shadow-sm">${card.name}</div>
-        <div class="text-[10px] font-bold opacity-80 truncate w-full mb-1 text-center">${card.team} [${card.year}]</div>
-        ${card.role === 'COACH' ? `<div class="mt-5 text-[10px] font-black text-center uppercase text-emerald-600 tracking-wider">Staff Leader</div>` : `
-        <div class="stat-grid mt-2 border-0 text-[10px]">
-            <div><span class="${textClass}">MEC</span> ${card.stats.mec}</div>
-            <div><span class="${textClass}">TMF</span> ${card.stats.tmf}</div>
-            <div><span class="${textClass}">FRM</span> ${card.stats.frm}</div>
-            <div><span class="${textClass}">CMP</span> ${card.stats.cmp}</div>
-            <div><span class="${textClass}">MAP</span> ${card.stats.map}</div>
-            <div><span class="${textClass}">LDR</span> ${card.stats.ldr}</div>
-        </div>`}
+        <div class="font-black text-base truncate w-full mt-3 text-center drop-shadow-sm ${textBase}">${card.name}</div>
+        <div class="text-xs font-bold truncate w-full mb-2 text-center ${textMuted}">${card.team} [${card.year}]</div>
+        
+        <div class="stat-grid mt-2 border-t border-black/10 pt-2 text-xs">
+            <div class="${textBase}"><span class="${textMuted} mr-1">MEC</span>${card.stats.mec}</div>
+            <div class="${textBase}"><span class="${textMuted} mr-1">TMF</span>${card.stats.tmf}</div>
+            <div class="${textBase}"><span class="${textMuted} mr-1">FRM</span>${card.stats.frm}</div>
+            <div class="${textBase}"><span class="${textMuted} mr-1">CMP</span>${card.stats.cmp}</div>
+            <div class="${textBase}"><span class="${textMuted} mr-1">MAP</span>${card.stats.map}</div>
+            <div class="${textBase}"><span class="${textMuted} mr-1">LDR</span>${card.stats.ldr}</div>
+        </div>
     `;
     return cardDiv;
-}
-
-function generateRealPlayerEnemies(baseDiff, rounds) {
-    enemies = []; const teams = ["SKT T1 Legacy", "Gen.G Superteam", "BLG Vanguard", "G2 Army", "Team Liquid Elite", "Fnatic Core"];
-    const realProNames = [...new Set(window.playerDatabase.filter(p => p.role !== "COACH").map(p => p.name))];
-    for(let i = 0; i < rounds; i++) {
-        let diff = baseDiff + (i * 3) + Math.floor(Math.random() * 4);
-        let activeDraft = []; let localNames = [...realProNames];
-        for (let r = 0; r < 5; r++) { activeDraft.push(localNames.splice(Math.floor(Math.random() * localNames.length), 1)[0]); }
-        enemies.push({ name: teams[Math.floor(Math.random() * teams.length)] + ` [S${i+1}]`, power: diff, rosterNames: activeDraft });
-    }
 }
 
 function transitionToArena(title) {
@@ -1248,21 +1237,16 @@ function setupNextRoundUI() {
     document.getElementById("enemy-team-name").innerText = currentEnemy.name;
     document.getElementById("tour-enemy-rating").innerText = currentEnemy.power;
     populateLiveArenaVisualizer();
+    
+    let diff = sData.totalPower - currentEnemy.power;
+    let diffEl = document.getElementById("power-diff-display");
+    if (diff >= 0) diffEl.innerHTML = `Power Advantage: <span class="text-green-400 text-lg ml-1">+${diff}</span>`;
+    else diffEl.innerHTML = `Power Deficit: <span class="text-red-400 text-lg ml-1">${diff}</span>`;
+    
     document.getElementById("tactical-draft-panel").classList.remove("hidden");
     document.getElementById("btn-play-match").classList.add("hidden");
     document.getElementById("btn-next-round").classList.add("hidden");
     document.getElementById("btn-gr-next").classList.add("hidden");
-    
-    const panel = document.getElementById("tactical-draft-panel");
-    panel.innerHTML = `
-        <h4 class="text-base font-black text-purple-400 mb-2 uppercase tracking-widest">Tactical Draft Phase</h4>
-        <p class="text-sm text-slate-400 mb-4">Select your strategic focus against [ ${currentEnemy.rosterNames.join(", ")} ]</p>
-        <div class="flex flex-wrap justify-center gap-3">
-            <button onclick="lockInDraft('MEC')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold transition text-sm shadow">Early Aggression (MEC)</button>
-            <button onclick="lockInDraft('TMF')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold transition text-sm shadow">Front-to-Back (TMF)</button>
-            <button onclick="lockInDraft('MAP')" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg font-bold transition text-sm shadow">Objective Control (MAP)</button>
-        </div>
-    `;
 }
 
 function lockInDraft(statFocus) {
@@ -1274,15 +1258,15 @@ function lockInDraft(statFocus) {
     document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
     appendLog(`[DRAFT PHASE] Strategic focus locked on ${statFocus}. Attributes generated: +${tacticalBonus} Combat Power Boost!`, "text-purple-400 font-bold");
     const playBtn = document.getElementById("btn-play-match"); playBtn.classList.remove("hidden"); playBtn.disabled = false;
-    playBtn.classList.replace("bg-slate-600", "bg-blue-600"); playBtn.innerText = "Execute Simulation ⏩";
+    playBtn.classList.replace("bg-slate-600", "bg-blue-600"); playBtn.innerText = "Execute Match ⏩";
 }
 
 function playMatchStep() {
     let sData = computeChemistry(); let myPower = sData.totalPower + tacticalBonus; let currentEnemy = enemies[tourRound];
-    const playBtn = document.getElementById("btn-play-match"); playBtn.disabled = true; playBtn.classList.replace("bg-blue-600", "bg-slate-600"); playBtn.innerText = "Processing Telemetry...";
+    const playBtn = document.getElementById("btn-play-match"); playBtn.disabled = true; playBtn.classList.replace("bg-blue-600", "bg-slate-600"); playBtn.innerText = "Simulating...";
     appendLog(`Series launched against [ ${currentEnemy.rosterNames.join(", ")} ].`, "text-slate-400");
     
-    ["TOP", "JNG", "MID", "ADC", "SUP"].forEach(r => { if(squad[r]) { let name = squad[r].name; trackStats.matchesPlayed[name] = (trackStats.matchesPlayed[name] || 0) + 1; } });
+    ["TOP", "JNG", "MID", "ADC", "SUP", "COACH"].forEach(r => { if(squad[r]) { let name = squad[r].name; trackStats.matchesPlayed[name] = (trackStats.matchesPlayed[name] || 0) + 1; } });
 
     simIntervalId = setTimeout(() => {
         appendLog(`Skirmish Phase. Tactical execution boost yields: +${tacticalBonus}.`, "text-slate-300");
