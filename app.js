@@ -209,7 +209,12 @@ function updateBadges() {
     if (hasClaimableQuest && questsBadge) questsBadge.classList.remove("hidden");
     else if(questsBadge) questsBadge.classList.add("hidden");
 
-    let hasClaimableCollection = Object.values(collectionRegistry).some(entry => !entry.claimed);
+    let hasClaimableCollection = false;
+    if(window.playerDatabase) {
+        let dbRegionFilt = window.playerDatabase.filter(c => c.region === currentCollectionRegion);
+        hasClaimableCollection = dbRegionFilt.some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
+    }
+    
     if (hasClaimableCollection && collBadge) collBadge.classList.remove("hidden");
     else if(collBadge) collBadge.classList.add("hidden");
 }
@@ -375,19 +380,42 @@ function executeTrade(offerId) {
 }
 
 // --- COLLECTION ARCHIVE LOGIC ---
-let currentCollectionSort = 'region';
+let currentCollectionRegion = 'LCK';
+let currentCollectionSort = 'team';
 
-function renderCollection(sortMode) {
-    currentCollectionSort = sortMode || currentCollectionSort;
+function setCollectionRegion(reg) {
+    currentCollectionRegion = reg;
+    renderCollection();
+}
+
+function setCollectionSort(sort) {
+    currentCollectionSort = sort;
+    renderCollection();
+}
+
+function renderCollection() {
     if(!window.playerDatabase) return;
     
-    ["region", "completion", "latest"].forEach(r => {
-        let btn = document.getElementById(`col-btn-${r}`);
+    // Update Region Tabs Nav
+    ["LCK", "LPL", "LEC", "LCS", "Legacy"].forEach(r => {
+        let btn = document.getElementById(`col-reg-${r}`);
         if(!btn) return;
-        if (r === currentCollectionSort) {
-            btn.className = "flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-yellow-600/20 border border-yellow-500/50 text-yellow-300 shadow-inner";
+        if (r === currentCollectionRegion) {
+            btn.className = "flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-blue-600/20 border border-blue-500/50 text-blue-300 shadow-inner";
         } else {
-            btn.className = "flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-700";
+            let extra = r === 'Legacy' ? 'border border-amber-900/50 text-slate-400' : 'border border-transparent text-slate-400';
+            btn.className = `flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 hover:text-slate-200 hover:bg-slate-700 ${extra}`;
+        }
+    });
+
+    // Update Sort Tabs Nav
+    ["team", "completion", "latest"].forEach(s => {
+        let btn = document.getElementById(`col-sort-${s}`);
+        if(!btn) return;
+        if (s === currentCollectionSort) {
+            btn.className = "flex-1 py-1.5 px-4 rounded-lg font-black text-xs transition bg-slate-600 border border-slate-500 text-slate-100 uppercase tracking-widest shadow-inner";
+        } else {
+            btn.className = "flex-1 py-1.5 px-4 rounded-lg font-bold text-xs transition text-slate-400 hover:text-slate-200 uppercase tracking-widest bg-slate-800 border border-transparent";
         }
     });
 
@@ -395,34 +423,35 @@ function renderCollection(sortMode) {
     if(!grid) return;
     grid.innerHTML = "";
     
-    let dbCards = window.playerDatabase;
-    
+    // Filter database for currently viewed region tab
+    let dbCards = window.playerDatabase.filter(c => c.region === currentCollectionRegion);
+
+    // Calculate claimable BE purely for this region
     let claimableBE = 0;
     dbCards.forEach(c => {
         let rec = collectionRegistry[c.id];
-        if (rec && !rec.claimed) {
-            claimableBE += (collectionRewards[c.quality] || 10);
-        }
+        if (rec && !rec.claimed) claimableBE += (collectionRewards[c.quality] || 10);
     });
     
     let claimBtn = document.getElementById("btn-claim-collection");
     if(claimBtn) {
         if (claimableBE > 0) {
-            claimBtn.innerText = `Claim All Rewards (${claimableBE} BE)`;
+            claimBtn.innerText = `Claim Region Rewards (${claimableBE} BE)`;
             claimBtn.disabled = false;
         } else {
-            claimBtn.innerText = `Claim All Rewards (0 BE)`;
+            claimBtn.innerText = `Claim Region Rewards (0 BE)`;
             claimBtn.disabled = true;
         }
     }
 
+    // Sort: Latest Addition rendering (Flat layout)
     if (currentCollectionSort === 'latest') {
         let ownedCards = dbCards.filter(c => collectionRegistry[c.id]).sort((a, b) => {
             return (collectionRegistry[b.id].acquiredAt || 0) - (collectionRegistry[a.id].acquiredAt || 0);
         });
 
         if(ownedCards.length === 0) {
-            grid.innerHTML = `<p class="text-slate-500 text-center py-10 font-mono">No cards archived yet.</p>`;
+            grid.innerHTML = `<p class="text-slate-500 text-center py-10 font-mono">No cards archived yet in this region.</p>`;
             return;
         }
 
@@ -449,12 +478,12 @@ function renderCollection(sortMode) {
         return;
     }
 
+    // Sort: Team & Completion Rendering (Grouped Layout)
     let grouped = {};
     dbCards.forEach(c => {
-        let reg = c.region;
         let tName = window.teamLineageBridges[c.team] || c.team;
-        let key = `${reg}_${tName}`;
-        if(!grouped[key]) grouped[key] = { region: reg, team: tName, cards: [], owned: 0, total: 0 };
+        let key = `${tName}`;
+        if(!grouped[key]) grouped[key] = { team: tName, cards: [], owned: 0, total: 0 };
         grouped[key].cards.push(c);
         grouped[key].total++;
         if(collectionRegistry[c.id]) grouped[key].owned++;
@@ -463,19 +492,18 @@ function renderCollection(sortMode) {
     let groupArray = Object.values(grouped);
 
     if (currentCollectionSort === 'completion') {
+        // Most to Collect (Highest deficit first)
         groupArray.sort((a, b) => (b.total - b.owned) - (a.total - a.owned));
     } else {
-        groupArray.sort((a, b) => {
-            if (a.region !== b.region) return a.region.localeCompare(b.region);
-            return a.team.localeCompare(b.team);
-        });
+        // Default Team Sort
+        groupArray.sort((a, b) => a.team.localeCompare(b.team));
     }
 
     groupArray.forEach(group => {
         const roleOrder = { "TOP":1, "JNG":2, "MID":3, "ADC":4, "SUP":5, "COACH":6 };
         group.cards.sort((a, b) => {
-            if (b.year !== a.year) return b.year - a.year;
-            return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99);
+            if (b.year !== a.year) return b.year - a.year; // newest year first
+            return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99); // role strict order
         });
 
         let section = document.createElement("div");
@@ -483,7 +511,7 @@ function renderCollection(sortMode) {
         
         let completionText = `<span class="text-sm font-mono float-right ${group.owned === group.total ? 'text-emerald-400' : 'text-slate-500'}">${group.owned} / ${group.total}</span>`;
         section.innerHTML = `<h3 class="text-xl font-black text-slate-300 mb-4 border-b border-slate-700/50 pb-2 flex items-center justify-between">
-            <span>${window.regionLogos[group.region] || group.region} - ${group.team}</span>
+            <span>${group.team} Lineages</span>
             ${completionText}
         </h3>`;
         
@@ -513,9 +541,10 @@ function renderCollection(sortMode) {
 
 function claimCollectionRewards() {
     if(!window.playerDatabase) return;
+    let dbRegionFilt = window.playerDatabase.filter(c => c.region === currentCollectionRegion);
     
     let claimedAmount = 0;
-    window.playerDatabase.forEach(c => {
+    dbRegionFilt.forEach(c => {
         let rec = collectionRegistry[c.id];
         if (rec && !rec.claimed) {
             claimedAmount += (collectionRewards[c.quality] || 10);
@@ -525,9 +554,9 @@ function claimCollectionRewards() {
     
     if (claimedAmount > 0) {
         blueEssence += claimedAmount;
-        showToast(`Extracted ${claimedAmount} BE from Archive Archives!`, "success");
+        showToast(`Extracted ${claimedAmount} BE from Region Archives!`, "success");
         saveGame();
-        renderCollection(currentCollectionSort);
+        renderCollection(); 
         updateBadges();
     }
 }
@@ -535,14 +564,15 @@ function claimCollectionRewards() {
 // --- XP & PROGRESSION LOGIC ---
 function addXP(amount) {
     managerXP += amount;
-    let needed = managerLevel * 100;
+    // Massive EXP Curve increase per instruction
+    let needed = managerLevel * 250; 
     let leveledUp = false;
     
     while(managerXP >= needed) {
         managerXP -= needed;
         managerLevel++;
         skillPoints++;
-        needed = managerLevel * 100;
+        needed = managerLevel * 250;
         leveledUp = true;
     }
     
@@ -553,8 +583,11 @@ function addXP(amount) {
 }
 
 function upgradeSkill(skillName) {
-    if (skillPoints > 0 && skills[skillName] < 5) {
-        skillPoints--;
+    let currentLvl = skills[skillName];
+    let cost = currentLvl + 1; // 1 SP for Lvl 1, 2 SP for Lvl 2, etc.
+
+    if (skillPoints >= cost && currentLvl < 5) {
+        skillPoints -= cost;
         skills[skillName]++;
         saveGame();
         renderSkillsUI();
@@ -565,10 +598,10 @@ function upgradeSkill(skillName) {
 function renderSkillsUI() {
     document.getElementById("ui-manager-level").innerText = managerLevel;
     document.getElementById("ui-manager-xp").innerText = managerXP;
-    document.getElementById("ui-manager-xp-needed").innerText = managerLevel * 100;
+    document.getElementById("ui-manager-xp-needed").innerText = managerLevel * 250;
     document.getElementById("ui-skill-points").innerText = skillPoints;
     
-    let pct = (managerXP / (managerLevel * 100)) * 100;
+    let pct = (managerXP / (managerLevel * 250)) * 100;
     document.getElementById("ui-xp-bar").style.width = `${pct}%`;
 
     const container = document.getElementById("skills-container");
@@ -584,7 +617,8 @@ function renderSkillsUI() {
     skillDefs.forEach(def => {
         let currentLvl = skills[def.key];
         let maxed = currentLvl >= 5;
-        let canUpgrade = skillPoints > 0 && !maxed;
+        let cost = currentLvl + 1;
+        let canUpgrade = skillPoints >= cost && !maxed;
         
         let dotsHTML = "";
         for(let i=1; i<=5; i++) {
@@ -594,7 +628,7 @@ function renderSkillsUI() {
 
         let btnHTML = maxed 
             ? `<button disabled class="w-full bg-slate-800 text-slate-500 py-2 rounded-lg font-bold text-xs cursor-not-allowed">MAX LEVEL</button>`
-            : `<button onclick="upgradeSkill('${def.key}')" class="w-full ${canUpgrade ? `bg-${def.color}-600 hover:bg-${def.color}-500 text-white cursor-pointer` : `bg-slate-700 text-slate-400 cursor-not-allowed`} py-2 rounded-lg font-bold transition text-xs shadow-md" ${!canUpgrade ? 'disabled' : ''}>UPGRADE (1 SP)</button>`;
+            : `<button onclick="upgradeSkill('${def.key}')" class="w-full ${canUpgrade ? `bg-${def.color}-600 hover:bg-${def.color}-500 text-white cursor-pointer` : `bg-slate-700 text-slate-400 cursor-not-allowed`} py-2 rounded-lg font-bold transition text-xs shadow-md" ${!canUpgrade ? 'disabled' : ''}>UPGRADE (${cost} SP)</button>`;
 
         container.innerHTML += `
             <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
@@ -739,7 +773,7 @@ function updateDisplays() {
     renderClubGrid(); 
     renderSquadView(); 
     renderQuests();
-    if(currentCollectionSort) renderCollection(currentCollectionSort);
+    if(currentCollectionRegion) renderCollection();
 }
 
 function switchTab(tabId) {
@@ -1322,10 +1356,10 @@ function lockInDraft(statFocus) {
     
     let diff = myStat - enemyStat;
     let baseBonus = Math.round(diff / 1.5);
-    let managerBuff = (skills.tactics * 2);
-    let appliedManagerBuff = baseBonus >= 0 ? managerBuff : 0;
     
-    tacticalBonus = baseBonus + appliedManagerBuff; 
+    // TACTICAL ACUMEN ALWAYS APPLIES TO BUFFER BAD MATCHUPS
+    let managerBuff = (skills.tactics * 2);
+    tacticalBonus = baseBonus + managerBuff; 
     
     document.getElementById("tour-my-power").innerText = sData.totalPower + tacticalBonus;
     
@@ -1334,10 +1368,8 @@ function lockInDraft(statFocus) {
     
     appendLog(`[DRAFT PHASE] Strategic focus: ${statFocus}. Our ${statFocus}: ${Math.round(myStat)} vs Enemy ${statFocus}: ${enemyStat}.`, "text-slate-300 font-bold");
     
-    if (appliedManagerBuff > 0) {
-        appendLog(`Manager Tactics Skill Bonus: +${appliedManagerBuff} Power.`, "text-emerald-300 font-bold italic");
-    } else if (managerBuff > 0 && baseBonus < 0) {
-        appendLog(`Manager Tactics Skill nullified. You drafted into an opponent strength!`, "text-red-400 font-bold italic");
+    if (managerBuff > 0) {
+        appendLog(`Manager Tactics Skill Bonus: +${managerBuff} Power.`, "text-emerald-300 font-bold italic");
     }
 
     appendLog(`Modifier Calculation: Applied ${sign}${tacticalBonus} Power to Squad Rating.`, `${colorClass} font-bold`);

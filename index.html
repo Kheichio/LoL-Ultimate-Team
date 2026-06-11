@@ -46,7 +46,7 @@
             <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-slate-100 font-black px-6 lg:px-8 py-2.5 rounded-lg shadow-md transform hover:scale-105 transition text-sm lg:text-base tracking-widest uppercase cursor-pointer border border-blue-500/50 mx-2">Play</button>
             
             <button onclick="switchTab('collection'); renderCollection();" class="nav-btn bg-slate-800 hover:bg-slate-700 text-yellow-200 px-3 lg:px-4 py-2 rounded font-bold cursor-pointer transition text-xs lg:text-sm border border-yellow-900/50 relative">
-                Collection
+                Archive
                 <span id="badge-collection" class="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 hidden">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-yellow-500 border border-slate-900"></span>
@@ -250,17 +250,25 @@
             <div class="flex flex-wrap justify-between items-end mb-6 border-b border-slate-700/50 pb-4">
                 <div>
                     <h2 class="text-3xl font-black text-yellow-400 uppercase tracking-wider">The Archive</h2>
-                    <p class="text-slate-400 mt-1 text-sm">Discover unique cards to unlock one-time BE bonuses.</p>
+                    <p class="text-slate-400 mt-1 text-sm">Discover unique cards per region to unlock permanent BE bonuses.</p>
                 </div>
                 <button id="btn-claim-collection" onclick="claimCollectionRewards()" class="bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase tracking-widest shadow-[0_0_15px_rgba(202,138,4,0.4)] transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4 md:mt-0">
-                    Claim All Rewards (0 BE)
+                    Claim Region Rewards (0 BE)
                 </button>
             </div>
 
-            <div class="flex flex-wrap gap-2 mb-6 bg-slate-800/50 p-2 rounded-xl border border-slate-700">
-                <button onclick="renderCollection('region')" id="col-btn-region" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">Sort: Region & Team</button>
-                <button onclick="renderCollection('completion')" id="col-btn-completion" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">Sort: Most to Collect</button>
-                <button onclick="renderCollection('latest')" id="col-btn-latest" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">Sort: Latest Additions</button>
+            <div class="flex flex-wrap gap-2 mb-3 bg-slate-800/80 p-2 rounded-xl border border-blue-900/50 shadow-inner">
+                <button onclick="setCollectionRegion('LCK')" id="col-reg-LCK" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">LCK</button>
+                <button onclick="setCollectionRegion('LPL')" id="col-reg-LPL" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">LPL</button>
+                <button onclick="setCollectionRegion('LEC')" id="col-reg-LEC" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">LEC</button>
+                <button onclick="setCollectionRegion('LCS')" id="col-reg-LCS" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200">LCS</button>
+                <button onclick="setCollectionRegion('Legacy')" id="col-reg-Legacy" class="flex-1 py-2 px-4 rounded-lg font-bold text-sm transition text-slate-400 hover:text-slate-200 border border-amber-900/50">Icons / MVPs</button>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-8 bg-slate-800/50 p-2 rounded-xl border border-slate-700">
+                <button onclick="setCollectionSort('team')" id="col-sort-team" class="flex-1 py-1.5 px-4 rounded-lg font-bold text-xs transition text-slate-400 hover:text-slate-200 uppercase tracking-widest">Sort: Teams</button>
+                <button onclick="setCollectionSort('completion')" id="col-sort-completion" class="flex-1 py-1.5 px-4 rounded-lg font-bold text-xs transition text-slate-400 hover:text-slate-200 uppercase tracking-widest">Sort: Most to Collect</button>
+                <button onclick="setCollectionSort('latest')" id="col-sort-latest" class="flex-1 py-1.5 px-4 rounded-lg font-bold text-xs transition text-slate-400 hover:text-slate-200 uppercase tracking-widest">Sort: Latest</button>
             </div>
 
             <div id="collection-grid" class="space-y-8">
@@ -609,11 +617,12 @@
                 <p class="text-slate-300 bg-slate-900 p-4 rounded-lg border border-slate-700 mb-8">The game calculates your Squad's average score in that chosen stat and compares it to the Opponent's generated stat. <strong>Exploiting a weak enemy stat</strong> grants your team a massive temporary Combat Power multiplier. However, if you draft into an opponent's core strength, your team will be heavily penalized.</p>
 
                 <h3 class="text-xl font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">4. Manager Progression & Skills</h3>
-                <p class="text-slate-300 mb-2">As you play, you will earn Manager XP for opening packs (+25 XP) and winning tournaments (+100 XP). Each time you level up, you earn a Skill Point.</p>
+                <p class="text-slate-300 mb-2">As you play, you will earn Manager XP for opening packs and winning tournaments. The required EXP to level up increases significantly every level.</p>
                 <ul class="list-disc list-inside text-slate-300 space-y-2 mb-8 ml-4">
+                    <li><strong>Skill Upgrades:</strong> Purchasing a skill node costs more SP the higher the level. Level 1 costs 1 SP, Level 2 costs 2 SP, up to 5 SP for the max level.</li>
                     <li><strong>Scouting Network:</strong> Upgrading this skill permanently boosts your open luck rate modifiers, significantly increasing your chances of finding high-tier (Diamond, Master, GM, Challenger) cards.</li>
                     <li><strong>Corporate Negotiation:</strong> Decreases the baseline inflation penalty whenever you take out Corporate Credit Hub loans.</li>
-                    <li><strong>Tactical Acumen:</strong> This skill applies a <strong class="text-emerald-400">guaranteed flat power bonus</strong> (+2 Power per Level) to your squad during the Tactical Draft phase, acting as an unconditional baseline anchor that buffers losing matchups.</li>
+                    <li><strong>Tactical Acumen:</strong> This skill applies a <strong class="text-emerald-400">guaranteed flat power bonus</strong> (+2 Power per Level) to your squad during the Tactical Draft phase. This acts as an unconditional baseline anchor that buffers losing matchups.</li>
                 </ul>
 
                 <h3 class="text-xl font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">5. Card Tiers & Managers</h3>
@@ -634,28 +643,16 @@
                     </ul>
                 </div>
 
-                <h3 class="text-xl font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">6. Store Packs Overview</h3>
-                <ul class="list-disc list-inside text-slate-300 space-y-2 mb-8 ml-4 text-sm bg-slate-900/40 p-4 rounded-xl border border-slate-700/50">
-                    <li><strong>Starter Pack:</strong> Free one-time claim. Grants 5 base assets to kickstart your club.</li>
-                    <li><strong>Standard Pack (400 BE):</strong> 5 assets. Great for building early depth with Silver/Gold profiles.</li>
-                    <li><strong>Elite Pack (1000 BE):</strong> 5 assets. Increases chances for Platinum and Diamond drops.</li>
-                    <li><strong>Supreme Pack (2000 BE):</strong> High risk, high reward. Unlocks the possibility of pulling Master, GM, and Challenger cards.</li>
-                    <li><strong class="text-pink-400">MVP Pack (4000 BE):</strong> Guaranteed Platinum+ floors with an isolated 25% chance to pull an elite MVP veteran.</li>
-                    <li><strong class="text-amber-400">Champions Pack (6000 BE):</strong> 1 Guaranteed Champion (Universal Synergy link) and 4 filler cards.</li>
-                    <li><strong>Regional Pack (800+ BE):</strong> Target specific leagues (LCK, LPL, LEC, LCS) and customize the tier ceiling. Pricing scales dynamically with the chosen maximum tier.</li>
-                </ul>
-
                 <div class="bg-slate-900/80 p-6 rounded-xl border border-slate-700/80 mt-10 shadow-inner">
                     <h3 class="text-xl font-black text-slate-100 mb-4 flex items-center justify-between">
                         Patch Notes
-                        <span class="text-xs bg-blue-900/60 text-blue-300 px-3 py-1 rounded-full border border-blue-700/50 shadow-sm uppercase tracking-widest">Alpha.Patch.0.0.3 (A.P.0.03)</span>
+                        <span class="text-xs bg-blue-900/60 text-blue-300 px-3 py-1 rounded-full border border-blue-700/50 shadow-sm uppercase tracking-widest">Alpha.Patch.0.0.4 (A.P.0.04)</span>
                     </h3>
                     <ul class="list-disc list-inside text-slate-400 text-sm space-y-2 ml-2">
-                        <li><strong>Feature Added: Player Collection Archive.</strong> Track all unique players you've ever unpacked. Grouped cleanly by Region and Team. First-time discoveries unlock Role Collection Rewards.</li>
-                        <li><strong>Feature Added: Trade Market.</strong> A rotating Black Market has opened on the left navigation bar! Trade lower-tier cards from your club to acquire rotating Elite, Champion, and MVP assets. Refreshes every 15 minutes.</li>
-                        <li>Adjusted Top Navigation Bar. Split into Commerce/Play vs Management elements for cleaner UI flows.</li>
-                        <li>Added missing custom in-game confirmation modals and toast alerts.</li>
-                        <li>Repaired missing logic preventing simulated matches from executing correctly.</li>
+                        <li><strong>Manager Scaling Revamp:</strong> Manager progression now takes much longer to cap out. Next-level thresholds increase massively, and skill point upgrade costs scale up dynamically (1 SP, 2 SP, 3 SP...).</li>
+                        <li><strong>Tactics Fix:</strong> Manager Tactical Acumen bonus now accurately anchors power thresholds and will always apply during losing PVE matchups to mitigate severe penalties.</li>
+                        <li><strong>Collection Overhaul:</strong> The Archive UI has been structurally completely refactored. The primary navigation separates filtering by Region Tabs (LCK, LPL, LEC, LCS, Legacy) for massive readability optimization.</li>
+                        <li>Claim Rewards button now aggregates securely by the actively viewed Region Tab.</li>
                     </ul>
                 </div>
             </div>
