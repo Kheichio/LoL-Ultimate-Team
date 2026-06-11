@@ -103,16 +103,23 @@
                 <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center flex flex-col justify-between hover:bg-slate-800 transition">
                     <div>
                         <h3 class="text-base font-bold mb-1 text-purple-400">Elite Pack</h3>
-                        <p class="text-slate-500 text-xs mb-3">5 Assets. High Plat/Diamond caps.</p>
+                        <p class="text-slate-500 text-xs mb-3">5 Assets. High Plat/Diamond limits.</p>
                     </div>
                     <button onclick="buyPack(1000, 'Elite')" data-cost="1000" class="store-pack-btn w-full bg-purple-900/50 hover:bg-purple-800/60 py-2 rounded font-bold cursor-pointer transition border border-purple-700/50 text-purple-300 text-sm">1000 BE</button>
                 </div>
                 <div class="bg-slate-800/80 p-4 rounded-xl border border-red-900/30 text-center flex flex-col justify-between hover:bg-slate-800 transition">
                     <div>
                         <h3 class="text-base font-bold mb-1 text-red-400">Supreme Pack</h3>
-                        <p class="text-slate-500 text-xs mb-3">5 Assets. Drops GM/Challenger.</p>
+                        <p class="text-slate-500 text-xs mb-3">5 Slots. Drops up to Challenger.</p>
                     </div>
                     <button onclick="buyPack(2000, 'Supreme')" data-cost="2000" class="store-pack-btn w-full bg-red-900/60 hover:bg-red-800/80 py-2 rounded font-bold cursor-pointer transition border border-red-700/50 text-red-200 text-sm">2000 BE</button>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-pink-900/40 text-center flex flex-col justify-between hover:bg-slate-800 transition shadow-[0_0_15px_rgba(219,39,119,0.15)]">
+                    <div>
+                        <h3 class="text-base font-black mb-1 text-pink-400">MVP Pack</h3>
+                        <p class="text-slate-500 text-xs mb-3">High rate for isolated MVP Veteran cards.</p>
+                    </div>
+                    <button onclick="buyPack(4000, 'MVP')" data-cost="4000" class="store-pack-btn w-full bg-pink-900/60 hover:bg-pink-800/80 py-2 rounded font-bold cursor-pointer transition border border-pink-700/50 text-pink-200 text-sm">4000 BE</button>
                 </div>
                 <div class="bg-slate-800/80 p-4 rounded-xl border border-amber-900/50 text-center flex flex-col justify-between hover:bg-slate-800 transition shadow-[0_0_15px_rgba(180,83,9,0.2)]">
                     <div>
@@ -121,16 +128,32 @@
                     </div>
                     <button onclick="buyPack(6000, 'Champion')" data-cost="6000" class="store-pack-btn w-full bg-amber-800 hover:bg-amber-700 py-2 rounded font-bold cursor-pointer transition border border-amber-600 text-amber-100 text-sm shadow-md">6000 BE</button>
                 </div>
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-blue-900/30 flex flex-col justify-between hover:bg-slate-800 transition">
+            </div>
+
+            <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-700/80 mb-6 max-w-xl">
+                <h3 class="text-lg font-bold text-blue-400 mb-2">Custom Regional Allocation Module</h3>
+                <p class="text-xs text-slate-400 mb-4">Select your region and target cap ceiling. Pricing recalibrates directly to match tiers.</p>
+                <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                        <h3 class="text-base font-bold mb-1 text-blue-400 text-center">Regional Pack</h3>
-                        <p class="text-slate-500 text-xs mb-2 text-center">5 Assets from selected league.</p>
-                        <select id="region-select" class="bg-slate-900 text-slate-300 p-1.5 rounded border border-slate-700 w-full text-xs font-bold mb-3 focus:outline-none">
-                            <option value="LCK">LCK</option><option value="LPL">LPL</option><option value="LEC">LEC</option><option value="LCS">LCS</option>
+                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Region</label>
+                        <select id="region-select" class="bg-slate-900 text-slate-200 p-2 rounded-xl border border-slate-700 w-full font-bold text-sm focus:outline-none focus:border-blue-500">
+                            <option value="LCK">LCK League</option>
+                            <option value="LPL">LPL League</option>
+                            <option value="LEC">LEC League</option>
+                            <option value="LCS">LCS League</option>
                         </select>
                     </div>
-                    <button onclick="buyTargetPack('region')" data-cost="800" class="store-pack-btn bg-blue-800/50 hover:bg-blue-700/60 py-2 rounded font-bold transition border border-blue-700/50 text-blue-200 text-sm cursor-pointer">800 BE</button>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Ceiling Tier Limit</label>
+                        <select id="region-tier-select" onchange="recalculateRegionalPrice()" class="bg-slate-900 text-slate-200 p-2 rounded-xl border border-slate-700 w-full font-bold text-sm focus:outline-none focus:border-blue-500">
+                            <option value="Standard">Standard Tier (Gold Cap) - 800 BE</option>
+                            <option value="Platinum">Platinum Ceiling Pool - 1500 BE</option>
+                            <option value="Diamond">Diamond Ceiling Pool - 2500 BE</option>
+                            <option value="Master">Master Elite Pool - 4500 BE</option>
+                        </select>
+                    </div>
                 </div>
+                <button onclick="buyTargetPack('region')" id="btn-buy-regional" data-cost="800" class="store-pack-btn w-full bg-blue-700 hover:bg-blue-600 py-3 rounded-xl font-black text-slate-100 uppercase tracking-widest transition text-sm shadow-md cursor-pointer border border-blue-500/50">Buy Regional Allocation (800 BE)</button>
             </div>
 
             <div id="pack-opening-area" class="hidden bg-slate-800/90 p-6 rounded-xl border border-slate-600 mt-4">
@@ -324,7 +347,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-center flex flex-col justify-between hover:bg-slate-800 transition">
                         <div>
                             <h3 class="text-lg font-bold text-slate-300 mb-1">Regional Split</h3>
@@ -406,12 +429,6 @@
             </div>
         </section>
 
-        <section id="tab-quests" class="tab-content hidden max-w-3xl mx-auto">
-            <h2 class="text-2xl font-bold mb-1 text-slate-200">Managerial Quests</h2>
-            <p class="text-slate-500 text-sm mb-4">Complete milestones to earn lucrative bonus payouts.</p>
-            <div id="quests-container" class="space-y-3"></div>
-        </section>
-
         <section id="tab-skills" class="tab-content hidden max-w-4xl mx-auto pb-10">
             <div class="bg-slate-800/80 p-8 rounded-2xl border border-emerald-900/50 shadow-2xl mb-8">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-6">
@@ -436,8 +453,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="skills-container">
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="skills-container"></div>
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-4xl mx-auto pb-10">
