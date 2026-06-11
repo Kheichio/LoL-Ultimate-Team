@@ -1,5 +1,9 @@
 // app.js
 
+function getDB() {
+    return typeof playerDatabase !== 'undefined' ? playerDatabase : window.playerDatabase;
+}
+
 function getSellValue(quality) {
     const vals = { Silver: 5, Gold: 15, Platinum: 30, Diamond: 50, Master: 90, Grandmaster: 150, MVP: 175, Challenger: 300, Champion: 250, Coach: 20 };
     return vals[quality] || 5;
@@ -64,7 +68,6 @@ let trainingActiveUntil = 0;
 let trainingTimerInterval = null;
 let marketTimerInterval = null;
 
-// --- UTILITY LOGIC MISSING ---
 function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.add('hidden');
@@ -158,7 +161,6 @@ function populateLiveArenaVisualizer() {
     document.getElementById("live-team-logo").innerText = teamIdentity.logo;
 }
 
-// --- QUEST LOGIC MISSING ---
 function renderQuests() {
     const container = document.getElementById("quests-container");
     if (!container) return;
@@ -203,7 +205,6 @@ function claimQuest(id) {
     }
 }
 
-// --- CUSTOM UI ALERTS & MODALS ---
 function showToast(message, type = 'info') {
     const container = document.getElementById("toast-container");
     if(!container) return;
@@ -263,7 +264,6 @@ function showConfirm(message, description, onConfirm) {
     };
 }
 
-// --- CORE LIFECYCLE ---
 window.onload = () => {
     const savedBE = localStorage.getItem("lol_be_v7_pro");
     if (savedBE) blueEssence = parseInt(savedBE, 10);
@@ -349,8 +349,9 @@ function updateBadges() {
     else if(questsBadge) questsBadge.classList.add("hidden");
 
     let hasClaimableCollection = false;
-    if(window.playerDatabase) {
-        let dbRegionFilt = window.playerDatabase.filter(c => c.region === currentCollectionRegion);
+    let db = getDB();
+    if(db) {
+        let dbRegionFilt = db.filter(c => c.region === currentCollectionRegion);
         hasClaimableCollection = dbRegionFilt.some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
     }
     
@@ -372,7 +373,6 @@ function processNewCards(cards) {
     });
 }
 
-// --- TRADE MARKET LOGIC ---
 function startTradeMarketTimer() {
     if (marketTimerInterval) clearInterval(marketTimerInterval);
     checkTradeMarket(); 
@@ -380,7 +380,8 @@ function startTradeMarketTimer() {
 }
 
 function checkTradeMarket() {
-    if (!window.playerDatabase) return;
+    let db = getDB();
+    if (!db) return;
     
     let now = Date.now();
     if (now > tradeMarket.expires || !tradeMarket.offers || tradeMarket.offers.length === 0) {
@@ -397,7 +398,9 @@ function checkTradeMarket() {
 }
 
 function generateTradeOffers() {
-    let elitePool = window.playerDatabase.filter(p => ["Master", "Grandmaster", "Challenger", "Champion", "MVP"].includes(p.quality));
+    let db = getDB();
+    if(!db) return;
+    let elitePool = db.filter(p => ["Master", "Grandmaster", "Challenger", "Champion", "MVP"].includes(p.quality));
     let offers = [];
     
     for(let i=0; i<3; i++) {
@@ -451,8 +454,9 @@ function renderTradeMarket() {
     if(!container) return;
     container.innerHTML = "";
     
+    let db = getDB();
     tradeMarket.offers.forEach(offer => {
-        let rewardCardDef = window.playerDatabase.find(p => p.id === offer.rewardBaseId);
+        let rewardCardDef = db.find(p => p.id === offer.rewardBaseId);
         if(!rewardCardDef) return;
         
         let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId));
@@ -491,7 +495,34 @@ function renderTradeMarket() {
     });
 }
 
-// --- COLLECTION ARCHIVE LOGIC ---
+function executeTrade(offerId) {
+    let offer = tradeMarket.offers.find(o => o.id === offerId);
+    if(!offer || offer.completed) return;
+    
+    let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId));
+    if (availableFodder.length < offer.reqCount) {
+        showToast("Not enough unlocked assets to trade.", "error");
+        return;
+    }
+    
+    for(let i=0; i<offer.reqCount; i++) {
+        let burnId = availableFodder[i].uniqueId;
+        club = club.filter(c => c.uniqueId !== burnId);
+    }
+    
+    let db = getDB();
+    let rewardDef = db.find(p => p.id === offer.rewardBaseId);
+    let newCard = { ...rewardDef, uniqueId: Date.now() + "T" + Math.random().toString(36).substring(2) };
+    club.push(newCard);
+    processNewCards([newCard]);
+    
+    offer.completed = true;
+    hasNewClubItems = true;
+    saveGame();
+    renderTradeMarket();
+    showToast(`${rewardDef.name} securely extracted to Club!`, "success");
+}
+
 let currentCollectionRegion = 'LCK';
 let currentCollectionSort = 'team';
 
@@ -506,7 +537,8 @@ function setCollectionSort(sort) {
 }
 
 function renderCollection() {
-    if(!window.playerDatabase) return;
+    let db = getDB();
+    if(!db) return;
     
     ["LCK", "LPL", "LEC", "LCS", "Legacy"].forEach(r => {
         let btn = document.getElementById(`col-reg-${r}`);
@@ -533,7 +565,7 @@ function renderCollection() {
     if(!grid) return;
     grid.innerHTML = "";
     
-    let dbCards = window.playerDatabase.filter(c => c.region === currentCollectionRegion);
+    let dbCards = db.filter(c => c.region === currentCollectionRegion);
 
     let claimableBE = 0;
     dbCards.forEach(c => {
@@ -644,8 +676,9 @@ function renderCollection() {
 }
 
 function claimCollectionRewards() {
-    if(!window.playerDatabase) return;
-    let dbRegionFilt = window.playerDatabase.filter(c => c.region === currentCollectionRegion);
+    let db = getDB();
+    if(!db) return;
+    let dbRegionFilt = db.filter(c => c.region === currentCollectionRegion);
     
     let claimedAmount = 0;
     dbRegionFilt.forEach(c => {
@@ -665,7 +698,6 @@ function claimCollectionRewards() {
     }
 }
 
-// --- XP & PROGRESSION LOGIC ---
 function addXP(amount) {
     managerXP += amount;
     let needed = managerLevel * 250; 
@@ -928,10 +960,12 @@ function updateDisplays() {
 }
 
 function buyStarterPack() {
-    if (hasBoughtStarter) return; hasBoughtStarter = true; trackStats.packs++;
+    let db = getDB();
+    if (!db || hasBoughtStarter) return; 
+    hasBoughtStarter = true; trackStats.packs++;
     const roles = ["TOP", "JNG", "MID", "ADC", "SUP"]; let pulled = [];
     roles.forEach(role => {
-        let pool = window.playerDatabase.filter(p => p.role === role && p.rating <= 84);
+        let pool = db.filter(p => p.role === role && p.rating <= 84);
         let p = pool[Math.floor(Math.random() * pool.length)];
         let inst = {...p, uniqueId: Date.now() + Math.random().toString(36).substring(2)};
         pulled.push(inst); club.push(inst);
@@ -940,19 +974,21 @@ function buyStarterPack() {
 }
 
 function buyPack(baseCost, type) {
+    let db = getDB();
+    if(!db) return;
     let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
     
     if (type === 'Champion') {
-        let legPool = window.playerDatabase.filter(p => p.quality === "Champion");
+        let legPool = db.filter(p => p.quality === "Champion");
         let legCard = legPool[Math.floor(Math.random() * legPool.length)];
         let p1 = {...legCard, uniqueId: Date.now() + "L1" + Math.random().toString(36).substring(2)};
         pulled.push(p1); club.push(p1);
         
         for (let i = 0; i < 4; i++) {
             let fillerTier = Math.random() < 0.85 ? "Silver" : "Gold";
-            let filPool = window.playerDatabase.filter(p => p.quality === fillerTier);
-            if(filPool.length === 0) filPool = window.playerDatabase.filter(p => p.quality === "Silver");
+            let filPool = db.filter(p => p.quality === fillerTier);
+            if(filPool.length === 0) filPool = db.filter(p => p.quality === "Silver");
             let pF = filPool[Math.floor(Math.random() * filPool.length)];
             let cardF = {...pF, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
             pulled.push(cardF); club.push(cardF);
@@ -962,7 +998,7 @@ function buyPack(baseCost, type) {
             let pCard;
             let mvpChance = 0.20 + (skills.scouting * 0.02);
             if (Math.random() < mvpChance) {
-                let mvpPool = window.playerDatabase.filter(p => p.quality === "MVP");
+                let mvpPool = db.filter(p => p.quality === "MVP");
                 pCard = mvpPool[Math.floor(Math.random() * mvpPool.length)];
             } else {
                 let rng = (Math.random() * 100) + (skills.scouting * 2);
@@ -971,7 +1007,7 @@ function buyPack(baseCost, type) {
                 if (rng > 80) fillerTier = "Master";
                 if (rng > 95) fillerTier = "Grandmaster";
                 
-                let fillPool = window.playerDatabase.filter(p => p.quality === fillerTier);
+                let fillPool = db.filter(p => p.quality === fillerTier);
                 pCard = fillPool[Math.floor(Math.random() * fillPool.length)];
             }
             let inst = {...pCard, uniqueId: Date.now() + "M" + i + Math.random().toString(36).substring(2)};
@@ -980,8 +1016,8 @@ function buyPack(baseCost, type) {
     } else {
         for (let i=0; i<5; i++) {
             let rolledTier = rollTier(type);
-            let pool = window.playerDatabase.filter(p => p.quality === rolledTier && p.quality !== "Champion" && p.quality !== "MVP");
-            if(pool.length === 0) pool = window.playerDatabase.filter(p => p.quality === "Silver");
+            let pool = db.filter(p => p.quality === rolledTier && p.quality !== "Champion" && p.quality !== "MVP");
+            if(pool.length === 0) pool = db.filter(p => p.quality === "Silver");
             let p = pool[Math.floor(Math.random() * pool.length)];
             let cardInst = {...p, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
             pulled.push(cardInst); club.push(cardInst);
@@ -993,6 +1029,8 @@ function buyPack(baseCost, type) {
 }
 
 function buyTargetPack(targetType) {
+    let db = getDB();
+    if(!db) return;
     const selectorCost = document.getElementById("btn-buy-regional");
     let baseCost = selectorCost ? parseInt(selectorCost.getAttribute("data-cost")) : 800;
     let actualCost = baseCost + getLoanPremium();
@@ -1020,9 +1058,9 @@ function buyTargetPack(targetType) {
             targetTier = rng < 0.2 ? "Platinum" : (rng < 0.6 ? "Diamond" : "Master");
         }
         
-        let pool = window.playerDatabase.filter(p => p.region === regionVal && p.quality === targetTier && p.quality !== "Champion" && p.quality !== "MVP");
-        if (pool.length === 0) pool = window.playerDatabase.filter(p => p.quality === targetTier && p.quality !== "Champion" && p.quality !== "MVP");
-        if (pool.length === 0) pool = window.playerDatabase.filter(p => p.quality === "Silver");
+        let pool = db.filter(p => p.region === regionVal && p.quality === targetTier && p.quality !== "Champion" && p.quality !== "MVP");
+        if (pool.length === 0) pool = db.filter(p => p.quality === targetTier && p.quality !== "Champion" && p.quality !== "MVP");
+        if (pool.length === 0) pool = db.filter(p => p.quality === "Silver");
         
         let p = pool[Math.floor(Math.random() * pool.length)];
         let cardInst = {...p, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
@@ -1058,10 +1096,11 @@ function sortClub(by) {
 }
 
 function populateDropdownFilters() {
-    if(!window.playerDatabase) return;
-    const teams = ["ALL", ...new Set(window.playerDatabase.map(p => p.team))];
-    const regions = ["ALL", ...new Set(window.playerDatabase.map(p => p.region))];
-    const years = ["ALL", ...new Set(window.playerDatabase.map(p => p.year))];
+    let db = getDB();
+    if(!db) return;
+    const teams = ["ALL", ...new Set(db.map(p => p.team))];
+    const regions = ["ALL", ...new Set(db.map(p => p.region))];
+    const years = ["ALL", ...new Set(db.map(p => p.year))];
     document.getElementById("filter-team-dropdown").innerHTML = teams.map(t => `<option value="${t}">${t}</option>`).join("");
     document.getElementById("filter-region-dropdown").innerHTML = regions.map(r => `<option value="${r}">${r}</option>`).join("");
     document.getElementById("filter-year-dropdown").innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
@@ -1098,19 +1137,13 @@ function renderFilteredPicker() {
     pool.forEach(card => {
         let wrap = document.createElement("div"); 
         wrap.className = "flex flex-col items-center gap-2 transform transition hover:-translate-y-1";
-        let cardVisual = createCardElement(card, true, () => {
+        let cardVisual = createCardElement(card, false, () => {
             squad[activeSlot] = card; 
             document.getElementById("squad-picker-area").classList.add("hidden"); 
             saveGame();
         }, null);
         
-        let assignBtn = document.createElement("button");
-        assignBtn.className = "bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-md w-full uppercase tracking-wider transition cursor-pointer";
-        assignBtn.innerText = "Assign";
-        assignBtn.onclick = () => { squad[activeSlot] = card; document.getElementById("squad-picker-area").classList.add("hidden"); saveGame(); };
-
         wrap.appendChild(cardVisual);
-        wrap.appendChild(assignBtn);
         grid.appendChild(wrap);
     });
 }
@@ -1129,11 +1162,11 @@ function renderSquadView() {
         const slot = document.getElementById(`squad-${role}`); if(!slot) return; slot.innerHTML = "";
         if(squad[role]) {
             let cardEl = createCardElement(squad[role], true, () => selectSlot(role), role);
-            let del = document.createElement("button"); del.className = "absolute -top-2 -right-2 bg-red-700 hover:bg-red-600 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center font-black cursor-pointer border border-slate-900 shadow-lg z-20"; del.innerText = "✕";
+            let del = document.createElement("button"); del.className = "absolute top-1 right-1 bg-red-700 hover:bg-red-600 text-white rounded-full w-8 h-8 text-sm flex items-center justify-center font-black cursor-pointer border-2 border-slate-900 shadow-xl z-20 transition hover:scale-110"; del.innerText = "✕";
             del.onclick = (e) => { e.stopPropagation(); squad[role] = null; saveGame(); };
             cardEl.appendChild(del); slot.appendChild(cardEl);
         } else {
-            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-xs flex flex-col items-center justify-center h-full"><span class="text-3xl opacity-40 mb-2">${window.roleIcons[role] || '+'}</span><span>${role}</span></div>`;
+            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-sm flex flex-col items-center justify-center h-full w-full"><span class="text-4xl opacity-40 mb-3">${window.roleIcons[role] || '+'}</span><span class="uppercase">${role}</span></div>`;
         }
     });
     computeChemistry();
@@ -1165,6 +1198,8 @@ function computeChemistry() {
     document.getElementById("overview-avg-map").innerText = count > 0 ? Math.round(sums.map / count) : 0;
 
     let regionChem = 0; let yearChem = 0; let trainBonus = getTrainingBonus();
+    let coachBonus = squad["COACH"] ? 5 : 0; 
+    
     if(count === 6) {
         let regs = active.map(c => c.region); let uReg = new Set(regs).size;
         if(uReg === 1) regionChem = 5; else if(uReg <= 2) regionChem = 3; else if(uReg <= 3) regionChem = 2; else regionChem = 1;
@@ -1172,11 +1207,13 @@ function computeChemistry() {
         if(uY === 1) yearChem = 5; else if(uY <= 2) yearChem = 3; else yearChem = 1;
         if(new Set(active.map(c => window.teamLineageBridges[c.team] || c.team)).size === 1) regionChem += 2;
     }
+    
     document.getElementById("overview-chem-region").innerText = `${regionChem} / 5`;
     document.getElementById("overview-chem-year").innerText = `${yearChem} / 5`;
     document.getElementById("overview-training-bonus").innerText = `+${trainBonus}`;
+    document.getElementById("overview-coach-bonus").innerText = `+${coachBonus}`;
     
-    let totalPower = avgRating + regionChem + yearChem + trainBonus;
+    let totalPower = avgRating + regionChem + yearChem + trainBonus + coachBonus;
     document.getElementById("overview-chem-total").innerText = totalPower;
     return { totalPower, avgStats: { mec: count>0?sums.mec/count:0, tmf: count>0?sums.tmf/count:0, map: count>0?sums.map/count:0 } };
 }
@@ -1186,20 +1223,21 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     let isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
     let displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
 
-    cardDiv.className = `card-bg-${card.quality} rounded-xl p-4 w-48 flex flex-col items-center select-none relative transition-transform ${isMini ? 'scale-[0.85]' : 'hover:scale-105'} shadow-xl`;
+    // Base card is 52 (slightly wider), mini scale maps it nicely to w-44 slots
+    cardDiv.className = `card-bg-${card.quality} rounded-xl p-4 w-52 flex flex-col items-center select-none relative transition-transform ${isMini ? 'scale-[0.85]' : 'hover:scale-105'} shadow-xl`;
     if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
 
     const cleanName = card.name.replace(/[^a-zA-Z0-9]/g, '');
     const wikiImg = `https://lol.fandom.com/wiki/Special:FilePath/${cleanName}Square.png`;
     const fallback = `https://ui-avatars.com/api/?name=${cleanName}&background=0f172a&color=cbd5e1&size=128&bold=true`;
     
-    const isBright = ["Silver", "Gold", "Platinum", "Diamond"].includes(card.quality);
-    const textBase = isBright ? "text-slate-900" : "text-white";
-    const textMuted = isBright ? "text-slate-800 font-bold" : "text-slate-300";
-    const textOpacity = isBright ? "text-slate-900 font-bold" : "text-white/80";
+    const isDarkCard = ["Master", "Grandmaster", "Challenger", "Champion", "MVP"].includes(card.quality);
+    const textBase = isDarkCard ? "text-white" : "text-black";
+    const textMuted = isDarkCard ? "text-slate-300" : "text-black/80 font-black";
+    const textOpacity = isDarkCard ? "text-white/80" : "text-black/90 font-black";
 
     cardDiv.innerHTML = `
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-950 text-white px-3 py-1 rounded-full text-[9px] font-black border border-slate-600 z-10 shadow-lg uppercase tracking-widest whitespace-nowrap">${card.quality}</div>
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-950 text-white px-3 py-1 rounded-full text-[10px] font-black border border-slate-600 z-10 shadow-lg uppercase tracking-widest whitespace-nowrap">${card.quality}</div>
         <div class="w-full flex justify-between text-[11px] font-black uppercase mb-1 items-center mt-2">
             <span class="bg-black/20 ${textBase} px-2 py-0.5 rounded flex gap-1">${window.roleIcons[card.role] || ''} ${card.role}</span>
             <span class="${textOpacity} tracking-tight">${window.regionLogos[card.region] ? card.region : card.region}</span>
@@ -1221,6 +1259,24 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
         </div>
     `;
     return cardDiv;
+}
+
+function generateRealPlayerEnemies(baseDiff, rounds) {
+    enemies = []; 
+    let db = getDB();
+    if(!db) return;
+    
+    const teams = ["SKT T1 Legacy", "Gen.G Superteam", "BLG Vanguard", "G2 Army", "Team Liquid Elite", "Fnatic Core"];
+    const realProNames = [...new Set(db.filter(p => p.role !== "COACH").map(p => p.name))];
+    
+    for(let i = 0; i < rounds; i++) {
+        let diff = baseDiff + (i * 3) + Math.floor(Math.random() * 4);
+        let activeDraft = []; let localNames = [...realProNames];
+        for (let r = 0; r < 6; r++) { 
+            activeDraft.push(localNames.splice(Math.floor(Math.random() * localNames.length), 1)[0]); 
+        }
+        enemies.push({ name: teams[Math.floor(Math.random() * teams.length)] + ` [S${i+1}]`, power: diff, rosterNames: activeDraft });
+    }
 }
 
 function transitionToArena(title) {
