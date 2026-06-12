@@ -75,6 +75,13 @@ function switchTab(tabId) {
     });
     const target = document.getElementById('tab-' + tabId);
     if(target) target.classList.remove('hidden');
+
+    // Clear notification badges when visiting their tabs
+    if (tabId === 'club') {
+        hasNewClubItems = false;
+        saveGame();
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -97,20 +104,35 @@ function showPulls(cards, title) {
 }
 
 function rollTier(type) {
-    let rng = (Math.random() * 100) + (skills.scouting * 2);
-    if (type === 'Standard') return rng > 80 ? 'Gold' : 'Silver';
-    if (type === 'Elite') {
-        if (rng > 95) return 'Master';
-        if (rng > 80) return 'Diamond';
-        if (rng > 50) return 'Platinum';
-        return 'Gold';
-    } else if (type === 'Supreme') {
-        if (rng > 98) return 'Challenger';
-        if (rng > 85) return 'Grandmaster';
-        if (rng > 60) return 'Master';
-        if (rng > 30) return 'Diamond';
-        return 'Platinum';
+    // Scouting skill provides up to +10 RNG bonus at max level 5
+    let bonus = skills.scouting * 2;
+    let rng = (Math.random() * 100) + bonus;
+
+    if (type === 'Standard') {
+        // Silver most common, Gold possible. Max: Gold
+        if (rng > 92) return 'Gold';
+        return 'Silver';
     }
+
+    if (type === 'Elite') {
+        // Silver still most common base, Gold common, Platinum uncommon, Diamond rare. NO Master.
+        if (rng > 96) return 'Diamond';
+        if (rng > 80) return 'Platinum';
+        if (rng > 45) return 'Gold';
+        return 'Silver';
+    }
+
+    if (type === 'Supreme') {
+        // Master to Challenger range — hardest pack. Silver base, scales up to Challenger (rarest).
+        if (rng > 99) return 'Challenger';
+        if (rng > 94) return 'Grandmaster';
+        if (rng > 82) return 'Master';
+        if (rng > 60) return 'Diamond';
+        if (rng > 35) return 'Platinum';
+        if (rng > 18) return 'Gold';
+        return 'Silver';
+    }
+
     return 'Silver';
 }
 
@@ -327,8 +349,16 @@ function updateBadges() {
     if (hasNewClubItems && clubBadge) clubBadge.classList.remove("hidden");
     else if(clubBadge) clubBadge.classList.add("hidden");
 
-    if (skillPoints > 0 && skillsBadge) skillsBadge.classList.remove("hidden");
-    else if(skillsBadge) skillsBadge.classList.add("hidden");
+    // Skills badge: show with count of unspent skill points
+    if (skillPoints > 0 && skillsBadge) {
+        skillsBadge.classList.remove("hidden");
+        skillsBadge.setAttribute("data-count", skillPoints);
+        // Update the inner count span if it exists
+        const countEl = document.getElementById("badge-skills-count");
+        if (countEl) countEl.innerText = skillPoints;
+    } else if(skillsBadge) {
+        skillsBadge.classList.add("hidden");
+    }
 
     let hasClaimableQuest = quests.some(q => (trackStats[q.type] || 0) >= q.target && !q.claimed);
     if (hasClaimableQuest && questsBadge) questsBadge.classList.remove("hidden");
@@ -775,13 +805,20 @@ function buyPack(baseCost, type) {
     let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
     if (type === 'Champion') {
+        // Guaranteed 1 Legacy Wildcard (Champion) + 4 fillers scaling Silver→Grandmaster (NO Challenger)
         let legPool = db.filter(p => p.quality === "Champion");
         let legCard = legPool[Math.floor(Math.random() * legPool.length)];
         let p1 = {...legCard, uniqueId: Date.now() + "L1" + Math.random().toString(36).substring(2)};
         pulled.push(p1); club.push(p1);
         for (let i = 0; i < 4; i++) {
-            let fillerTier = Math.random() < 0.85 ? "Silver" : "Gold";
-            let filPool = db.filter(p => p.quality === fillerTier);
+            let rng = (Math.random() * 100) + (skills.scouting * 2);
+            let fillerTier = 'Silver';
+            if (rng > 95) fillerTier = 'Grandmaster';
+            else if (rng > 85) fillerTier = 'Master';
+            else if (rng > 70) fillerTier = 'Diamond';
+            else if (rng > 50) fillerTier = 'Platinum';
+            else if (rng > 30) fillerTier = 'Gold';
+            let filPool = db.filter(p => p.quality === fillerTier && p.quality !== "Champion" && p.quality !== "Challenger");
             if(filPool.length === 0) filPool = db.filter(p => p.quality === "Silver");
             let pF = filPool[Math.floor(Math.random() * filPool.length)];
             let cardF = {...pF, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
@@ -789,13 +826,21 @@ function buyPack(baseCost, type) {
         }
     } else if (type === 'MVP') {
         for (let i = 0; i < 5; i++) {
-            let pCard; let mvpChance = 0.20 + (skills.scouting * 0.02);
+            let pCard;
+            let rng = (Math.random() * 100) + (skills.scouting * 2);
+            // MVP pack: 20% chance at MVP card, else scales from Platinum → Grandmaster (NO Challenger)
+            let mvpChance = 0.20 + (skills.scouting * 0.02);
             if (Math.random() < mvpChance) {
-                let mvpPool = db.filter(p => p.quality === "MVP"); pCard = mvpPool[Math.floor(Math.random() * mvpPool.length)];
+                let mvpPool = db.filter(p => p.quality === "MVP");
+                pCard = mvpPool[Math.floor(Math.random() * mvpPool.length)];
             } else {
-                let roll = (Math.random() * 100) + (skills.scouting * 2); let fillerTier = "Platinum";
-                if (roll > 50) fillerTier = "Diamond"; if (roll > 80) fillerTier = "Master"; if (roll > 95) fillerTier = "Grandmaster";
-                let fillPool = db.filter(p => p.quality === fillerTier); pCard = fillPool[Math.floor(Math.random() * fillPool.length)];
+                let fillerTier = 'Platinum';
+                if (rng > 92) fillerTier = 'Grandmaster';
+                else if (rng > 75) fillerTier = 'Master';
+                else if (rng > 50) fillerTier = 'Diamond';
+                let fillPool = db.filter(p => p.quality === fillerTier && p.quality !== "Champion" && p.quality !== "Challenger");
+                if (fillPool.length === 0) fillPool = db.filter(p => p.quality === "Platinum");
+                pCard = fillPool[Math.floor(Math.random() * fillPool.length)];
             }
             let inst = {...pCard, uniqueId: Date.now() + "M" + i + Math.random().toString(36).substring(2)};
             pulled.push(inst); club.push(inst);
@@ -969,11 +1014,28 @@ function computeChemistry() {
     let coachBonus = squad["COACH"] ? 5 : 0; 
     
     if(count === 5) {
-        let regs = active.map(c => c.region); let uReg = new Set(regs).size;
-        if(uReg === 1) regionChem = 5; else if(uReg <= 2) regionChem = 3; else if(uReg <= 3) regionChem = 2; else regionChem = 1;
-        let yrs = active.map(c => c.year); let uY = new Set(yrs).size;
-        if(uY === 1) yearChem = 5; else if(uY <= 2) yearChem = 3; else yearChem = 1;
-        if(new Set(active.map(c => window.teamLineageBridges[c.team] || c.team)).size === 1) regionChem += 2;
+        // Legacy (Champion) wildcards are excluded from region/year chemistry checks — they adapt to any lineup
+        let nonLegacy = active.filter(c => c.quality !== "Champion");
+        let legacyCount = active.filter(c => c.quality === "Champion").length;
+
+        if (legacyCount === 5) {
+            // All-Legacy team: full chemistry
+            regionChem = 5; yearChem = 5;
+        } else {
+            // Region chemistry: only check non-legacy cards; legacy cards count as "matching" any region
+            let regs = nonLegacy.map(c => c.region);
+            let uReg = new Set(regs).size;
+            if(uReg <= 1) regionChem = 5; else if(uReg <= 2) regionChem = 3; else if(uReg <= 3) regionChem = 2; else regionChem = 1;
+
+            // Year chemistry: same — legacy wildcards bridge all eras
+            let yrs = nonLegacy.map(c => c.year);
+            let uY = new Set(yrs).size;
+            if(uY <= 1) yearChem = 5; else if(uY <= 2) yearChem = 3; else yearChem = 1;
+
+            // Team lineage bonus: legacy cards count as part of any team lineage
+            let nonLegTeams = nonLegacy.map(c => window.teamLineageBridges[c.team] || c.team);
+            if(nonLegTeams.length === 0 || new Set(nonLegTeams).size === 1) regionChem += 2;
+        }
     }
     
     document.getElementById("overview-chem-region").innerText = `${regionChem} / 5`;
@@ -994,17 +1056,24 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     let bgClass = `card-bg-${card.quality}`;
     if (card.role === "COACH") bgClass = "coach-card-style";
 
-    cardDiv.className = `${bgClass} rounded-xl p-4 w-52 flex flex-col items-center select-none relative transition-transform ${isMini ? 'scale-[0.85]' : 'hover:scale-105'} shadow-xl`;
+    // Dark cards = white text; Bright/light cards = dark text
+    const darkCardTypes = ["Master", "Grandmaster", "Challenger", "Champion", "MVP"];
+    const isDarkCard = darkCardTypes.includes(card.quality) || card.role === "COACH";
+    const textBase = isDarkCard ? "text-white" : "text-slate-900";
+    const textMuted = isDarkCard ? "text-slate-300" : "text-slate-700 font-black";
+    const textOpacity = isDarkCard ? "text-white/80" : "text-slate-800 font-black";
+
+    // In squad slots: no scale-down, full-size render; in picker/club: normal
+    const scaleClass = isMini ? '' : 'hover:scale-105';
+    cardDiv.className = `${bgClass} rounded-xl p-4 w-52 flex flex-col items-center select-none relative transition-transform ${scaleClass} shadow-xl`;
     if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
 
     const cleanName = card.name.replace(/[^a-zA-Z0-9]/g, '');
     const wikiImg = `https://lol.fandom.com/wiki/Special:FilePath/${cleanName}Square.png`;
     const fallback = `https://ui-avatars.com/api/?name=${cleanName}&background=0f172a&color=cbd5e1&size=128&bold=true`;
     
-    const isDarkCard = ["Master", "Grandmaster", "Challenger", "Champion", "MVP"].includes(card.quality) || card.role === "COACH";
-    const textBase = isDarkCard ? "text-white" : "text-black";
-    const textMuted = isDarkCard ? "text-slate-300" : "text-black/80 font-black";
-    const textOpacity = isDarkCard ? "text-white/80" : "text-black/90 font-black";
+    // Legacy/Champion wildcard badge
+    const legacyBadge = card.quality === "Champion" ? `<span class="text-[8px] font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded-full uppercase tracking-widest border border-amber-700/50 mt-1 inline-block">🃏 WILDCARD</span>` : '';
 
     cardDiv.innerHTML = `
         <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-950 text-white px-3 py-1 rounded-full text-[10px] font-black border border-slate-600 z-10 shadow-lg uppercase tracking-widest whitespace-nowrap">${card.role === "COACH" ? "COACH STAFF" : card.quality}</div>
@@ -1014,12 +1083,13 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
         </div>
         <div class="flex items-center gap-3 w-full mt-2">
             <div class="text-4xl font-black tracking-tighter drop-shadow-md flex flex-col items-center ${textBase}"><span>${displayRating}</span></div>
-            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-14 h-14 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
+            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-16 h-16 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
         </div>
         <div class="font-black text-base truncate w-full mt-3 text-center drop-shadow-sm ${textBase}">${card.name}</div>
-        <div class="text-xs font-bold truncate w-full mb-2 text-center ${textMuted}">${card.team} [${card.year}]</div>
+        <div class="text-xs font-bold truncate w-full mb-1 text-center ${textMuted}">${card.team} [${card.year}]</div>
+        ${legacyBadge}
         
-        <div class="stat-grid mt-2 border-t border-black/10 pt-2 text-xs">
+        <div class="stat-grid mt-2 border-t ${isDarkCard ? 'border-white/10' : 'border-black/15'} pt-2 text-xs">
             <div class="${textBase}"><span class="${textMuted} mr-1">MEC</span>${card.stats.mec}</div>
             <div class="${textBase}"><span class="${textMuted} mr-1">TMF</span>${card.stats.tmf}</div>
             <div class="${textBase}"><span class="${textMuted} mr-1">FRM</span>${card.stats.frm}</div>

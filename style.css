@@ -42,12 +42,137 @@
 
 /* Premium Master and Grandmaster Frames */
 .card-bg-Master { background: linear-gradient(135deg, #f3e8ff 0%, #a855f7 100%) !important; border: 3px solid #6b21a8 !important; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35); }
-.card-bg-Grandmaster { background: linear-gradient(135deg, #fee2e2 0%, #ef4444 100%) !important; border: 3px solid #991b1b !important; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35); }
 
-/* Dark-Themed Premium Cards Layout (Dark Tiers -> Light Ink) */
-.card-bg-Challenger { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%) !important; border: 3px double #f59e0b !important; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45); }
-.card-bg-Champion { background: linear-gradient(135deg, #111827 0%, #000000 100%) !important; border: 3px solid #d97706 !important; box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5); }
-.card-bg-MVP { background: linear-gradient(135deg, #be185d 0%, #4c1d95 100%) !important; border: 3px solid #f472b6 !important; box-shadow: 0 6px 20px rgba(190, 24, 93, 0.5); }
+/* GRANDMASTER — Animated crimson fire edge */
+.card-bg-Grandmaster { 
+    background: linear-gradient(135deg, #fee2e2 0%, #ef4444 50%, #7f1d1d 100%) !important; 
+    border: 3px solid #dc2626 !important; 
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.7), 0 0 40px rgba(239, 68, 68, 0.25), inset 0 0 12px rgba(255,100,100,0.1) !important;
+    animation: grandmaster-pulse 2.5s ease-in-out infinite;
+    position: relative;
+    overflow: visible !important;
+}
+.card-bg-Grandmaster::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #ef4444, #f97316, #ef4444, #dc2626, #ef4444);
+    background-size: 400% 400%;
+    animation: grandmaster-border 3s linear infinite;
+    z-index: -1;
+    filter: blur(4px);
+    opacity: 0.8;
+}
+@keyframes grandmaster-pulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.7), 0 0 40px rgba(239, 68, 68, 0.25); }
+    50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.9), 0 0 60px rgba(239, 68, 68, 0.4), 0 0 80px rgba(239,68,68,0.15); }
+}
+@keyframes grandmaster-border {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 400% 50%; }
+}
+
+/* CHALLENGER — Deep space dark with aurora border */
+.card-bg-Challenger { 
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0c0a1e 100%) !important; 
+    border: 3px solid transparent !important;
+    background-clip: padding-box !important;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 0 50px rgba(245,158,11,0.2), inset 0 0 15px rgba(245,158,11,0.05) !important; 
+    animation: challenger-glow 3s ease-in-out infinite;
+    position: relative;
+    overflow: visible !important;
+}
+.card-bg-Challenger::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: conic-gradient(from 0deg, #f59e0b, #fbbf24, #7c3aed, #3b82f6, #f59e0b);
+    animation: challenger-spin 4s linear infinite;
+    z-index: -1;
+    filter: blur(3px);
+}
+@keyframes challenger-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 0 50px rgba(245,158,11,0.2); }
+    50% { box-shadow: 0 0 35px rgba(245, 158, 11, 0.85), 0 0 80px rgba(245,158,11,0.3), 0 0 100px rgba(124,58,237,0.15); }
+}
+@keyframes challenger-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* CHAMPION (Legacy Wildcard) — Gold holographic foil */
+.card-bg-Champion { 
+    background: linear-gradient(135deg, #111827 0%, #1c1408 50%, #000000 100%) !important; 
+    border: 3px solid #d97706 !important; 
+    box-shadow: 0 0 25px rgba(217, 119, 6, 0.65), 0 0 60px rgba(217,119,6,0.2), inset 0 0 20px rgba(217,119,6,0.07) !important;
+    animation: champion-shimmer-anim 4s ease-in-out infinite;
+    position: relative;
+    overflow: hidden !important;
+}
+.card-bg-Champion::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,210,100,0.12) 50%, transparent 70%);
+    animation: champion-foil 3s ease-in-out infinite;
+    pointer-events: none;
+    border-radius: inherit;
+}
+@keyframes champion-shimmer-anim {
+    0%, 100% { box-shadow: 0 0 25px rgba(217, 119, 6, 0.65), 0 0 60px rgba(217,119,6,0.2); }
+    50% { box-shadow: 0 0 40px rgba(217, 119, 6, 0.85), 0 0 90px rgba(217,119,6,0.35), 0 0 120px rgba(234,179,8,0.1); }
+}
+@keyframes champion-foil {
+    0%, 100% { transform: translateX(-120%); }
+    50% { transform: translateX(120%); }
+}
+
+/* MVP — Magenta-violet holographic dream */
+.card-bg-MVP { 
+    background: linear-gradient(135deg, #4a0426 0%, #2d1055 50%, #be185d 100%) !important; 
+    border: 3px solid transparent !important; 
+    box-shadow: 0 0 22px rgba(244, 114, 182, 0.6), 0 0 55px rgba(139,92,246,0.25), inset 0 0 18px rgba(244,114,182,0.07) !important;
+    animation: mvp-pulse 2.8s ease-in-out infinite;
+    position: relative;
+    overflow: hidden !important;
+}
+.card-bg-MVP::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #f472b6, #8b5cf6, #ec4899, #7c3aed, #f472b6);
+    background-size: 300% 300%;
+    animation: mvp-border-flow 2.5s ease infinite;
+    z-index: -1;
+    filter: blur(3px);
+    opacity: 0.9;
+}
+.card-bg-MVP::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 25%, rgba(244,114,182,0.15) 50%, transparent 75%);
+    animation: mvp-sweep 2.5s ease-in-out infinite;
+    pointer-events: none;
+    border-radius: inherit;
+}
+@keyframes mvp-pulse {
+    0%, 100% { box-shadow: 0 0 22px rgba(244, 114, 182, 0.6), 0 0 55px rgba(139,92,246,0.25); }
+    50% { box-shadow: 0 0 38px rgba(244, 114, 182, 0.85), 0 0 80px rgba(139,92,246,0.45), 0 0 110px rgba(244,114,182,0.15); }
+}
+@keyframes mvp-border-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes mvp-sweep {
+    0%, 100% { transform: translateX(-150%) rotate(15deg); opacity: 0; }
+    30%, 70% { opacity: 1; }
+    50% { transform: translateX(150%) rotate(15deg); }
+}
 
 /* Distinct High-Contrast Scheme for Coach Cards */
 .coach-card-style { 
@@ -84,6 +209,32 @@
 .bracket-active { border-color: #60a5fa !important; box-shadow: 0 0 10px rgba(96, 165, 250, 0.3); transform: scale(1.05); }
 .bracket-won { border-color: #34d399 !important; opacity: 0.7; background-color: #064e3b !important; color: #a7f3d0 !important; }
 .golden-road-bg { background: radial-gradient(circle at center, #291502 0%, #0f172a 100%); border: 2px solid #b45309; box-shadow: 0 0 20px rgba(180, 83, 9, 0.1) inset; }
+
+/* Squad Builder: slots sized to match cards, cards never shrink */
+.squad-slot-inner {
+    width: 208px !important;
+    height: 288px !important;
+}
+
+/* Cards inside squad slots should not scale down */
+#tab-squad .squad-slot-inner > div,
+#tab-squad [id^="squad-"] > div {
+    transform: none !important;
+    width: 208px !important;
+}
+
+/* Ensure squad card images are larger */
+#tab-squad .squad-slot-inner img,
+#tab-squad [id^="squad-"] img {
+    width: 72px !important;
+    height: 72px !important;
+}
+
+/* Remove scale-[0.85] effect in squad slots — overridden by JS isMini=true */
+[id^="squad-"] .rounded-xl {
+    transform: none !important;
+    width: 100% !important;
+}
 
 .tab-content { animation: fadeIn 0.25s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
