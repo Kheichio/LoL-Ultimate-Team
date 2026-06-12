@@ -35,6 +35,7 @@ let trackStats = {
 };
 
 let quests = [
+    // One-time milestones
     { id: 'q1', desc: 'Open 5 Card Packs', target: 5, type: 'packs', reward: 800, claimed: false },
     { id: 'q5', desc: 'Open 25 Card Packs', target: 25, type: 'packs', reward: 2500, claimed: false },
     { id: 'q2', desc: 'Liquidate 10 Players', target: 10, type: 'soldCount', reward: 500, claimed: false },
@@ -42,14 +43,22 @@ let quests = [
     { id: 'q3', desc: 'Win 2 Tournaments', target: 2, type: 'tournamentsWon', reward: 1200, claimed: false },
     { id: 'q7', desc: 'Win 10 Tournaments', target: 10, type: 'tournamentsWon', reward: 5000, claimed: false },
     { id: 'q4', desc: 'Complete the Golden Road', target: 1, type: 'goldenRoads', reward: 5000, claimed: false },
-    { id: 'q8', desc: 'Complete 3 Golden Roads', target: 3, type: 'goldenRoads', reward: 15000, claimed: false }
+    { id: 'q8', desc: 'Complete 3 Golden Roads', target: 3, type: 'goldenRoads', reward: 15000, claimed: false },
+    // Repeatable contracts (infinite, lower reward, baseline resets on each claim)
+    { id: 'rq1', desc: 'Win a Tournament', target: 1, type: 'tournamentsWon', reward: 300, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq2', desc: 'Open 3 Card Packs', target: 3, type: 'packs', reward: 200, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq3', desc: 'Liquidate 5 Players', target: 5, type: 'soldCount', reward: 175, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    // Timed challenges (must accept first; repeatable after claiming or expiry)
+    { id: 'tq1', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1500, timed: true, timerHours: 2, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq2', desc: 'Open 10 Card Packs', target: 10, type: 'packs', reward: 1000, timed: true, timerHours: 1, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq3', desc: 'Liquidate 15 Players', target: 15, type: 'soldCount', reward: 800, timed: true, timerHours: 1, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 }
 ];
 
 let isGoldenRoad = false;
 let grStageIndex = 0;
 let grAccruedEssence = 0;
 const grStages = [
-    { name: "Regional Split 1", diff: 75, rounds: 1, r1: 300, r2: 50 },
+    { name: "Regional Split 1", diff: 75, rounds: 3, r1: 300, r2: 50 },
     { name: "First Stand", diff: 81, rounds: 3, r1: 500, r2: 100 },
     { name: "Regional Split 2", diff: 85, rounds: 3, r1: 600, r2: 150 },
     { name: "MSI Arena", diff: 90, rounds: 3, r1: 1100, r2: 300 },
@@ -67,6 +76,7 @@ let tacticalBonus = 0;
 let trainingActiveUntil = 0;
 let trainingTimerInterval = null;
 let marketTimerInterval = null;
+let timedQuestInterval = null;
 let activeSlot = "TOP";
 
 function switchTab(tabId) {
@@ -180,48 +190,179 @@ function populateLiveArenaVisualizer() {
     document.getElementById("tour-my-power").style.color = teamColor;
 }
 
+function formatTimeRemaining(ms) {
+    if (ms <= 0) return "EXPIRED";
+    const s = Math.floor(ms / 1000) % 60;
+    const m = Math.floor(ms / 60000) % 60;
+    const h = Math.floor(ms / 3600000);
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    return `${m}m ${s}s`;
+}
+
+function checkTimedQuests() {
+    let anyChanged = false;
+    quests.forEach(q => {
+        if (q.timed && q.accepted) {
+            if (Date.now() > q.acceptedAt + q.timerHours * 3600000) {
+                q.accepted = false;
+                q.acceptedAt = 0;
+                q.baselineAtAccept = 0;
+                anyChanged = true;
+            }
+        }
+    });
+    return anyChanged;
+}
+
+function acceptTimedQuest(id) {
+    const q = quests.find(x => x.id === id);
+    if (!q || !q.timed || q.accepted) return;
+    q.accepted = true;
+    q.acceptedAt = Date.now();
+    q.baselineAtAccept = trackStats[q.type] || 0;
+    saveGame();
+    renderQuests();
+    showToast(`Timed quest accepted — ${q.timerHours}h to complete!`, "info");
+}
+
+function startTimedQuestTimer() {
+    if (timedQuestInterval) clearInterval(timedQuestInterval);
+    timedQuestInterval = setInterval(() => {
+        if (checkTimedQuests()) {
+            showToast("A timed quest expired!", "error");
+            saveGame();
+            updateBadges();
+        }
+        const questsTab = document.getElementById("tab-quests");
+        if (questsTab && !questsTab.classList.contains("hidden")) renderQuests();
+    }, 1000);
+}
+
 function renderQuests() {
     const container = document.getElementById("quests-container");
     if (!container) return;
-    container.innerHTML = "";
-    
-    quests.forEach(q => {
-        let progress = trackStats[q.type] || 0;
-        let isDone = progress >= q.target;
-        let pct = Math.min(100, (progress / q.target) * 100);
-        
-        let btnHTML = "";
-        if (q.claimed) {
-            btnHTML = `<button disabled class="bg-slate-800 text-slate-600 px-5 py-2.5 rounded-lg font-bold cursor-not-allowed">Claimed</button>`;
-        } else if (isDone) {
-            btnHTML = `<button onclick="claimQuest('${q.id}')" class="bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-5 py-2.5 rounded-lg font-black shadow-[0_0_10px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider">Claim ${q.reward} BE</button>`;
-        } else {
-            btnHTML = `<button disabled class="bg-slate-700 text-slate-400 px-5 py-2.5 rounded-lg font-bold cursor-not-allowed">${progress} / ${q.target}</button>`;
-        }
-        
-        container.innerHTML += `
-            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex justify-between items-center shadow-md">
-                <div class="w-2/3 pr-4">
-                    <h4 class="font-bold text-slate-200 text-lg mb-2">${q.desc}</h4>
-                    <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-700">
-                        <div class="bg-yellow-500 h-full transition-all duration-500" style="width: ${pct}%"></div>
-                    </div>
-                </div>
-                <div>${btnHTML}</div>
+
+    const milestones = quests.filter(q => !q.repeatable && !q.timed);
+    const repeatables = quests.filter(q => q.repeatable);
+    const timedList = quests.filter(q => q.timed);
+
+    function bar(pct, color) {
+        return `<div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-700 mt-2">
+            <div class="${color} h-full transition-all duration-500" style="width:${pct}%"></div></div>`;
+    }
+
+    const milestoneHTML = milestones.map(q => {
+        const progress = trackStats[q.type] || 0;
+        const isDone = progress >= q.target;
+        const pct = Math.min(100, (progress / q.target) * 100);
+        const btn = q.claimed
+            ? `<button disabled class="min-w-[110px] bg-slate-800 text-slate-600 px-4 py-2 rounded-lg font-bold cursor-not-allowed text-sm">Claimed</button>`
+            : isDone
+                ? `<button onclick="claimQuest('${q.id}')" class="min-w-[110px] bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-4 py-2 rounded-lg font-black shadow-[0_0_10px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider text-sm">Claim ${q.reward} BE</button>`
+                : `<button disabled class="min-w-[110px] bg-slate-700 text-slate-400 px-4 py-2 rounded-lg font-bold cursor-not-allowed text-sm">${progress} / ${q.target}</button>`;
+        return `<div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex justify-between items-center shadow-md gap-4">
+            <div class="flex-1 min-w-0 pr-2"><h4 class="font-bold text-slate-200">${q.desc}</h4>${bar(pct, 'bg-yellow-500')}</div>
+            <div class="shrink-0">${btn}</div></div>`;
+    }).join("");
+
+    const repeatableHTML = repeatables.map(q => {
+        const progress = Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0));
+        const isDone = progress >= q.target;
+        const pct = Math.min(100, (progress / q.target) * 100);
+        const badge = q.timesCompleted > 0 ? `<span class="text-xs text-cyan-500 font-bold ml-2">×${q.timesCompleted}</span>` : "";
+        const btn = isDone
+            ? `<button onclick="claimQuest('${q.id}')" class="min-w-[110px] bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-2 rounded-lg font-black shadow-[0_0_10px_rgba(6,182,212,0.5)] cursor-pointer transition uppercase tracking-wider text-sm">Claim ${q.reward} BE</button>`
+            : `<button disabled class="min-w-[110px] bg-slate-700 text-slate-400 px-4 py-2 rounded-lg font-bold cursor-not-allowed text-sm">${progress} / ${q.target}</button>`;
+        return `<div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex justify-between items-center shadow-md gap-4">
+            <div class="flex-1 min-w-0 pr-2">
+                <h4 class="font-bold text-cyan-200">${q.desc}${badge}</h4>
+                <p class="text-xs text-slate-500 mt-0.5">Repeatable · ${q.reward} BE each</p>
+                ${bar(pct, 'bg-cyan-500')}
             </div>
-        `;
-    });
+            <div class="shrink-0">${btn}</div></div>`;
+    }).join("");
+
+    const timedHTML = timedList.map(q => {
+        const now = Date.now();
+        const msLeft = q.accepted ? (q.acceptedAt + q.timerHours * 3600000) - now : 0;
+        const expired = q.accepted && msLeft <= 0;
+        const progress = q.accepted ? Math.max(0, (trackStats[q.type] || 0) - q.baselineAtAccept) : 0;
+        const isDone = progress >= q.target;
+        const pct = Math.min(100, (progress / q.target) * 100);
+
+        let btn, timerBadge = "";
+        if (!q.accepted) {
+            btn = `<button onclick="acceptTimedQuest('${q.id}')" class="min-w-[110px] bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-black cursor-pointer transition uppercase tracking-wider text-sm">Accept</button>`;
+        } else if (isDone) {
+            btn = `<button onclick="claimQuest('${q.id}')" class="min-w-[110px] bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-4 py-2 rounded-lg font-black shadow-[0_0_10px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider text-sm">Claim ${q.reward} BE</button>`;
+            timerBadge = `<span class="text-xs text-emerald-400 font-bold ml-2">COMPLETE!</span>`;
+        } else {
+            btn = `<button disabled class="min-w-[110px] bg-slate-700 text-slate-400 px-4 py-2 rounded-lg font-bold cursor-not-allowed text-sm">${progress} / ${q.target}</button>`;
+            timerBadge = `<span class="text-xs font-mono font-bold ml-2 ${expired ? 'text-red-400' : 'text-orange-300'}">${formatTimeRemaining(msLeft)}</span>`;
+        }
+        const borderColor = !q.accepted ? 'border-slate-700' : isDone ? 'border-emerald-700/60' : expired ? 'border-red-800/50' : 'border-orange-800/40';
+        const barColor = isDone ? 'bg-emerald-500' : expired ? 'bg-red-700' : 'bg-orange-500';
+        const completedBadge = q.timesCompleted > 0 ? `<span class="text-xs text-orange-500 font-bold ml-2">×${q.timesCompleted}</span>` : "";
+        return `<div class="bg-slate-800 p-5 rounded-2xl border ${borderColor} flex justify-between items-center shadow-md gap-4">
+            <div class="flex-1 min-w-0 pr-2">
+                <div class="flex items-center flex-wrap gap-1"><h4 class="font-bold text-orange-200">${q.desc}${completedBadge}</h4>${timerBadge}</div>
+                <p class="text-xs text-slate-500 mt-0.5">Timed · ${q.timerHours}h window · ${q.reward} BE · Repeatable</p>
+                ${q.accepted ? bar(pct, barColor) : `<div class="w-full bg-slate-900 h-2 rounded-full border border-slate-700 mt-2"><div class="bg-slate-700 h-full" style="width:100%"></div></div>`}
+            </div>
+            <div class="shrink-0">${btn}</div></div>`;
+    }).join("");
+
+    container.innerHTML = `
+        <div class="mb-8">
+            <h3 class="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-1">🏆 Milestone Achievements</h3>
+            <p class="text-xs text-slate-500 mb-3">One-time rewards. Claimed forever once complete.</p>
+            <div class="space-y-3">${milestoneHTML}</div>
+        </div>
+        <div class="mb-8">
+            <h3 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-1">🔄 Repeatable Contracts</h3>
+            <p class="text-xs text-slate-500 mb-3">Lower reward but infinitely repeatable. Progress baseline resets after each claim.</p>
+            <div class="space-y-3">${repeatableHTML}</div>
+        </div>
+        <div class="mb-8">
+            <h3 class="text-sm font-bold text-orange-400 uppercase tracking-wider mb-1">⏱ Timed Challenges</h3>
+            <p class="text-xs text-slate-500 mb-3">Accept to start the clock. Complete the goal before time runs out. Repeatable after claiming or expiry.</p>
+            <div class="space-y-3">${timedHTML}</div>
+        </div>`;
 }
 
 function claimQuest(id) {
-    let q = quests.find(x => x.id === id);
-    if (q && !q.claimed && (trackStats[q.type] || 0) >= q.target) {
-        q.claimed = true;
-        blueEssence += q.reward;
-        showToast(`Quest completed! +${q.reward} BE`, "success");
-        saveGame();
-        renderQuests();
+    const q = quests.find(x => x.id === id);
+    if (!q) return;
+
+    let progress;
+    if (q.timed) {
+        if (!q.accepted) return;
+        progress = Math.max(0, (trackStats[q.type] || 0) - q.baselineAtAccept);
+    } else if (q.repeatable) {
+        progress = Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0));
+    } else {
+        if (q.claimed) return;
+        progress = trackStats[q.type] || 0;
     }
+    if (progress < q.target) return;
+
+    blueEssence += q.reward;
+    showToast(`Quest completed! +${q.reward} BE`, "success");
+
+    if (q.repeatable) {
+        q.baselineAtReset = trackStats[q.type] || 0;
+        q.timesCompleted = (q.timesCompleted || 0) + 1;
+    } else if (q.timed) {
+        q.accepted = false;
+        q.acceptedAt = 0;
+        q.baselineAtAccept = 0;
+        q.timesCompleted = (q.timesCompleted || 0) + 1;
+    } else {
+        q.claimed = true;
+    }
+
+    saveGame();
+    renderQuests();
 }
 
 function showToast(message, type = 'info') {
@@ -320,14 +461,30 @@ window.onload = () => {
     if(!trackStats.soldBE) trackStats.soldBE = 0;
     if(!trackStats.matchesPlayed) trackStats.matchesPlayed = {};
 
-    const savedQuests = localStorage.getItem("lol_quests_v7_pro");
-    if (savedQuests) quests = JSON.parse(savedQuests);
+    const savedQuests = localStorage.getItem("lol_quests_v8_pro");
+    if (savedQuests) {
+        const saved = JSON.parse(savedQuests);
+        const savedMap = {};
+        saved.forEach(q => { savedMap[q.id] = q; });
+        quests = quests.map(q => savedMap[q.id] ? { ...q, ...savedMap[q.id] } : q);
+    } else {
+        // Migrate claimed state from v7 if it exists
+        const oldSaved = localStorage.getItem("lol_quests_v7_pro");
+        if (oldSaved) {
+            const oldData = JSON.parse(oldSaved);
+            const oldMap = {};
+            oldData.forEach(q => { oldMap[q.id] = q; });
+            quests = quests.map(q => (oldMap[q.id] && oldMap[q.id].claimed) ? { ...q, claimed: true } : q);
+        }
+    }
+    if (checkTimedQuests()) saveGame();
 
     populateDropdownFilters();
     recalculateRegionalPrice();
     updateDisplays();
     checkAndRecoverTrainingTimer();
     startTradeMarketTimer();
+    startTimedQuestTimer();
 };
 
 function saveGame() {
@@ -338,7 +495,7 @@ function saveGame() {
     localStorage.setItem("lol_starter_v7_pro", hasBoughtStarter);
     localStorage.setItem("lol_identity_v7_pro", JSON.stringify(teamIdentity));
     localStorage.setItem("lol_stats_v7_pro", JSON.stringify(trackStats));
-    localStorage.setItem("lol_quests_v7_pro", JSON.stringify(quests));
+    localStorage.setItem("lol_quests_v8_pro", JSON.stringify(quests));
     localStorage.setItem("lol_prog_v7_pro", JSON.stringify({managerXP, managerLevel, skillPoints, skills}));
     localStorage.setItem("lol_new_items_v7_pro", hasNewClubItems);
     localStorage.setItem("lol_collection_v7_pro", JSON.stringify(collectionRegistry));
@@ -366,7 +523,18 @@ function updateBadges() {
         skillsBadge.classList.add("hidden");
     }
 
-    let hasClaimableQuest = quests.some(q => (trackStats[q.type] || 0) >= q.target && !q.claimed);
+    let hasClaimableQuest = quests.some(q => {
+        if (q.timed) {
+            if (!q.accepted) return false;
+            const progress = Math.max(0, (trackStats[q.type] || 0) - q.baselineAtAccept);
+            const expired = Date.now() > q.acceptedAt + q.timerHours * 3600000;
+            return progress >= q.target && !expired;
+        }
+        if (q.repeatable) {
+            return Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0)) >= q.target;
+        }
+        return (trackStats[q.type] || 0) >= q.target && !q.claimed;
+    });
     if (hasClaimableQuest && questsBadge) questsBadge.classList.remove("hidden");
     else if(questsBadge) questsBadge.classList.add("hidden");
 

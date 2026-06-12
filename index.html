@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>League of Legends Ultimate Team Pro</title>
+    <title>LoL Ultimate Team</title>
+    <link rel="icon" type="image/png" href="icons/Specialist_icon.png">
+    <meta name="description" content="Build your ultimate League of Legends roster. Open packs, assemble your squad, compete in tournaments, and conquer the Golden Road.">
+    <meta property="og:title" content="LoL Ultimate Team">
+    <meta property="og:description" content="Build your ultimate LoL roster — pack openings, squad builder, tournaments, trade market and more.">
+    <meta property="og:image" content="icons/Specialist_icon.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="LoL Ultimate Team">
+    <meta name="twitter:description" content="Build your ultimate League of Legends roster — pack openings, squad builder, tournaments, trade market and more.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -365,18 +374,17 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.1.6)</h3>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.1.7)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-cyan-400 font-bold">Role Icons</span> — Official League of Legends role icons now appear on every card and in empty squad slots (via CommunityDragon CDN).</li>
-                    <li><span class="text-cyan-400 font-bold">Player Flags</span> — Nationality flags now display on each card next to the region label, reflecting each player's home country.</li>
-                    <li><span class="text-cyan-400 font-bold">Tier Badge Fix</span> — Tier label moved inside the card as a clean header band; no longer clips or overlaps on any card type.</li>
-                    <li><span class="text-cyan-400 font-bold">Challenger Border</span> — Challenger card border now uses a colour-flow animation instead of a physically spinning ring, eliminating overflow into adjacent cards.</li>
-                    <li><span class="text-cyan-400 font-bold">Champion Cards</span> — WILDCARD badge removed from card face; all cards now render at identical height. Wildcard rule documented below.</li>
-                    <li><span class="text-cyan-400 font-bold">Archive Regions</span> — Each region tab now shows a pulsing gold dot when it has unclaimed collection rewards.</li>
-                    <li><span class="text-cyan-400 font-bold">Team Customisation</span> — 24 logo options + team colour picker added to My Team in the Squad tab.</li>
-                    <li>Champion (Legacy Wildcard) cards synergise universally — no region/year chemistry penalty when mixed with modern players.</li>
-                    <li>Pack drop rates: Standard capped at Gold, Elite at Diamond, Supreme unlocks Challenger, MVP/Champion packs cannot drop Challenger.</li>
+                    <li><span class="text-cyan-400 font-bold">Quest System</span> — Quests expanded with Repeatable Contracts (infinite, lower BE) and Timed Challenges (must accept first, complete before the clock runs out). Both types can be repeated.</li>
+                    <li><span class="text-cyan-400 font-bold">Champion Flex Penalty</span> — Champion (Legacy Wildcard) cards can be placed in any role slot but incur a −20 rating penalty when out of their natural position. The picker previews adjusted ratings.</li>
+                    <li><span class="text-cyan-400 font-bold">Remove from Squad</span> — Clicking the currently-assigned player in the picker now removes them from their slot (red outline indicates the active card).</li>
+                    <li><span class="text-cyan-400 font-bold">Team Colour in PVE</span> — The colour chosen in Squad Builder now tints your team name and power number during live PVE arena matches.</li>
+                    <li><span class="text-cyan-400 font-bold">Golden Road</span> — Regional Split 1 now begins at Quarter Finals (3 rounds: QF → SF → Final).</li>
+                    <li><span class="text-cyan-400 font-bold">Synergy Cap</span> — Regional Synergy is now hard-capped at 5/5; the team lineage +2 bonus can no longer push the display above maximum.</li>
+                    <li><span class="text-cyan-400 font-bold">Database IDs</span> — Duplicate IDs in the player database fixed (KCB 3141–3145, SKT 2016 9043–9048).</li>
                 </ul>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.1.6): Role Icons · Player Flags · Tier Badge Fix · Challenger Border · Champion Cards · Archive Regions · Team Customisation</p>
             </div>
 
             <div class="bg-amber-950/20 p-6 rounded-2xl border border-amber-800/40 shadow-inner">
@@ -695,8 +703,8 @@
         </section>
 
         <section id="tab-quests" class="tab-content hidden max-w-4xl mx-auto">
-            <h2 class="text-3xl font-black mb-2 text-slate-100 tracking-wide">Managerial Achievements</h2>
-            <p class="text-slate-400 text-sm mb-6">Complete milestones to earn BE yields and scale your organization.</p>
+            <h2 class="text-3xl font-black mb-2 text-slate-100 tracking-wide">Quests & Challenges</h2>
+            <p class="text-slate-400 text-sm mb-6">Earn BE through milestones, repeatable contracts, and timed challenges.</p>
             <div id="quests-container" class="space-y-4"></div>
         </section>
 
