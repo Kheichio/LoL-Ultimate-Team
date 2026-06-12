@@ -1,6 +1,49 @@
 // database.js
 
-window.roleIcons = { TOP: "┪", JNG: "⚔️", MID: "✦", ADC: "🏹", SUP: "🛡️", COACH: "📋" };
+// --- Official LoL role icons (CommunityDragon CDN) ---
+const _rcdn = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-position-selector/global/default/";
+window.roleIcons = {
+    TOP:   `<img src="${_rcdn}icon-position-top.png"     class="w-4 h-4 inline-block align-middle" alt="TOP"   onerror="this.style.display='none'">`,
+    JNG:   `<img src="${_rcdn}icon-position-jungle.png"  class="w-4 h-4 inline-block align-middle" alt="JNG"   onerror="this.style.display='none'">`,
+    MID:   `<img src="${_rcdn}icon-position-mid.png"     class="w-4 h-4 inline-block align-middle" alt="MID"   onerror="this.style.display='none'">`,
+    ADC:   `<img src="${_rcdn}icon-position-bottom.png"  class="w-4 h-4 inline-block align-middle" alt="ADC"   onerror="this.style.display='none'">`,
+    SUP:   `<img src="${_rcdn}icon-position-utility.png" class="w-4 h-4 inline-block align-middle" alt="SUP"   onerror="this.style.display='none'">`,
+    COACH: `📋`, SUB1: `↕`, SUB2: `↕`, SUB3: `↕`
+};
+window.roleIconsLg = {
+    TOP:   `<img src="${_rcdn}icon-position-top.png"     class="w-10 h-10 opacity-60" alt="TOP"   onerror="this.style.display='none'">`,
+    JNG:   `<img src="${_rcdn}icon-position-jungle.png"  class="w-10 h-10 opacity-60" alt="JNG"   onerror="this.style.display='none'">`,
+    MID:   `<img src="${_rcdn}icon-position-mid.png"     class="w-10 h-10 opacity-60" alt="MID"   onerror="this.style.display='none'">`,
+    ADC:   `<img src="${_rcdn}icon-position-bottom.png"  class="w-10 h-10 opacity-60" alt="ADC"   onerror="this.style.display='none'">`,
+    SUP:   `<img src="${_rcdn}icon-position-utility.png" class="w-10 h-10 opacity-60" alt="SUP"   onerror="this.style.display='none'">`,
+    COACH: `<span class="text-4xl opacity-40">📋</span>`,
+    SUB1:  `<span class="text-4xl opacity-40">↕</span>`,
+    SUB2:  `<span class="text-4xl opacity-40">↕</span>`,
+    SUB3:  `<span class="text-4xl opacity-40">↕</span>`
+};
+
+// --- Player nationality flags ---
+window.regionDefaultFlags = { LCK: "🇰🇷", LPL: "🇨🇳", LEC: "🇪🇺", LCS: "🇺🇸", Legacy: "🏆" };
+window.playerNationalityOverrides = {
+    // LPL — Korean imports
+    "Rookie": "🇰🇷", "Tarzan": "🇰🇷", "MISSING": "🇰🇷", "Scout": "🇰🇷",
+    "Viper": "🇰🇷", "ON": "🇰🇷", "Ruler": "🇰🇷",
+    // LEC — Danish
+    "Caps": "🇩🇰", "Humanoid": "🇨🇿", "BrokenBlade": "🇩🇪", "Upset": "🇩🇪",
+    "Jankos": "🇵🇱", "Inspired": "🇵🇱", "Flakked": "🇪🇸", "Malrang": "🇰🇷",
+    "Hans sama": "🇫🇷", "Rekkles": "🇸🇪", "Perkz": "🇭🇷", "Mikyx": "🇸🇮",
+    "Wunder": "🇩🇰", "Jactroll": "🇫🇷", "xMatty": "🇫🇷", "Canna": "🇯🇵",
+    "Nemesis": "🇸🇮", "Alphari": "🇬🇧", "Odoamne": "🇷🇴", "Hylissang": "🇧🇬",
+    "Razork": "🇪🇸", "Alvaro": "🇪🇸", "Jun": "🇰🇷", "Yike": "🇫🇷",
+    "Caliste": "🇫🇷", "Sertuss": "🇱🇹", "Patrik": "🇨🇿", "Cinkrof": "🇵🇱",
+    "Doss": "🇩🇰", "Jackies": "🇸🇪",
+    // LCS — notable nationalities
+    "Jensen": "🇩🇰", "Bjergsen": "🇩🇰", "Bjerge": "🇩🇰",
+    "Doublelift": "🇺🇸", "CoreJJ": "🇰🇷", "Faker": "🇰🇷",
+    "Licorice": "🇺🇸", "Blaber": "🇺🇸", "Zven": "🇩🇰",
+    // Legacy/Champion region wildcards
+};
+
 window.regionLogos = { LCK: "🇰🇷 LCK", LPL: "🇨🇳 LPL", LEC: "🇪🇺 LEC", LCS: "🇺🇸 LCS", Champion: "👑 ICON" };
 window.teamLineageBridges = { 
     "SKT": "T1", "SKT T1": "T1", "SSG": "Gen.G", "SSW": "Gen.G", "Samsung Galaxy": "Gen.G", 

@@ -44,13 +44,13 @@
 .card-bg-Master { background: linear-gradient(135deg, #f3e8ff 0%, #a855f7 100%) !important; border: 3px solid #6b21a8 !important; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35); }
 
 /* GRANDMASTER — Animated crimson fire edge */
-.card-bg-Grandmaster { 
-    background: linear-gradient(135deg, #fee2e2 0%, #ef4444 50%, #7f1d1d 100%) !important; 
-    border: 3px solid #dc2626 !important; 
+.card-bg-Grandmaster {
+    background: linear-gradient(135deg, #fee2e2 0%, #ef4444 50%, #7f1d1d 100%) !important;
+    border: 3px solid #dc2626 !important;
     box-shadow: 0 0 18px rgba(239, 68, 68, 0.7), 0 0 40px rgba(239, 68, 68, 0.25), inset 0 0 12px rgba(255,100,100,0.1) !important;
     animation: grandmaster-pulse 2.5s ease-in-out infinite;
     position: relative;
-    overflow: visible !important;
+    overflow: hidden !important;
 }
 .card-bg-Grandmaster::before {
     content: '';
@@ -73,23 +73,24 @@
     100% { background-position: 400% 50%; }
 }
 
-/* CHALLENGER — Deep space dark with aurora border */
-.card-bg-Challenger { 
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0c0a1e 100%) !important; 
+/* CHALLENGER — Deep space dark with aurora border (colour-flow, no rotation) */
+.card-bg-Challenger {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0c0a1e 100%) !important;
     border: 3px solid transparent !important;
     background-clip: padding-box !important;
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 0 50px rgba(245,158,11,0.2), inset 0 0 15px rgba(245,158,11,0.05) !important; 
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 0 50px rgba(245,158,11,0.2), inset 0 0 15px rgba(245,158,11,0.05) !important;
     animation: challenger-glow 3s ease-in-out infinite;
     position: relative;
-    overflow: visible !important;
+    overflow: hidden !important;
 }
 .card-bg-Challenger::before {
     content: '';
     position: absolute;
     inset: -3px;
     border-radius: inherit;
-    background: conic-gradient(from 0deg, #f59e0b, #fbbf24, #7c3aed, #3b82f6, #f59e0b);
-    animation: challenger-spin 4s linear infinite;
+    background: linear-gradient(45deg, #f59e0b, #fbbf24, #7c3aed, #3b82f6, #a855f7, #f59e0b);
+    background-size: 300% 300%;
+    animation: challenger-border-flow 3s ease infinite;
     z-index: -1;
     filter: blur(3px);
 }
@@ -97,9 +98,10 @@
     0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 0 50px rgba(245,158,11,0.2); }
     50% { box-shadow: 0 0 35px rgba(245, 158, 11, 0.85), 0 0 80px rgba(245,158,11,0.3), 0 0 100px rgba(124,58,237,0.15); }
 }
-@keyframes challenger-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+@keyframes challenger-border-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* CHAMPION (Legacy Wildcard) — Gold holographic foil */

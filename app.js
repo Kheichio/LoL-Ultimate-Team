@@ -290,6 +290,8 @@ window.onload = () => {
         teamIdentity = JSON.parse(savedIdentity);
         document.getElementById("custom-team-name").value = teamIdentity.name;
         document.getElementById("custom-team-logo").value = teamIdentity.logo;
+        const colorEl = document.getElementById("custom-team-color");
+        if (colorEl && teamIdentity.color) colorEl.value = teamIdentity.color;
     }
     const savedStats = localStorage.getItem("lol_stats_v7_pro");
     if (savedStats) trackStats = JSON.parse(savedStats);
@@ -527,11 +529,28 @@ function renderCollection() {
     if(!db) return;
     ["LCK", "LPL", "LEC", "LCS", "Legacy"].forEach(r => {
         let btn = document.getElementById(`col-reg-${r}`); if(!btn) return;
+
+        // Check if this region has owned-but-unclaimed cards
+        let regionCards = db.filter(c => c.region === r);
+        let hasClaimable = regionCards.some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
+
         if (r === currentCollectionRegion) {
-            btn.className = "flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-blue-600/20 border border-blue-500/50 text-blue-300 shadow-inner cursor-pointer";
+            btn.className = "flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-blue-600/20 border border-blue-500/50 text-blue-300 shadow-inner cursor-pointer relative";
         } else {
             let extra = r === 'Legacy' ? 'border border-amber-900/50 text-slate-400' : 'border border-transparent text-slate-400';
-            btn.className = `flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 hover:text-slate-200 hover:bg-slate-700 cursor-pointer ${extra}`;
+            btn.className = `flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 hover:text-slate-200 hover:bg-slate-700 cursor-pointer relative ${extra}`;
+        }
+
+        // Notification dot
+        let dot = btn.querySelector('.region-notify-dot');
+        if (hasClaimable) {
+            if (!dot) {
+                dot = document.createElement('span');
+                dot.className = 'region-notify-dot absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-slate-900 animate-pulse z-10 pointer-events-none';
+                btn.appendChild(dot);
+            }
+        } else {
+            if (dot) dot.remove();
         }
     });
 
@@ -748,6 +767,8 @@ function loadGoldenRoadStage() {
 function updateTeamCustomization() {
     teamIdentity.name = document.getElementById("custom-team-name").value || "My Team";
     teamIdentity.logo = document.getElementById("custom-team-logo").value || "🛡️";
+    const colorEl = document.getElementById("custom-team-color");
+    if (colorEl) teamIdentity.color = colorEl.value || "#3b82f6";
     saveGame();
 }
 
@@ -979,7 +1000,7 @@ function renderSquadView() {
             let cardEl = createCardElement(squad[role], true, () => selectSlot(role), role);
             slot.appendChild(cardEl);
         } else {
-            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-sm flex flex-col items-center justify-center h-full w-full"><span class="text-4xl opacity-40 mb-3">${window.roleIcons[role] || '+'}</span><span class="uppercase">${role}</span></div>`;
+            slot.innerHTML = `<div class="text-center text-slate-500 font-bold tracking-widest text-sm flex flex-col items-center justify-center h-full w-full"><span class="mb-3 flex justify-center">${(window.roleIconsLg && window.roleIconsLg[role]) || '<span class="text-4xl opacity-40">+</span>'}</span><span class="uppercase">${role}</span></div>`;
         }
     });
     computeChemistry();
@@ -1056,46 +1077,54 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     let bgClass = `card-bg-${card.quality}`;
     if (card.role === "COACH") bgClass = "coach-card-style";
 
-    // Dark cards = white text; Bright/light cards = dark text
     const darkCardTypes = ["Master", "Grandmaster", "Challenger", "Champion", "MVP"];
     const isDarkCard = darkCardTypes.includes(card.quality) || card.role === "COACH";
     const textBase = isDarkCard ? "text-white" : "text-slate-900";
     const textMuted = isDarkCard ? "text-slate-300" : "text-slate-700 font-black";
     const textOpacity = isDarkCard ? "text-white/80" : "text-slate-800 font-black";
+    const dividerColor = isDarkCard ? "border-white/15" : "border-black/15";
 
-    // In squad slots: no scale-down, full-size render; in picker/club: normal
     const scaleClass = isMini ? '' : 'hover:scale-105';
-    cardDiv.className = `${bgClass} rounded-xl p-4 w-52 flex flex-col items-center select-none relative transition-transform ${scaleClass} shadow-xl`;
+    // overflow-hidden on ALL cards: tier badge is now an inside header, no floating badge needed
+    cardDiv.className = `${bgClass} rounded-xl w-52 flex flex-col items-center select-none relative transition-transform ${scaleClass} shadow-xl overflow-hidden`;
     if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
 
     const cleanName = card.name.replace(/[^a-zA-Z0-9]/g, '');
     const wikiImg = `https://lol.fandom.com/wiki/Special:FilePath/${cleanName}Square.png`;
     const fallback = `https://ui-avatars.com/api/?name=${cleanName}&background=0f172a&color=cbd5e1&size=128&bold=true`;
-    
-    // Legacy/Champion wildcard badge
-    const legacyBadge = card.quality === "Champion" ? `<span class="text-[8px] font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded-full uppercase tracking-widest border border-amber-700/50 mt-1 inline-block">🃏 WILDCARD</span>` : '';
+
+    // Nationality flag: specific override first, then region default
+    const flag = (window.playerNationalityOverrides && window.playerNationalityOverrides[card.name])
+        || (window.regionDefaultFlags && window.regionDefaultFlags[card.region])
+        || '';
+
+    // Official LoL role icon
+    const roleIconHtml = (window.roleIcons && window.roleIcons[card.role]) || '';
+
+    // Tier header — always inside the card (no clipping bugs)
+    const tierLabel = card.role === "COACH" ? "COACH STAFF" : card.quality;
 
     cardDiv.innerHTML = `
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-950 text-white px-3 py-1 rounded-full text-[10px] font-black border border-slate-600 z-10 shadow-lg uppercase tracking-widest whitespace-nowrap">${card.role === "COACH" ? "COACH STAFF" : card.quality}</div>
-        <div class="w-full flex justify-between text-[11px] font-black uppercase mb-1 items-center mt-2">
-            <span class="bg-black/20 ${textBase} px-2 py-0.5 rounded flex gap-1">${window.roleIcons[card.role] || ''} ${card.role}</span>
-            <span class="${textOpacity} tracking-tight">${window.regionLogos[card.region] ? card.region : card.region}</span>
-        </div>
-        <div class="flex items-center gap-3 w-full mt-2">
-            <div class="text-4xl font-black tracking-tighter drop-shadow-md flex flex-col items-center ${textBase}"><span>${displayRating}</span></div>
-            <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-16 h-16 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
-        </div>
-        <div class="font-black text-base truncate w-full mt-3 text-center drop-shadow-sm ${textBase}">${card.name}</div>
-        <div class="text-xs font-bold truncate w-full mb-1 text-center ${textMuted}">${card.team} [${card.year}]</div>
-        ${legacyBadge}
-        
-        <div class="stat-grid mt-2 border-t ${isDarkCard ? 'border-white/10' : 'border-black/15'} pt-2 text-xs">
-            <div class="${textBase}"><span class="${textMuted} mr-1">MEC</span>${card.stats.mec}</div>
-            <div class="${textBase}"><span class="${textMuted} mr-1">TMF</span>${card.stats.tmf}</div>
-            <div class="${textBase}"><span class="${textMuted} mr-1">FRM</span>${card.stats.frm}</div>
-            <div class="${textBase}"><span class="${textMuted} mr-1">CMP</span>${card.stats.cmp}</div>
-            <div class="${textBase}"><span class="${textMuted} mr-1">MAP</span>${card.stats.map}</div>
-            <div class="${textBase}"><span class="${textMuted} mr-1">LDR</span>${card.stats.ldr}</div>
+        <div class="w-full text-center py-1.5 px-3 bg-black/25 border-b ${dividerColor} text-[10px] font-black uppercase tracking-widest ${textBase} rounded-t-xl">${tierLabel}</div>
+        <div class="p-4 w-full flex flex-col items-center">
+            <div class="w-full flex justify-between text-[11px] font-black uppercase mb-1 items-center">
+                <span class="bg-black/20 ${textBase} px-2 py-0.5 rounded-md flex items-center gap-1">${roleIconHtml} ${card.role}</span>
+                <span class="${textOpacity} tracking-tight flex items-center gap-1">${flag} ${card.region}</span>
+            </div>
+            <div class="flex items-center gap-3 w-full mt-2">
+                <div class="text-4xl font-black tracking-tighter drop-shadow-md ${textBase}"><span>${displayRating}</span></div>
+                <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-16 h-16 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
+            </div>
+            <div class="font-black text-base truncate w-full mt-3 text-center drop-shadow-sm ${textBase}">${card.name}</div>
+            <div class="text-xs font-bold truncate w-full mb-2 text-center ${textMuted}">${card.team} [${card.year}]</div>
+            <div class="stat-grid border-t ${dividerColor} pt-2 text-xs w-full">
+                <div class="${textBase}"><span class="${textMuted} mr-1">MEC</span>${card.stats.mec}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">TMF</span>${card.stats.tmf}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">FRM</span>${card.stats.frm}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">CMP</span>${card.stats.cmp}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">MAP</span>${card.stats.map}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">LDR</span>${card.stats.ldr}</div>
+            </div>
         </div>
     `;
     return cardDiv;
