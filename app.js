@@ -930,66 +930,106 @@ function sortClub(by) {
     renderClubGrid();
 }
 
-function populateDropdownFilters() {
-    let db = getDB(); if(!db) return;
-    const teams = ["ALL", ...new Set(db.map(p => p.team))];
-    const regions = ["ALL", ...new Set(db.map(p => p.region))];
-    const years = ["ALL", ...new Set(db.map(p => p.year))];
-    document.getElementById("filter-team-dropdown").innerHTML = teams.map(t => `<option value="${t}">${t}</option>`).join("");
-    document.getElementById("filter-region-dropdown").innerHTML = regions.map(r => `<option value="${r}">${r}</option>`).join("");
-    document.getElementById("filter-year-dropdown").innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
+// --- Player Picker Drawer ---
+let _pickerFilters = { region: 'ALL', sort: 'rating' };
+
+function populateDropdownFilters() { /* replaced by openPlayerPicker */ }
+function renderFilteredPicker() { /* replaced by renderPickerCards */ }
+
+function selectSlot(role) { openPlayerPicker(role); }
+
+function openPlayerPicker(role) {
+    activeSlot = role;
+    document.getElementById('picker-slot-label').textContent = role;
+
+    // Populate year dropdown (sorted newest first)
+    const years = ['ALL', ...[...new Set(club.map(c => String(c.year)))].sort((a,b) => b-a)];
+    document.getElementById('picker-year').innerHTML = years.map(y =>
+        `<option value="${y}">${y === 'ALL' ? 'All Years' : y}</option>`).join('');
+
+    // Populate team dropdown (sorted alphabetically)
+    const teams = ['ALL', ...[...new Set(club.map(c => c.team))].sort()];
+    document.getElementById('picker-team').innerHTML = teams.map(t =>
+        `<option value="${t}">${t === 'ALL' ? 'All Teams' : t}</option>`).join('');
+
+    // Reset filter buttons to defaults
+    _pickerFilters = { region: 'ALL', sort: 'rating' };
+    document.querySelectorAll('.ppf-region').forEach(b => b.classList.remove('ppf-active'));
+    document.querySelector('.ppf-region[onclick*="\'ALL\'"]').classList.add('ppf-active');
+    document.querySelectorAll('.ppf-sort').forEach(b => b.classList.remove('ppf-active'));
+    document.querySelector('.ppf-sort[onclick*="\'rating\'"]').classList.add('ppf-active');
+
+    document.getElementById('player-picker').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    renderPickerCards();
 }
 
-function renderFilteredPicker() {
-    const grid = document.getElementById("picker-grid"); if(!grid) return; grid.innerHTML = "";
-    const targetT = document.getElementById("filter-team-dropdown").value;
-    const targetR = document.getElementById("filter-region-dropdown").value;
-    const targetY = document.getElementById("filter-year-dropdown").value;
-    const targetRole = document.getElementById("filter-role-dropdown").value;
-    const rankSort = document.getElementById("filter-sort-dropdown").value;
+function closePlayerPicker() {
+    document.getElementById('player-picker').classList.add('hidden');
+    document.body.style.overflow = '';
+    renderSquadView();
+}
+
+function setPickerFilter(type, val, btn) {
+    _pickerFilters[type] = val;
+    const cls = type === 'region' ? '.ppf-region' : '.ppf-sort';
+    document.querySelectorAll(cls).forEach(b => b.classList.remove('ppf-active'));
+    btn.classList.add('ppf-active');
+    renderPickerCards();
+}
+
+function renderPickerCards() {
+    const container = document.getElementById('picker-cards');
+    if (!container) return;
+    container.innerHTML = '';
 
     let pool = [...club];
-    const activeSquadMembers = Object.entries(squad).filter(([slot, card]) => slot !== activeSlot && card !== null).map(([, card]) => card);
-    pool = pool.filter(p => !activeSquadMembers.map(c=>c.uniqueId).includes(p.uniqueId) && !activeSquadMembers.map(c=>c.name).includes(p.name));
 
-    if (activeSlot === "COACH") pool = pool.filter(p => p.role === "COACH");
-    else if (targetRole !== "ALL") pool = pool.filter(p => p.role === targetRole);
-    else if (["TOP", "JNG", "MID", "ADC", "SUP"].includes(activeSlot)) pool = pool.filter(p => p.role !== "COACH");
+    // Remove players already in other squad slots
+    const occupied = Object.entries(squad)
+        .filter(([slot, card]) => slot !== activeSlot && card !== null)
+        .map(([, card]) => card);
+    pool = pool.filter(p => !occupied.some(c => c.uniqueId === p.uniqueId));
 
-    if (targetT !== "ALL") pool = pool.filter(p => p.team === targetT);
-    if (targetR !== "ALL") pool = pool.filter(p => p.region === targetR);
-    if (targetY !== "ALL") pool = pool.filter(p => p.year == targetY);
+    // Auto-filter by role: main slots show only that role + Champion wildcards; COACH slot = coaches only; subs = all
+    if (activeSlot === 'COACH') {
+        pool = pool.filter(p => p.role === 'COACH');
+    } else if (['TOP','JNG','MID','ADC','SUP'].includes(activeSlot)) {
+        pool = pool.filter(p => p.role === activeSlot || p.quality === 'Champion');
+    }
 
-    if (rankSort === "highest") pool.sort((a,b) => b.rating - a.rating);
-    else if (rankSort === "lowest") pool.sort((a,b) => a.rating - b.rating);
-    else if (rankSort === "highest_mec") pool.sort((a,b) => b.stats.mec - a.stats.mec);
-    else if (rankSort === "highest_tmf") pool.sort((a,b) => b.stats.tmf - a.stats.tmf);
-    else if (rankSort === "highest_map") pool.sort((a,b) => b.stats.map - a.stats.map);
+    // Region filter
+    if (_pickerFilters.region !== 'ALL') pool = pool.filter(p => p.region === _pickerFilters.region);
 
-    if(pool.length === 0) { grid.innerHTML = `<p class="col-span-full text-center text-sm text-slate-500 py-8 font-mono">No reserves match metrics.</p>`; return; }
-    
+    // Year dropdown
+    const yearVal = document.getElementById('picker-year').value;
+    if (yearVal !== 'ALL') pool = pool.filter(p => String(p.year) === yearVal);
+
+    // Team dropdown
+    const teamVal = document.getElementById('picker-team').value;
+    if (teamVal !== 'ALL') pool = pool.filter(p => p.team === teamVal);
+
+    // Sort
+    if (_pickerFilters.sort === 'rating') pool.sort((a,b) => b.rating - a.rating);
+    else if (_pickerFilters.sort === 'mec') pool.sort((a,b) => b.stats.mec - a.stats.mec);
+    else if (_pickerFilters.sort === 'tmf') pool.sort((a,b) => b.stats.tmf - a.stats.tmf);
+    else if (_pickerFilters.sort === 'map') pool.sort((a,b) => b.stats.map - a.stats.map);
+
+    document.getElementById('picker-result-count').textContent = `${pool.length} players`;
+
+    if (pool.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 text-sm font-mono py-12 w-full text-center">No players match the current filters.</p>';
+        return;
+    }
+
     pool.forEach(card => {
-        let wrap = document.createElement("div"); 
-        wrap.className = "flex flex-col items-center gap-2 transform transition hover:-translate-y-1";
-        
-        let cardVisual = createCardElement(card, false, () => {
-            squad[activeSlot] = card; 
-            document.getElementById("squad-picker-area").classList.add("hidden"); 
+        const el = createCardElement(card, false, () => {
+            squad[activeSlot] = card;
+            closePlayerPicker();
             saveGame();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }, null);
-        
-        wrap.appendChild(cardVisual);
-        grid.appendChild(wrap);
+        container.appendChild(el);
     });
-}
-
-function selectSlot(role) {
-    activeSlot = role; document.getElementById("picker-role").innerText = role;
-    const roleDropdown = document.getElementById("filter-role-dropdown");
-    if (["COACH", "TOP", "JNG", "MID", "ADC", "SUP"].includes(role)) roleDropdown.value = role; else roleDropdown.value = "ALL";
-    document.getElementById("squad-picker-area").classList.remove("hidden"); renderFilteredPicker();
-    document.getElementById("squad-picker-area").scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderSquadView() {

@@ -1,25 +1,26 @@
 // database.js
 
 // --- Local role icons (icons/ folder) ---
+// Inline style on every img guarantees size regardless of parent CSS overrides
 window.roleIcons = {
-    TOP:   `<img src="icons/Top_icon.png"        class="w-4 h-4 inline-block align-middle" alt="TOP">`,
-    JNG:   `<img src="icons/Jungle_icon.png"     class="w-4 h-4 inline-block align-middle" alt="JNG">`,
-    MID:   `<img src="icons/Middle_icon.png"     class="w-4 h-4 inline-block align-middle" alt="MID">`,
-    ADC:   `<img src="icons/Bottom_icon.png"     class="w-4 h-4 inline-block align-middle" alt="ADC">`,
-    SUP:   `<img src="icons/Support_icon.png"    class="w-4 h-4 inline-block align-middle" alt="SUP">`,
-    COACH: `<img src="icons/Specialist_icon.png" class="w-4 h-4 inline-block align-middle" alt="COACH">`,
+    TOP:   `<img src="icons/Top_icon.png"        style="width:16px;height:16px;display:inline-block;vertical-align:middle;flex-shrink:0" alt="TOP">`,
+    JNG:   `<img src="icons/Jungle_icon.png"     style="width:16px;height:16px;display:inline-block;vertical-align:middle;flex-shrink:0" alt="JNG">`,
+    MID:   `<img src="icons/Middle_icon.png"     style="width:16px;height:16px;display:inline-block;vertical-align:middle;flex-shrink:0" alt="MID">`,
+    ADC:   `<img src="icons/Bottom_icon.png"     style="width:16px;height:16px;display:inline-block;vertical-align:middle;flex-shrink:0" alt="ADC">`,
+    SUP:   `<img src="icons/Support_icon.png"    style="width:16px;height:16px;display:inline-block;vertical-align:middle;flex-shrink:0" alt="SUP">`,
+    COACH: `<img src="icons/Specialist_icon.png" style="width:16px;height:16px;display:inline-block;vertical-align:middle;flex-shrink:0" alt="COACH">`,
     SUB1: `↕`, SUB2: `↕`, SUB3: `↕`
 };
 window.roleIconsLg = {
-    TOP:   `<img src="icons/Top_icon.png"        class="w-10 h-10 opacity-70" alt="TOP">`,
-    JNG:   `<img src="icons/Jungle_icon.png"     class="w-10 h-10 opacity-70" alt="JNG">`,
-    MID:   `<img src="icons/Middle_icon.png"     class="w-10 h-10 opacity-70" alt="MID">`,
-    ADC:   `<img src="icons/Bottom_icon.png"     class="w-10 h-10 opacity-70" alt="ADC">`,
-    SUP:   `<img src="icons/Support_icon.png"    class="w-10 h-10 opacity-70" alt="SUP">`,
-    COACH: `<img src="icons/Specialist_icon.png" class="w-10 h-10 opacity-70" alt="COACH">`,
-    SUB1:  `<span class="text-4xl opacity-40">↕</span>`,
-    SUB2:  `<span class="text-4xl opacity-40">↕</span>`,
-    SUB3:  `<span class="text-4xl opacity-40">↕</span>`
+    TOP:   `<img src="icons/Top_icon.png"        style="width:48px;height:48px;opacity:0.65" alt="TOP">`,
+    JNG:   `<img src="icons/Jungle_icon.png"     style="width:48px;height:48px;opacity:0.65" alt="JNG">`,
+    MID:   `<img src="icons/Middle_icon.png"     style="width:48px;height:48px;opacity:0.65" alt="MID">`,
+    ADC:   `<img src="icons/Bottom_icon.png"     style="width:48px;height:48px;opacity:0.65" alt="ADC">`,
+    SUP:   `<img src="icons/Support_icon.png"    style="width:48px;height:48px;opacity:0.65" alt="SUP">`,
+    COACH: `<img src="icons/Specialist_icon.png" style="width:48px;height:48px;opacity:0.65" alt="COACH">`,
+    SUB1:  `<span style="font-size:2.5rem;opacity:0.4">↕</span>`,
+    SUB2:  `<span style="font-size:2.5rem;opacity:0.4">↕</span>`,
+    SUB3:  `<span style="font-size:2.5rem;opacity:0.4">↕</span>`
 };
 
 // --- Player nationality flags ---

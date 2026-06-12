@@ -557,41 +557,6 @@
 
             </div>
 
-            <div id="squad-picker-area" class="w-full bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-2xl hidden mt-6">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-4 mb-5">
-                        <h4 class="font-black text-xl text-blue-400 uppercase tracking-wider">Assigning: <span id="picker-role" class="text-white bg-slate-900 px-3 py-1 rounded-lg shadow-inner ml-2">Select Position</span></h4>
-                        <button onclick="document.getElementById('squad-picker-area').classList.add('hidden')" class="text-slate-200 hover:text-white cursor-pointer font-black bg-red-700 px-5 py-2.5 rounded-lg shadow-lg text-sm transition hover:bg-red-600">✕ Close Picker</button>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 bg-slate-950 p-5 rounded-xl border border-slate-700 text-sm mb-6 items-end shadow-inner">
-                        <div class="flex flex-col">
-                            <label class="font-bold text-slate-400 mb-1.5 uppercase text-xs">Team</label>
-                            <select id="filter-team-dropdown" onchange="renderFilteredPicker()" class="bg-slate-900 text-white rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer font-bold"></select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-bold text-slate-400 mb-1.5 uppercase text-xs">Region</label>
-                            <select id="filter-region-dropdown" onchange="renderFilteredPicker()" class="bg-slate-900 text-white rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer font-bold"></select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-bold text-slate-400 mb-1.5 uppercase text-xs">Year</label>
-                            <select id="filter-year-dropdown" onchange="renderFilteredPicker()" class="bg-slate-900 text-white rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer font-bold"></select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-bold text-slate-400 mb-1.5 uppercase text-xs">Role Filter</label>
-                            <select id="filter-role-dropdown" onchange="renderFilteredPicker()" class="bg-slate-900 text-white rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer font-bold">
-                                <option value="ALL">ALL ROLES</option><option value="TOP">TOP</option><option value="JNG">JNG</option><option value="MID">MID</option><option value="ADC">ADC</option><option value="SUP">SUP</option><option value="COACH">COACH</option>
-                            </select>
-                        </div>
-                        <div class="flex flex-col">
-                            <label class="font-bold text-slate-400 mb-1.5 uppercase text-xs">Sort By</label>
-                            <select id="filter-sort-dropdown" onchange="renderFilteredPicker()" class="bg-slate-900 text-white rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 font-bold cursor-pointer text-sm">
-                                <option value="highest">Highest Rating</option><option value="lowest">Lowest Rating</option><option value="highest_mec">Highest MEC</option><option value="highest_tmf">Highest TMF</option><option value="highest_map">Highest MAP</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="picker-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6 max-h-[700px] overflow-y-auto bg-slate-950/50 p-6 rounded-xl border border-slate-800 justify-items-center shadow-inner custom-scrollbar"></div>
-            </div>
 
         </section>
 
@@ -752,6 +717,60 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5" id="skills-container"></div>
         </section>
+
+    <!-- Player Picker Drawer — fixed full-width overlay, z-index above everything -->
+    <div id="player-picker" class="fixed inset-x-0 bottom-0 z-[60] hidden" style="height:74vh">
+        <div class="h-full flex flex-col bg-slate-950 border-t-2 border-blue-500 shadow-[0_-8px_40px_rgba(0,0,0,0.6)]">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-900 flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <h3 class="font-black text-lg text-blue-400 uppercase tracking-wider">Assigning: <span id="picker-slot-label" class="text-white bg-slate-800 px-3 py-0.5 rounded-lg ml-1 text-sm tracking-normal"></span></h3>
+                    <span id="picker-result-count" class="text-slate-500 text-xs font-mono bg-slate-800 px-2 py-0.5 rounded"></span>
+                </div>
+                <button onclick="closePlayerPicker()" class="bg-red-700 hover:bg-red-600 text-white font-black px-6 py-2 rounded-lg text-sm tracking-widest cursor-pointer transition uppercase">✕ Close</button>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3 bg-slate-900/60 border-b border-slate-800 flex-shrink-0">
+                <!-- Region -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mr-0.5">Region</span>
+                    <button onclick="setPickerFilter('region','ALL',this)" class="ppf-region ppf-active text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">All</button>
+                    <button onclick="setPickerFilter('region','LCK',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">LCK 🇰🇷</button>
+                    <button onclick="setPickerFilter('region','LPL',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">LPL 🇨🇳</button>
+                    <button onclick="setPickerFilter('region','LEC',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">LEC 🇪🇺</button>
+                    <button onclick="setPickerFilter('region','LCS',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">LCS 🇺🇸</button>
+                    <button onclick="setPickerFilter('region','Legacy',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">Legacy 🏆</button>
+                </div>
+                <!-- Year -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Year</span>
+                    <select id="picker-year" onchange="renderPickerCards()" class="ppf-select bg-slate-800 text-white text-xs font-bold rounded-lg px-2 py-1.5 border border-slate-700 cursor-pointer focus:outline-none focus:border-blue-500"></select>
+                </div>
+                <!-- Team -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Team</span>
+                    <select id="picker-team" onchange="renderPickerCards()" class="ppf-select bg-slate-800 text-white text-xs font-bold rounded-lg px-2 py-1.5 border border-slate-700 cursor-pointer focus:outline-none focus:border-blue-500"></select>
+                </div>
+                <!-- Sort -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Sort</span>
+                    <div class="flex gap-1">
+                        <button onclick="setPickerFilter('sort','rating',this)" class="ppf-sort ppf-active text-[11px] font-black px-2.5 py-1 rounded-lg border cursor-pointer transition">Rating</button>
+                        <button onclick="setPickerFilter('sort','mec',this)" class="ppf-sort text-[11px] font-black px-2.5 py-1 rounded-lg border cursor-pointer transition">MEC</button>
+                        <button onclick="setPickerFilter('sort','tmf',this)" class="ppf-sort text-[11px] font-black px-2.5 py-1 rounded-lg border cursor-pointer transition">TMF</button>
+                        <button onclick="setPickerFilter('sort','map',this)" class="ppf-sort text-[11px] font-black px-2.5 py-1 rounded-lg border cursor-pointer transition">MAP</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Grid -->
+            <div class="flex-1 overflow-y-auto p-5 custom-scrollbar">
+                <div id="picker-cards" class="flex flex-wrap gap-4 content-start"></div>
+            </div>
+        </div>
+    </div>
 
     </main>
 
