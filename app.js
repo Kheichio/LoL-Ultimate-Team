@@ -49,7 +49,7 @@ let isGoldenRoad = false;
 let grStageIndex = 0;
 let grAccruedEssence = 0;
 const grStages = [
-    { name: "Regional Split 1", diff: 75, rounds: 3, r1: 300, r2: 50 },
+    { name: "Regional Split 1", diff: 75, rounds: 1, r1: 300, r2: 50 },
     { name: "First Stand", diff: 81, rounds: 3, r1: 500, r2: 100 },
     { name: "Regional Split 2", diff: 85, rounds: 3, r1: 600, r2: 150 },
     { name: "MSI Arena", diff: 90, rounds: 3, r1: 1100, r2: 300 },
@@ -172,8 +172,12 @@ function populateLiveArenaVisualizer() {
         });
     }
     
-    document.getElementById("live-team-name").innerText = teamIdentity.name;
+    const teamColor = teamIdentity.color || '#3b82f6';
+    const nameEl = document.getElementById("live-team-name");
+    nameEl.innerText = teamIdentity.name;
+    nameEl.style.color = teamColor;
     document.getElementById("live-team-logo").innerText = teamIdentity.logo;
+    document.getElementById("tour-my-power").style.color = teamColor;
 }
 
 function renderQuests() {
@@ -1023,11 +1027,18 @@ function renderPickerCards() {
     }
 
     pool.forEach(card => {
+        const isCurrentlyAssigned = squad[activeSlot] && squad[activeSlot].uniqueId === card.uniqueId;
         const el = createCardElement(card, false, () => {
-            squad[activeSlot] = card;
+            // Clicking the already-assigned player removes them from the slot
+            squad[activeSlot] = isCurrentlyAssigned ? null : card;
             closePlayerPicker();
             saveGame();
-        }, null);
+        }, activeSlot);
+        if (isCurrentlyAssigned) {
+            el.style.outline = '3px solid #ef4444';
+            el.style.outlineOffset = '3px';
+            el.title = 'Currently assigned — click to remove';
+        }
         container.appendChild(el);
     });
 }
@@ -1096,9 +1107,10 @@ function computeChemistry() {
             // Team lineage bonus: legacy cards count as part of any team lineage
             let nonLegTeams = nonLegacy.map(c => window.teamLineageBridges[c.team] || c.team);
             if(nonLegTeams.length === 0 || new Set(nonLegTeams).size === 1) regionChem += 2;
+            regionChem = Math.min(5, regionChem); // never exceed 5/5
         }
     }
-    
+
     document.getElementById("overview-chem-region").innerText = `${regionChem} / 5`;
     document.getElementById("overview-chem-year").innerText = `${yearChem} / 5`;
     document.getElementById("overview-training-bonus").innerText = `+${trainBonus}`;

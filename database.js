@@ -313,11 +313,11 @@ const baseDatabase = [
     { id: 3049, name: "Jopa", role: "ADC", team: "SK", year: 2026, rating: 82, quality: "Gold", region: "LEC", stats: { mec: 84, tmf: 81, frm: 83, cmp: 79, map: 76, ldr: 75 } },
     { id: 3050, name: "Mikyx", role: "SUP", team: "SK", year: 2026, rating: 91, quality: "Diamond", region: "LEC", stats: { mec: 85, tmf: 92, frm: 24, cmp: 91, map: 93, ldr: 94 } },
 
-    { id: 3051, name: "Tao", role: "TOP", team: "KCB", year: 2026, rating: 78, quality: "Silver", region: "LEC", stats: { mec: 80, tmf: 76, frm: 79, cmp: 74, map: 73, ldr: 71 } },
-    { id: 3052, name: "Yukino", role: "JNG", team: "KCB", year: 2026, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 81, tmf: 78, frm: 77, cmp: 75, map: 80, ldr: 76 } },
-    { id: 3053, name: "Kamiloo", role: "MID", team: "KCB", year: 2026, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 82, tmf: 77, frm: 80, cmp: 76, map: 75, ldr: 73 } },
-    { id: 3054, name: "Hazel", role: "ADC", team: "KCB", year: 2026, rating: 77, quality: "Silver", region: "LEC", stats: { mec: 79, tmf: 76, frm: 78, cmp: 74, map: 73, ldr: 71 } },
-    { id: 3055, name: "Prime", role: "SUP", team: "KCB", year: 2026, rating: 81, quality: "Gold", region: "LEC", stats: { mec: 74, tmf: 82, frm: 19, cmp: 79, map: 83, ldr: 82 } },
+    { id: 3141, name: "Tao", role: "TOP", team: "KCB", year: 2026, rating: 78, quality: "Silver", region: "LEC", stats: { mec: 80, tmf: 76, frm: 79, cmp: 74, map: 73, ldr: 71 } },
+    { id: 3142, name: "Yukino", role: "JNG", team: "KCB", year: 2026, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 81, tmf: 78, frm: 77, cmp: 75, map: 80, ldr: 76 } },
+    { id: 3143, name: "Kamiloo", role: "MID", team: "KCB", year: 2026, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 82, tmf: 77, frm: 80, cmp: 76, map: 75, ldr: 73 } },
+    { id: 3144, name: "Hazel", role: "ADC", team: "KCB", year: 2026, rating: 77, quality: "Silver", region: "LEC", stats: { mec: 79, tmf: 76, frm: 78, cmp: 74, map: 73, ldr: 71 } },
+    { id: 3145, name: "Prime", role: "SUP", team: "KCB", year: 2026, rating: 81, quality: "Gold", region: "LEC", stats: { mec: 74, tmf: 82, frm: 19, cmp: 79, map: 83, ldr: 82 } },
 
     // --- 2026 LCS ROSTERS ---
     { id: 1431, name: "Thanatos", role: "TOP", team: "C9", year: 2026, rating: 86, quality: "Platinum", region: "LCS", stats: { mec: 88, tmf: 85, frm: 87, cmp: 83, map: 82, ldr: 80 } },
@@ -481,8 +481,16 @@ const baseDatabase = [
     { id: 9002, name: "MaRin", role: "TOP", team: "SKT", year: 2015, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 96, frm: 97, cmp: 94, map: 95, ldr: 97 } },
     { id: 9003, name: "Bang", role: "ADC", team: "SKT", year: 2015, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 97, frm: 96, cmp: 98, map: 89, ldr: 88 } },
     { id: 9004, name: "Wolf", role: "SUP", team: "SKT", year: 2015, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 82, tmf: 96, frm: 20, cmp: 95, map: 96, ldr: 94 } },
-    { id: 9005, name: "Bengi", role: "JNG", team: "SKT", year: 2016, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 96, frm: 88, cmp: 98, map: 99, ldr: 95 } },
-    { id: 9006, name: "Duke", role: "TOP", team: "SKT", year: 2016, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 91, frm: 97, cmp: 92, map: 88, ldr: 86 } },
+    { id: 9005, name: "Bengi", role: "JNG", team: "SKT", year: 2015, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 96, frm: 88, cmp: 98, map: 99, ldr: 95 } },
+    { id: 9042, name: "Easyhoon", role: "MID", team: "SKT", year: 2015, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 85, tmf: 90, frm: 80, cmp: 99, map: 99, ldr: 91 } },
+    { id: 9006, name: "kkOma", role: "COACH", team: "SKT", year: 2015, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 70, tmf: 96, frm: 97, cmp: 92, map: 99, ldr: 99 } },
+
+    { id: 9043, name: "Duke", role: "TOP", team: "SKT", year: 2016, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 97, tmf: 94, frm: 97, cmp: 95, map: 90, ldr: 90 } },
+    { id: 9044, name: "Bengi", role: "JNG", team: "SKT", year: 2016, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 91, frm: 98, cmp: 92, map: 99, ldr: 92 } },
+    { id: 9045, name: "Blank", role: "JNG", team: "SKT", year: 2016, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 97, frm: 97, cmp: 92, map: 98, ldr: 90 } },
+    { id: 9046, name: "Faker", role: "MID", team: "SKT", year: 2016, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 98, frm: 99, cmp: 99, map: 97, ldr: 86 } },
+    { id: 9047, name: "Bang", role: "ADC", team: "SKT", year: 2016, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 98, tmf: 99, frm: 97, cmp: 98, map: 91, ldr: 85 } },
+    { id: 9048, name: "Wolf", role: "SUP", team: "SKT", year: 2016, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 89, tmf: 96, frm: 96, cmp: 97, map: 96, ldr: 96 } },
     
     { id: 9007, name: "TheShy", role: "TOP", team: "IG", year: 2018, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 95, frm: 97, cmp: 94, map: 88, ldr: 85 } },
     { id: 9008, name: "Rookie", role: "MID", team: "IG", year: 2018, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 96, frm: 97, cmp: 95, map: 94, ldr: 94 } },
