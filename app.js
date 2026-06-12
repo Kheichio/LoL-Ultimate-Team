@@ -1077,12 +1077,14 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     let bgClass = `card-bg-${card.quality}`;
     if (card.role === "COACH") bgClass = "coach-card-style";
 
-    const darkCardTypes = ["Master", "Grandmaster", "Challenger", "Champion", "MVP"];
+    const darkCardTypes = ["Challenger", "Champion", "MVP"];
     const isDarkCard = darkCardTypes.includes(card.quality) || card.role === "COACH";
-    const textBase = isDarkCard ? "text-white" : "text-slate-900";
-    const textMuted = isDarkCard ? "text-slate-300" : "text-slate-700 font-black";
-    const textOpacity = isDarkCard ? "text-white/80" : "text-slate-800 font-black";
-    const dividerColor = isDarkCard ? "border-white/15" : "border-black/15";
+    // Master/Grandmaster use dark text — their gradients start very light, white text disappears
+    const isMidCard = ["Master", "Grandmaster"].includes(card.quality);
+    const textBase = isDarkCard ? "text-white" : isMidCard ? "text-slate-900" : "text-slate-900";
+    const textMuted = isDarkCard ? "text-slate-300" : isMidCard ? "text-slate-800 font-black" : "text-slate-700 font-black";
+    const textOpacity = isDarkCard ? "text-white/80" : isMidCard ? "text-slate-700 font-black" : "text-slate-800 font-black";
+    const dividerColor = isDarkCard ? "border-white/15" : "border-black/20";
 
     const scaleClass = isMini ? '' : 'hover:scale-105';
     // overflow-hidden on ALL cards: tier badge is now an inside header, no floating badge needed

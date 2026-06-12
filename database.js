@@ -1,22 +1,22 @@
 // database.js
 
-// --- Official LoL role icons (CommunityDragon CDN) ---
-const _rcdn = "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-position-selector/global/default/";
+// --- Local role icons (icons/ folder) ---
 window.roleIcons = {
-    TOP:   `<img src="${_rcdn}icon-position-top.png"     class="w-4 h-4 inline-block align-middle" alt="TOP"   onerror="this.style.display='none'">`,
-    JNG:   `<img src="${_rcdn}icon-position-jungle.png"  class="w-4 h-4 inline-block align-middle" alt="JNG"   onerror="this.style.display='none'">`,
-    MID:   `<img src="${_rcdn}icon-position-mid.png"     class="w-4 h-4 inline-block align-middle" alt="MID"   onerror="this.style.display='none'">`,
-    ADC:   `<img src="${_rcdn}icon-position-bottom.png"  class="w-4 h-4 inline-block align-middle" alt="ADC"   onerror="this.style.display='none'">`,
-    SUP:   `<img src="${_rcdn}icon-position-utility.png" class="w-4 h-4 inline-block align-middle" alt="SUP"   onerror="this.style.display='none'">`,
-    COACH: `📋`, SUB1: `↕`, SUB2: `↕`, SUB3: `↕`
+    TOP:   `<img src="icons/Top_icon.png"        class="w-4 h-4 inline-block align-middle" alt="TOP">`,
+    JNG:   `<img src="icons/Jungle_icon.png"     class="w-4 h-4 inline-block align-middle" alt="JNG">`,
+    MID:   `<img src="icons/Middle_icon.png"     class="w-4 h-4 inline-block align-middle" alt="MID">`,
+    ADC:   `<img src="icons/Bottom_icon.png"     class="w-4 h-4 inline-block align-middle" alt="ADC">`,
+    SUP:   `<img src="icons/Support_icon.png"    class="w-4 h-4 inline-block align-middle" alt="SUP">`,
+    COACH: `<img src="icons/Specialist_icon.png" class="w-4 h-4 inline-block align-middle" alt="COACH">`,
+    SUB1: `↕`, SUB2: `↕`, SUB3: `↕`
 };
 window.roleIconsLg = {
-    TOP:   `<img src="${_rcdn}icon-position-top.png"     class="w-10 h-10 opacity-60" alt="TOP"   onerror="this.style.display='none'">`,
-    JNG:   `<img src="${_rcdn}icon-position-jungle.png"  class="w-10 h-10 opacity-60" alt="JNG"   onerror="this.style.display='none'">`,
-    MID:   `<img src="${_rcdn}icon-position-mid.png"     class="w-10 h-10 opacity-60" alt="MID"   onerror="this.style.display='none'">`,
-    ADC:   `<img src="${_rcdn}icon-position-bottom.png"  class="w-10 h-10 opacity-60" alt="ADC"   onerror="this.style.display='none'">`,
-    SUP:   `<img src="${_rcdn}icon-position-utility.png" class="w-10 h-10 opacity-60" alt="SUP"   onerror="this.style.display='none'">`,
-    COACH: `<span class="text-4xl opacity-40">📋</span>`,
+    TOP:   `<img src="icons/Top_icon.png"        class="w-10 h-10 opacity-70" alt="TOP">`,
+    JNG:   `<img src="icons/Jungle_icon.png"     class="w-10 h-10 opacity-70" alt="JNG">`,
+    MID:   `<img src="icons/Middle_icon.png"     class="w-10 h-10 opacity-70" alt="MID">`,
+    ADC:   `<img src="icons/Bottom_icon.png"     class="w-10 h-10 opacity-70" alt="ADC">`,
+    SUP:   `<img src="icons/Support_icon.png"    class="w-10 h-10 opacity-70" alt="SUP">`,
+    COACH: `<img src="icons/Specialist_icon.png" class="w-10 h-10 opacity-70" alt="COACH">`,
     SUB1:  `<span class="text-4xl opacity-40">↕</span>`,
     SUB2:  `<span class="text-4xl opacity-40">↕</span>`,
     SUB3:  `<span class="text-4xl opacity-40">↕</span>`
