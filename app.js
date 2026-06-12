@@ -49,9 +49,9 @@ let quests = [
     { id: 'rq2', desc: 'Open 3 Card Packs', target: 3, type: 'packs', reward: 200, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     { id: 'rq3', desc: 'Liquidate 5 Players', target: 5, type: 'soldCount', reward: 175, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     // Timed challenges (must accept first; repeatable after claiming or expiry)
-    { id: 'tq1', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1500, timed: true, timerHours: 2, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq2', desc: 'Open 10 Card Packs', target: 10, type: 'packs', reward: 1000, timed: true, timerHours: 1, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq3', desc: 'Liquidate 15 Players', target: 15, type: 'soldCount', reward: 800, timed: true, timerHours: 1, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 }
+    { id: 'tq1', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1500, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq2', desc: 'Open 10 Card Packs', target: 10, type: 'packs', reward: 1000, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq3', desc: 'Liquidate 15 Players', target: 15, type: 'soldCount', reward: 800, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 }
 ];
 
 let isGoldenRoad = false;
@@ -203,7 +203,8 @@ function checkTimedQuests() {
     let anyChanged = false;
     quests.forEach(q => {
         if (q.timed && q.accepted) {
-            if (Date.now() > q.acceptedAt + q.timerHours * 3600000) {
+            const timerMs = (q.timerMins || (q.timerHours || 0) * 60) * 60000;
+            if (Date.now() > q.acceptedAt + timerMs) {
                 q.accepted = false;
                 q.acceptedAt = 0;
                 q.baselineAtAccept = 0;
@@ -222,7 +223,7 @@ function acceptTimedQuest(id) {
     q.baselineAtAccept = trackStats[q.type] || 0;
     saveGame();
     renderQuests();
-    showToast(`Timed quest accepted — ${q.timerHours}h to complete!`, "info");
+    showToast(`Timed quest accepted — ${q.timerMins || ((q.timerHours || 0) * 60)}m to complete!`, "info");
 }
 
 function startTimedQuestTimer() {
@@ -284,7 +285,8 @@ function renderQuests() {
 
     const timedHTML = timedList.map(q => {
         const now = Date.now();
-        const msLeft = q.accepted ? (q.acceptedAt + q.timerHours * 3600000) - now : 0;
+        const timerMs = (q.timerMins || (q.timerHours || 0) * 60) * 60000;
+        const msLeft = q.accepted ? (q.acceptedAt + timerMs) - now : 0;
         const expired = q.accepted && msLeft <= 0;
         const progress = q.accepted ? Math.max(0, (trackStats[q.type] || 0) - q.baselineAtAccept) : 0;
         const isDone = progress >= q.target;
@@ -306,7 +308,7 @@ function renderQuests() {
         return `<div class="bg-slate-800 p-5 rounded-2xl border ${borderColor} flex justify-between items-center shadow-md gap-4">
             <div class="flex-1 min-w-0 pr-2">
                 <div class="flex items-center flex-wrap gap-1"><h4 class="font-bold text-orange-200">${q.desc}${completedBadge}</h4>${timerBadge}</div>
-                <p class="text-xs text-slate-500 mt-0.5">Timed · ${q.timerHours}h window · ${q.reward} BE · Repeatable</p>
+                <p class="text-xs text-slate-500 mt-0.5">Timed · ${q.timerMins || ((q.timerHours || 0) * 60)}m window · ${q.reward} BE · Repeatable</p>
                 ${q.accepted ? bar(pct, barColor) : `<div class="w-full bg-slate-900 h-2 rounded-full border border-slate-700 mt-2"><div class="bg-slate-700 h-full" style="width:100%"></div></div>`}
             </div>
             <div class="shrink-0">${btn}</div></div>`;
@@ -527,7 +529,8 @@ function updateBadges() {
         if (q.timed) {
             if (!q.accepted) return false;
             const progress = Math.max(0, (trackStats[q.type] || 0) - q.baselineAtAccept);
-            const expired = Date.now() > q.acceptedAt + q.timerHours * 3600000;
+            const timerMs = (q.timerMins || (q.timerHours || 0) * 60) * 60000;
+            const expired = Date.now() > q.acceptedAt + timerMs;
             return progress >= q.target && !expired;
         }
         if (q.repeatable) {
