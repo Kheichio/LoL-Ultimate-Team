@@ -181,13 +181,23 @@
 }
 
 /* Distinct High-Contrast Scheme for Coach Cards */
-.coach-card-style { 
-    background: linear-gradient(135deg, #022c22 0%, #064e3b 100%) !important; 
-    border: 3px dashed #10b981 !important; 
-    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35) !important; 
+.coach-card-style {
+    background: linear-gradient(135deg, #022c22 0%, #064e3b 100%) !important;
+    border: 3px dashed #10b981 !important;
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35) !important;
 }
 .coach-card-style .stat-grid {
     border-top: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Legacy / Elite Coach — distinguished from base coaches, not as flashy as Legacy player cards */
+.legacy-coach-card-style {
+    background: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%) !important;
+    border: 3px dashed #fbbf24 !important;
+    box-shadow: 0 6px 22px rgba(251, 191, 36, 0.38), inset 0 0 14px rgba(251, 191, 36, 0.06) !important;
+}
+.legacy-coach-card-style .stat-grid {
+    border-top: 1px solid rgba(251, 191, 36, 0.3) !important;
 }
 
 /* Static Numerical Attributes Grid Setup */

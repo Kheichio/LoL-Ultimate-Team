@@ -1227,10 +1227,9 @@ function renderPickerCards() {
         return;
     }
 
-    pool.forEach(card => {
+    const addCardEl = (card) => {
         const isCurrentlyAssigned = squad[activeSlot] && squad[activeSlot].uniqueId === card.uniqueId;
         const el = createCardElement(card, false, () => {
-            // Clicking the already-assigned player removes them from the slot
             squad[activeSlot] = isCurrentlyAssigned ? null : card;
             closePlayerPicker();
             saveGame();
@@ -1241,7 +1240,28 @@ function renderPickerCards() {
             el.title = 'Currently assigned — click to remove';
         }
         container.appendChild(el);
-    });
+    };
+
+    if (_pickerFilters.sort === 'role') {
+        const roleOrder = ['TOP', 'JNG', 'MID', 'ADC', 'SUP', 'COACH'];
+        const grouped = {};
+        roleOrder.forEach(r => { grouped[r] = []; });
+        pool.forEach(c => { (grouped[c.role] ? grouped[c.role] : grouped['SUP']).push(c); });
+        roleOrder.forEach(r => { grouped[r].sort((a, b) => b.rating - a.rating); });
+
+        roleOrder.forEach(r => {
+            if (!grouped[r].length) return;
+            const header = document.createElement('div');
+            header.className = 'w-full flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 pt-3 pb-1 border-b border-slate-700/40';
+            const roleIcon = (window.roleIcons && window.roleIcons[r]) || '';
+            header.innerHTML = `${roleIcon} <span>${r}</span> <span class="text-slate-600 font-mono">${grouped[r].length}</span>`;
+            container.appendChild(header);
+            grouped[r].forEach(addCardEl);
+        });
+        return;
+    }
+
+    pool.forEach(addCardEl);
 }
 
 function renderSquadView() {
@@ -1328,7 +1348,10 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     let displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
 
     let bgClass = `card-bg-${card.quality}`;
-    if (card.role === "COACH") bgClass = "coach-card-style";
+    if (card.role === "COACH") {
+        const legacyCoachQualities = ['Master', 'Grandmaster', 'Challenger', 'Champion'];
+        bgClass = legacyCoachQualities.includes(card.quality) ? "legacy-coach-card-style" : "coach-card-style";
+    }
 
     const darkCardTypes = ["Challenger", "Champion", "MVP"];
     const isDarkCard = darkCardTypes.includes(card.quality) || card.role === "COACH";
