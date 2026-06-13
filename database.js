@@ -52,6 +52,16 @@ window.playerNationalityOverrides = {
     // LEC 2025 head coaches
     "GrabbZ": "🇩🇪", "Dylan Falco": "🇬🇧", "Guilhoto": "🇧🇷", "fredy122": "🇩🇪",
     "Own3r": "🇸🇪", "Machuki": "🇪🇸",
+    // LEC 2026 FNC new players
+    "Empyros": "🇬🇷", "Lospa": "🇰🇷",
+    // LPL 2025 — Korean imports & non-Chinese players
+    "Tarzan": "🇰🇷", "Kael": "🇰🇷", "TheShy": "🇰🇷", "Doinb": "🇰🇷",
+    "Moham": "🇰🇷", "Hoya": "🇰🇷", "SeTab": "🇰🇷", "Karis": "🇰🇷",
+    "Taeyoon": "🇰🇷", "Kanavi": "🇰🇷", "Peyz": "🇰🇷",
+    "Shad0w": "🇮🇹", "1Jiang": "🇹🇼", "Wako": "🇹🇼",
+    // LPL 2025 coaches (Korean)
+    "Homme": "🇰🇷", "Heart": "🇰🇷", "NoFe": "🇰🇷", "Daeny": "🇰🇷",
+    "ppgod": "🇺🇸", "Tabe": "🇹🇼",
     // LCS — notable nationalities
     "Jensen": "🇩🇰", "Bjergsen": "🇩🇰", "Bjerge": "🇩🇰",
     "Doublelift": "🇺🇸", "CoreJJ": "🇰🇷", "Faker": "🇰🇷",
@@ -161,6 +171,146 @@ const baseDatabase = [
     { id: 8072, name: "Striker",    role: "COACH", team: "BDS",  year: 2025, rating: 81, quality: "Gold",     region: "LEC", stats: { mec: 21, tmf: 80, frm: 13, cmp: 80, map: 82, ldr: 83 } },
     { id: 8073, name: "Machuki",    role: "COACH", team: "TH",   year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 20, tmf: 81, frm: 12, cmp: 81, map: 83, ldr: 84 } },
     { id: 8074, name: "Mac",        role: "COACH", team: "VIT",  year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 20, tmf: 81, frm: 11, cmp: 80, map: 83, ldr: 84 } },
+
+    // ==========================================
+    // --- 2.6. 2025 LPL ROSTERS ---
+    // ==========================================
+
+    // AL — Anyone's Legend (3rd place, Group A winners, strong playoffs)
+    { id: 5001, name: "Flandre",    role: "TOP", team: "AL",  year: 2025, rating: 90, quality: "Diamond",  region: "LPL", stats: { mec: 88, tmf: 91, frm: 90, cmp: 91, map: 86, ldr: 88 } },
+    { id: 5002, name: "Tarzan",     role: "JNG", team: "AL",  year: 2025, rating: 91, quality: "Diamond",  region: "LPL", stats: { mec: 90, tmf: 92, frm: 89, cmp: 90, map: 93, ldr: 89 } },
+    { id: 5003, name: "Shanks",     role: "MID", team: "AL",  year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 90, tmf: 87, frm: 88, cmp: 85, map: 84, ldr: 83 } },
+    { id: 5004, name: "Hope",       role: "ADC", team: "AL",  year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 85, frm: 87, cmp: 83, map: 82, ldr: 80 } },
+    { id: 5005, name: "Kael",       role: "SUP", team: "AL",  year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 80, tmf: 86, frm: 22, cmp: 88, map: 90, ldr: 88 } },
+
+    // BLG — Bilibili Gaming (Champions, top individual performers)
+    { id: 5011, name: "Bin",        role: "TOP", team: "BLG", year: 2025, rating: 92, quality: "Diamond",  region: "LPL", stats: { mec: 94, tmf: 91, frm: 92, cmp: 89, map: 87, ldr: 86 } },
+    { id: 5012, name: "Wei",        role: "JNG", team: "BLG", year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 87, frm: 86, cmp: 86, map: 88, ldr: 84 } },
+    { id: 5013, name: "knight",     role: "MID", team: "BLG", year: 2025, rating: 93, quality: "Master",   region: "LPL", stats: { mec: 95, tmf: 92, frm: 93, cmp: 90, map: 88, ldr: 89 } },
+    { id: 5014, name: "Elk",        role: "ADC", team: "BLG", year: 2025, rating: 89, quality: "Diamond",  region: "LPL", stats: { mec: 91, tmf: 88, frm: 90, cmp: 86, map: 84, ldr: 82 } },
+    { id: 5015, name: "ON",         role: "SUP", team: "BLG", year: 2025, rating: 90, quality: "Diamond",  region: "LPL", stats: { mec: 83, tmf: 88, frm: 21, cmp: 91, map: 92, ldr: 91 } },
+
+    // EDG — EDward Gaming (8-2 Nirvana Rumble, solid mid-tier)
+    { id: 5021, name: "Zdz",        role: "TOP", team: "EDG", year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 86, tmf: 84, frm: 86, cmp: 82, map: 80, ldr: 79 } },
+    { id: 5022, name: "Xiaohao",    role: "JNG", team: "EDG", year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 84, tmf: 86, frm: 83, cmp: 84, map: 86, ldr: 83 } },
+    { id: 5023, name: "Angel",      role: "MID", team: "EDG", year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 86, tmf: 84, frm: 86, cmp: 85, map: 84, ldr: 83 } },
+    { id: 5024, name: "Assum",      role: "ADC", team: "EDG", year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 86, tmf: 83, frm: 85, cmp: 81, map: 79, ldr: 77 } },
+    { id: 5025, name: "Wink",       role: "SUP", team: "EDG", year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 77, tmf: 84, frm: 19, cmp: 82, map: 85, ldr: 84 } },
+
+    // FPX — FunPlus Phoenix (1-13 Rumble, worst record)
+    { id: 5031, name: "sheer",      role: "TOP", team: "FPX", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 77, ldr: 76 } },
+    { id: 5032, name: "sorrow",     role: "JNG", team: "FPX", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 82, tmf: 82, frm: 80, cmp: 80, map: 82, ldr: 79 } },
+    { id: 5033, name: "Care",       role: "MID", team: "FPX", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 79, ldr: 78 } },
+    { id: 5034, name: "bat",        role: "ADC", team: "FPX", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 77, ldr: 75 } },
+    { id: 5035, name: "Jwei",       role: "SUP", team: "FPX", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 79, tmf: 86, frm: 21, cmp: 87, map: 88, ldr: 87 } },
+    { id: 5036, name: "Shad0w",     role: "JNG", team: "FPX", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 82, cmp: 80, map: 83, ldr: 78 } },
+
+    // iG — Invictus Gaming (11-3 Rumble Ascend, 2nd, strong individual talent)
+    { id: 5041, name: "TheShy",     role: "TOP", team: "iG",  year: 2025, rating: 91, quality: "Diamond",  region: "LPL", stats: { mec: 93, tmf: 90, frm: 92, cmp: 88, map: 86, ldr: 85 } },
+    { id: 5042, name: "Jiejie",     role: "JNG", team: "iG",  year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 89, frm: 86, cmp: 88, map: 90, ldr: 87 } },
+    { id: 5043, name: "Rookie",     role: "MID", team: "iG",  year: 2025, rating: 94, quality: "Master",   region: "LPL", stats: { mec: 96, tmf: 93, frm: 94, cmp: 91, map: 89, ldr: 90 } },
+    { id: 5044, name: "GALA",       role: "ADC", team: "iG",  year: 2025, rating: 89, quality: "Diamond",  region: "LPL", stats: { mec: 91, tmf: 88, frm: 90, cmp: 85, map: 83, ldr: 81 } },
+    { id: 5045, name: "Meiko",      role: "SUP", team: "iG",  year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 80, tmf: 87, frm: 21, cmp: 87, map: 89, ldr: 89 } },
+
+    // JDG — JD Gaming (5-9 Rumble, strong individual MVPs despite team results)
+    { id: 5051, name: "Ale",        role: "TOP", team: "JDG", year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 86, frm: 88, cmp: 84, map: 82, ldr: 81 } },
+    { id: 5052, name: "Xun",        role: "JNG", team: "JDG", year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 89, frm: 86, cmp: 88, map: 90, ldr: 87 } },
+    { id: 5053, name: "Scout",      role: "MID", team: "JDG", year: 2025, rating: 89, quality: "Diamond",  region: "LPL", stats: { mec: 91, tmf: 88, frm: 90, cmp: 87, map: 85, ldr: 84 } },
+    { id: 5054, name: "Peyz",       role: "ADC", team: "JDG", year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 90, tmf: 87, frm: 89, cmp: 84, map: 83, ldr: 81 } },
+    { id: 5055, name: "MISSING",    role: "SUP", team: "JDG", year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 81, tmf: 88, frm: 23, cmp: 89, map: 91, ldr: 90 } },
+
+    // LGD — LGD Gaming (6-4 Nirvana Rumble)
+    { id: 5061, name: "sasi",       role: "TOP", team: "LGD", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 79, ldr: 77 } },
+    { id: 5062, name: "climber",    role: "JNG", team: "LGD", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 83, frm: 81, cmp: 81, map: 83, ldr: 80 } },
+    { id: 5063, name: "xqw",        role: "MID", team: "LGD", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 82, cmp: 79, map: 78, ldr: 76 } },
+    { id: 5064, name: "Shaoye",     role: "ADC", team: "LGD", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 77, ldr: 75 } },
+    { id: 5065, name: "Ycx",        role: "SUP", team: "LGD", year: 2025, rating: 81, quality: "Gold",     region: "LPL", stats: { mec: 74, tmf: 82, frm: 19, cmp: 80, map: 83, ldr: 81 } },
+    { id: 5066, name: "Meteor",     role: "JNG", team: "LGD", year: 2025, rating: 80, quality: "Gold",     region: "LPL", stats: { mec: 81, tmf: 79, frm: 79, cmp: 77, map: 80, ldr: 77 } },
+
+    // LNG — LNG Esports (2-8 Nirvana Rumble, eliminated early)
+    { id: 5071, name: "Zika",       role: "TOP", team: "LNG", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 79, ldr: 78 } },
+    { id: 5072, name: "Weiwei",     role: "JNG", team: "LNG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 82, tmf: 82, frm: 80, cmp: 80, map: 82, ldr: 79 } },
+    { id: 5073, name: "haichao",    role: "MID", team: "LNG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 82, cmp: 79, map: 78, ldr: 76 } },
+    { id: 5074, name: "Photic",     role: "ADC", team: "LNG", year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 85, tmf: 83, frm: 85, cmp: 81, map: 80, ldr: 78 } },
+    { id: 5075, name: "Zhuo",       role: "SUP", team: "LNG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 75, tmf: 82, frm: 19, cmp: 81, map: 84, ldr: 82 } },
+    { id: 5076, name: "Alley",      role: "MID", team: "LNG", year: 2025, rating: 79, quality: "Silver",   region: "LPL", stats: { mec: 80, tmf: 78, frm: 79, cmp: 76, map: 75, ldr: 73 } },
+
+    // NIP — Ninjas in Pyjamas (9-1 Nirvana Rumble, #1 in their stage)
+    { id: 5081, name: "Shanji",     role: "TOP", team: "NIP", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 85, frm: 87, cmp: 83, map: 82, ldr: 81 } },
+    { id: 5082, name: "AKi",        role: "JNG", team: "NIP", year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 85, tmf: 85, frm: 83, cmp: 84, map: 86, ldr: 83 } },
+    { id: 5083, name: "Doinb",      role: "MID", team: "NIP", year: 2025, rating: 89, quality: "Diamond",  region: "LPL", stats: { mec: 88, tmf: 89, frm: 89, cmp: 92, map: 90, ldr: 94 } },
+    { id: 5084, name: "Leave",      role: "ADC", team: "NIP", year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 86, frm: 88, cmp: 84, map: 83, ldr: 81 } },
+    { id: 5085, name: "ppgod",      role: "SUP", team: "NIP", year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 78, tmf: 85, frm: 18, cmp: 86, map: 88, ldr: 87 } },
+    { id: 5086, name: "neny",       role: "ADC", team: "NIP", year: 2025, rating: 78, quality: "Silver",   region: "LPL", stats: { mec: 79, tmf: 77, frm: 79, cmp: 75, map: 74, ldr: 72 } },
+
+    // OMG — Oh My God (mid-low, poor Nirvana stage)
+    { id: 5091, name: "Hery",       role: "TOP", team: "OMG", year: 2025, rating: 81, quality: "Gold",     region: "LPL", stats: { mec: 82, tmf: 80, frm: 82, cmp: 78, map: 77, ldr: 75 } },
+    { id: 5092, name: "Heng",       role: "JNG", team: "OMG", year: 2025, rating: 81, quality: "Gold",     region: "LPL", stats: { mec: 81, tmf: 81, frm: 80, cmp: 79, map: 82, ldr: 79 } },
+    { id: 5093, name: "Linfeng",    role: "MID", team: "OMG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 82, cmp: 80, map: 78, ldr: 77 } },
+    { id: 5094, name: "Starry",     role: "ADC", team: "OMG", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 83, cmp: 80, map: 77, ldr: 76 } },
+    { id: 5095, name: "Moham",      role: "SUP", team: "OMG", year: 2025, rating: 81, quality: "Gold",     region: "LPL", stats: { mec: 74, tmf: 81, frm: 18, cmp: 80, map: 82, ldr: 80 } },
+
+    // RNG — Royal Never Give Up (eliminated in Nirvana Rumble)
+    { id: 5101, name: "Xiaoxu",     role: "TOP", team: "RNG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 78, ldr: 77 } },
+    { id: 5102, name: "Milkyway",   role: "JNG", team: "RNG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 82, tmf: 82, frm: 80, cmp: 80, map: 83, ldr: 80 } },
+    { id: 5103, name: "Tangyuan",   role: "MID", team: "RNG", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 83, cmp: 80, map: 78, ldr: 77 } },
+    { id: 5104, name: "JiaQi",      role: "ADC", team: "RNG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 77, ldr: 75 } },
+    { id: 5105, name: "Lele",       role: "SUP", team: "RNG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 75, tmf: 82, frm: 19, cmp: 81, map: 84, ldr: 83 } },
+    { id: 5106, name: "Niket",      role: "TOP", team: "RNG", year: 2025, rating: 79, quality: "Silver",   region: "LPL", stats: { mec: 80, tmf: 78, frm: 80, cmp: 76, map: 75, ldr: 73 } },
+
+    // TES — Top Esports (Runner-up, Kanavi 16 RS MVPs, Creme/JackeyLove 4 Playoffs MVPs each)
+    { id: 5111, name: "369",        role: "TOP", team: "TES", year: 2025, rating: 91, quality: "Diamond",  region: "LPL", stats: { mec: 89, tmf: 92, frm: 91, cmp: 90, map: 93, ldr: 88 } },
+    { id: 5112, name: "Kanavi",     role: "JNG", team: "TES", year: 2025, rating: 96, quality: "Grandmaster", region: "LPL", stats: { mec: 96, tmf: 95, frm: 97, cmp: 93, map: 97, ldr: 92 } },
+    { id: 5113, name: "Creme",      role: "MID", team: "TES", year: 2025, rating: 91, quality: "Diamond",  region: "LPL", stats: { mec: 93, tmf: 90, frm: 92, cmp: 88, map: 86, ldr: 85 } },
+    { id: 5114, name: "JackeyLove", role: "ADC", team: "TES", year: 2025, rating: 92, quality: "Diamond",  region: "LPL", stats: { mec: 94, tmf: 91, frm: 93, cmp: 89, map: 86, ldr: 90 } },
+    { id: 5115, name: "Crisp",      role: "SUP", team: "TES", year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 80, tmf: 87, frm: 22, cmp: 88, map: 89, ldr: 88 } },
+
+    // TT — ThunderTalk Gaming (Group C winners but poor Rumble record overall)
+    { id: 5121, name: "Hoya",       role: "TOP", team: "TT",  year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 85, tmf: 83, frm: 85, cmp: 81, map: 80, ldr: 79 } },
+    { id: 5122, name: "Beichuan",   role: "JNG", team: "TT",  year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 86, tmf: 86, frm: 84, cmp: 85, map: 87, ldr: 84 } },
+    { id: 5123, name: "SeTab",      role: "MID", team: "TT",  year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 86, tmf: 84, frm: 86, cmp: 83, map: 81, ldr: 80 } },
+    { id: 5124, name: "1xn",        role: "ADC", team: "TT",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 78, ldr: 76 } },
+    { id: 5125, name: "Feather",    role: "SUP", team: "TT",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 76, tmf: 83, frm: 20, cmp: 82, map: 84, ldr: 83 } },
+
+    // UP — Ultra Prime (3-7 Nirvana Rumble, eliminated)
+    { id: 5131, name: "1Jiang",     role: "TOP", team: "UP",  year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 78, ldr: 76 } },
+    { id: 5132, name: "Junhao",     role: "JNG", team: "UP",  year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 82, tmf: 82, frm: 80, cmp: 80, map: 82, ldr: 79 } },
+    { id: 5133, name: "Saber",      role: "MID", team: "UP",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 83, cmp: 80, map: 79, ldr: 78 } },
+    { id: 5134, name: "Wako",       role: "ADC", team: "UP",  year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 77, ldr: 75 } },
+    { id: 5135, name: "Rosielove",  role: "SUP", team: "UP",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 76, tmf: 83, frm: 19, cmp: 82, map: 84, ldr: 83 } },
+
+    // WBG — Weibo Gaming (6-8 Rumble Ascend; xiaohu 13 RS MVPs, Tian 3 Playoffs MVPs)
+    { id: 5141, name: "Breathe",    role: "TOP", team: "WBG", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 85, frm: 87, cmp: 83, map: 81, ldr: 80 } },
+    { id: 5142, name: "Tian",       role: "JNG", team: "WBG", year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 88, frm: 86, cmp: 87, map: 89, ldr: 86 } },
+    { id: 5143, name: "xiaohu",     role: "MID", team: "WBG", year: 2025, rating: 90, quality: "Diamond",  region: "LPL", stats: { mec: 88, tmf: 91, frm: 90, cmp: 91, map: 90, ldr: 93 } },
+    { id: 5144, name: "Light",      role: "ADC", team: "WBG", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 85, frm: 87, cmp: 83, map: 81, ldr: 80 } },
+    { id: 5145, name: "Hang",       role: "SUP", team: "WBG", year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 77, tmf: 84, frm: 20, cmp: 84, map: 86, ldr: 85 } },
+    { id: 5146, name: "Monki",      role: "SUP", team: "WBG", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 79, tmf: 86, frm: 22, cmp: 87, map: 89, ldr: 88 } },
+
+    // WE — Team WE (3-11 Rumble Ascend, poor team; Karis 🇰🇷, Taeyoon 🇰🇷)
+    { id: 5151, name: "Cube",       role: "TOP", team: "WE",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 78, ldr: 77 } },
+    { id: 5152, name: "Tianzhen",   role: "JNG", team: "WE",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 83, frm: 81, cmp: 81, map: 84, ldr: 81 } },
+    { id: 5153, name: "Karis",      role: "MID", team: "WE",  year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 86, tmf: 84, frm: 85, cmp: 83, map: 82, ldr: 80 } },
+    { id: 5154, name: "Taeyoon",    role: "ADC", team: "WE",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 79, ldr: 76 } },
+    { id: 5155, name: "Vampire",    role: "SUP", team: "WE",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 76, tmf: 83, frm: 19, cmp: 82, map: 84, ldr: 83 } },
+
+    // --- 2025 LPL COACHES (Head Coaches only) ---
+    { id: 8075, name: "Tabe",      role: "COACH", team: "AL",  year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 23, tmf: 84, frm: 12, cmp: 84, map: 87, ldr: 87 } },
+    { id: 8076, name: "Maokai",    role: "COACH", team: "BLG", year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 22, tmf: 86, frm: 13, cmp: 86, map: 88, ldr: 89 } },
+    { id: 8077, name: "Mni",       role: "COACH", team: "EDG", year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 20, tmf: 83, frm: 11, cmp: 83, map: 85, ldr: 84 } },
+    { id: 8078, name: "QingSi",    role: "COACH", team: "FPX", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 18, tmf: 81, frm: 10, cmp: 81, map: 83, ldr: 82 } },
+    { id: 8079, name: "Daeny",     role: "COACH", team: "iG",  year: 2025, rating: 90, quality: "Diamond",  region: "LPL", stats: { mec: 30, tmf: 89, frm: 15, cmp: 90, map: 92, ldr: 91 } },
+    { id: 8080, name: "cvmax",     role: "COACH", team: "JDG", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 26, tmf: 85, frm: 13, cmp: 85, map: 87, ldr: 87 } },
+    { id: 8081, name: "1874",      role: "COACH", team: "LGD", year: 2025, rating: 81, quality: "Gold",     region: "LPL", stats: { mec: 18, tmf: 80, frm: 10, cmp: 80, map: 82, ldr: 82 } },
+    { id: 8082, name: "U",         role: "COACH", team: "LNG", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 19, tmf: 82, frm: 11, cmp: 82, map: 84, ldr: 83 } },
+    { id: 8083, name: "Rashomon",  role: "COACH", team: "NIP", year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 20, tmf: 83, frm: 11, cmp: 83, map: 85, ldr: 85 } },
+    { id: 8084, name: "NoName",    role: "COACH", team: "OMG", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 19, tmf: 81, frm: 11, cmp: 81, map: 83, ldr: 82 } },
+    { id: 8085, name: "Heart",     role: "COACH", team: "RNG", year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 24, tmf: 84, frm: 12, cmp: 84, map: 86, ldr: 86 } },
+    { id: 8086, name: "Homme",     role: "COACH", team: "TES", year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 26, tmf: 87, frm: 13, cmp: 87, map: 89, ldr: 90 } },
+    { id: 8087, name: "AFei",      role: "COACH", team: "TT",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 19, tmf: 82, frm: 11, cmp: 82, map: 84, ldr: 83 } },
+    { id: 8088, name: "Benny",     role: "COACH", team: "UP",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 19, tmf: 82, frm: 11, cmp: 82, map: 84, ldr: 83 } },
+    { id: 8089, name: "NoFe",      role: "COACH", team: "WBG", year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 24, tmf: 84, frm: 12, cmp: 84, map: 86, ldr: 87 } },
+    { id: 8090, name: "Teacherma", role: "COACH", team: "WE",  year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 20, tmf: 83, frm: 12, cmp: 83, map: 85, ldr: 84 } },
 
     // --- 2026 LCK ROSTERS ---
     { id: 1101, name: "Doran", role: "TOP", team: "T1", year: 2026, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 92, tmf: 89, frm: 91, cmp: 86, map: 85, ldr: 88 } },
@@ -369,6 +519,13 @@ const baseDatabase = [
     { id: 3048, name: "LIDER", role: "MID", team: "SK", year: 2026, rating: 83, quality: "Gold", region: "LEC", stats: { mec: 88, tmf: 82, frm: 80, cmp: 81, map: 75, ldr: 77 } },
     { id: 3049, name: "Jopa", role: "ADC", team: "SK", year: 2026, rating: 82, quality: "Gold", region: "LEC", stats: { mec: 84, tmf: 81, frm: 83, cmp: 79, map: 76, ldr: 75 } },
     { id: 3050, name: "Mikyx", role: "SUP", team: "SK", year: 2026, rating: 91, quality: "Diamond", region: "LEC", stats: { mec: 85, tmf: 92, frm: 24, cmp: 91, map: 93, ldr: 94 } },
+
+    // Fnatic 2026
+    { id: 3146, name: "Empyros", role: "TOP", team: "FNC", year: 2026, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 84, tmf: 81, frm: 83, cmp: 80, map: 79, ldr: 77 } },
+    { id: 3147, name: "Razork",  role: "JNG", team: "FNC", year: 2026, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 87, tmf: 86, frm: 85, cmp: 85, map: 87, ldr: 83 } },
+    { id: 3148, name: "Vladi",   role: "MID", team: "FNC", year: 2026, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 85, tmf: 82, frm: 84, cmp: 81, map: 81, ldr: 79 } },
+    { id: 3149, name: "Upset",   role: "ADC", team: "FNC", year: 2026, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 89, tmf: 86, frm: 89, cmp: 85, map: 83, ldr: 81 } },
+    { id: 3150, name: "Lospa",   role: "SUP", team: "FNC", year: 2026, rating: 84, quality: "Gold",     region: "LEC", stats: { mec: 78, tmf: 84, frm: 20, cmp: 82, map: 86, ldr: 83 } },
 
     { id: 3141, name: "Tao", role: "TOP", team: "KCB", year: 2026, rating: 78, quality: "Silver", region: "LEC", stats: { mec: 80, tmf: 76, frm: 79, cmp: 74, map: 73, ldr: 71 } },
     { id: 3142, name: "Yukino", role: "JNG", team: "KCB", year: 2026, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 81, tmf: 78, frm: 77, cmp: 75, map: 80, ldr: 76 } },
