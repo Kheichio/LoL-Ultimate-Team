@@ -578,12 +578,24 @@
                 </div>
             </div>
 
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-md">
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-4 flex flex-wrap items-center gap-3 shadow-md">
                 <input type="text" id="club-search-input" oninput="renderClubGrid()" placeholder="Filter by pro name..." class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 w-full max-w-sm text-sm focus:outline-none text-slate-200">
-                <div class="flex gap-2 text-xs">
+                <div class="flex flex-wrap gap-2 text-xs">
                     <button onclick="sellAllLowTier('Silver')" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded font-bold cursor-pointer transition">Purge Silver</button>
                     <button onclick="sellAllLowTier('Gold')" class="bg-amber-950/40 hover:bg-amber-900 text-amber-200 px-3 py-2 rounded font-bold border border-amber-800/30 cursor-pointer transition">Purge Gold</button>
                     <button onclick="quickSellDuplicates()" class="bg-red-950/80 hover:bg-red-900 text-red-300 px-3 py-2 rounded font-bold border border-red-800/30 cursor-pointer transition">Purge Dups</button>
+                </div>
+                <div class="flex flex-wrap gap-2 items-center text-xs w-full border-t border-slate-700 pt-3 mt-1">
+                    <span class="text-slate-400 font-bold uppercase tracking-wide">Purge All Below:</span>
+                    <select id="purge-tier-select" class="bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-slate-200 text-xs font-bold cursor-pointer">
+                        <option value="Gold">Gold — keep Gold &amp; above</option>
+                        <option value="Platinum">Platinum — keep Plat &amp; above</option>
+                        <option value="Diamond" selected>Diamond — keep Diamond &amp; above</option>
+                        <option value="Master">Master — keep Master &amp; above</option>
+                        <option value="Grandmaster">Grandmaster — keep GM &amp; above</option>
+                        <option value="Challenger">Challenger — keep Challenger only</option>
+                    </select>
+                    <button onclick="purgeUnderTier(document.getElementById('purge-tier-select').value)" class="bg-red-900/70 hover:bg-red-800 text-red-200 px-4 py-1.5 rounded font-bold border border-red-700/50 cursor-pointer transition">Purge</button>
                 </div>
             </div>
 

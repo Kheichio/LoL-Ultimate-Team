@@ -121,8 +121,8 @@ function showPulls(cards, title) {
 }
 
 function rollTier(type) {
-    // Scouting skill provides up to +10 RNG bonus at max level 5
-    let bonus = skills.scouting * 2;
+    // Scouting skill provides +0.25% RNG bonus per level (max +1.25 at level 5)
+    let bonus = skills.scouting * 0.25;
     let rng = (Math.random() * 100) + bonus;
 
     if (type === 'Standard') {
@@ -1084,29 +1084,30 @@ function buyPack(baseCost, type) {
     let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
     if (type === 'Champion') {
-        // Guaranteed 1 Legacy Wildcard (Champion/Finalist/MSI/FirstStand) + 4 fillers scaling Silver→Grandmaster (NO Challenger)
+        // 0.1% Champion · 0.5% each Finalist/MSI/FirstStand · 1.5% GM · 5% Master · ~25% Diamond · ~30% Plat · ~22% Gold · ~15% Silver
         trackStats.champPacksOpened = (trackStats.champPacksOpened || 0) + 1;
-        let legPool = db.filter(p => ["Champion", "Finalist", "MSI", "FirstStand"].includes(p.quality));
-        let legCard = legPool[Math.floor(Math.random() * legPool.length)];
-        let p1 = {...legCard, uniqueId: Date.now() + "L1" + Math.random().toString(36).substring(2)};
-        pulled.push(p1); club.push(p1);
-        for (let i = 0; i < 4; i++) {
-            let rng = (Math.random() * 100) + (skills.scouting * 2);
-            let fillerTier = 'Silver';
-            // Fillers capped at Diamond — Champion pack value is the wildcard itself
-            if (rng > 85) fillerTier = 'Diamond';
-            else if (rng > 60) fillerTier = 'Platinum';
-            else if (rng > 35) fillerTier = 'Gold';
-            let filPool = db.filter(p => p.quality === fillerTier && !["Champion", "Finalist", "MSI", "FirstStand", "Challenger"].includes(p.quality));
-            if(filPool.length === 0) filPool = db.filter(p => p.quality === "Silver");
-            let pF = filPool[Math.floor(Math.random() * filPool.length)];
-            let cardF = {...pF, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
-            pulled.push(cardF); club.push(cardF);
+        for (let i = 0; i < 5; i++) {
+            let rng = (Math.random() * 100) + (skills.scouting * 0.25);
+            let pool;
+            if      (rng > 99.9) pool = db.filter(p => p.quality === 'Champion');
+            else if (rng > 99.4) pool = db.filter(p => p.quality === 'Finalist');
+            else if (rng > 98.9) pool = db.filter(p => p.quality === 'MSI');
+            else if (rng > 98.4) pool = db.filter(p => p.quality === 'FirstStand');
+            else if (rng > 96.9) pool = db.filter(p => p.quality === 'Grandmaster' && !["Champion","Finalist","MSI","FirstStand","MVP"].includes(p.quality));
+            else if (rng > 91.9) pool = db.filter(p => p.quality === 'Master' && !["Champion","Finalist","MSI","FirstStand","MVP"].includes(p.quality));
+            else if (rng > 66.9) pool = db.filter(p => p.quality === 'Diamond' && !["Champion","Finalist","MSI","FirstStand","MVP"].includes(p.quality));
+            else if (rng > 36.9) pool = db.filter(p => p.quality === 'Platinum' && !["Champion","Finalist","MSI","FirstStand","MVP"].includes(p.quality));
+            else if (rng > 14.9) pool = db.filter(p => p.quality === 'Gold' && !["Champion","Finalist","MSI","FirstStand","MVP"].includes(p.quality));
+            else                  pool = db.filter(p => p.quality === 'Silver');
+            if (!pool || pool.length === 0) pool = db.filter(p => p.quality === 'Silver');
+            let pCard = pool[Math.floor(Math.random() * pool.length)];
+            let inst = {...pCard, uniqueId: Date.now() + "C" + i + Math.random().toString(36).substring(2)};
+            pulled.push(inst); club.push(inst);
         }
     } else if (type === 'MVP') {
         // 0.1% MVP · 0.5% Challenger · 1.5% GM · 5% Master · ~25% Diamond · ~30% Platinum · ~22% Gold · ~16% Silver
         for (let i = 0; i < 5; i++) {
-            let rng = (Math.random() * 100) + (skills.scouting * 2);
+            let rng = (Math.random() * 100) + (skills.scouting * 0.25);
             let tier;
             if      (rng > 99.9) tier = 'MVP';
             else if (rng > 99.4) tier = 'Challenger';
@@ -1127,7 +1128,7 @@ function buyPack(baseCost, type) {
     } else if (type === 'MSI') {
         // 0.5% MSI · no Challenger · 1.5% GM · 5% Master · ~25% Diamond · ~30% Platinum · ~22% Gold · ~16% Silver
         for (let i = 0; i < 5; i++) {
-            let rng = (Math.random() * 100) + (skills.scouting * 2);
+            let rng = (Math.random() * 100) + (skills.scouting * 0.25);
             let tier;
             if      (rng > 99.5) tier = 'MSI';
             else if (rng > 98.0) tier = 'Grandmaster';
@@ -1147,7 +1148,7 @@ function buyPack(baseCost, type) {
     } else if (type === 'FirstStand') {
         // 1% FirstStand · no Challenger · 1.5% GM · 5% Master · ~25% Diamond · ~30% Platinum · ~22% Gold · ~15.5% Silver
         for (let i = 0; i < 5; i++) {
-            let rng = (Math.random() * 100) + (skills.scouting * 2);
+            let rng = (Math.random() * 100) + (skills.scouting * 0.25);
             let tier;
             if      (rng > 99.0) tier = 'FirstStand';
             else if (rng > 97.5) tier = 'Grandmaster';
@@ -1290,11 +1291,11 @@ function renderPickerCards() {
         .map(([, card]) => card);
     pool = pool.filter(p => !occupied.some(c => c.uniqueId === p.uniqueId));
 
-    // Auto-filter by role: main slots show only that role + Champion wildcards; COACH slot = coaches only; subs = all
+    // Auto-filter by role: main slots show only that role + Legacy wildcards (non-coach); COACH slot = coaches only; subs = all
     if (activeSlot === 'COACH') {
         pool = pool.filter(p => p.role === 'COACH');
     } else if (['TOP','JNG','MID','ADC','SUP'].includes(activeSlot)) {
-        pool = pool.filter(p => p.role === activeSlot || ["Champion", "Finalist", "MSI", "FirstStand"].includes(p.quality));
+        pool = pool.filter(p => p.role !== 'COACH' && (p.role === activeSlot || ["Champion", "Finalist", "MSI", "FirstStand"].includes(p.quality)));
     }
 
     // Region filter
@@ -1746,6 +1747,23 @@ function sellAllLowTier(tier) {
     toSell.forEach(c => { sold++; val += getSellValue(c.quality); club = club.filter(cl => cl.uniqueId !== c.uniqueId); });
     if(sold > 0) { blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(tier)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+sold; showToast(`Purged ${sold} ${tier}s for ${val} BE!`, "success"); saveGame(); }
     else showToast(`No unassigned ${tier}s found.`, "info");
+}
+function purgeUnderTier(keepTier) {
+    const TIER_ORDER = ['Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
+    const keepIdx = TIER_ORDER.indexOf(keepTier);
+    if (keepIdx <= 0) { showToast('Nothing to purge below Silver.', 'info'); return; }
+    const toPurge = TIER_ORDER.slice(0, keepIdx);
+    let sold = 0, val = 0, gmSold = 0;
+    let activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
+    let toSell = club.filter(c => toPurge.includes(c.quality) && !activeIds.includes(c.uniqueId));
+    toSell.forEach(c => { sold++; val += getSellValue(c.quality); if (['Grandmaster','Challenger'].includes(c.quality)) gmSold++; });
+    club = club.filter(c => !toSell.some(s => s.uniqueId === c.uniqueId));
+    if (sold > 0) {
+        blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val;
+        if (gmSold > 0) trackStats.gmSoldCount = (trackStats.gmSoldCount||0) + gmSold;
+        showToast(`Purged ${sold} cards below ${keepTier} for ${val} BE!`, 'success');
+        saveGame(); renderClubGrid();
+    } else showToast(`No cards below ${keepTier} found.`, 'info');
 }
 function quickSellDuplicates() {
     let sold = 0; let val = 0; let seen = new Set(); let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
