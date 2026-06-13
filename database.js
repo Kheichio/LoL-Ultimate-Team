@@ -78,6 +78,12 @@ window.playerNationalityOverrides = {
     "Castle": "🇰🇷", "Callme": "🇰🇷",
     "Reignover": "🇰🇷", "Reven": "🇰🇷", "Zinie": "🇰🇷",
     // Legacy/Champion region wildcards
+    // Fnatic 2011
+    "xPeke": "🇪🇸", "Cyanide": "🇫🇮", "Shushei": "🇵🇱", "LamiaZealot": "🇧🇪", "Mellisan": "🇸🇪",
+    // TPA 2012
+    "Stanley": "🇹🇼", "lilballz": "🇹🇼", "Toyz": "🇹🇼", "Bebe": "🇹🇼", "MiSTakE": "🇹🇼",
+    // SKT 2013
+    "Piglet": "🇰🇷", "PoohManDu": "🇰🇷",
 };
 
 window.regionLogos = { LCK: "🇰🇷 LCK", LPL: "🇨🇳 LPL", LEC: "🇪🇺 LEC", LCS: "🇺🇸 LCS", Champion: "👑 ICON" };
@@ -203,7 +209,7 @@ const baseDatabase = [
     { id: 5033, name: "Care",       role: "MID", team: "FPX", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 79, ldr: 78 } },
     { id: 5034, name: "bat",        role: "ADC", team: "FPX", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 77, ldr: 75 } },
     { id: 5035, name: "Jwei",       role: "SUP", team: "FPX", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 79, tmf: 86, frm: 21, cmp: 87, map: 88, ldr: 87 } },
-    { id: 5036, name: "Shad0w",     role: "JNG", team: "FPX", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 82, cmp: 80, map: 83, ldr: 78 } },
+    { id: 5036, name: "Shad0w",     role: "JNG", team: "BLG", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 82, cmp: 80, map: 83, ldr: 78 } },
 
     // iG — Invictus Gaming (11-3 Rumble Ascend, 2nd, strong individual talent)
     { id: 5041, name: "TheShy",     role: "TOP", team: "iG",  year: 2025, rating: 91, quality: "Diamond",  region: "LPL", stats: { mec: 93, tmf: 90, frm: 92, cmp: 88, map: 86, ldr: 85 } },
@@ -930,27 +936,59 @@ const baseDatabase = [
     { id: 9052, name: "Gumayusi",role: "ADC", team: "T1",  year: 2025, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 94, cmp: 91, map: 84, ldr: 86 } },
     { id: 9053, name: "Keria",    role: "SUP", team: "T1",  year: 2025, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 85, tmf: 94, frm: 23, cmp: 96, map: 97, ldr: 92 } },
 
+    // T1 2023 — World Champions (3-peat)
+    { id: 9054, name: "Zeus",     role: "TOP", team: "T1",  year: 2023, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 95, cmp: 91, map: 90, ldr: 90 } },
+    { id: 9055, name: "Oner",     role: "JNG", team: "T1",  year: 2023, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 91, cmp: 90, map: 95, ldr: 90 } },
+    { id: 9056, name: "Faker",    role: "MID", team: "T1",  year: 2023, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 97, tmf: 99, frm: 96, cmp: 99, map: 99, ldr: 99 } },
+    { id: 9057, name: "Gumayusi",role: "ADC", team: "T1",  year: 2023, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 93, cmp: 90, map: 83, ldr: 85 } },
+    { id: 9058, name: "Keria",    role: "SUP", team: "T1",  year: 2023, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 95, frm: 23, cmp: 97, map: 98, ldr: 93 } },
+
+    // T1 2024 — World Champions (4-peat)
+    { id: 9059, name: "Zeus",     role: "TOP", team: "T1",  year: 2024, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 94, frm: 96, cmp: 92, map: 91, ldr: 91 } },
+    { id: 9060, name: "Oner",     role: "JNG", team: "T1",  year: 2024, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 92, cmp: 91, map: 96, ldr: 91 } },
+    { id: 9061, name: "Faker",    role: "MID", team: "T1",  year: 2024, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 97, tmf: 99, frm: 96, cmp: 99, map: 99, ldr: 99 } },
+    { id: 9062, name: "Gumayusi",role: "ADC", team: "T1",  year: 2024, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 94, cmp: 91, map: 84, ldr: 86 } },
+    { id: 9063, name: "Keria",    role: "SUP", team: "T1",  year: 2024, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 95, frm: 23, cmp: 97, map: 98, ldr: 93 } },
+
+    // Fnatic 2011 — World Champions (inaugural)
+    { id: 9064, name: "xPeke",       role: "TOP", team: "FNC", year: 2011, rating: 88, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 87, frm: 88, cmp: 86, map: 83, ldr: 85 } },
+    { id: 9065, name: "Cyanide",     role: "JNG", team: "FNC", year: 2011, rating: 87, quality: "Champion", region: "Legacy", stats: { mec: 85, tmf: 87, frm: 85, cmp: 84, map: 88, ldr: 83 } },
+    { id: 9066, name: "Shushei",     role: "MID", team: "FNC", year: 2011, rating: 89, quality: "Champion", region: "Legacy", stats: { mec: 87, tmf: 88, frm: 88, cmp: 90, map: 87, ldr: 88 } },
+    { id: 9067, name: "LamiaZealot", role: "ADC", team: "FNC", year: 2011, rating: 86, quality: "Champion", region: "Legacy", stats: { mec: 85, tmf: 85, frm: 86, cmp: 83, map: 82, ldr: 80 } },
+    { id: 9068, name: "Mellisan",    role: "SUP", team: "FNC", year: 2011, rating: 85, quality: "Champion", region: "Legacy", stats: { mec: 72, tmf: 85, frm: 17, cmp: 83, map: 85, ldr: 84 } },
+
+    // Taipei Assassins 2012 — World Champions
+    { id: 9069, name: "Stanley",  role: "TOP", team: "TPA", year: 2012, rating: 90, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 90, frm: 90, cmp: 91, map: 89, ldr: 88 } },
+    { id: 9070, name: "lilballz", role: "JNG", team: "TPA", year: 2012, rating: 89, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 89, frm: 86, cmp: 87, map: 90, ldr: 85 } },
+    { id: 9071, name: "Toyz",     role: "MID", team: "TPA", year: 2012, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 91, tmf: 91, frm: 92, cmp: 94, map: 93, ldr: 90 } },
+    { id: 9072, name: "Bebe",     role: "ADC", team: "TPA", year: 2012, rating: 90, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 89, frm: 90, cmp: 87, map: 85, ldr: 84 } },
+    { id: 9073, name: "MiSTakE",  role: "SUP", team: "TPA", year: 2012, rating: 88, quality: "Champion", region: "Legacy", stats: { mec: 75, tmf: 88, frm: 17, cmp: 87, map: 88, ldr: 86 } },
+
+    // SK Telecom T1 K 2013 — World Champions (Faker's debut)
+    { id: 9074, name: "Impact",    role: "TOP", team: "SKT", year: 2013, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 92, tmf: 92, frm: 91, cmp: 90, map: 87, ldr: 88 } },
+    { id: 9075, name: "Bengi",     role: "JNG", team: "SKT", year: 2013, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 94, frm: 88, cmp: 94, map: 95, ldr: 93 } },
+    { id: 9076, name: "Faker",     role: "MID", team: "SKT", year: 2013, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 98, frm: 97, cmp: 99, map: 99, ldr: 99 } },
+    { id: 9077, name: "Piglet",    role: "ADC", team: "SKT", year: 2013, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 93, frm: 95, cmp: 91, map: 89, ldr: 88 } },
+    { id: 9078, name: "PoohManDu", role: "SUP", team: "SKT", year: 2013, rating: 91, quality: "Champion", region: "Legacy", stats: { mec: 80, tmf: 92, frm: 18, cmp: 92, map: 91, ldr: 90 } },
+
     // ==========================================
-    // --- 4. MVP / NOTEWORTHY VETERANS ---
+    // --- 4. FINALISTS (Worlds Runner-Up) ---
     // ==========================================
-    { id: 9501, name: "Broxah", role: "JNG", team: "FNC", year: 2018, rating: 92, quality: "MVP", region: "LEC", stats: { mec: 92, tmf: 91, frm: 90, cmp: 89, map: 92, ldr: 90 } },
-    { id: 9502, name: "Rekkles", role: "ADC", team: "FNC", year: 2018, rating: 95, quality: "MVP", region: "LEC", stats: { mec: 94, tmf: 95, frm: 96, cmp: 93, map: 93, ldr: 92 } },
-    { id: 9503, name: "Caps", role: "MID", team: "G2", year: 2019, rating: 96, quality: "MVP", region: "LEC", stats: { mec: 97, tmf: 95, frm: 94, cmp: 98, map: 94, ldr: 92 } },
-    { id: 9504, name: "Perkz", role: "ADC", team: "G2", year: 2019, rating: 95, quality: "MVP", region: "LEC", stats: { mec: 93, tmf: 95, frm: 92, cmp: 98, map: 95, ldr: 97 } },
-    { id: 9505, name: "Jankos", role: "JNG", team: "G2", year: 2019, rating: 94, quality: "MVP", region: "LEC", stats: { mec: 91, tmf: 94, frm: 92, cmp: 93, map: 96, ldr: 95 } },
-    { id: 9506, name: "Wunder", role: "TOP", team: "G2", year: 2019, rating: 93, quality: "MVP", region: "LEC", stats: { mec: 93, tmf: 91, frm: 93, cmp: 95, map: 90, ldr: 88 } },
-    { id: 9507, name: "Letme", role: "TOP", team: "RNG", year: 2018, rating: 92, quality: "MVP", region: "LPL", stats: { mec: 88, tmf: 94, frm: 90, cmp: 92, map: 91, ldr: 89 } },
-    { id: 9508, name: "Karsa", role: "JNG", team: "RNG", year: 2018, rating: 94, quality: "MVP", region: "LPL", stats: { mec: 92, tmf: 93, frm: 91, cmp: 92, map: 96, ldr: 90 } },
-    { id: 9509, name: "Xiaohu", role: "MID", team: "RNG", year: 2018, rating: 95, quality: "MVP", region: "LPL", stats: { mec: 93, tmf: 95, frm: 95, cmp: 94, map: 94, ldr: 93 } },
-    { id: 9510, name: "Ming", role: "SUP", team: "RNG", year: 2018, rating: 95, quality: "MVP", region: "LPL", stats: { mec: 84, tmf: 95, frm: 18, cmp: 93, map: 96, ldr: 94 } },
-    { id: 9511, name: "Uzi", role: "ADC", team: "RNG", year: 2018, rating: 97, quality: "MVP", region: "LPL", stats: { mec: 99, tmf: 97, frm: 98, cmp: 94, map: 93, ldr: 95 } },
-    { id: 9512, name: "Faker", role: "MID", team: "SKT", year: 2017, rating: 98, quality: "MVP", region: "LCK", stats: { mec: 96, tmf: 99, frm: 95, cmp: 99, map: 98, ldr: 99 } },
-    { id: 9513, name: "Chovy", role: "MID", team: "Gen.G", year: 2022, rating: 97, quality: "MVP", region: "LCK", stats: { mec: 98, tmf: 94, frm: 99, cmp: 93, map: 92, ldr: 88 } },
-    { id: 9514, name: "Caps",   role: "MID", team: "G2", year: 2020, rating: 95, quality: "MVP", region: "LEC", stats: { mec: 95, tmf: 93, frm: 92, cmp: 94, map: 95, ldr: 94 } },
-    // KT 2025 — Worlds Runner-Up MVPs
-    { id: 9515, name: "Bdd",    role: "MID", team: "KT", year: 2025, rating: 98, quality: "MVP", region: "LCK", stats: { mec: 98, tmf: 99, frm: 99, cmp: 94, map: 98, ldr: 99 } },
-    { id: 9516, name: "Cuzz",   role: "JNG", team: "KT", year: 2025, rating: 92, quality: "MVP", region: "LCK", stats: { mec: 96, tmf: 91, frm: 96, cmp: 88, map: 97, ldr: 88 } },
-    { id: 9517, name: "Peter",  role: "SUP", team: "KT", year: 2025, rating: 91, quality: "MVP", region: "LCK", stats: { mec: 83, tmf: 96, frm: 18, cmp: 90, map: 92, ldr: 80 } }
+
+    // KT Rolster 2025 — Worlds Finalist
+    { id: 9101, name: "PerfecT", role: "TOP", team: "KT",  year: 2025, rating: 93, quality: "Finalist", region: "Legacy", stats: { mec: 93, tmf: 92, frm: 93, cmp: 90, map: 88, ldr: 89 } },
+    { id: 9102, name: "Cuzz",    role: "JNG", team: "KT",  year: 2025, rating: 93, quality: "Finalist", region: "Legacy", stats: { mec: 95, tmf: 92, frm: 93, cmp: 89, map: 95, ldr: 89 } },
+    { id: 9103, name: "Bdd",     role: "MID", team: "KT",  year: 2025, rating: 97, quality: "Finalist", region: "Legacy", stats: { mec: 97, tmf: 98, frm: 98, cmp: 94, map: 96, ldr: 97 } },
+    { id: 9104, name: "deokdam", role: "ADC", team: "KT",  year: 2025, rating: 91, quality: "Finalist", region: "Legacy", stats: { mec: 93, tmf: 90, frm: 93, cmp: 88, map: 85, ldr: 85 } },
+    { id: 9105, name: "Peter",   role: "SUP", team: "KT",  year: 2025, rating: 90, quality: "Finalist", region: "Legacy", stats: { mec: 82, tmf: 95, frm: 18, cmp: 89, map: 91, ldr: 80 } },
+    { id: 9106, name: "Score",   role: "COACH", team: "KT",year: 2025, rating: 88, quality: "Finalist", region: "Legacy", stats: { mec: 25, tmf: 87, frm: 13, cmp: 87, map: 89, ldr: 89 } },
+
+    // ==========================================
+    // --- 5. MVP / NOTEWORTHY VETERANS ---
+    // ==========================================
+
+    // T1 2025 Worlds Finals MVP
+    { id: 9501, name: "Gumayusi", role: "ADC", team: "T1", year: 2025, rating: 97, quality: "MVP", region: "Legacy", stats: { mec: 99, tmf: 96, frm: 98, cmp: 94, map: 88, ldr: 89 } },
 ];
 
 window.playerDatabase = baseDatabase.map(p => {

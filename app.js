@@ -5,11 +5,11 @@ function getDB() {
 }
 
 function getSellValue(quality) {
-    const vals = { Silver: 5, Gold: 15, Platinum: 30, Diamond: 50, Master: 90, Grandmaster: 150, MVP: 175, Challenger: 300, Champion: 250, Coach: 20 };
+    const vals = { Silver: 5, Gold: 15, Platinum: 30, Diamond: 50, Master: 90, Grandmaster: 150, MVP: 175, Challenger: 300, Champion: 250, Finalist: 200, MSI: 220, FirstStand: 180, Coach: 20 };
     return vals[quality] || 5;
 }
 
-const collectionRewards = { Silver: 10, Gold: 20, Platinum: 40, Diamond: 80, Master: 150, Grandmaster: 300, Challenger: 500, Champion: 500, MVP: 500 };
+const collectionRewards = { Silver: 10, Gold: 20, Platinum: 40, Diamond: 80, Master: 150, Grandmaster: 300, Challenger: 500, Champion: 500, MVP: 500, Finalist: 400, MSI: 420, FirstStand: 350 };
 
 // --- GLOBAL STATE ---
 let blueEssence = 1000;
@@ -611,7 +611,7 @@ function checkTradeMarket() {
 function generateTradeOffers() {
     let db = getDB();
     if(!db) return;
-    let elitePool = db.filter(p => ["Master", "Grandmaster", "Challenger", "Champion", "MVP"].includes(p.quality));
+    let elitePool = db.filter(p => ["Master", "Grandmaster", "Challenger", "Champion", "MVP", "Finalist", "MSI", "FirstStand"].includes(p.quality));
     let offers = [];
     for(let i=0; i<3; i++) {
         if(elitePool.length === 0) break;
@@ -630,7 +630,7 @@ function generateTradeOffers() {
         } else if (rewardCard.quality === "Challenger") {
             reqQuality = Math.random() > 0.5 ? "Diamond" : "Master";
             reqCount = reqQuality === "Diamond" ? 7 : 3;
-        } else if (rewardCard.quality === "MVP" || rewardCard.quality === "Champion") {
+        } else if (["MVP", "Champion", "Finalist", "MSI", "FirstStand"].includes(rewardCard.quality)) {
             reqQuality = Math.random() > 0.5 ? "Master" : "Grandmaster";
             reqCount = reqQuality === "Master" ? 4 : 2;
         }
@@ -713,127 +713,167 @@ function executeTrade(offerId) {
     showToast(`${rewardDef.name} securely extracted to Club!`, "success");
 }
 
+let currentArchiveCategory = 'regular';
 let currentCollectionRegion = 'LCK';
 let currentCollectionSort = 'team';
+let teamYearFilter = {};
 
+function setArchiveCategory(cat) { currentArchiveCategory = cat; renderCollection(); }
 function setCollectionRegion(reg) { currentCollectionRegion = reg; renderCollection(); }
 function setCollectionSort(sort) { currentCollectionSort = sort; renderCollection(); }
+function setTeamYearFilter(teamKey, year) {
+    if (year === null || teamYearFilter[teamKey] === year) delete teamYearFilter[teamKey];
+    else teamYearFilter[teamKey] = year;
+    renderCollection();
+}
+
+function _getArchiveCards(db) {
+    const SPECIAL_Q = ["Champion", "Finalist", "MSI", "FirstStand", "MVP"];
+    if (currentArchiveCategory === 'regular') {
+        return db.filter(c => c.region === currentCollectionRegion && !SPECIAL_Q.includes(c.quality));
+    }
+    const qualMap = { firststand: 'FirstStand', msi: 'MSI', finalists: 'Finalist', champion: 'Champion', mvp: 'MVP' };
+    return db.filter(c => c.quality === qualMap[currentArchiveCategory]);
+}
 
 function renderCollection() {
-    let db = getDB();
-    if(!db) return;
-    ["LCK", "LPL", "LEC", "LCS", "Legacy"].forEach(r => {
-        let btn = document.getElementById(`col-reg-${r}`); if(!btn) return;
+    let db = getDB(); if (!db) return;
 
-        // Check if this region has owned-but-unclaimed cards
-        let regionCards = db.filter(c => c.region === r);
-        let hasClaimable = regionCards.some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
-
-        if (r === currentCollectionRegion) {
-            btn.className = "flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-blue-600/20 border border-blue-500/50 text-blue-300 shadow-inner cursor-pointer relative";
-        } else {
-            let extra = r === 'Legacy' ? 'border border-amber-900/50 text-slate-400' : 'border border-transparent text-slate-400';
-            btn.className = `flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 hover:text-slate-200 hover:bg-slate-700 cursor-pointer relative ${extra}`;
-        }
-
-        // Notification dot
-        let dot = btn.querySelector('.region-notify-dot');
-        if (hasClaimable) {
-            if (!dot) {
-                dot = document.createElement('span');
-                dot.className = 'region-notify-dot absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-slate-900 animate-pulse z-10 pointer-events-none';
-                btn.appendChild(dot);
-            }
-        } else {
-            if (dot) dot.remove();
-        }
+    // Category button styles
+    const catDefs = [
+        { id: 'arch-cat-regular',    cat: 'regular',    active: 'bg-blue-600/20 border-blue-500/50 text-blue-300' },
+        { id: 'arch-cat-firststand', cat: 'firststand', active: 'bg-orange-600/20 border-orange-500/50 text-orange-300' },
+        { id: 'arch-cat-msi',        cat: 'msi',        active: 'bg-teal-600/20 border-teal-500/50 text-teal-300' },
+        { id: 'arch-cat-finalists',  cat: 'finalists',  active: 'bg-slate-500/30 border-slate-400/60 text-slate-200' },
+        { id: 'arch-cat-champion',   cat: 'champion',   active: 'bg-amber-600/20 border-amber-500/50 text-amber-300' },
+        { id: 'arch-cat-mvp',        cat: 'mvp',        active: 'bg-pink-600/20 border-pink-500/50 text-pink-300' },
+    ];
+    catDefs.forEach(({ id, cat, active }) => {
+        let btn = document.getElementById(id); if (!btn) return;
+        btn.className = cat === currentArchiveCategory
+            ? `flex-1 py-2 px-3 rounded-lg font-black text-sm cursor-pointer border shadow-inner ${active}`
+            : 'flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-transparent';
     });
 
-    ["team", "completion", "latest"].forEach(s => {
-        let btn = document.getElementById(`col-sort-${s}`); if(!btn) return;
-        if (s === currentCollectionSort) {
-            btn.className = "flex-1 py-1.5 px-4 rounded-lg font-black text-xs transition bg-slate-600 border border-slate-500 text-slate-100 uppercase tracking-widest shadow-inner cursor-pointer";
-        } else {
-            btn.className = "flex-1 py-1.5 px-4 rounded-lg font-bold text-xs transition text-slate-400 hover:text-slate-200 uppercase tracking-widest bg-slate-800 border border-transparent cursor-pointer";
-        }
-    });
+    // Show/hide region bar
+    const regionBar = document.getElementById('arch-region-bar');
+    if (regionBar) regionBar.style.display = currentArchiveCategory === 'regular' ? '' : 'none';
 
-    const grid = document.getElementById("collection-grid"); if(!grid) return; grid.innerHTML = "";
-    let dbCards = db.filter(c => c.region === currentCollectionRegion);
-    let claimableBE = 0;
-    dbCards.forEach(c => {
-        let rec = collectionRegistry[c.id];
-        if (rec && !rec.claimed) claimableBE += (collectionRewards[c.quality] || 10);
-    });
-    
-    let claimBtn = document.getElementById("btn-claim-collection");
-    if(claimBtn) {
-        if (claimableBE > 0) { claimBtn.innerText = `Claim Region Rewards (${claimableBE} BE)`; claimBtn.disabled = false; }
-        else { claimBtn.innerText = `Claim Region Rewards (0 BE)`; claimBtn.disabled = true; }
+    // Region button styles
+    if (currentArchiveCategory === 'regular') {
+        ['LCK', 'LPL', 'LEC', 'LCS'].forEach(r => {
+            let btn = document.getElementById(`col-reg-${r}`); if (!btn) return;
+            let hasClaimable = db.filter(c => c.region === r).some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
+            btn.className = r === currentCollectionRegion
+                ? 'flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-blue-600/20 border border-blue-500/50 text-blue-300 shadow-inner cursor-pointer relative'
+                : 'flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 hover:text-slate-200 hover:bg-slate-700 cursor-pointer relative text-slate-400 border border-transparent';
+            let dot = btn.querySelector('.region-notify-dot');
+            if (hasClaimable) {
+                if (!dot) { dot = document.createElement('span'); dot.className = 'region-notify-dot absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-slate-900 animate-pulse z-10 pointer-events-none'; btn.appendChild(dot); }
+            } else { if (dot) dot.remove(); }
+        });
     }
 
+    // Sort button styles
+    ["team", "completion", "latest"].forEach(s => {
+        let btn = document.getElementById(`col-sort-${s}`); if (!btn) return;
+        btn.className = s === currentCollectionSort
+            ? "flex-1 py-1.5 px-4 rounded-lg font-black text-xs transition bg-slate-600 border border-slate-500 text-slate-100 uppercase tracking-widest shadow-inner cursor-pointer"
+            : "flex-1 py-1.5 px-4 rounded-lg font-bold text-xs transition text-slate-400 hover:text-slate-200 uppercase tracking-widest bg-slate-800 border border-transparent cursor-pointer";
+    });
+
+    let dbCards = _getArchiveCards(db);
+    let claimableBE = 0;
+    dbCards.forEach(c => { let rec = collectionRegistry[c.id]; if (rec && !rec.claimed) claimableBE += (collectionRewards[c.quality] || 10); });
+    let claimBtn = document.getElementById("btn-claim-collection");
+    if (claimBtn) {
+        let label = currentArchiveCategory === 'regular' ? 'Region' : 'Category';
+        claimBtn.innerText = `Claim ${label} Rewards (${claimableBE} BE)`;
+        claimBtn.disabled = claimableBE === 0;
+    }
+
+    const grid = document.getElementById("collection-grid"); if (!grid) return; grid.innerHTML = "";
+
+    // Latest sort
     if (currentCollectionSort === 'latest') {
         let ownedCards = dbCards.filter(c => collectionRegistry[c.id]).sort((a, b) => (collectionRegistry[b.id].acquiredAt || 0) - (collectionRegistry[a.id].acquiredAt || 0));
-        if(ownedCards.length === 0) { grid.innerHTML = `<p class="text-slate-500 text-center py-10 font-mono">No cards archived yet in this region.</p>`; return; }
+        if (ownedCards.length === 0) { grid.innerHTML = `<p class="text-slate-500 text-center py-10 font-mono">No cards archived yet in this category.</p>`; return; }
         let section = document.createElement("div"); section.className = "bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50";
         section.innerHTML = `<h3 class="text-xl font-black text-slate-300 mb-4 border-b border-slate-700/50 pb-2">Recently Acquired</h3>`;
         let cardContainer = document.createElement("div"); cardContainer.className = "flex flex-wrap gap-4 justify-center";
-
         ownedCards.forEach(c => {
-            let wrapper = document.createElement("div"); wrapper.className = `shrink-0 transition duration-500 relative`;
-            if (!collectionRegistry[c.id].claimed) {
-                let dot = document.createElement("div"); dot.className = "absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-slate-900 shadow-[0_0_10px_rgba(250,204,21,0.8)] z-20 animate-pulse";
-                wrapper.appendChild(dot);
-            }
-            wrapper.appendChild(createCardElement(c, false, null, null));
-            cardContainer.appendChild(wrapper);
+            let wrapper = document.createElement("div"); wrapper.className = "shrink-0 transition duration-500 relative";
+            if (!collectionRegistry[c.id].claimed) { let dot = document.createElement("div"); dot.className = "absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-slate-900 shadow-[0_0_10px_rgba(250,204,21,0.8)] z-20 animate-pulse"; wrapper.appendChild(dot); }
+            wrapper.appendChild(createCardElement(c, false, null, null)); cardContainer.appendChild(wrapper);
         });
         section.appendChild(cardContainer); grid.appendChild(section); return;
     }
 
+    // Team-grouped view
     let grouped = {};
     dbCards.forEach(c => {
-        let tName = window.teamLineageBridges[c.team] || c.team; let key = `${tName}`;
-        if(!grouped[key]) grouped[key] = { team: tName, cards: [], owned: 0, total: 0 };
-        grouped[key].cards.push(c); grouped[key].total++;
-        if(collectionRegistry[c.id]) grouped[key].owned++;
+        let tName = window.teamLineageBridges[c.team] || c.team;
+        if (!grouped[tName]) grouped[tName] = { team: tName, cards: [], owned: 0, total: 0 };
+        grouped[tName].cards.push(c); grouped[tName].total++;
+        if (collectionRegistry[c.id]) grouped[tName].owned++;
     });
-
     let groupArray = Object.values(grouped);
     if (currentCollectionSort === 'completion') groupArray.sort((a, b) => (b.total - b.owned) - (a.total - a.owned));
     else groupArray.sort((a, b) => a.team.localeCompare(b.team));
 
+    if (groupArray.length === 0) { grid.innerHTML = `<p class="text-slate-500 text-center py-10 font-mono">No cards archived yet in this category.</p>`; return; }
+
     groupArray.forEach(group => {
-        const roleOrder = { "TOP":1, "JNG":2, "MID":3, "ADC":4, "SUP":5, "COACH":6 };
-        group.cards.sort((a, b) => {
-            if (b.year !== a.year) return b.year - a.year;
-            return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99);
-        });
+        const roleOrder = { "TOP": 1, "JNG": 2, "MID": 3, "ADC": 4, "SUP": 5, "COACH": 6 };
+        let allYears = [...new Set(group.cards.map(c => c.year))].sort((a, b) => b - a);
+        let selectedYear = teamYearFilter[group.team] || null;
+        let displayCards = selectedYear ? group.cards.filter(c => c.year === selectedYear) : group.cards;
+        displayCards.sort((a, b) => b.year !== a.year ? b.year - a.year : (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99));
+        let displayOwned = displayCards.filter(c => collectionRegistry[c.id]).length;
+
         let section = document.createElement("div"); section.className = "bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 mb-3 shadow";
-        let completionText = `<span class="text-xs font-mono float-right ${group.owned === group.total ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${group.owned} / ${group.total}</span>`;
-        section.innerHTML = `<h3 class="text-sm font-black text-slate-300 mb-3 border-b border-slate-700/50 pb-1.5 flex items-center justify-between"><span>${group.team} Lineages</span>${completionText}</h3>`;
-        if (group.owned === group.total && group.total >= 4) {
+
+        // Header row: team name + year pills + count
+        let header = document.createElement("div"); header.className = "flex items-center gap-2 mb-3 border-b border-slate-700/50 pb-2 flex-wrap";
+        let titleEl = document.createElement("span"); titleEl.className = "text-sm font-black text-slate-300 mr-auto"; titleEl.textContent = `${group.team}`;
+        header.appendChild(titleEl);
+
+        if (allYears.length > 1) {
+            let allBtn = document.createElement("button");
+            allBtn.textContent = "All";
+            allBtn.className = !selectedYear ? "px-2 py-0.5 rounded text-[10px] font-black bg-blue-600 text-white cursor-pointer" : "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-400 hover:bg-slate-600 cursor-pointer";
+            allBtn.onclick = () => setTeamYearFilter(group.team, null);
+            header.appendChild(allBtn);
+            allYears.forEach(yr => {
+                let yrBtn = document.createElement("button");
+                yrBtn.textContent = yr;
+                yrBtn.className = selectedYear === yr ? "px-2 py-0.5 rounded text-[10px] font-black bg-blue-600 text-white cursor-pointer" : "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-400 hover:bg-slate-600 cursor-pointer";
+                yrBtn.onclick = () => setTeamYearFilter(group.team, yr);
+                header.appendChild(yrBtn);
+            });
+        }
+
+        let countEl = document.createElement("span"); countEl.className = `text-xs font-mono ${displayOwned === displayCards.length && displayCards.length > 0 ? 'text-emerald-400 font-bold' : 'text-slate-500'}`; countEl.textContent = `${displayOwned}/${displayCards.length}`;
+        header.appendChild(countEl);
+        section.appendChild(header);
+
+        // Roster completion bonus (all-year view only)
+        if (!selectedYear && group.owned === group.total && group.total >= 4) {
             let alreadyClaimed = teamCompletionRewards[group.team]?.claimed;
             let bonusBtn = document.createElement("button");
-            bonusBtn.className = alreadyClaimed
-                ? "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-slate-700 text-slate-500 border border-slate-600 cursor-not-allowed"
-                : "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-600/40 transition cursor-pointer";
+            bonusBtn.className = alreadyClaimed ? "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-slate-700 text-slate-500 border border-slate-600 cursor-not-allowed" : "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-600/40 transition cursor-pointer";
             bonusBtn.textContent = alreadyClaimed ? "Roster Bonus Claimed" : "Claim Roster Bonus +5000 BE";
             bonusBtn.disabled = alreadyClaimed;
             if (!alreadyClaimed) bonusBtn.onclick = () => claimTeamCompletion(group.team);
             section.appendChild(bonusBtn);
         }
+
         let cardContainer = document.createElement("div"); cardContainer.className = "flex overflow-x-auto gap-3 pb-2 snap-x";
-        
-        group.cards.forEach(c => {
+        displayCards.forEach(c => {
             let isOwned = !!collectionRegistry[c.id];
             let wrapper = document.createElement("div"); wrapper.className = `snap-start shrink-0 transition duration-500 ${isOwned ? 'relative' : 'grayscale opacity-25 scale-95 hover:opacity-40'}`;
-            if (isOwned && !collectionRegistry[c.id].claimed) {
-                let dot = document.createElement("div"); dot.className = "absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-yellow-400 rounded-full border border-slate-900 shadow z-20 animate-pulse";
-                wrapper.appendChild(dot);
-            }
-            wrapper.appendChild(createCardElement(c, false, null, null));
-            cardContainer.appendChild(wrapper);
+            if (isOwned && !collectionRegistry[c.id].claimed) { let dot = document.createElement("div"); dot.className = "absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-yellow-400 rounded-full border border-slate-900 shadow z-20 animate-pulse"; wrapper.appendChild(dot); }
+            wrapper.appendChild(createCardElement(c, false, null, null)); cardContainer.appendChild(wrapper);
         });
         section.appendChild(cardContainer); grid.appendChild(section);
     });
@@ -850,14 +890,14 @@ function claimTeamCompletion(teamKey) {
 }
 
 function claimCollectionRewards() {
-    let db = getDB(); if(!db) return;
-    let dbRegionFilt = db.filter(c => c.region === currentCollectionRegion);
+    let db = getDB(); if (!db) return;
+    let dbFilt = _getArchiveCards(db);
     let claimedAmount = 0;
-    dbRegionFilt.forEach(c => {
+    dbFilt.forEach(c => {
         let rec = collectionRegistry[c.id];
         if (rec && !rec.claimed) { claimedAmount += (collectionRewards[c.quality] || 10); rec.claimed = true; }
     });
-    if (claimedAmount > 0) { blueEssence += claimedAmount; showToast(`Extracted ${claimedAmount} BE from Region Archives!`, "success"); saveGame(); renderCollection(); updateBadges(); }
+    if (claimedAmount > 0) { blueEssence += claimedAmount; showToast(`Extracted ${claimedAmount} BE from Archives!`, "success"); saveGame(); renderCollection(); updateBadges(); }
 }
 
 function addXP(amount) {
@@ -1042,9 +1082,9 @@ function buyPack(baseCost, type) {
     let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
     if (type === 'Champion') {
-        // Guaranteed 1 Legacy Wildcard (Champion) + 4 fillers scaling Silver→Grandmaster (NO Challenger)
+        // Guaranteed 1 Legacy Wildcard (Champion/Finalist/MSI/FirstStand) + 4 fillers scaling Silver→Grandmaster (NO Challenger)
         trackStats.champPacksOpened = (trackStats.champPacksOpened || 0) + 1;
-        let legPool = db.filter(p => p.quality === "Champion");
+        let legPool = db.filter(p => ["Champion", "Finalist", "MSI", "FirstStand"].includes(p.quality));
         let legCard = legPool[Math.floor(Math.random() * legPool.length)];
         let p1 = {...legCard, uniqueId: Date.now() + "L1" + Math.random().toString(36).substring(2)};
         pulled.push(p1); club.push(p1);
@@ -1055,37 +1095,76 @@ function buyPack(baseCost, type) {
             if (rng > 85) fillerTier = 'Diamond';
             else if (rng > 60) fillerTier = 'Platinum';
             else if (rng > 35) fillerTier = 'Gold';
-            let filPool = db.filter(p => p.quality === fillerTier && p.quality !== "Champion" && p.quality !== "Challenger");
+            let filPool = db.filter(p => p.quality === fillerTier && !["Champion", "Finalist", "MSI", "FirstStand", "Challenger"].includes(p.quality));
             if(filPool.length === 0) filPool = db.filter(p => p.quality === "Silver");
             let pF = filPool[Math.floor(Math.random() * filPool.length)];
             let cardF = {...pF, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
             pulled.push(cardF); club.push(cardF);
         }
     } else if (type === 'MVP') {
+        // 0.1% MVP · 0.5% Challenger · 1.5% GM · 5% Master · ~25% Diamond · ~30% Platinum · ~22% Gold · ~16% Silver
         for (let i = 0; i < 5; i++) {
-            let pCard;
             let rng = (Math.random() * 100) + (skills.scouting * 2);
-            // MVP pack: 18% chance at MVP card, filler ranges Silver → Grandmaster (nerfed, Silver now possible)
-            let mvpChance = 0.18 + (skills.scouting * 0.02);
-            if (Math.random() < mvpChance) {
-                let mvpPool = db.filter(p => p.quality === "MVP");
-                pCard = mvpPool[Math.floor(Math.random() * mvpPool.length)];
-            } else {
-                let fillerTier = 'Silver';
-                if (rng > 92) fillerTier = 'Grandmaster';
-                else if (rng > 72) fillerTier = 'Diamond';
-                else if (rng > 42) fillerTier = 'Platinum';
-                else if (rng > 17) fillerTier = 'Gold';
-                let fillPool = db.filter(p => p.quality === fillerTier && p.quality !== "Champion" && p.quality !== "Challenger");
-                if (fillPool.length === 0) fillPool = db.filter(p => p.quality === "Platinum");
-                pCard = fillPool[Math.floor(Math.random() * fillPool.length)];
-            }
+            let tier;
+            if      (rng > 99.9) tier = 'MVP';
+            else if (rng > 99.4) tier = 'Challenger';
+            else if (rng > 97.9) tier = 'Grandmaster';
+            else if (rng > 92.9) tier = 'Master';
+            else if (rng > 67.9) tier = 'Diamond';
+            else if (rng > 37.9) tier = 'Platinum';
+            else if (rng > 15.9) tier = 'Gold';
+            else                  tier = 'Silver';
+            let pool = tier === 'MVP'
+                ? db.filter(p => p.quality === 'MVP')
+                : db.filter(p => p.quality === tier && !["Champion", "Finalist", "MSI", "FirstStand", "MVP"].includes(p.quality));
+            if (pool.length === 0) pool = db.filter(p => p.quality === 'Silver');
+            let pCard = pool[Math.floor(Math.random() * pool.length)];
             let inst = {...pCard, uniqueId: Date.now() + "M" + i + Math.random().toString(36).substring(2)};
+            pulled.push(inst); club.push(inst);
+        }
+    } else if (type === 'MSI') {
+        // 0.5% MSI · no Challenger · 1.5% GM · 5% Master · ~25% Diamond · ~30% Platinum · ~22% Gold · ~16% Silver
+        for (let i = 0; i < 5; i++) {
+            let rng = (Math.random() * 100) + (skills.scouting * 2);
+            let tier;
+            if      (rng > 99.5) tier = 'MSI';
+            else if (rng > 98.0) tier = 'Grandmaster';
+            else if (rng > 93.0) tier = 'Master';
+            else if (rng > 68.0) tier = 'Diamond';
+            else if (rng > 38.0) tier = 'Platinum';
+            else if (rng > 16.0) tier = 'Gold';
+            else                  tier = 'Silver';
+            let pool = tier === 'MSI'
+                ? db.filter(p => p.quality === 'MSI')
+                : db.filter(p => p.quality === tier && !["Champion", "Finalist", "MSI", "FirstStand", "MVP"].includes(p.quality));
+            if (pool.length === 0) pool = db.filter(p => p.quality === 'Silver');
+            let pCard = pool[Math.floor(Math.random() * pool.length)];
+            let inst = {...pCard, uniqueId: Date.now() + "I" + i + Math.random().toString(36).substring(2)};
+            pulled.push(inst); club.push(inst);
+        }
+    } else if (type === 'FirstStand') {
+        // 1% FirstStand · no Challenger · 1.5% GM · 5% Master · ~25% Diamond · ~30% Platinum · ~22% Gold · ~15.5% Silver
+        for (let i = 0; i < 5; i++) {
+            let rng = (Math.random() * 100) + (skills.scouting * 2);
+            let tier;
+            if      (rng > 99.0) tier = 'FirstStand';
+            else if (rng > 97.5) tier = 'Grandmaster';
+            else if (rng > 92.5) tier = 'Master';
+            else if (rng > 67.5) tier = 'Diamond';
+            else if (rng > 37.5) tier = 'Platinum';
+            else if (rng > 15.5) tier = 'Gold';
+            else                  tier = 'Silver';
+            let pool = tier === 'FirstStand'
+                ? db.filter(p => p.quality === 'FirstStand')
+                : db.filter(p => p.quality === tier && !["Champion", "Finalist", "MSI", "FirstStand", "MVP"].includes(p.quality));
+            if (pool.length === 0) pool = db.filter(p => p.quality === 'Silver');
+            let pCard = pool[Math.floor(Math.random() * pool.length)];
+            let inst = {...pCard, uniqueId: Date.now() + "F" + i + Math.random().toString(36).substring(2)};
             pulled.push(inst); club.push(inst);
         }
     } else {
         for (let i=0; i<5; i++) {
-            let rolledTier = rollTier(type); let pool = db.filter(p => p.quality === rolledTier && p.quality !== "Champion" && p.quality !== "MVP");
+            let rolledTier = rollTier(type); let pool = db.filter(p => p.quality === rolledTier && !["Champion", "Finalist", "MSI", "FirstStand", "MVP"].includes(p.quality));
             if(pool.length === 0) pool = db.filter(p => p.quality === "Silver");
             let p = pool[Math.floor(Math.random() * pool.length)];
             let cardInst = {...p, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
@@ -1113,8 +1192,8 @@ function buyTargetPack(targetType) {
         else if (tierVal === "Diamond") { let rng = Math.random(); targetTier = rng < 0.3 ? "Gold" : (rng < 0.7 ? "Platinum" : "Diamond"); }
         else if (tierVal === "Master") { let rng = Math.random(); targetTier = rng < 0.2 ? "Platinum" : (rng < 0.6 ? "Diamond" : "Master"); }
         
-        let pool = db.filter(p => p.region === regionVal && p.quality === targetTier && p.quality !== "Champion" && p.quality !== "MVP");
-        if (pool.length === 0) pool = db.filter(p => p.quality === targetTier && p.quality !== "Champion" && p.quality !== "MVP");
+        let pool = db.filter(p => p.region === regionVal && p.quality === targetTier && !["Champion", "Finalist", "MSI", "FirstStand", "MVP"].includes(p.quality));
+        if (pool.length === 0) pool = db.filter(p => p.quality === targetTier && !["Champion", "Finalist", "MSI", "FirstStand", "MVP"].includes(p.quality));
         if (pool.length === 0) pool = db.filter(p => p.quality === "Silver");
         let p = pool[Math.floor(Math.random() * pool.length)];
         let cardInst = {...p, uniqueId: Date.now() + i + Math.random().toString(36).substring(2)};
@@ -1136,7 +1215,7 @@ function renderClubGrid() {
             btn.className = "text-xs bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg w-full font-bold cursor-not-allowed shadow-md"; btn.innerText = "In Squad"; btn.disabled = true;
         } else {
             btn.className = "text-xs bg-red-950/60 text-red-300 px-3 py-1.5 rounded-lg w-full font-bold cursor-pointer transition hover:bg-red-900 shadow-md"; btn.innerHTML = `Sell (+${price})`;
-            btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; if (['Grandmaster','Challenger'].includes(card.quality)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+1; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
+            btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(card.quality)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+1; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
         }
         wrap.appendChild(btn); grid.appendChild(wrap);
     });
@@ -1213,7 +1292,7 @@ function renderPickerCards() {
     if (activeSlot === 'COACH') {
         pool = pool.filter(p => p.role === 'COACH');
     } else if (['TOP','JNG','MID','ADC','SUP'].includes(activeSlot)) {
-        pool = pool.filter(p => p.role === activeSlot || p.quality === 'Champion');
+        pool = pool.filter(p => p.role === activeSlot || ["Champion", "Finalist", "MSI", "FirstStand"].includes(p.quality));
     }
 
     // Region filter
@@ -1320,9 +1399,10 @@ function computeChemistry() {
     let coachBonus = squad["COACH"] ? 5 : 0; 
     
     if(count === 5) {
-        // Legacy (Champion) wildcards are excluded from region/year chemistry checks — they adapt to any lineup
-        let nonLegacy = active.filter(c => c.quality !== "Champion");
-        let legacyCount = active.filter(c => c.quality === "Champion").length;
+        // Legacy wildcards (Champion/Finalist/MSI/FirstStand) are excluded from region/year chemistry checks — they adapt to any lineup
+        const LEGACY_QUALITIES = ["Champion", "Finalist", "MSI", "FirstStand"];
+        let nonLegacy = active.filter(c => !LEGACY_QUALITIES.includes(c.quality));
+        let legacyCount = active.filter(c => LEGACY_QUALITIES.includes(c.quality)).length;
 
         if (legacyCount === 5) {
             // All-Legacy team: full chemistry
@@ -1366,7 +1446,7 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
         bgClass = legacyCoachQualities.includes(card.quality) ? "legacy-coach-card-style" : "coach-card-style";
     }
 
-    const darkCardTypes = ["Challenger", "Champion", "MVP"];
+    const darkCardTypes = ["Challenger", "Champion", "MVP", "Finalist", "MSI", "FirstStand"];
     const isDarkCard = darkCardTypes.includes(card.quality) || card.role === "COACH";
     // Master/Grandmaster use dark text — their gradients start very light, white text disappears
     const isMidCard = ["Master", "Grandmaster"].includes(card.quality);
@@ -1656,7 +1736,7 @@ function sellAllLowTier(tier) {
     let sold = 0; let val = 0; let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
     let toSell = club.filter(c => c.quality === tier && !activeIds.includes(c.uniqueId));
     toSell.forEach(c => { sold++; val += getSellValue(c.quality); club = club.filter(cl => cl.uniqueId !== c.uniqueId); });
-    if(sold > 0) { blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (['Grandmaster','Challenger'].includes(tier)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+sold; showToast(`Purged ${sold} ${tier}s for ${val} BE!`, "success"); saveGame(); }
+    if(sold > 0) { blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(tier)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+sold; showToast(`Purged ${sold} ${tier}s for ${val} BE!`, "success"); saveGame(); }
     else showToast(`No unassigned ${tier}s found.`, "info");
 }
 function quickSellDuplicates() {

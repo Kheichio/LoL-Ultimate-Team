@@ -180,6 +180,94 @@
     50% { transform: translateX(150%) rotate(15deg); }
 }
 
+/* FINALIST — Dark steel silver, metallic sweep (Worlds runner-up) */
+.card-bg-Finalist {
+    background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #0f172a 100%) !important;
+    border: 3px solid #94a3b8 !important;
+    box-shadow: 0 0 20px rgba(148, 163, 184, 0.55), 0 0 45px rgba(148, 163, 184, 0.2) !important;
+    animation: finalist-glow 3s ease-in-out infinite;
+    position: relative;
+    overflow: hidden !important;
+}
+.card-bg-Finalist::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(148, 163, 184, 0.2) 50%, transparent 70%);
+    animation: finalist-sweep 3.5s ease-in-out infinite;
+    pointer-events: none;
+    border-radius: inherit;
+}
+@keyframes finalist-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(148, 163, 184, 0.55), 0 0 45px rgba(148, 163, 184, 0.2); }
+    50% { box-shadow: 0 0 32px rgba(148, 163, 184, 0.8), 0 0 70px rgba(148, 163, 184, 0.35); }
+}
+@keyframes finalist-sweep {
+    0%, 100% { transform: translateX(-150%) rotate(15deg); opacity: 0; }
+    30%, 70% { opacity: 1; }
+    50% { transform: translateX(150%) rotate(15deg); }
+}
+
+/* MSI — Dark teal, animated border flow (international tournament) */
+.card-bg-MSI {
+    background: linear-gradient(135deg, #042f2e 0%, #0f766e 50%, #042f2e 100%) !important;
+    border: 3px solid #2dd4bf !important;
+    box-shadow: 0 0 20px rgba(45, 212, 191, 0.6), 0 0 50px rgba(45, 212, 191, 0.2) !important;
+    animation: msi-glow 2.8s ease-in-out infinite;
+    position: relative;
+    overflow: hidden !important;
+}
+.card-bg-MSI::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #2dd4bf, #06b6d4, #0d9488, #2dd4bf);
+    background-size: 300% 300%;
+    animation: msi-border 3s ease infinite;
+    z-index: -1;
+    filter: blur(4px);
+    opacity: 0.7;
+}
+.card-bg-MSI > * { position: relative; z-index: 1; }
+@keyframes msi-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(45, 212, 191, 0.6), 0 0 50px rgba(45, 212, 191, 0.2); }
+    50% { box-shadow: 0 0 32px rgba(45, 212, 191, 0.9), 0 0 75px rgba(45, 212, 191, 0.4); }
+}
+@keyframes msi-border {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* FIRST STAND — Dark amber orange, warm glow (regional early-season trophy) */
+.card-bg-FirstStand {
+    background: linear-gradient(135deg, #431407 0%, #c2410c 50%, #431407 100%) !important;
+    border: 3px solid #fb923c !important;
+    box-shadow: 0 0 18px rgba(251, 146, 60, 0.65), 0 0 45px rgba(251, 146, 60, 0.2) !important;
+    animation: firststand-glow 3s ease-in-out infinite;
+    position: relative;
+    overflow: hidden !important;
+}
+.card-bg-FirstStand::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 25%, rgba(251, 146, 60, 0.18) 50%, transparent 75%);
+    animation: firststand-sweep 3s ease-in-out infinite;
+    pointer-events: none;
+    border-radius: inherit;
+}
+@keyframes firststand-glow {
+    0%, 100% { box-shadow: 0 0 18px rgba(251, 146, 60, 0.65), 0 0 45px rgba(251, 146, 60, 0.2); }
+    50% { box-shadow: 0 0 30px rgba(251, 146, 60, 0.9), 0 0 70px rgba(251, 146, 60, 0.4); }
+}
+@keyframes firststand-sweep {
+    0%, 100% { transform: translateX(-120%) rotate(15deg); opacity: 0; }
+    30%, 70% { opacity: 1; }
+    50% { transform: translateX(120%) rotate(15deg); }
+}
+
 /* Distinct High-Contrast Scheme for Coach Cards */
 .coach-card-style {
     background: linear-gradient(135deg, #022c22 0%, #064e3b 100%) !important;

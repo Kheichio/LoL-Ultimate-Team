@@ -121,7 +121,8 @@
                 <h2 class="text-2xl font-bold flex items-center gap-2 text-slate-100">🛒 Card Store</h2>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6 justify-items-center">
+            <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Standard Packs</p>
+            <div class="grid grid-cols-3 gap-4 mb-5 justify-items-center">
                 <div onclick="buyPack(400, 'Standard')" class="relative w-full max-w-[210px] aspect-[2/3] rounded-xl shadow-lg overflow-hidden group cursor-pointer hover:-translate-y-2 transition-all duration-300 border-2 border-yellow-600 pack-glass">
                     <div class="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-700 opacity-90"></div>
                     <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10 text-center">
@@ -154,15 +155,29 @@
                         <button class="w-full bg-red-950/80 group-hover:bg-red-900 text-red-300 font-black py-3 rounded-lg border border-red-600 text-sm transition"><span class="store-pack-btn" data-cost="2000">2000 BE</span></button>
                     </div>
                 </div>
+            </div>
 
-                <div onclick="buyPack(4000, 'MVP')" class="relative w-full max-w-[210px] aspect-[2/3] rounded-xl shadow-lg overflow-hidden group cursor-pointer hover:-translate-y-2 transition-all duration-300 border-2 border-pink-500 pack-glass">
-                    <div class="absolute inset-0 bg-gradient-to-br from-pink-500 to-purple-900 opacity-90"></div>
+            <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Special Edition</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 justify-items-center">
+                <div onclick="buyPack(3500, 'FirstStand')" class="relative w-full max-w-[210px] aspect-[2/3] rounded-xl shadow-lg overflow-hidden group cursor-pointer hover:-translate-y-2 transition-all duration-300 border-2 border-orange-500 pack-glass">
+                    <div class="absolute inset-0 bg-gradient-to-br from-orange-700 to-red-950 opacity-95"></div>
                     <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10 text-center">
                         <div>
-                            <h3 class="font-black text-2xl uppercase tracking-widest text-white drop-shadow">MVP Pool</h3>
-                            <span class="bg-black/60 text-pink-300 text-[10px] font-black px-3 py-1 rounded-full mt-2 inline-block">25% MVP PULL</span>
+                            <h3 class="font-black text-lg uppercase tracking-widest text-orange-300 drop-shadow">First Stand</h3>
+                            <span class="bg-black/70 text-orange-400 text-[9px] font-black px-2 py-1 rounded-full mt-2 inline-block uppercase">1% FIRST STAND</span>
                         </div>
-                        <button class="w-full bg-black/60 group-hover:bg-black text-pink-300 font-black py-3 rounded-lg border border-pink-500/40 text-sm transition"><span class="store-pack-btn" data-cost="4000">4000 BE</span></button>
+                        <button class="w-full bg-black/70 group-hover:bg-black text-orange-300 font-black py-3 rounded-lg border border-orange-500/50 text-sm transition"><span class="store-pack-btn" data-cost="3500">3500 BE</span></button>
+                    </div>
+                </div>
+
+                <div onclick="buyPack(5000, 'MSI')" class="relative w-full max-w-[210px] aspect-[2/3] rounded-xl shadow-lg overflow-hidden group cursor-pointer hover:-translate-y-2 transition-all duration-300 border-2 border-teal-400 pack-glass">
+                    <div class="absolute inset-0 bg-gradient-to-br from-teal-800 to-cyan-950 opacity-95"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10 text-center">
+                        <div>
+                            <h3 class="font-black text-lg uppercase tracking-widest text-teal-300 drop-shadow">MSI Vault</h3>
+                            <span class="bg-black/70 text-teal-400 text-[9px] font-black px-2 py-1 rounded-full mt-2 inline-block uppercase">0.5% MSI CARD</span>
+                        </div>
+                        <button class="w-full bg-black/70 group-hover:bg-black text-teal-300 font-black py-3 rounded-lg border border-teal-400/50 text-sm transition"><span class="store-pack-btn" data-cost="5000">5000 BE</span></button>
                     </div>
                 </div>
 
@@ -171,9 +186,20 @@
                     <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10 text-center">
                         <div>
                             <h3 class="font-black text-xl uppercase tracking-widest text-amber-400 drop-shadow">Champion</h3>
-                            <span class="bg-black/80 text-amber-500 text-[9px] font-black px-2 py-1 rounded-full mt-2 inline-block uppercase">UNIVERSAL CARD</span>
+                            <span class="bg-black/80 text-amber-500 text-[9px] font-black px-2 py-1 rounded-full mt-2 inline-block uppercase">WILDCARD POOL</span>
                         </div>
                         <button class="w-full bg-black/80 group-hover:bg-black text-amber-400 font-black py-3 rounded-lg border border-amber-500 text-sm transition"><span class="store-pack-btn" data-cost="6000">6000 BE</span></button>
+                    </div>
+                </div>
+
+                <div onclick="buyPack(8000, 'MVP')" class="relative w-full max-w-[210px] aspect-[2/3] rounded-xl shadow-lg overflow-hidden group cursor-pointer hover:-translate-y-2 transition-all duration-300 border-2 border-pink-500 pack-glass">
+                    <div class="absolute inset-0 bg-gradient-to-br from-pink-900 to-purple-950 opacity-95"></div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-between p-4 z-10 text-center">
+                        <div>
+                            <h3 class="font-black text-2xl uppercase tracking-widest text-pink-300 drop-shadow">MVP</h3>
+                            <span class="bg-black/70 text-pink-400 text-[9px] font-black px-2 py-1 rounded-full mt-2 inline-block uppercase">0.1% MVP · RARE</span>
+                        </div>
+                        <button class="w-full bg-black/70 group-hover:bg-black text-pink-300 font-black py-3 rounded-lg border border-pink-500/40 text-sm transition"><span class="store-pack-btn" data-cost="8000">8000 BE</span></button>
                     </div>
                 </div>
             </div>
@@ -213,7 +239,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.2.3</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.2.6</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -246,15 +272,22 @@
                         <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-purple-400 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">Master</strong> — World-class. Ratings ~92–93.</span></div>
                         <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-red-400 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">Grandmaster</strong> ✨ — Near-peak talent. Ratings ~94–95. Animated fire border.</span></div>
                         <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-yellow-300 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">Challenger</strong> ✨ — God-tier. Ratings ~96–99. Rotating cosmic border.</span></div>
-                        <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-amber-600 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">Champion 🃏</strong> ✨ — World Champion Wildcards. Can be <strong class="text-amber-300">flexed into any role</strong>, but playing them out of their natural position incurs a <strong class="text-red-400">−20 rating penalty</strong>. Gold holographic foil.</span></div>
-                        <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-pink-500 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">MVP</strong> ✨ — Tournament MVPs. Top-tier veterans with animated magenta aura.</span></div>
+                        <div class="border-t border-slate-700/50 pt-2 mt-1 space-y-2">
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Legacy Wildcards — flex into any role, chemistry-immune</p>
+                            <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-orange-500 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">First Stand 🟠</strong> — First Stand winners. Warm amber glow. Wildcard.</span></div>
+                            <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-teal-400 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">MSI 🌊</strong> — MSI winners. Teal animated border. Wildcard.</span></div>
+                            <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-slate-400 shrink-0" style="background:linear-gradient(135deg,#334155,#94a3b8)"></span><span class="text-slate-300"><strong class="text-slate-100">Finalist 🥈</strong> — Worlds runner-up squads. Dark steel shimmer. Wildcard.</span></div>
+                            <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-amber-600 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">Champion 🏆</strong> — World Champions. Gold holographic foil. Wildcard.</span></div>
+                            <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-pink-500 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">MVP ✨</strong> — Tournament Finals MVPs. Rarest cards. Animated magenta aura.</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="bg-slate-800 p-6 rounded-2xl border border-yellow-900/40 shadow-lg">
                 <h3 class="text-lg font-bold text-yellow-300 mb-4">📦 Pack Drop Rates</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Standard Packs</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-5">
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-yellow-700/30">
                         <h4 class="font-black text-yellow-400 mb-2 uppercase tracking-wider text-xs">Standard — 400 BE</h4>
                         <p class="text-slate-400 text-xs mb-2">5 cards · MAX: Gold</p>
@@ -286,27 +319,59 @@
                             <div class="flex justify-between"><span class="text-yellow-300">Challenger</span><span class="text-slate-200 font-black">~0.5%</span></div>
                         </div>
                     </div>
-                    <div class="bg-slate-900/60 p-4 rounded-xl border border-pink-700/30">
-                        <h4 class="font-black text-pink-400 mb-2 uppercase tracking-wider text-xs">MVP Pool — 4,000 BE</h4>
-                        <p class="text-slate-400 text-xs mb-2">5 cards · ~18% MVP per slot · MAX: Grandmaster</p>
+                </div>
+                <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Special Edition Packs</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-orange-700/30">
+                        <h4 class="font-black text-orange-400 mb-2 uppercase tracking-wider text-xs">First Stand — 3,500 BE</h4>
+                        <p class="text-slate-400 text-xs mb-2">5 cards · no Challenger drops</p>
                         <div class="space-y-1 text-xs font-mono">
-                            <div class="flex justify-between"><span class="text-pink-400">MVP Card</span><span class="text-slate-200">~18% per slot</span></div>
-                            <div class="flex justify-between"><span class="text-slate-400">Silver (filler)</span><span class="text-slate-200">~17%</span></div>
-                            <div class="flex justify-between"><span class="text-amber-400">Gold (filler)</span><span class="text-slate-200">~25%</span></div>
-                            <div class="flex justify-between"><span class="text-emerald-400">Platinum (filler)</span><span class="text-slate-200">~30%</span></div>
-                            <div class="flex justify-between"><span class="text-blue-400">Diamond (filler)</span><span class="text-slate-200">~20%</span></div>
-                            <div class="flex justify-between"><span class="text-red-400">Grandmaster (filler)</span><span class="text-slate-200">~8%</span></div>
+                            <div class="flex justify-between"><span class="text-orange-400">First Stand</span><span class="text-slate-200 font-black">1%</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Silver</span><span class="text-slate-200">~15.5%</span></div>
+                            <div class="flex justify-between"><span class="text-amber-400">Gold</span><span class="text-slate-200">~22%</span></div>
+                            <div class="flex justify-between"><span class="text-emerald-400">Platinum</span><span class="text-slate-200">~30%</span></div>
+                            <div class="flex justify-between"><span class="text-blue-400">Diamond</span><span class="text-slate-200">~25%</span></div>
+                            <div class="flex justify-between"><span class="text-purple-400">Master</span><span class="text-slate-200">~5%</span></div>
+                            <div class="flex justify-between"><span class="text-red-400">Grandmaster</span><span class="text-slate-200">~1.5%</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-teal-700/30">
+                        <h4 class="font-black text-teal-400 mb-2 uppercase tracking-wider text-xs">MSI Vault — 5,000 BE</h4>
+                        <p class="text-slate-400 text-xs mb-2">5 cards · no Challenger drops</p>
+                        <div class="space-y-1 text-xs font-mono">
+                            <div class="flex justify-between"><span class="text-teal-400">MSI Card</span><span class="text-slate-200 font-black">0.5%</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Silver</span><span class="text-slate-200">~16%</span></div>
+                            <div class="flex justify-between"><span class="text-amber-400">Gold</span><span class="text-slate-200">~22%</span></div>
+                            <div class="flex justify-between"><span class="text-emerald-400">Platinum</span><span class="text-slate-200">~30%</span></div>
+                            <div class="flex justify-between"><span class="text-blue-400">Diamond</span><span class="text-slate-200">~25%</span></div>
+                            <div class="flex justify-between"><span class="text-purple-400">Master</span><span class="text-slate-200">~5%</span></div>
+                            <div class="flex justify-between"><span class="text-red-400">Grandmaster</span><span class="text-slate-200">~1.5%</span></div>
                         </div>
                     </div>
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-amber-700/30">
                         <h4 class="font-black text-amber-400 mb-2 uppercase tracking-wider text-xs">Champion — 6,000 BE</h4>
-                        <p class="text-slate-400 text-xs mb-2">5 cards · 1 guaranteed Wildcard · MAX filler: Diamond</p>
+                        <p class="text-slate-400 text-xs mb-2">5 cards · 1 guaranteed Legacy Wildcard</p>
                         <div class="space-y-1 text-xs font-mono">
-                            <div class="flex justify-between"><span class="text-amber-400">Champion Wildcard</span><span class="text-slate-200">1 guaranteed</span></div>
-                            <div class="flex justify-between"><span class="text-slate-400">Silver (filler)</span><span class="text-slate-200">~35%</span></div>
+                            <div class="flex justify-between"><span class="text-amber-400">Any Wildcard</span><span class="text-slate-200">1 guaranteed</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500 text-[10px]">(Champion / Finalist / MSI / First Stand)</span></div>
+                            <div class="flex justify-between mt-1"><span class="text-slate-400">Silver (filler)</span><span class="text-slate-200">~35%</span></div>
                             <div class="flex justify-between"><span class="text-amber-400">Gold (filler)</span><span class="text-slate-200">~25%</span></div>
                             <div class="flex justify-between"><span class="text-emerald-400">Platinum (filler)</span><span class="text-slate-200">~25%</span></div>
                             <div class="flex justify-between"><span class="text-blue-400">Diamond (filler)</span><span class="text-slate-200">~15%</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-pink-700/30">
+                        <h4 class="font-black text-pink-400 mb-2 uppercase tracking-wider text-xs">MVP — 8,000 BE</h4>
+                        <p class="text-slate-400 text-xs mb-2">5 cards · rarest pull in the game</p>
+                        <div class="space-y-1 text-xs font-mono">
+                            <div class="flex justify-between"><span class="text-pink-400">MVP Card</span><span class="text-slate-200 font-black">0.1%</span></div>
+                            <div class="flex justify-between"><span class="text-yellow-300">Challenger</span><span class="text-slate-200">0.5%</span></div>
+                            <div class="flex justify-between"><span class="text-red-400">Grandmaster</span><span class="text-slate-200">1.5%</span></div>
+                            <div class="flex justify-between"><span class="text-purple-400">Master</span><span class="text-slate-200">~5%</span></div>
+                            <div class="flex justify-between"><span class="text-blue-400">Diamond</span><span class="text-slate-200">~25%</span></div>
+                            <div class="flex justify-between"><span class="text-emerald-400">Platinum</span><span class="text-slate-200">~30%</span></div>
+                            <div class="flex justify-between"><span class="text-amber-400">Gold</span><span class="text-slate-200">~22%</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Silver</span><span class="text-slate-200">~16%</span></div>
                         </div>
                     </div>
                 </div>
@@ -423,29 +488,33 @@
                     </div>
                 </div>
                 <div class="bg-amber-950/20 p-6 rounded-2xl border border-amber-800/40 shadow-lg">
-                    <h3 class="text-lg font-bold text-amber-400 mb-3">🃏 Champion Wildcard Rule</h3>
-                    <p class="text-sm text-slate-300 leading-relaxed mb-3">Champion-tier (Legacy) cards are universal wildcards from World Championship rosters. They match <strong class="text-amber-300">any region, year, and team lineage</strong> — zero chemistry penalty when mixed with modern cards.</p>
+                    <h3 class="text-lg font-bold text-amber-400 mb-3">🃏 Legacy Wildcard Rule</h3>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-2">All Legacy-tier cards — <strong class="text-orange-300">First Stand</strong>, <strong class="text-teal-300">MSI</strong>, <strong class="text-slate-200">Finalist</strong>, <strong class="text-amber-300">Champion</strong>, and <strong class="text-pink-300">MVP</strong> — are universal wildcards. They match <strong class="text-amber-300">any region, year, and team lineage</strong> with zero chemistry penalty.</p>
                     <div class="bg-red-950/30 border border-red-800/40 rounded-xl p-3 text-xs">
                         <span class="text-red-400 font-black block mb-1">⚠️ Flex Placement Penalty</span>
-                        <span class="text-slate-300">Champions can fill <strong class="text-amber-300">any role slot</strong>, but playing them out of their natural position applies a <strong class="text-red-400">−20 rating penalty</strong>. The picker previews adjusted ratings. Assign to a matching role for full value.</span>
+                        <span class="text-slate-300">Legacy cards can fill <strong class="text-amber-300">any role slot</strong>, but playing them out of their natural position applies a <strong class="text-red-400">−20 rating penalty</strong>. The picker previews adjusted ratings. Assign to matching roles for full value.</span>
                     </div>
                 </div>
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.2.3)</h3>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.2.6)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-yellow-400 font-bold">Stage Quests</span> — Four new one-time milestone quests: Win a Regional Split (3000 BE), Win First Stand (2000 BE), Win MSI (4000 BE), Win the World Championship (8000 BE).</li>
-                    <li><span class="text-cyan-400 font-bold">Quest Layout</span> — Quest tab redesigned into three side-by-side columns: Repeatable Contracts (left), Milestone Achievements (centre), Timed Challenges (right).</li>
-                    <li><span class="text-red-400 font-bold">Supreme Pack</span> — Challenger now 0.5%, Grandmaster 1.5%, Master 5%. Lower tiers more prevalent to make high-tier pulls feel earned.</li>
-                    <li><span class="text-pink-400 font-bold">MVP Pack Nerf</span> — MVP card chance reduced to 18%. Silver filler cards now possible. Filler ceiling unchanged at Grandmaster.</li>
-                    <li><span class="text-amber-400 font-bold">Champion Pack</span> — Filler cards capped at Diamond. Value comes from the guaranteed Wildcard, not the fillers.</li>
-                    <li><span class="text-purple-400 font-bold">Legacy Coaches</span> — Master+ quality coaches now use a distinct gold-bordered indigo style, separate from base green coaches and Legacy player cards.</li>
-                    <li><span class="text-blue-400 font-bold">Role Sort in Picker</span> — Squad player picker now has a "Role" sort that groups cards by position with role icon headers and count badges.</li>
-                    <li><span class="text-emerald-400 font-bold">T1 Smash 2025</span> — Diamond ADC added to the T1 2025 lineage.</li>
-                    <li><span class="text-slate-300 font-bold">First Launch Popup</span> — Welcome modal now shows on first visit per patch version, with wipe notice and a "Don't show again" option.</li>
+                    <li><span class="text-orange-400 font-bold">3 New Card Tiers</span> — <strong class="text-orange-300">First Stand</strong> (orange glow), <strong class="text-teal-300">MSI</strong> (teal animated border), and <strong class="text-slate-200">Finalist</strong> (steel silver shimmer) are now Legacy Wildcards with unique card styles. All are chemistry-immune and squad-flex eligible.</li>
+                    <li><span class="text-amber-400 font-bold">Champion Pack Expanded</span> — Guaranteed wildcard slot now draws from all four Legacy types: Champion, Finalist, MSI, and First Stand.</li>
+                    <li><span class="text-orange-300 font-bold">First Stand Pack — 3,500 BE</span> — New pack. 1% per card chance at a First Stand wildcard. No Challenger drops. GM 1.5% → Silver.</li>
+                    <li><span class="text-teal-400 font-bold">MSI Vault Pack — 5,000 BE</span> — New pack. 0.5% per card chance at an MSI wildcard. No Challenger drops. Same filler spread as First Stand.</li>
+                    <li><span class="text-pink-400 font-bold">MVP Pack Rework — 8,000 BE</span> — Cost raised from 4,000. MVP pull rate reduced from 18% to 0.1% per card — rarest pull in the game. Now placed after Champion in the store. Full tier spread: Challenger 0.5%, GM 1.5%, Master 5%, Diamond 25%, Platinum 30%, Gold 22%, Silver 16%.</li>
+                    <li><span class="text-pink-300 font-bold">Gumayusi 2025 MVP</span> — Finals MVP card added (ID 9501). Rating 97, MEC 99 — stats exceed his Champion card to reflect tournament MVP status.</li>
+                    <li><span class="text-slate-200 font-bold">KT 2025 Finalist Cards</span> — PerfecT, Cuzz, Bdd (97), deokdam, Peter, and Head Coach Score added as Finalist wildcards (IDs 9101–9106).</li>
+                    <li><span class="text-yellow-300 font-bold">5 New Champion Rosters</span> — T1 2023 (3-peat), T1 2024 (4-peat), Fnatic 2011 (inaugural), Taipei Assassins 2012, SKT T1 K 2013 (Faker's debut). 25 new Champion cards total (IDs 9054–9078).</li>
+                    <li><span class="text-blue-400 font-bold">Archive Overhaul</span> — Roster Archive rebuilt with 6 category tabs (Regular Season, First Stand, MSI, Finalists, Champion, MVP). Regular Season shows LCK/LPL/LEC/LCS sub-filter. Each team section has year-filter pills to browse roster vintages individually.</li>
+                    <li><span class="text-cyan-400 font-bold">LPL 2025 Rosters</span> — All 16 LPL 2025 teams added: 80 starters + 6 subs (IDs 5001–5155) with 16 head coaches (IDs 8075–8090). Ratings calibrated to split standings and MVP award data.</li>
+                    <li><span class="text-emerald-400 font-bold">LEC 2025 Rosters</span> — Full LEC 2025 season added with head coaches (IDs 2201–2250, coaches 8065–8074).</li>
+                    <li><span class="text-purple-400 font-bold">FNC 2026 ID Conflict Fixed</span> — Fnatic 2026 renumbered 3051–3055 → 3146–3150 to resolve collision with NS LCK 2026.</li>
+                    <li><span class="text-red-400 font-bold">MVP Class Cleared</span> — Previous MVP cards removed. Class redefined: only confirmed tournament Finals MVPs qualify. Gumayusi 2025 is the inaugural entry.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.2.2): 2025 LCK Rosters · Worlds Champion Cards · KT MVP Cards · Repeatable Quests · Roster Completion Bonus</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.2.3): Stage Quests · Quest Layout Redesign · Supreme/MVP/Champion Pack Adjustments · Legacy Coach Styles · Role Sort in Picker</p>
             </div>
 
         </section>
@@ -465,23 +534,37 @@
         </section>
 
         <section id="tab-collection" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-5 border-b border-slate-700/50 pb-3">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700/50 pb-3">
                 <h2 class="text-2xl font-black text-yellow-400 uppercase">Roster Archive</h2>
                 <button id="btn-claim-collection" onclick="claimCollectionRewards()" class="bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black px-6 py-2 rounded-lg uppercase tracking-wider transition text-sm cursor-pointer disabled:opacity-40">Claim (0 BE)</button>
             </div>
-            <div class="flex flex-wrap gap-2 mb-3 bg-slate-800/80 p-2 rounded-xl border border-blue-900/40 shadow-inner">
-                <button onclick="setCollectionRegion('LCK')" id="col-reg-LCK" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer">LCK</button>
-                <button onclick="setCollectionRegion('LPL')" id="col-reg-LPL" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer">LPL</button>
-                <button onclick="setCollectionRegion('LEC')" id="col-reg-LEC" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer">LEC</button>
-                <button onclick="setCollectionRegion('LCS')" id="col-reg-LCS" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer">LCS</button>
-                <button onclick="setCollectionRegion('Legacy')" id="col-reg-Legacy" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer">Icons</button>
+
+            <!-- Category tabs -->
+            <div class="flex flex-wrap gap-2 mb-3 bg-slate-800/80 p-2 rounded-xl border border-slate-700/50 shadow-inner">
+                <button onclick="setArchiveCategory('regular')"    id="arch-cat-regular"    class="flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer min-w-[90px]">⚔️ Regular Season</button>
+                <button onclick="setArchiveCategory('firststand')" id="arch-cat-firststand" class="flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer min-w-[90px]">🟠 First Stand</button>
+                <button onclick="setArchiveCategory('msi')"        id="arch-cat-msi"        class="flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer min-w-[90px]">🌊 MSI</button>
+                <button onclick="setArchiveCategory('finalists')"  id="arch-cat-finalists"  class="flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer min-w-[90px]">🥈 Finalists</button>
+                <button onclick="setArchiveCategory('champion')"   id="arch-cat-champion"   class="flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer min-w-[90px]">🏆 Champion</button>
+                <button onclick="setArchiveCategory('mvp')"        id="arch-cat-mvp"        class="flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer min-w-[90px]">✨ MVP</button>
             </div>
+
+            <!-- Region sub-tabs (Regular Season only) -->
+            <div id="arch-region-bar" class="flex flex-wrap gap-2 mb-3 bg-slate-800/80 p-2 rounded-xl border border-blue-900/40 shadow-inner">
+                <button onclick="setCollectionRegion('LCK')" id="col-reg-LCK" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer relative">🇰🇷 LCK</button>
+                <button onclick="setCollectionRegion('LPL')" id="col-reg-LPL" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer relative">🇨🇳 LPL</button>
+                <button onclick="setCollectionRegion('LEC')" id="col-reg-LEC" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer relative">🇪🇺 LEC</button>
+                <button onclick="setCollectionRegion('LCS')" id="col-reg-LCS" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer relative">🇺🇸 LCS</button>
+            </div>
+
+            <!-- Sort tabs -->
             <div class="flex flex-wrap gap-2 mb-5 bg-slate-800/40 p-1.5 rounded-lg border border-slate-700 text-sm">
-                <button onclick="setCollectionSort('team')" id="col-sort-team" class="flex-1 py-1.5 rounded text-slate-400 uppercase font-bold cursor-pointer">Teams</button>
+                <button onclick="setCollectionSort('team')"       id="col-sort-team"       class="flex-1 py-1.5 rounded text-slate-400 uppercase font-bold cursor-pointer">Teams</button>
                 <button onclick="setCollectionSort('completion')" id="col-sort-completion" class="flex-1 py-1.5 rounded text-slate-400 uppercase font-bold cursor-pointer">Deficit</button>
-                <button onclick="setCollectionSort('latest')" id="col-sort-latest" class="flex-1 py-1.5 rounded text-slate-400 uppercase font-bold cursor-pointer">Latest</button>
+                <button onclick="setCollectionSort('latest')"     id="col-sort-latest"     class="flex-1 py-1.5 rounded text-slate-400 uppercase font-bold cursor-pointer">Latest</button>
             </div>
-            <div id="collection-grid" class="space-y-5"></div>
+
+            <div id="collection-grid" class="space-y-4"></div>
         </section>
 
         <section id="tab-club" class="tab-content hidden">
@@ -847,7 +930,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.2.3 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.2.6 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
