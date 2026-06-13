@@ -963,7 +963,7 @@ function startGoldenRoad() {
     if (blueEssence < 1000) { showToast("Insufficient assets for Golden Road.", "error"); return; }
     if(simIntervalId) clearTimeout(simIntervalId); 
     
-    blueEssence -= 1000; isGoldenRoad = true; tourActive = true; grStageIndex = 0; grAccruedEssence = 0; tacticalBonus = 0;
+    blueEssence -= 1000; isGoldenRoad = true; tourActive = true; grStageIndex = 0; grAccruedEssence = 0; tacticalBonus = 0; tourRound = 0;
     let stageInfo = grStages[grStageIndex];
     tourData = { name: stageInfo.name, reward1: stageInfo.r1, reward2: stageInfo.r2, maxRounds: stageInfo.rounds };
     generateRealPlayerEnemies(stageInfo.diff, stageInfo.rounds);
@@ -1594,7 +1594,7 @@ function handleTournamentWin() {
     if (isGoldenRoad) {
         grAccruedEssence += tourData.reward1; document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
         appendLog(`[STAGE CLEARED] Credited +${tourData.reward1} BE. Run Total: ${grAccruedEssence} BE`, "text-yellow-400 font-black");
-        const stageName = grStages[grStageIndex].name;
+        const stageName = tourData.name;
         if (stageName.includes('Regional Split')) trackStats.regionalSplitWon = (trackStats.regionalSplitWon || 0) + 1;
         else if (stageName === 'First Stand') trackStats.firstStandWon = (trackStats.firstStandWon || 0) + 1;
         else if (stageName === 'MSI Arena') trackStats.msiWon = (trackStats.msiWon || 0) + 1;

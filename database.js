@@ -33,11 +33,25 @@ window.playerNationalityOverrides = {
     "Caps": "🇩🇰", "Humanoid": "🇨🇿", "BrokenBlade": "🇩🇪", "Upset": "🇩🇪",
     "Jankos": "🇵🇱", "Inspired": "🇵🇱", "Flakked": "🇪🇸", "Malrang": "🇰🇷",
     "Hans sama": "🇫🇷", "Rekkles": "🇸🇪", "Perkz": "🇭🇷", "Mikyx": "🇸🇮",
-    "Wunder": "🇩🇰", "Jactroll": "🇫🇷", "xMatty": "🇫🇷", "Canna": "🇯🇵",
+    "Wunder": "🇩🇰", "Jactroll": "🇫🇷", "xMatty": "🇫🇷",
     "Nemesis": "🇸🇮", "Alphari": "🇬🇧", "Odoamne": "🇷🇴", "Hylissang": "🇧🇬",
-    "Razork": "🇪🇸", "Alvaro": "🇪🇸", "Jun": "🇰🇷", "Yike": "🇫🇷",
+    "Razork": "🇪🇸", "Alvaro": "🇪🇸", "Jun": "🇰🇷", "Yike": "🇸🇪",
     "Caliste": "🇫🇷", "Sertuss": "🇱🇹", "Patrik": "🇨🇿", "Cinkrof": "🇵🇱",
-    "Doss": "🇩🇰", "Jackies": "🇸🇪",
+    "Doss": "🇩🇰", "Jackies": "🇰🇷", "Canna": "🇰🇷",
+    // LEC 2025 — new players & corrected flags
+    "Oscarinin": "🇪🇸", "Poby": "🇰🇷", "Upset": "🇩🇪",
+    "SkewMond": "🇫🇷", "Hans Sama": "🇫🇷", "Labrov": "🇬🇷",
+    "Lot": "🇹🇷", "Isma": "🇫🇷", "Noah": "🇰🇷",
+    "Vladi": "🇬🇷", "Targamas": "🇧🇪",
+    "Myrwn": "🇪🇸", "Elyoya": "🇪🇸", "Jojopyun": "🇺🇸", "Supa": "🇪🇸",
+    "Adam": "🇫🇷", "Thayger": "🇧🇷", "Larssen": "🇩🇰", "Hans SamD": "🇰🇷", "Malrang": "🇰🇷",
+    "DnDn": "🇰🇷", "Skeanz": "🇫🇷", "Abbedagge": "🇩🇪", "Keduii": "🇩🇪", "Loopy": "🇰🇷",
+    "Rooster": "🇰🇷", "Boukada": "🇫🇷", "Nuc": "🇫🇷", "Ice": "🇰🇷", "Parus": "🇹🇷",
+    "Carlsen": "🇩🇰", "Sheo": "🇫🇷", "Kamiloo": "🇫🇷", "Stend": "🇫🇷",
+    "Naak Nako": "🇹🇷", "Lyncas": "🇻🇪", "Czajek": "🇵🇱", "Carzzy": "🇨🇿", "Fleshy": "🇹🇷",
+    // LEC 2025 head coaches
+    "GrabbZ": "🇩🇪", "Dylan Falco": "🇬🇧", "Guilhoto": "🇧🇷", "fredy122": "🇩🇪",
+    "Own3r": "🇸🇪", "Machuki": "🇪🇸",
     // LCS — notable nationalities
     "Jensen": "🇩🇰", "Bjergsen": "🇩🇰", "Bjerge": "🇩🇰",
     "Doublelift": "🇺🇸", "CoreJJ": "🇰🇷", "Faker": "🇰🇷",
@@ -63,7 +77,8 @@ window.teamLineageBridges = {
     "DRX": "DragonX", "EDG": "EDward Gaming", "RNG": "Royal Never Give Up", "KC": "Karmine Corp", 
     "MKOI": "Movistar KOI", "GX": "GIANTX", "VIT": "Team Vitality", "TH": "Team Heretics", 
     "SK": "SK Gaming", "NAVI": "Natus Vincere", "KCB": "Karmine Corp Blue", "LR": "Los Ratones",
-    "NS": "Nongshim RedForce", "DNS": "DN SOOPers", "BRO": "BRION", "BFX": "BNK FEARX", 
+    "BDS": "Shifters",
+    "NS": "Nongshim RedForce", "DNS": "DN SOOPers", "BRO": "BRION", "BFX": "BNK FEARX",
     "AL": "Anyone's Legend", "BLG": "Bilibili Gaming", "JDG": "JD Gaming", "TES": "Top Esports", 
     "WBG": "Weibo Gaming", "WE": "Team WE", "TT": "ThunderTalk Gaming", "LGD": "LGD Gaming", "OMG": "Oh My God", "UP": "Ultra Prime"
 };
@@ -134,6 +149,18 @@ const baseDatabase = [
     { id: 8052, name: "Score",      role: "COACH", team: "KT",   year: 2025, rating: 92, quality: "Diamond",  region: "LCK", stats: { mec: 30, tmf: 91, frm: 20, cmp: 92, map: 93, ldr: 95 } },
     { id: 8053, name: "Chelly",     role: "COACH", team: "NS",   year: 2025, rating: 83, quality: "Gold",     region: "LCK", stats: { mec: 20, tmf: 82, frm: 12, cmp: 83, map: 84, ldr: 84 } },
     { id: 8054, name: "kkOma",      role: "COACH", team: "T1",   year: 2025, rating: 97, quality: "Master",   region: "LCK", stats: { mec: 22, tmf: 94, frm: 15, cmp: 97, map: 98, ldr: 99 } },
+
+    // --- 2025 LEC COACHES ---
+    { id: 8065, name: "GrabbZ",     role: "COACH", team: "FNC",  year: 2025, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 22, tmf: 86, frm: 14, cmp: 88, map: 89, ldr: 90 } },
+    { id: 8066, name: "Dylan Falco",role: "COACH", team: "G2",   year: 2025, rating: 88, quality: "Platinum", region: "LEC", stats: { mec: 16, tmf: 87, frm: 13, cmp: 89, map: 91, ldr: 92 } },
+    { id: 8067, name: "Guilhoto",   role: "COACH", team: "GX",   year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 20, tmf: 82, frm: 12, cmp: 82, map: 85, ldr: 86 } },
+    { id: 8068, name: "Reha",       role: "COACH", team: "KC",   year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 20, tmf: 81, frm: 12, cmp: 81, map: 83, ldr: 84 } },
+    { id: 8069, name: "Melzhet",    role: "COACH", team: "MKOI", year: 2025, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 20, tmf: 83, frm: 11, cmp: 86, map: 87, ldr: 88 } },
+    { id: 8070, name: "fredy122",   role: "COACH", team: "NAVI", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 24, tmf: 82, frm: 15, cmp: 82, map: 84, ldr: 84 } },
+    { id: 8071, name: "Own3r",      role: "COACH", team: "SK",   year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 23, tmf: 81, frm: 14, cmp: 80, map: 83, ldr: 84 } },
+    { id: 8072, name: "Striker",    role: "COACH", team: "BDS",  year: 2025, rating: 81, quality: "Gold",     region: "LEC", stats: { mec: 21, tmf: 80, frm: 13, cmp: 80, map: 82, ldr: 83 } },
+    { id: 8073, name: "Machuki",    role: "COACH", team: "TH",   year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 20, tmf: 81, frm: 12, cmp: 81, map: 83, ldr: 84 } },
+    { id: 8074, name: "Mac",        role: "COACH", team: "VIT",  year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 20, tmf: 81, frm: 11, cmp: 80, map: 83, ldr: 84 } },
 
     // --- 2026 LCK ROSTERS ---
     { id: 1101, name: "Doran", role: "TOP", team: "T1", year: 2026, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 92, tmf: 89, frm: 91, cmp: 86, map: 85, ldr: 88 } },
@@ -462,6 +489,80 @@ const baseDatabase = [
     { id: 594, name: "Gumayusi", role: "ADC", team: "T1",    year: 2025, rating: 91, quality: "Diamond",     region: "LCK", stats: { mec: 94, tmf: 92, frm: 93, cmp: 90, map: 83, ldr: 85 } },
     { id: 595, name: "Keria",     role: "SUP", team: "T1",    year: 2025, rating: 93, quality: "Master",      region: "LCK", stats: { mec: 84, tmf: 93, frm: 22, cmp: 95, map: 96, ldr: 91 } },
     { id: 596, name: "Smash",     role: "ADC", team: "T1",    year: 2025, rating: 89, quality: "Diamond",     region: "LCK", stats: { mec: 92, tmf: 88, frm: 90, cmp: 85, map: 84, ldr: 80 } },
+
+    // ==========================================
+    // --- 1b. 2025 LEC ROSTERS ---
+    // ==========================================
+
+    // Fnatic
+    { id: 2201, name: "Oscarinin", role: "TOP", team: "FNC", year: 2025, rating: 88, quality: "Platinum",  region: "LEC", stats: { mec: 90, tmf: 87, frm: 88, cmp: 87, map: 86, ldr: 84 } },
+    { id: 2202, name: "Razork",    role: "JNG", team: "FNC", year: 2025, rating: 85, quality: "Platinum",  region: "LEC", stats: { mec: 86, tmf: 85, frm: 84, cmp: 84, map: 86, ldr: 82 } },
+    { id: 2203, name: "Poby",      role: "MID", team: "FNC", year: 2025, rating: 80, quality: "Gold",      region: "LEC", stats: { mec: 82, tmf: 79, frm: 81, cmp: 78, map: 78, ldr: 75 } },
+    { id: 2204, name: "Upset",     role: "ADC", team: "FNC", year: 2025, rating: 88, quality: "Platinum",  region: "LEC", stats: { mec: 90, tmf: 87, frm: 90, cmp: 86, map: 84, ldr: 82 } },
+    { id: 2205, name: "Mikyx",     role: "SUP", team: "FNC", year: 2025, rating: 90, quality: "Diamond",   region: "LEC", stats: { mec: 85, tmf: 90, frm: 22, cmp: 89, map: 93, ldr: 91 } },
+
+    // G2 Esports
+    { id: 2206, name: "BrokenBlade", role: "TOP", team: "G2", year: 2025, rating: 88, quality: "Platinum", region: "LEC", stats: { mec: 87, tmf: 89, frm: 88, cmp: 88, map: 85, ldr: 88 } },
+    { id: 2207, name: "SkewMond",    role: "JNG", team: "G2", year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 83, frm: 81, cmp: 80, map: 83, ldr: 78 } },
+    { id: 2208, name: "Caps",        role: "MID", team: "G2", year: 2025, rating: 94, quality: "Master",   region: "LEC", stats: { mec: 94, tmf: 95, frm: 93, cmp: 96, map: 94, ldr: 95 } },
+    { id: 2209, name: "Hans Sama",   role: "ADC", team: "G2", year: 2025, rating: 89, quality: "Diamond",  region: "LEC", stats: { mec: 91, tmf: 88, frm: 91, cmp: 87, map: 85, ldr: 84 } },
+    { id: 2210, name: "Labrov",      role: "SUP", team: "G2", year: 2025, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 80, tmf: 87, frm: 17, cmp: 86, map: 88, ldr: 85 } },
+
+    // GIANTX
+    { id: 2211, name: "Lot",     role: "TOP", team: "GX", year: 2025, rating: 80, quality: "Gold",     region: "LEC", stats: { mec: 81, tmf: 80, frm: 82, cmp: 78, map: 76, ldr: 75 } },
+    { id: 2212, name: "Isma",    role: "JNG", team: "GX", year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 82, frm: 81, cmp: 80, map: 83, ldr: 80 } },
+    { id: 2213, name: "Jackies", role: "MID", team: "GX", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 85, tmf: 82, frm: 83, cmp: 81, map: 80, ldr: 79 } },
+    { id: 2214, name: "Noah",    role: "ADC", team: "GX", year: 2025, rating: 84, quality: "Gold",     region: "LEC", stats: { mec: 86, tmf: 83, frm: 85, cmp: 82, map: 80, ldr: 79 } },
+    { id: 2215, name: "Jun",     role: "SUP", team: "GX", year: 2025, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 75, tmf: 85, frm: 22, cmp: 84, map: 88, ldr: 84 } },
+
+    // Karmine Corp
+    { id: 2216, name: "Canna",    role: "TOP", team: "KC", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 85, tmf: 81, frm: 84, cmp: 80, map: 80, ldr: 77 } },
+    { id: 2217, name: "Yike",     role: "JNG", team: "KC", year: 2025, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 87, frm: 84, cmp: 85, map: 87, ldr: 84 } },
+    { id: 2218, name: "Vladi",    role: "MID", team: "KC", year: 2025, rating: 81, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 80, frm: 82, cmp: 79, map: 79, ldr: 77 } },
+    { id: 2219, name: "Caliste",  role: "ADC", team: "KC", year: 2025, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 89, tmf: 85, frm: 88, cmp: 83, map: 81, ldr: 79 } },
+    { id: 2220, name: "Targamas", role: "SUP", team: "KC", year: 2025, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 78, tmf: 85, frm: 19, cmp: 83, map: 87, ldr: 86 } },
+
+    // Movistar KOI
+    { id: 2221, name: "Myrwn",    role: "TOP", team: "MKOI", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 86, tmf: 82, frm: 83, cmp: 81, map: 80, ldr: 78 } },
+    { id: 2222, name: "Elyoya",   role: "JNG", team: "MKOI", year: 2025, rating: 90, quality: "Diamond",  region: "LEC", stats: { mec: 87, tmf: 90, frm: 82, cmp: 91, map: 91, ldr: 93 } },
+    { id: 2223, name: "Jojopyun", role: "MID", team: "MKOI", year: 2025, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 89, tmf: 86, frm: 88, cmp: 83, map: 85, ldr: 86 } },
+    { id: 2224, name: "Supa",     role: "ADC", team: "MKOI", year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 77, ldr: 78 } },
+    { id: 2225, name: "Alvaro",   role: "SUP", team: "MKOI", year: 2025, rating: 84, quality: "Gold",     region: "LEC", stats: { mec: 74, tmf: 83, frm: 21, cmp: 84, map: 87, ldr: 85 } },
+
+    // Natus Vincere
+    { id: 2226, name: "Adam",      role: "TOP", team: "NAVI", year: 2025, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 84, tmf: 85, frm: 87, cmp: 83, map: 84, ldr: 86 } },
+    { id: 2227, name: "Thayger",   role: "JNG", team: "NAVI", year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 81, frm: 81, cmp: 80, map: 83, ldr: 79 } },
+    { id: 2228, name: "Larssen",   role: "MID", team: "NAVI", year: 2025, rating: 88, quality: "Platinum", region: "LEC", stats: { mec: 89, tmf: 87, frm: 89, cmp: 86, map: 85, ldr: 84 } },
+    { id: 2229, name: "Hans SamD", role: "ADC", team: "NAVI", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 85, tmf: 82, frm: 85, cmp: 80, map: 79, ldr: 77 } },
+    { id: 2230, name: "Malrang",   role: "SUP", team: "NAVI", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 84, tmf: 83, frm: 80, cmp: 83, map: 84, ldr: 82 } },
+
+    // SK Gaming
+    { id: 2231, name: "DnDn",      role: "TOP", team: "SK", year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 84, tmf: 81, frm: 83, cmp: 80, map: 80, ldr: 78 } },
+    { id: 2232, name: "Skeanz",    role: "JNG", team: "SK", year: 2025, rating: 80, quality: "Gold",     region: "LEC", stats: { mec: 82, tmf: 79, frm: 80, cmp: 78, map: 81, ldr: 77 } },
+    { id: 2233, name: "Abbedagge", role: "MID", team: "SK", year: 2025, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 85, frm: 87, cmp: 85, map: 83, ldr: 82 } },
+    { id: 2234, name: "Keduii",    role: "ADC", team: "SK", year: 2025, rating: 81, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 80, frm: 82, cmp: 79, map: 78, ldr: 76 } },
+    { id: 2235, name: "Loopy",     role: "SUP", team: "SK", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 77, tmf: 83, frm: 19, cmp: 82, map: 85, ldr: 84 } },
+
+    // Team BDS
+    { id: 2236, name: "Rooster", role: "TOP", team: "BDS", year: 2025, rating: 80, quality: "Gold",     region: "LEC", stats: { mec: 81, tmf: 79, frm: 82, cmp: 77, map: 76, ldr: 74 } },
+    { id: 2237, name: "Boukada", role: "JNG", team: "BDS", year: 2025, rating: 80, quality: "Gold",     region: "LEC", stats: { mec: 81, tmf: 80, frm: 78, cmp: 79, map: 81, ldr: 78 } },
+    { id: 2238, name: "Nuc",     role: "MID", team: "BDS", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 85, tmf: 82, frm: 84, cmp: 81, map: 80, ldr: 79 } },
+    { id: 2239, name: "Ice",     role: "ADC", team: "BDS", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 85, tmf: 82, frm: 84, cmp: 81, map: 80, ldr: 78 } },
+    { id: 2240, name: "Parus",   role: "SUP", team: "BDS", year: 2025, rating: 80, quality: "Gold",     region: "LEC", stats: { mec: 74, tmf: 80, frm: 19, cmp: 78, map: 82, ldr: 81 } },
+
+    // Team Heretics
+    { id: 2241, name: "Carlsen", role: "TOP", team: "TH", year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 81, frm: 83, cmp: 80, map: 79, ldr: 79 } },
+    { id: 2242, name: "Sheo",    role: "JNG", team: "TH", year: 2025, rating: 83, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 84, frm: 82, cmp: 81, map: 83, ldr: 80 } },
+    { id: 2243, name: "Kamiloo", role: "MID", team: "TH", year: 2025, rating: 79, quality: "Silver",   region: "LEC", stats: { mec: 81, tmf: 78, frm: 80, cmp: 76, map: 76, ldr: 74 } },
+    { id: 2244, name: "Flakked", role: "ADC", team: "TH", year: 2025, rating: 84, quality: "Gold",     region: "LEC", stats: { mec: 86, tmf: 83, frm: 85, cmp: 82, map: 80, ldr: 79 } },
+    { id: 2245, name: "Stend",   role: "SUP", team: "TH", year: 2025, rating: 80, quality: "Gold",     region: "LEC", stats: { mec: 72, tmf: 80, frm: 22, cmp: 78, map: 83, ldr: 81 } },
+
+    // Team Vitality
+    { id: 2246, name: "Naak Nako", role: "TOP", team: "VIT", year: 2025, rating: 81, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 80, frm: 82, cmp: 79, map: 77, ldr: 75 } },
+    { id: 2247, name: "Lyncas",    role: "JNG", team: "VIT", year: 2025, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 83, tmf: 81, frm: 80, cmp: 81, map: 84, ldr: 81 } },
+    { id: 2248, name: "Czajek",    role: "MID", team: "VIT", year: 2025, rating: 79, quality: "Silver",   region: "LEC", stats: { mec: 81, tmf: 78, frm: 80, cmp: 77, map: 76, ldr: 74 } },
+    { id: 2249, name: "Carzzy",    role: "ADC", team: "VIT", year: 2025, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 86, frm: 87, cmp: 88, map: 82, ldr: 84 } },
+    { id: 2250, name: "Fleshy",    role: "SUP", team: "VIT", year: 2025, rating: 80, quality: "Gold",     region: "LEC", stats: { mec: 74, tmf: 80, frm: 18, cmp: 78, map: 83, ldr: 82 } },
 
     // ==========================================
     // --- 2. 2024 SEASON ROSTERS (PLAYERS & COACH) ---
