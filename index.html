@@ -239,7 +239,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.2.7</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.2.8</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -498,15 +498,14 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.2.7)</h3>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.2.8)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-teal-400 font-bold">Gen.G 2025 MSI Cards</span> — First MSI pool entries added (IDs 9201–9205): Kiin 93, Canyon 95, Chovy 96, Ruler 95, Duro 87. Stats derived from MSI tournament data — Chovy leads with 776.7 DMG/M and MEC 98.</li>
-                    <li><span class="text-orange-300 font-bold">HLE 2025 First Stand Cards</span> — First First Stand pool entries added (IDs 9301–9305): Zeus 93, Peanut 92, Zeka 96, Viper 95, Delight 91. HLE won First Stand with 82.4% WR across 17 games. Zeka MVP with CP 13 and 801 DMG/M.</li>
-                    <li><span class="text-orange-400 font-bold">BLG 2026 First Stand Cards</span> — Second First Stand roster added (IDs 9306–9310): Bin 95, Xun 92, Knight 96, Viper 96, ON 90. BLG 80% WR across 15 games. Viper's 914 DMG/M and 6.34 KDA pace the carry output.</li>
-                    <li><span class="text-blue-300 font-bold">Peyz T1 2026 Buffed</span> — Rating 94 Master → 96 Grandmaster, MEC 96 → 98. Reflects exceptional 2026 season performance.</li>
-                    <li><span class="text-purple-400 font-bold">SkewMond G2 2026 Buffed</span> — Rating 85 Platinum → 91 Diamond. MEC 86 → 93, MAP 85 → 93. Reflects elite mechanical range and map orientation shown in 2026 LEC.</li>
+                    <li><span class="text-green-400 font-bold">Gaming Cafe Tournament</span> — New entry-level PVE mode added. 10 BE entry, 100 BE first place, 20 BE runner-up. Silver-tier opponents across 3 rounds. Easiest mode in the game — ideal for new rosters.</li>
+                    <li><span class="text-slate-300 font-bold">Regional Split Description Updated</span> — Now correctly reads "Silver / Platinum Level" to reflect that Platinum-tier opponents can appear in later rounds.</li>
+                    <li><span class="text-yellow-400 font-bold">Quest Trigger Fix</span> — Stage-win quests (Regional Split, First Stand, MSI, World Championship) now correctly fire when a Golden Road stage is cleared. A toast notification appears the moment a quest becomes claimable. Quest tab also refreshes live on tab switch.</li>
+                    <li><span class="text-cyan-400 font-bold">Patch Popup Fix</span> — Welcome popup was silently skipping for returning players due to a stale localStorage key tied to v0.2.3. Key updated to v0.2.7 — popup now reappears correctly on version change.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.2.6): 3 New Card Tiers (First Stand / MSI / Finalist) · Champion Pack Expanded · First Stand Pack (3,500 BE) · MSI Vault Pack (5,000 BE) · MVP Pack Rework (8,000 BE / 0.1%) · Gumayusi MVP · KT Finalist Cards · 5 Champion Rosters · Archive Overhaul · LPL 2025 Rosters · LEC 2025 Rosters · FNC 2026 ID Fix · MVP Class Redefined</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.2.7): Gen.G 2025 MSI Cards · HLE 2025 First Stand Cards · BLG 2026 First Stand Cards · Peyz T1 2026 Buffed (96 GM) · SkewMond G2 2026 Buffed (91 Diamond)</p>
             </div>
 
         </section>
@@ -715,11 +714,19 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+                    <div class="bg-slate-800 p-5 rounded-2xl border border-green-900 text-center flex flex-col justify-between shadow-lg">
+                        <div>
+                            <h3 class="text-xl font-bold text-green-400 mb-2">Gaming Cafe</h3>
+                            <p class="text-xs text-slate-400 mb-4">Silver Tier. 3 Rounds.</p>
+                            <div class="text-[11px] font-mono bg-slate-900 py-2 rounded-lg mb-4 text-slate-400 border border-slate-800">1st: 100 | 2nd: 20 BE</div>
+                        </div>
+                        <button onclick="startTournament('Gaming Cafe Tournament', 10, 100, 20, 60, 3)" class="w-full bg-green-800 hover:bg-green-700 py-3 rounded-lg font-bold cursor-pointer transition text-sm text-green-100">Enter (10 BE)</button>
+                    </div>
                     <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center flex flex-col justify-between shadow-lg">
                         <div>
                             <h3 class="text-xl font-bold text-slate-300 mb-2">Regional Split</h3>
-                            <p class="text-xs text-slate-400 mb-4">Silver / Gold Level. 3 Rounds.</p>
+                            <p class="text-xs text-slate-400 mb-4">Silver / Platinum Level. 3 Rounds.</p>
                             <div class="text-[11px] font-mono bg-slate-900 py-2 rounded-lg mb-4 text-slate-400 border border-slate-800">1st: 400 | 2nd: 100 BE</div>
                         </div>
                         <button onclick="startTournament('Regional Split', 100, 400, 100, 76, 3)" class="w-full bg-slate-700 hover:bg-slate-600 py-3 rounded-lg font-bold cursor-pointer transition text-sm">Enter (100 BE)</button>
@@ -922,7 +929,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.2.7 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.2.8 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -930,16 +937,15 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-teal-400 font-bold">Gen.G 2025 MSI Cards</span> — First MSI pool entries added (IDs 9201–9205): Kiin 93, Canyon 95, Chovy 96, Ruler 95, Duro 87. Stats derived from MSI tournament data — Chovy leads with 776 DMG/M and MEC 98.</li>
-                <li><span class="text-orange-300 font-bold">HLE 2025 First Stand Cards</span> — First First Stand pool entries added (IDs 9301–9305): Zeus 93, Peanut 92, Zeka 96, Viper 95, Delight 91. HLE won First Stand at 82.4% WR across 17 games. Zeka MVP with CP 13 and 801 DMG/M.</li>
-                <li><span class="text-orange-400 font-bold">BLG 2026 First Stand Cards</span> — Second First Stand roster added (IDs 9306–9310): Bin 95, Xun 92, Knight 96, Viper 96, ON 90. 80% WR across 15 games. Viper's 914 DMG/M and 6.34 KDA pace the carry output.</li>
-                <li><span class="text-blue-300 font-bold">Peyz T1 2026 Buffed</span> — Rating 94 Master → 96 Grandmaster, MEC 96 → 98. Reflects exceptional 2026 season performance.</li>
-                <li><span class="text-purple-400 font-bold">SkewMond G2 2026 Buffed</span> — Rating 85 Platinum → 91 Diamond. MEC 86 → 93, MAP 85 → 93. Reflects elite mechanics and map orientation shown in 2026 LEC.</li>
+                <li><span class="text-green-400 font-bold">Gaming Cafe Tournament</span> — New entry-level PVE mode. 10 BE entry, 100 BE win, Silver-tier opponents, 3 rounds. Easiest mode in the game.</li>
+                <li><span class="text-slate-300 font-bold">Regional Split Updated</span> — Description now correctly reflects Silver / Platinum opponent range.</li>
+                <li><span class="text-yellow-400 font-bold">Quest Trigger Fix</span> — Stage-win quests (Regional Split, First Stand, MSI, Worlds) now fire correctly on Golden Road clears. Toast notification appears when a quest becomes claimable. Quests tab also refreshes live on visit.</li>
+                <li><span class="text-cyan-400 font-bold">Patch Popup Fix</span> — Welcome popup was silently skipping for returning players (stale v0.2.3 key). Now reappears correctly on version change.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.2.7</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.2.8</button>
             </div>
         </div>
     </div>
