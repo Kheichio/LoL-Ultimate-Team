@@ -322,7 +322,7 @@ const baseDatabase = [
     { id: 1101, name: "Doran", role: "TOP", team: "T1", year: 2026, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 92, tmf: 89, frm: 91, cmp: 86, map: 85, ldr: 88 } },
     { id: 1102, name: "Oner", role: "JNG", team: "T1", year: 2026, rating: 93, quality: "Master", region: "LCK", stats: { mec: 95, tmf: 92, frm: 90, cmp: 91, map: 92, ldr: 89 } },
     { id: 1103, name: "Faker", role: "MID", team: "T1", year: 2026, rating: 97, quality: "Challenger", region: "LCK", stats: { mec: 92, tmf: 98, frm: 92, cmp: 99, map: 99, ldr: 99 } },
-    { id: 1104, name: "Peyz", role: "ADC", team: "T1", year: 2026, rating: 94, quality: "Master", region: "LCK", stats: { mec: 96, tmf: 95, frm: 95, cmp: 90, map: 86, ldr: 85 } },
+    { id: 1104, name: "Peyz", role: "ADC", team: "T1", year: 2026, rating: 96, quality: "Grandmaster", region: "LCK", stats: { mec: 98, tmf: 96, frm: 96, cmp: 91, map: 87, ldr: 86 } },
     { id: 1105, name: "Keria", role: "SUP", team: "T1", year: 2026, rating: 94, quality: "Master", region: "LCK", stats: { mec: 84, tmf: 94, frm: 22, cmp: 96, map: 97, ldr: 92 } },
 
     { id: 1111, name: "Kiin", role: "TOP", team: "Gen.G", year: 2026, rating: 95, quality: "Grandmaster", region: "LCK", stats: { mec: 93, tmf: 96, frm: 96, cmp: 94, map: 89, ldr: 91 } },
@@ -467,7 +467,7 @@ const baseDatabase = [
 
     // --- 2026 LEC ROSTERS ---
     { id: 1301, name: "BrokenBlade", role: "TOP", team: "G2", year: 2026, rating: 89, quality: "Diamond", region: "LEC", stats: { mec: 87, tmf: 91, frm: 88, cmp: 90, map: 86, ldr: 90 } },
-    { id: 1302, name: "SkewMond", role: "JNG", team: "G2", year: 2026, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 86, tmf: 85, frm: 84, cmp: 82, map: 85, ldr: 80 } },
+    { id: 1302, name: "SkewMond", role: "JNG", team: "G2", year: 2026, rating: 91, quality: "Diamond", region: "LEC", stats: { mec: 93, tmf: 87, frm: 85, cmp: 84, map: 93, ldr: 82 } },
     { id: 1303, name: "Caps", role: "MID", team: "G2", year: 2026, rating: 96, quality: "Grandmaster", region: "LEC", stats: { mec: 96, tmf: 97, frm: 95, cmp: 98, map: 96, ldr: 97 } },
     { id: 1304, name: "Hans Sama", role: "ADC", team: "G2", year: 2026, rating: 89, quality: "Diamond", region: "LEC", stats: { mec: 90, tmf: 88, frm: 90, cmp: 87, map: 84, ldr: 83 } },
     { id: 1305, name: "Labrov", role: "SUP", team: "G2", year: 2026, rating: 88, quality: "Platinum", region: "LEC", stats: { mec: 82, tmf: 89, frm: 18, cmp: 88, map: 90, ldr: 86 } },
@@ -984,7 +984,36 @@ const baseDatabase = [
     { id: 9106, name: "Score",   role: "COACH", team: "KT",year: 2025, rating: 88, quality: "Finalist", region: "Legacy", stats: { mec: 25, tmf: 87, frm: 13, cmp: 87, map: 89, ldr: 89 } },
 
     // ==========================================
-    // --- 5. MVP / NOTEWORTHY VETERANS ---
+    // --- 5. MSI WINNERS ---
+    // ==========================================
+
+    // Gen.G 2025 — MSI Champions
+    { id: 9201, name: "Kiin",   role: "TOP", team: "Gen.G", year: 2025, rating: 93, quality: "MSI", region: "Legacy", stats: { mec: 92, tmf: 93, frm: 94, cmp: 90, map: 87, ldr: 88 } },
+    { id: 9202, name: "Canyon", role: "JNG", team: "Gen.G", year: 2025, rating: 95, quality: "MSI", region: "Legacy", stats: { mec: 94, tmf: 95, frm: 95, cmp: 93, map: 96, ldr: 90 } },
+    { id: 9203, name: "Chovy",  role: "MID", team: "Gen.G", year: 2025, rating: 96, quality: "MSI", region: "Legacy", stats: { mec: 98, tmf: 94, frm: 97, cmp: 93, map: 91, ldr: 88 } },
+    { id: 9204, name: "Ruler",  role: "ADC", team: "Gen.G", year: 2025, rating: 95, quality: "MSI", region: "Legacy", stats: { mec: 96, tmf: 95, frm: 95, cmp: 93, map: 89, ldr: 88 } },
+    { id: 9205, name: "Duro",   role: "SUP", team: "Gen.G", year: 2025, rating: 87, quality: "MSI", region: "Legacy", stats: { mec: 80, tmf: 88, frm: 18, cmp: 87, map: 90, ldr: 85 } },
+
+    // ==========================================
+    // --- 6. FIRST STAND WINNERS ---
+    // ==========================================
+
+    // BLG 2026 — First Stand Champions (80% WR, 15G)
+    { id: 9306, name: "Bin",    role: "TOP", team: "BLG", year: 2026, rating: 95, quality: "FirstStand", region: "Legacy", stats: { mec: 97, tmf: 94, frm: 95, cmp: 93, map: 89, ldr: 90 } },
+    { id: 9307, name: "Xun",    role: "JNG", team: "BLG", year: 2026, rating: 92, quality: "FirstStand", region: "Legacy", stats: { mec: 90, tmf: 92, frm: 91, cmp: 92, map: 93, ldr: 89 } },
+    { id: 9308, name: "Knight", role: "MID", team: "BLG", year: 2026, rating: 96, quality: "FirstStand", region: "Legacy", stats: { mec: 97, tmf: 97, frm: 96, cmp: 94, map: 93, ldr: 91 } },
+    { id: 9309, name: "Viper",  role: "ADC", team: "BLG", year: 2026, rating: 96, quality: "FirstStand", region: "Legacy", stats: { mec: 98, tmf: 95, frm: 96, cmp: 93, map: 90, ldr: 88 } },
+    { id: 9310, name: "ON",     role: "SUP", team: "BLG", year: 2026, rating: 90, quality: "FirstStand", region: "Legacy", stats: { mec: 83, tmf: 91, frm: 20, cmp: 90, map: 92, ldr: 88 } },
+
+    // HLE 2025 — First Stand Champions (82.4% WR, 17G)
+    { id: 9301, name: "Zeus",    role: "TOP", team: "HLE", year: 2025, rating: 93, quality: "FirstStand", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 94, cmp: 90, map: 88, ldr: 87 } },
+    { id: 9302, name: "Peanut",  role: "JNG", team: "HLE", year: 2025, rating: 92, quality: "FirstStand", region: "Legacy", stats: { mec: 88, tmf: 93, frm: 91, cmp: 92, map: 94, ldr: 91 } },
+    { id: 9303, name: "Zeka",    role: "MID", team: "HLE", year: 2025, rating: 96, quality: "FirstStand", region: "Legacy", stats: { mec: 97, tmf: 94, frm: 96, cmp: 93, map: 91, ldr: 90 } },
+    { id: 9304, name: "Viper",   role: "ADC", team: "HLE", year: 2025, rating: 95, quality: "FirstStand", region: "Legacy", stats: { mec: 97, tmf: 94, frm: 95, cmp: 92, map: 88, ldr: 87 } },
+    { id: 9305, name: "Delight", role: "SUP", team: "HLE", year: 2025, rating: 91, quality: "FirstStand", region: "Legacy", stats: { mec: 82, tmf: 93, frm: 22, cmp: 90, map: 93, ldr: 88 } },
+
+    // ==========================================
+    // --- 7. MVP / NOTEWORTHY VETERANS ---
     // ==========================================
 
     // T1 2025 Worlds Finals MVP
