@@ -27,8 +27,9 @@ let skillPoints = 0;
 let skills = { scouting: 0, negotiation: 0, tactics: 0 };
 
 // New Systems State
-let collectionRegistry = {}; 
+let collectionRegistry = {};
 let tradeMarket = { expires: 0, offers: [] };
+let teamCompletionRewards = {};
 
 let trackStats = { 
     packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {} 
@@ -44,10 +45,10 @@ let quests = [
     { id: 'q7', desc: 'Win 10 Tournaments', target: 10, type: 'tournamentsWon', reward: 5000, claimed: false },
     { id: 'q4', desc: 'Complete the Golden Road', target: 1, type: 'goldenRoads', reward: 5000, claimed: false },
     { id: 'q8', desc: 'Complete 3 Golden Roads', target: 3, type: 'goldenRoads', reward: 15000, claimed: false },
-    // Repeatable contracts (infinite, lower reward, baseline resets on each claim)
-    { id: 'rq1', desc: 'Win a Tournament', target: 1, type: 'tournamentsWon', reward: 300, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
-    { id: 'rq2', desc: 'Open 3 Card Packs', target: 3, type: 'packs', reward: 200, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
-    { id: 'rq3', desc: 'Liquidate 5 Players', target: 5, type: 'soldCount', reward: 175, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    // Repeatable contracts (unique objectives, infinite, lower reward, baseline resets on each claim)
+    { id: 'rq1', desc: 'Pull a Challenger card', target: 1, type: 'challengerPulled', reward: 400, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq2', desc: 'Open 3 Champion Packs', target: 3, type: 'champPacksOpened', reward: 500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq3', desc: 'Liquidate 5 Grandmaster+ cards', target: 5, type: 'gmSoldCount', reward: 350, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     // Timed challenges (must accept first; repeatable after claiming or expiry)
     { id: 'tq1', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1500, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
     { id: 'tq2', desc: 'Open 10 Card Packs', target: 10, type: 'packs', reward: 1000, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
@@ -133,13 +134,13 @@ function rollTier(type) {
     }
 
     if (type === 'Supreme') {
-        // Master to Challenger range — hardest pack. Silver base, scales up to Challenger (rarest).
+        // Master to Challenger range. Adjusted: Master+ is rarer, lower tiers more common.
         if (rng > 99) return 'Challenger';
-        if (rng > 94) return 'Grandmaster';
-        if (rng > 82) return 'Master';
-        if (rng > 60) return 'Diamond';
-        if (rng > 35) return 'Platinum';
-        if (rng > 18) return 'Gold';
+        if (rng > 97) return 'Grandmaster';
+        if (rng > 91) return 'Master';
+        if (rng > 70) return 'Diamond';
+        if (rng > 44) return 'Platinum';
+        if (rng > 22) return 'Gold';
         return 'Silver';
     }
 
@@ -458,10 +459,15 @@ window.onload = () => {
     if (savedCol) collectionRegistry = JSON.parse(savedCol);
     const savedTrade = localStorage.getItem("lol_trade_v7_pro");
     if (savedTrade) tradeMarket = JSON.parse(savedTrade);
+    const savedTeamComplete = localStorage.getItem("lol_team_complete_v8");
+    if (savedTeamComplete) teamCompletionRewards = JSON.parse(savedTeamComplete);
 
     if(!trackStats.soldCount) trackStats.soldCount = 0;
     if(!trackStats.soldBE) trackStats.soldBE = 0;
     if(!trackStats.matchesPlayed) trackStats.matchesPlayed = {};
+    if(!trackStats.challengerPulled) trackStats.challengerPulled = 0;
+    if(!trackStats.champPacksOpened) trackStats.champPacksOpened = 0;
+    if(!trackStats.gmSoldCount) trackStats.gmSoldCount = 0;
 
     const savedQuests = localStorage.getItem("lol_quests_v8_pro");
     if (savedQuests) {
@@ -502,6 +508,7 @@ function saveGame() {
     localStorage.setItem("lol_new_items_v7_pro", hasNewClubItems);
     localStorage.setItem("lol_collection_v7_pro", JSON.stringify(collectionRegistry));
     localStorage.setItem("lol_trade_v7_pro", JSON.stringify(tradeMarket));
+    localStorage.setItem("lol_team_complete_v8", JSON.stringify(teamCompletionRewards));
     updateDisplays();
 }
 
@@ -792,6 +799,17 @@ function renderCollection() {
         let section = document.createElement("div"); section.className = "bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 mb-3 shadow";
         let completionText = `<span class="text-xs font-mono float-right ${group.owned === group.total ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${group.owned} / ${group.total}</span>`;
         section.innerHTML = `<h3 class="text-sm font-black text-slate-300 mb-3 border-b border-slate-700/50 pb-1.5 flex items-center justify-between"><span>${group.team} Lineages</span>${completionText}</h3>`;
+        if (group.owned === group.total && group.total >= 4) {
+            let alreadyClaimed = teamCompletionRewards[group.team]?.claimed;
+            let bonusBtn = document.createElement("button");
+            bonusBtn.className = alreadyClaimed
+                ? "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-slate-700 text-slate-500 border border-slate-600 cursor-not-allowed"
+                : "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-600/40 transition cursor-pointer";
+            bonusBtn.textContent = alreadyClaimed ? "Roster Bonus Claimed" : "Claim Roster Bonus +5000 BE";
+            bonusBtn.disabled = alreadyClaimed;
+            if (!alreadyClaimed) bonusBtn.onclick = () => claimTeamCompletion(group.team);
+            section.appendChild(bonusBtn);
+        }
         let cardContainer = document.createElement("div"); cardContainer.className = "flex overflow-x-auto gap-3 pb-2 snap-x";
         
         group.cards.forEach(c => {
@@ -806,6 +824,16 @@ function renderCollection() {
         });
         section.appendChild(cardContainer); grid.appendChild(section);
     });
+}
+
+function claimTeamCompletion(teamKey) {
+    if (teamCompletionRewards[teamKey]?.claimed) return;
+    if (!teamCompletionRewards[teamKey]) teamCompletionRewards[teamKey] = {};
+    teamCompletionRewards[teamKey].claimed = true;
+    blueEssence += 5000;
+    showToast(`Roster Complete! +5000 BE`, "success");
+    saveGame();
+    renderCollection();
 }
 
 function claimCollectionRewards() {
@@ -1002,6 +1030,7 @@ function buyPack(baseCost, type) {
     blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
     if (type === 'Champion') {
         // Guaranteed 1 Legacy Wildcard (Champion) + 4 fillers scaling Silver→Grandmaster (NO Challenger)
+        trackStats.champPacksOpened = (trackStats.champPacksOpened || 0) + 1;
         let legPool = db.filter(p => p.quality === "Champion");
         let legCard = legPool[Math.floor(Math.random() * legPool.length)];
         let p1 = {...legCard, uniqueId: Date.now() + "L1" + Math.random().toString(36).substring(2)};
@@ -1050,6 +1079,7 @@ function buyPack(baseCost, type) {
             pulled.push(cardInst); club.push(cardInst);
         }
     }
+    pulled.forEach(c => { if (c.quality === 'Challenger') trackStats.challengerPulled = (trackStats.challengerPulled || 0) + 1; });
     processNewCards(pulled); saveGame(); showPulls(pulled, `${type} Package Opened`);
 }
 
@@ -1093,7 +1123,7 @@ function renderClubGrid() {
             btn.className = "text-xs bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg w-full font-bold cursor-not-allowed shadow-md"; btn.innerText = "In Squad"; btn.disabled = true;
         } else {
             btn.className = "text-xs bg-red-950/60 text-red-300 px-3 py-1.5 rounded-lg w-full font-bold cursor-pointer transition hover:bg-red-900 shadow-md"; btn.innerHTML = `Sell (+${price})`;
-            btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
+            btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; if (['Grandmaster','Challenger'].includes(card.quality)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+1; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
         }
         wrap.appendChild(btn); grid.appendChild(wrap);
     });
@@ -1585,17 +1615,18 @@ function sellAllLowTier(tier) {
     let sold = 0; let val = 0; let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
     let toSell = club.filter(c => c.quality === tier && !activeIds.includes(c.uniqueId));
     toSell.forEach(c => { sold++; val += getSellValue(c.quality); club = club.filter(cl => cl.uniqueId !== c.uniqueId); });
-    if(sold > 0) { blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; showToast(`Purged ${sold} ${tier}s for ${val} BE!`, "success"); saveGame(); }
+    if(sold > 0) { blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (['Grandmaster','Challenger'].includes(tier)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+sold; showToast(`Purged ${sold} ${tier}s for ${val} BE!`, "success"); saveGame(); }
     else showToast(`No unassigned ${tier}s found.`, "info");
 }
 function quickSellDuplicates() {
     let sold = 0; let val = 0; let seen = new Set(); let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
     let toKeep = [];
+    let gmSold = 0;
     club.forEach(c => {
         let isAct = activeIds.includes(c.uniqueId);
-        if(!isAct && seen.has(c.id)) { sold++; val += getSellValue(c.quality); }
+        if(!isAct && seen.has(c.id)) { sold++; val += getSellValue(c.quality); if (['Grandmaster','Challenger'].includes(c.quality)) gmSold++; }
         else { seen.add(c.id); toKeep.push(c); }
     });
-    if(sold > 0) { club = toKeep; blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; showToast(`Purged ${sold} Duplicates for ${val} BE!`, "success"); saveGame(); }
+    if(sold > 0) { club = toKeep; blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (gmSold > 0) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+gmSold; showToast(`Purged ${sold} Duplicates for ${val} BE!`, "success"); saveGame(); }
     else showToast("No duplicates found.", "info");
 }
