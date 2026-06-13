@@ -97,6 +97,8 @@ function switchTab(tabId) {
         saveGame();
     }
 
+    if (tabId === 'quests') renderQuests();
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1679,6 +1681,12 @@ function handleTournamentWin() {
         else if (stageName === 'First Stand') trackStats.firstStandWon = (trackStats.firstStandWon || 0) + 1;
         else if (stageName === 'MSI Arena') trackStats.msiWon = (trackStats.msiWon || 0) + 1;
         else if (stageName === 'World Championship') trackStats.worldsWon = (trackStats.worldsWon || 0) + 1;
+        quests.filter(q => !q.repeatable && !q.timed && !q.claimed).forEach(q => {
+            if ((trackStats[q.type] || 0) >= q.target) {
+                showToast(`Quest Ready: "${q.desc}" — Claim ${q.reward} BE in Quests!`, 'success');
+            }
+        });
+        renderQuests();
         if (grStageIndex === grStages.length - 1) { blueEssence += 5000; trackStats.goldenRoads++; saveGame(); endTournament(true, true); }
         else { saveGame(); document.getElementById("btn-play-match").classList.add("hidden"); document.getElementById("btn-gr-next").classList.remove("hidden"); }
     } else { trackStats.tournamentsWon++; saveGame(); endTournament(true, false); }
