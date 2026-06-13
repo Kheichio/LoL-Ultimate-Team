@@ -366,7 +366,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_2_3', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_2_7', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -476,7 +476,7 @@ window.onload = () => {
     if(!trackStats.msiWon) trackStats.msiWon = 0;
     if(!trackStats.worldsWon) trackStats.worldsWon = 0;
 
-    const patchKey = 'lol_patch_seen_v0_2_3';
+    const patchKey = 'lol_patch_seen_v0_2_7';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
