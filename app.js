@@ -45,6 +45,10 @@ let quests = [
     { id: 'q7', desc: 'Win 10 Tournaments', target: 10, type: 'tournamentsWon', reward: 5000, claimed: false },
     { id: 'q4', desc: 'Complete the Golden Road', target: 1, type: 'goldenRoads', reward: 5000, claimed: false },
     { id: 'q8', desc: 'Complete 3 Golden Roads', target: 3, type: 'goldenRoads', reward: 15000, claimed: false },
+    { id: 'q9', desc: 'Win a Regional Split', target: 1, type: 'regionalSplitWon', reward: 3000, claimed: false },
+    { id: 'q10', desc: 'Win First Stand', target: 1, type: 'firstStandWon', reward: 2000, claimed: false },
+    { id: 'q11', desc: 'Win MSI', target: 1, type: 'msiWon', reward: 4000, claimed: false },
+    { id: 'q12', desc: 'Win the World Championship', target: 1, type: 'worldsWon', reward: 8000, claimed: false },
     // Repeatable contracts (unique objectives, infinite, lower reward, baseline resets on each claim)
     { id: 'rq1', desc: 'Pull a Challenger card', target: 1, type: 'challengerPulled', reward: 400, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     { id: 'rq2', desc: 'Open 3 Champion Packs', target: 3, type: 'champPacksOpened', reward: 500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
@@ -134,13 +138,13 @@ function rollTier(type) {
     }
 
     if (type === 'Supreme') {
-        // Master to Challenger range. Adjusted: Master+ is rarer, lower tiers more common.
-        if (rng > 99) return 'Challenger';
-        if (rng > 97) return 'Grandmaster';
-        if (rng > 91) return 'Master';
-        if (rng > 70) return 'Diamond';
-        if (rng > 44) return 'Platinum';
-        if (rng > 22) return 'Gold';
+        // Challenger 0.5%, Grandmaster 1.5%, Master 5%, Diamond 25%, Platinum 30%, Gold 22%, Silver 16%
+        if (rng > 99.5) return 'Challenger';
+        if (rng > 98)   return 'Grandmaster';
+        if (rng > 93)   return 'Master';
+        if (rng > 68)   return 'Diamond';
+        if (rng > 38)   return 'Platinum';
+        if (rng > 16)   return 'Gold';
         return 'Silver';
     }
 
@@ -253,35 +257,31 @@ function renderQuests() {
             <div class="${color} h-full transition-all duration-500" style="width:${pct}%"></div></div>`;
     }
 
+    function questCard(content, border = 'border-slate-700') {
+        return `<div class="bg-slate-800/70 p-4 rounded-xl border ${border} shadow-md">${content}</div>`;
+    }
+
     const milestoneHTML = milestones.map(q => {
         const progress = trackStats[q.type] || 0;
         const isDone = progress >= q.target;
         const pct = Math.min(100, (progress / q.target) * 100);
         const btn = q.claimed
-            ? `<button disabled class="min-w-[110px] bg-slate-800 text-slate-600 px-4 py-2 rounded-lg font-bold cursor-not-allowed text-sm">Claimed</button>`
+            ? `<button disabled class="w-full mt-2 bg-slate-700 text-slate-500 px-3 py-1.5 rounded-lg font-bold cursor-not-allowed text-xs">Claimed</button>`
             : isDone
-                ? `<button onclick="claimQuest('${q.id}')" class="min-w-[110px] bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-4 py-2 rounded-lg font-black shadow-[0_0_10px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider text-sm">Claim ${q.reward} BE</button>`
-                : `<button disabled class="min-w-[110px] bg-slate-700 text-slate-400 px-4 py-2 rounded-lg font-bold cursor-not-allowed text-sm">${progress} / ${q.target}</button>`;
-        return `<div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex justify-between items-center shadow-md gap-4">
-            <div class="flex-1 min-w-0 pr-2"><h4 class="font-bold text-slate-200">${q.desc}</h4>${bar(pct, 'bg-yellow-500')}</div>
-            <div class="shrink-0">${btn}</div></div>`;
+                ? `<button onclick="claimQuest('${q.id}')" class="w-full mt-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-3 py-1.5 rounded-lg font-black shadow-[0_0_8px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider text-xs">Claim ${q.reward} BE</button>`
+                : `<button disabled class="w-full mt-2 bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg font-bold cursor-not-allowed text-xs">${progress} / ${q.target}</button>`;
+        return questCard(`<h4 class="font-bold text-slate-200 text-sm">${q.desc}</h4>${bar(pct, 'bg-yellow-500')}${btn}`);
     }).join("");
 
     const repeatableHTML = repeatables.map(q => {
         const progress = Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0));
         const isDone = progress >= q.target;
         const pct = Math.min(100, (progress / q.target) * 100);
-        const badge = q.timesCompleted > 0 ? `<span class="text-xs text-cyan-500 font-bold ml-2">×${q.timesCompleted}</span>` : "";
+        const badge = q.timesCompleted > 0 ? ` <span class="text-[10px] text-cyan-500 font-bold">×${q.timesCompleted}</span>` : "";
         const btn = isDone
-            ? `<button onclick="claimQuest('${q.id}')" class="min-w-[110px] bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-2 rounded-lg font-black shadow-[0_0_10px_rgba(6,182,212,0.5)] cursor-pointer transition uppercase tracking-wider text-sm">Claim ${q.reward} BE</button>`
-            : `<button disabled class="min-w-[110px] bg-slate-700 text-slate-400 px-4 py-2 rounded-lg font-bold cursor-not-allowed text-sm">${progress} / ${q.target}</button>`;
-        return `<div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex justify-between items-center shadow-md gap-4">
-            <div class="flex-1 min-w-0 pr-2">
-                <h4 class="font-bold text-cyan-200">${q.desc}${badge}</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Repeatable · ${q.reward} BE each</p>
-                ${bar(pct, 'bg-cyan-500')}
-            </div>
-            <div class="shrink-0">${btn}</div></div>`;
+            ? `<button onclick="claimQuest('${q.id}')" class="w-full mt-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-3 py-1.5 rounded-lg font-black shadow-[0_0_8px_rgba(6,182,212,0.5)] cursor-pointer transition uppercase tracking-wider text-xs">Claim ${q.reward} BE</button>`
+            : `<button disabled class="w-full mt-2 bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg font-bold cursor-not-allowed text-xs">${progress} / ${q.target}</button>`;
+        return questCard(`<h4 class="font-bold text-cyan-200 text-sm">${q.desc}${badge}</h4><p class="text-[10px] text-slate-500 mt-0.5">Repeatable · ${q.reward} BE</p>${bar(pct, 'bg-cyan-500')}${btn}`, 'border-cyan-900/40');
     }).join("");
 
     const timedHTML = timedList.map(q => {
@@ -295,41 +295,38 @@ function renderQuests() {
 
         let btn, timerBadge = "";
         if (!q.accepted) {
-            btn = `<button onclick="acceptTimedQuest('${q.id}')" class="min-w-[110px] bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg font-black cursor-pointer transition uppercase tracking-wider text-sm">Accept</button>`;
+            btn = `<button onclick="acceptTimedQuest('${q.id}')" class="w-full mt-2 bg-orange-600 hover:bg-orange-500 text-white px-3 py-1.5 rounded-lg font-black cursor-pointer transition uppercase tracking-wider text-xs">Accept</button>`;
         } else if (isDone) {
-            btn = `<button onclick="claimQuest('${q.id}')" class="min-w-[110px] bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-4 py-2 rounded-lg font-black shadow-[0_0_10px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider text-sm">Claim ${q.reward} BE</button>`;
-            timerBadge = `<span class="text-xs text-emerald-400 font-bold ml-2">COMPLETE!</span>`;
+            btn = `<button onclick="claimQuest('${q.id}')" class="w-full mt-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-3 py-1.5 rounded-lg font-black shadow-[0_0_8px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider text-xs">Claim ${q.reward} BE</button>`;
+            timerBadge = `<span class="text-[10px] text-emerald-400 font-bold ml-1">DONE!</span>`;
         } else {
-            btn = `<button disabled class="min-w-[110px] bg-slate-700 text-slate-400 px-4 py-2 rounded-lg font-bold cursor-not-allowed text-sm">${progress} / ${q.target}</button>`;
-            timerBadge = `<span class="text-xs font-mono font-bold ml-2 ${expired ? 'text-red-400' : 'text-orange-300'}">${formatTimeRemaining(msLeft)}</span>`;
+            btn = `<button disabled class="w-full mt-2 bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg font-bold cursor-not-allowed text-xs">${progress} / ${q.target}</button>`;
+            timerBadge = `<span class="text-[10px] font-mono font-bold ml-1 ${expired ? 'text-red-400' : 'text-orange-300'}">${formatTimeRemaining(msLeft)}</span>`;
         }
         const borderColor = !q.accepted ? 'border-slate-700' : isDone ? 'border-emerald-700/60' : expired ? 'border-red-800/50' : 'border-orange-800/40';
         const barColor = isDone ? 'bg-emerald-500' : expired ? 'bg-red-700' : 'bg-orange-500';
-        const completedBadge = q.timesCompleted > 0 ? `<span class="text-xs text-orange-500 font-bold ml-2">×${q.timesCompleted}</span>` : "";
-        return `<div class="bg-slate-800 p-5 rounded-2xl border ${borderColor} flex justify-between items-center shadow-md gap-4">
-            <div class="flex-1 min-w-0 pr-2">
-                <div class="flex items-center flex-wrap gap-1"><h4 class="font-bold text-orange-200">${q.desc}${completedBadge}</h4>${timerBadge}</div>
-                <p class="text-xs text-slate-500 mt-0.5">Timed · ${q.timerMins || ((q.timerHours || 0) * 60)}m window · ${q.reward} BE · Repeatable</p>
-                ${q.accepted ? bar(pct, barColor) : `<div class="w-full bg-slate-900 h-2 rounded-full border border-slate-700 mt-2"><div class="bg-slate-700 h-full" style="width:100%"></div></div>`}
-            </div>
-            <div class="shrink-0">${btn}</div></div>`;
+        const completedBadge = q.timesCompleted > 0 ? ` <span class="text-[10px] text-orange-500 font-bold">×${q.timesCompleted}</span>` : "";
+        const progressBar = q.accepted ? bar(pct, barColor) : `<div class="w-full bg-slate-900 h-2 rounded-full border border-slate-700 mt-2"><div class="bg-slate-700 h-full" style="width:100%"></div></div>`;
+        return questCard(`<div class="flex items-center flex-wrap gap-1"><h4 class="font-bold text-orange-200 text-sm">${q.desc}${completedBadge}</h4>${timerBadge}</div><p class="text-[10px] text-slate-500 mt-0.5">${q.timerMins || ((q.timerHours || 0) * 60)}m · ${q.reward} BE · Repeatable</p>${progressBar}${btn}`, borderColor);
     }).join("");
 
     container.innerHTML = `
-        <div class="mb-8">
-            <h3 class="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-1">🏆 Milestone Achievements</h3>
-            <p class="text-xs text-slate-500 mb-3">One-time rewards. Claimed forever once complete.</p>
-            <div class="space-y-3">${milestoneHTML}</div>
-        </div>
-        <div class="mb-8">
-            <h3 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-1">🔄 Repeatable Contracts</h3>
-            <p class="text-xs text-slate-500 mb-3">Lower reward but infinitely repeatable. Progress baseline resets after each claim.</p>
-            <div class="space-y-3">${repeatableHTML}</div>
-        </div>
-        <div class="mb-8">
-            <h3 class="text-sm font-bold text-orange-400 uppercase tracking-wider mb-1">⏱ Timed Challenges</h3>
-            <p class="text-xs text-slate-500 mb-3">Accept to start the clock. Complete the goal before time runs out. Repeatable after claiming or expiry.</p>
-            <div class="space-y-3">${timedHTML}</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+            <div>
+                <h3 class="text-xs font-black text-cyan-400 uppercase tracking-widest mb-1 flex items-center gap-2">🔄 Repeatable Contracts</h3>
+                <p class="text-[10px] text-slate-500 mb-3">Infinite · progress resets after each claim</p>
+                <div class="space-y-3">${repeatableHTML}</div>
+            </div>
+            <div>
+                <h3 class="text-xs font-black text-yellow-400 uppercase tracking-widest mb-1">🏆 Milestone Achievements</h3>
+                <p class="text-[10px] text-slate-500 mb-3">One-time · claimed forever once complete</p>
+                <div class="space-y-3">${milestoneHTML}</div>
+            </div>
+            <div>
+                <h3 class="text-xs font-black text-orange-400 uppercase tracking-widest mb-1">⏱ Timed Challenges</h3>
+                <p class="text-[10px] text-slate-500 mb-3">Accept to start · complete before time runs out</p>
+                <div class="space-y-3">${timedHTML}</div>
+            </div>
         </div>`;
 }
 
@@ -366,6 +363,12 @@ function claimQuest(id) {
 
     saveGame();
     renderQuests();
+}
+
+function closePatchModal(dontShowAgain) {
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_2_3', '1');
+    const modal = document.getElementById('patch-modal');
+    if (modal) modal.classList.add('hidden');
 }
 
 function showToast(message, type = 'info') {
@@ -468,6 +471,16 @@ window.onload = () => {
     if(!trackStats.challengerPulled) trackStats.challengerPulled = 0;
     if(!trackStats.champPacksOpened) trackStats.champPacksOpened = 0;
     if(!trackStats.gmSoldCount) trackStats.gmSoldCount = 0;
+    if(!trackStats.regionalSplitWon) trackStats.regionalSplitWon = 0;
+    if(!trackStats.firstStandWon) trackStats.firstStandWon = 0;
+    if(!trackStats.msiWon) trackStats.msiWon = 0;
+    if(!trackStats.worldsWon) trackStats.worldsWon = 0;
+
+    const patchKey = 'lol_patch_seen_v0_2_3';
+    if (!localStorage.getItem(patchKey)) {
+        const modal = document.getElementById('patch-modal');
+        if (modal) modal.classList.remove('hidden');
+    }
 
     const savedQuests = localStorage.getItem("lol_quests_v8_pro");
     if (savedQuests) {
@@ -1038,11 +1051,10 @@ function buyPack(baseCost, type) {
         for (let i = 0; i < 4; i++) {
             let rng = (Math.random() * 100) + (skills.scouting * 2);
             let fillerTier = 'Silver';
-            if (rng > 95) fillerTier = 'Grandmaster';
-            else if (rng > 85) fillerTier = 'Master';
-            else if (rng > 70) fillerTier = 'Diamond';
-            else if (rng > 50) fillerTier = 'Platinum';
-            else if (rng > 30) fillerTier = 'Gold';
+            // Fillers capped at Diamond — Champion pack value is the wildcard itself
+            if (rng > 85) fillerTier = 'Diamond';
+            else if (rng > 60) fillerTier = 'Platinum';
+            else if (rng > 35) fillerTier = 'Gold';
             let filPool = db.filter(p => p.quality === fillerTier && p.quality !== "Champion" && p.quality !== "Challenger");
             if(filPool.length === 0) filPool = db.filter(p => p.quality === "Silver");
             let pF = filPool[Math.floor(Math.random() * filPool.length)];
@@ -1053,16 +1065,17 @@ function buyPack(baseCost, type) {
         for (let i = 0; i < 5; i++) {
             let pCard;
             let rng = (Math.random() * 100) + (skills.scouting * 2);
-            // MVP pack: 20% chance at MVP card, else scales from Platinum → Grandmaster (NO Challenger)
-            let mvpChance = 0.20 + (skills.scouting * 0.02);
+            // MVP pack: 18% chance at MVP card, filler ranges Silver → Grandmaster (nerfed, Silver now possible)
+            let mvpChance = 0.18 + (skills.scouting * 0.02);
             if (Math.random() < mvpChance) {
                 let mvpPool = db.filter(p => p.quality === "MVP");
                 pCard = mvpPool[Math.floor(Math.random() * mvpPool.length)];
             } else {
-                let fillerTier = 'Platinum';
+                let fillerTier = 'Silver';
                 if (rng > 92) fillerTier = 'Grandmaster';
-                else if (rng > 75) fillerTier = 'Master';
-                else if (rng > 50) fillerTier = 'Diamond';
+                else if (rng > 72) fillerTier = 'Diamond';
+                else if (rng > 42) fillerTier = 'Platinum';
+                else if (rng > 17) fillerTier = 'Gold';
                 let fillPool = db.filter(p => p.quality === fillerTier && p.quality !== "Champion" && p.quality !== "Challenger");
                 if (fillPool.length === 0) fillPool = db.filter(p => p.quality === "Platinum");
                 pCard = fillPool[Math.floor(Math.random() * fillPool.length)];
@@ -1581,6 +1594,11 @@ function handleTournamentWin() {
     if (isGoldenRoad) {
         grAccruedEssence += tourData.reward1; document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
         appendLog(`[STAGE CLEARED] Credited +${tourData.reward1} BE. Run Total: ${grAccruedEssence} BE`, "text-yellow-400 font-black");
+        const stageName = grStages[grStageIndex].name;
+        if (stageName.includes('Regional Split')) trackStats.regionalSplitWon = (trackStats.regionalSplitWon || 0) + 1;
+        else if (stageName === 'First Stand') trackStats.firstStandWon = (trackStats.firstStandWon || 0) + 1;
+        else if (stageName === 'MSI Arena') trackStats.msiWon = (trackStats.msiWon || 0) + 1;
+        else if (stageName === 'World Championship') trackStats.worldsWon = (trackStats.worldsWon || 0) + 1;
         if (grStageIndex === grStages.length - 1) { blueEssence += 5000; trackStats.goldenRoads++; saveGame(); endTournament(true, true); }
         else { saveGame(); document.getElementById("btn-play-match").classList.add("hidden"); document.getElementById("btn-gr-next").classList.remove("hidden"); }
     } else { trackStats.tournamentsWon++; saveGame(); endTournament(true, false); }
