@@ -42,38 +42,40 @@
         </div>
 
         <div class="flex items-center justify-center flex-wrap gap-2 flex-grow">
-            <button onclick="switchTab('store')" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Store</button>
-            <button onclick="switchTab('trade'); renderTradeMarket();" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-orange-400 whitespace-nowrap text-sm">Trade</button>
-            <button onclick="switchTab('quests'); renderQuests();" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-400 whitespace-nowrap text-sm relative">
+            <button onclick="switchTab('store')" data-tab="store" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Store</button>
+            <button onclick="switchTab('trade'); renderTradeMarket();" data-tab="trade" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-orange-400 whitespace-nowrap text-sm">Trade</button>
+            <button onclick="switchTab('quests'); renderQuests();" data-tab="quests" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-400 whitespace-nowrap text-sm relative">
                 Quests
                 <span id="badge-quests" class="absolute -top-1.5 -right-1.5 flex h-3 w-3 hidden">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                 </span>
             </button>
-            <button onclick="switchTab('guide')" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-cyan-400 whitespace-nowrap text-sm">Guide</button>
+            <button onclick="switchTab('guide')" data-tab="guide" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-cyan-400 whitespace-nowrap text-sm">Guide</button>
+            <button onclick="switchTab('welcome')" data-tab="welcome" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-green-400 whitespace-nowrap text-sm">Welcome</button>
 
             <div class="mx-4 text-center flex flex-col items-center">
                 <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black px-10 py-2.5 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] transform hover:scale-105 transition text-sm tracking-widest uppercase cursor-pointer border border-blue-400">PLAY</button>
                 <div id="debt-warning" class="text-[10px] font-mono font-bold text-red-400 mt-1 hidden animate-pulse">Debt: <span id="debt-display">0</span> BE</div>
             </div>
 
-            <button onclick="switchTab('collection'); renderCollection();" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-200 whitespace-nowrap text-sm relative">
+            <button onclick="switchTab('collection'); renderCollection();" data-tab="collection" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-200 whitespace-nowrap text-sm relative">
                 Archive
                 <span id="badge-collection" class="absolute -top-1.5 -right-1.5 flex h-3 w-3 hidden">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-400"></span>
                 </span>
             </button>
-            <button onclick="switchTab('club')" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm relative">
+            <button onclick="switchTab('club')" data-tab="club" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm relative">
                 Club
                 <span id="badge-club" class="absolute -top-1.5 -right-1.5 flex h-3 w-3 hidden">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                 </span>
             </button>
-            <button onclick="switchTab('squad')" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Squad</button>
-            <button onclick="switchTab('skills'); renderSkillsUI();" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-emerald-400 whitespace-nowrap text-sm relative">
+            <button onclick="switchTab('squad')" data-tab="squad" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Squad</button>
+            <button onclick="switchTab('upgrade')" data-tab="upgrade" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-400 whitespace-nowrap text-sm">Upgrade</button>
+            <button onclick="switchTab('skills'); renderSkillsUI();" data-tab="skills" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-emerald-400 whitespace-nowrap text-sm relative">
                 Skills
                 <span id="badge-skills" class="absolute -top-2 -right-2 hidden bg-emerald-500 text-slate-900 text-[10px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow border border-slate-900 z-10">
                   <span id="badge-skills-count">0</span>
@@ -238,8 +240,80 @@
             </div>
         </section>
 
+        <!-- WELCOME TAB -->
+        <section id="tab-welcome" class="tab-content hidden max-w-3xl mx-auto space-y-6 pb-10">
+            <!-- Hero banner -->
+            <div class="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 p-8 rounded-3xl border border-blue-700/40 shadow-xl text-center">
+                <div class="text-6xl mb-4">🎮</div>
+                <h1 class="text-4xl font-black text-blue-300 uppercase tracking-widest mb-3">LoL Ultimate Team</h1>
+                <p class="text-slate-300 text-base leading-relaxed max-w-xl mx-auto">Build your dream League of Legends roster. Open card packs, sign the best pros, and compete in tournaments — from the local Gaming Cafe all the way to the World Championship.</p>
+            </div>
+
+            <h2 class="text-lg font-black text-slate-300 uppercase tracking-widest border-b border-slate-700 pb-2">Getting Started — Your First Steps</h2>
+
+            <!-- Step 1 -->
+            <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-emerald-700/30 shadow items-start">
+                <div class="bg-emerald-600 text-white font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">1</div>
+                <div>
+                    <h3 class="font-black text-emerald-400 text-lg mb-1">Open Your Free Starter Pack</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-3">Go to the <strong class="text-white">Store</strong> tab. At the top you'll see a free Starter Pack — click it to claim your first six cards: one player per role (TOP, JNG, MID, ADC, SUP) plus a Head Coach. These form your starter lineup.</p>
+                    <button onclick="switchTab('store')" class="bg-emerald-700 hover:bg-emerald-600 text-white px-5 py-2 rounded-lg font-bold cursor-pointer transition text-sm">Open Store →</button>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-blue-700/30 shadow items-start">
+                <div class="bg-blue-600 text-white font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">2</div>
+                <div>
+                    <h3 class="font-black text-blue-400 text-lg mb-1">Build Your Starting Squad</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-3">Head to the <strong class="text-white">Squad</strong> tab and slot your starter cards into each role. You need at minimum a TOP, JNG, MID, ADC, and SUP to enter tournaments. A Coach is optional but boosts your coaching stats.</p>
+                    <button onclick="switchTab('squad')" class="bg-blue-700 hover:bg-blue-600 text-white px-5 py-2 rounded-lg font-bold cursor-pointer transition text-sm">Build Squad →</button>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-yellow-700/30 shadow items-start">
+                <div class="bg-yellow-500 text-slate-900 font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">3</div>
+                <div>
+                    <h3 class="font-black text-yellow-400 text-lg mb-1">Play the Gaming Cafe Tournament</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-3">Hit <strong class="text-white">PLAY</strong> and enter the <strong class="text-yellow-300">Gaming Cafe Tournament</strong> — the entry-level bracket and completely free to enter. Win rounds to earn <strong class="text-blue-300">Blue Essence (BE)</strong>, the currency used for everything in the game.</p>
+                    <button onclick="switchTab('tournament')" class="bg-yellow-600 hover:bg-yellow-500 text-slate-900 px-5 py-2 rounded-lg font-bold cursor-pointer transition text-sm">Go Play →</button>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-purple-700/30 shadow items-start">
+                <div class="bg-purple-600 text-white font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">4</div>
+                <div>
+                    <h3 class="font-black text-purple-400 text-lg mb-1">Open Packs &amp; Upgrade Your Roster</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-3">Spend your BE in the <strong class="text-white">Store</strong> on card packs to pull new players. Silver packs are cheapest; higher packs yield rarer cards. Better-rated cards win more matches and unlock bigger tournaments. You can also use the <strong class="text-yellow-400">Upgrade Lab</strong> — combine 10 cards of the same role and tier to forge a higher-tier card.</p>
+                    <button onclick="switchTab('store')" class="bg-purple-700 hover:bg-purple-600 text-white px-5 py-2 rounded-lg font-bold cursor-pointer transition text-sm">Open Store →</button>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-cyan-700/30 shadow items-start">
+                <div class="bg-cyan-500 text-slate-900 font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">5</div>
+                <div>
+                    <h3 class="font-black text-cyan-400 text-lg mb-1">Climb the Tournament Ladder</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">As your squad improves, unlock bigger stages: <strong class="text-white">Regional Splits → First Stand → MSI → World Championship</strong>. Take on the <strong class="text-amber-300">Golden Road</strong> gauntlet to conquer all stages in a single run for maximum rewards. Draft Mode is a unique format where you build a team from a fresh card pool and go head-to-head.</p>
+                </div>
+            </div>
+
+            <!-- Quick tips -->
+            <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-700/50">
+                <h3 class="font-black text-slate-300 mb-3 uppercase tracking-wider text-sm">Quick Tips</h3>
+                <ul class="text-slate-400 text-sm space-y-2.5 list-disc pl-5">
+                    <li>Check <strong class="text-yellow-400">Quests</strong> often — they award large chunks of BE for milestones you're already hitting.</li>
+                    <li>The <strong class="text-orange-400">Trade Market</strong> refreshes every 15 min with high-tier cards you can acquire using fodder cards.</li>
+                    <li>Your <strong class="text-blue-400">Squad</strong> cards are protected from selling and trades — only Club cards can be liquidated.</li>
+                    <li>Manage your <strong class="text-slate-300">Skills</strong> tree to unlock scouting bonuses, negotiation discounts, and tactical edges.</li>
+                </ul>
+            </div>
+        </section>
+
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.2</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.4</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -545,17 +619,19 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.2)</h3>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.4)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-cyan-400 font-bold">Draft Mode Rework</span> — Full overhaul. Role-based team assignment (TOP/JNG/MID/ADC/SUP + optional COACH flex at −10 rating). CPU difficulty now scales to your card pool avg rating. Round 1 &amp; 2 are both interactable tactical phases (MEC/TMF/MAP choice). Round 3 is a new Hybrid Finale: pick one tactical stat then one fundamentals stat, average decides.</li>
-                    <li><span class="text-yellow-400 font-bold">Upgrade Lab</span> — New system in the Club tab. Sacrifice 10 same-role + same-tier cards + BE to forge 1 card of the next tier. Silver→Gold (50 BE) through Grandmaster→Challenger (300 BE). Cannot upgrade past Challenger.</li>
-                    <li><span class="text-emerald-400 font-bold">Expanded Stat Trackers</span> — Club now displays 8 tournament-specific stats: Cafe Wins · Regional Wins · First Stand · MSI Wins · World Wins · Losses · Golden Road Wins · Draft Mode Wins.</li>
-                    <li><span class="text-purple-400 font-bold">Power Difference Display</span> — Draft combat now shows your team avg rating vs CPU avg rating with delta indicator between the two team grids.</li>
-                    <li><span class="text-orange-400 font-bold">New Quests (×5)</span> — Win Draft Mode milestones (×2), Upgrade Lab milestones (×2), Cafe Win milestone, plus 2 new repeatable contracts and 2 new timed challenges for draft and upgrades.</li>
-                    <li><span class="text-red-400 font-bold">Loss Tracker</span> — Losses are now counted and displayed in the Club stat tracker. Each tournament loss (including Golden Road losses) increments the counter.</li>
+                    <li><span class="text-cyan-400 font-bold">Draft Mode UI Overhaul</span> — Full side-by-side 3-column layout. Your team left, CPU team right, tactical panel &amp; VS in the centre. Team avg power shown inline next to each team label. Power Advantage displayed prominently in the centre column.</li>
+                    <li><span class="text-blue-400 font-bold">Draft Round Rework</span> — Round 2 now tests Fundamentals (FRM/CMP/LDR) instead of repeating tactical stats. Round 3 is a 1v1 Winning Play Moment — one random card per team duels on MEC, FRM, or CMP of your choice. CPU can now draft a Coach (60% chance).</li>
+                    <li><span class="text-amber-400 font-bold">Draft Reward Change</span> — Winner payout reduced to 2,500 BE. Runner-up reward removed — winner takes all.</li>
+                    <li><span class="text-yellow-400 font-bold">Upgrade Lab — New Tab</span> — Moved out of Club into its own dedicated Upgrade tab. Redesigned with LoL role icons, large card-count displays, and clear upgrade buttons with progress hints.</li>
+                    <li><span class="text-green-400 font-bold">Welcome Tab</span> — New onboarding page is now the default landing screen. Step-by-step guide for new players: starter pack → squad → cafe → packs → ladder.</li>
+                    <li><span class="text-purple-400 font-bold">Tab Highlight</span> — Active navigation tab now shows a glowing ring so you always know where you are in the UI.</li>
+                    <li><span class="text-pink-400 font-bold">Worlds MVP Cards (×5)</span> — Five new MVP-tier cards added: Faker [T1 2024], Zeus [T1 2023], Kingen [DRX 2022], Scout [EDG 2021], Canyon [DAMWON 2020]. Each is a stat-buffed upgrade over its Champion counterpart.</li>
+                    <li><span class="text-slate-300 font-bold">CPU Draft Pool</span> — CPU pool is now less static: roughly 9 cards near your avg, 4 in a spread range, and 2 outliers for variety.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.2.9): Coach Role Lock · Purge Below Tier · Champion Pack Rework · Scouting Rebalanced · Diamond Restyle · Tab Badge Fix</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.2.8): Gaming Cafe Tournament · Regional Split fix · Quest trigger fix · Bootcamp Medium/Hard tiers · initial Draft Mode</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.2): Draft Mode role picks · Upgrade Lab · 8 stat trackers · Hybrid Finale round 3 · CPU difficulty scaler · new quests</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.2.9): Coach Role Lock · Purge Below Tier · Champion Pack Rework · Scouting Rebalanced · Diamond Restyle · Tab Badge Fix</p>
             </div>
 
         </section>
@@ -661,28 +737,6 @@
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-cyan-900/40">
                     <span class="text-cyan-400 block font-bold uppercase mb-1" style="font-size:9px">Draft Wins</span>
                     <span class="font-mono font-bold text-cyan-300 text-base" id="stat-draft-wins">0</span>
-                </div>
-            </div>
-
-            <!-- Upgrade Lab -->
-            <div class="bg-slate-800 p-4 rounded-xl border border-yellow-700/40 mb-4 shadow-md">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="text-lg">⚗️</span>
-                        <h3 class="font-black text-yellow-400 uppercase tracking-wider text-sm">Upgrade Lab</h3>
-                    </div>
-                    <span class="text-xs text-slate-500 font-mono">10 cards of same role + tier → 1 higher tier</span>
-                </div>
-                <div class="text-xs text-slate-500 font-mono mb-3 flex flex-wrap gap-3">
-                    <span>Silver→Gold: <strong class="text-amber-400">50 BE</strong></span>
-                    <span>Gold→Plat: <strong class="text-emerald-400">100 BE</strong></span>
-                    <span>Plat→Diamond: <strong class="text-blue-400">150 BE</strong></span>
-                    <span>Diamond→Master: <strong class="text-purple-400">200 BE</strong></span>
-                    <span>Master→GM: <strong class="text-red-400">250 BE</strong></span>
-                    <span>GM→Challenger: <strong class="text-yellow-300">300 BE</strong></span>
-                </div>
-                <div id="upgrade-lab-grid" class="space-y-2">
-                    <p class="text-slate-500 text-sm text-center py-3">No upgrade candidates yet — collect 10 cards of the same role and tier to begin.</p>
                 </div>
             </div>
 
@@ -970,19 +1024,11 @@
 
             <!-- DRAFT COMBAT -->
             <div id="draft-combat" class="hidden space-y-4">
-                <!-- Header -->
+                <!-- Header (round label only) -->
                 <div class="bg-slate-800 p-4 rounded-2xl border border-cyan-700/50 flex flex-wrap justify-between items-center gap-3 shadow-sm">
                     <div>
                         <h3 class="text-xl font-black text-cyan-300 uppercase tracking-widest">Draft Mode — Round <span id="dc-round">1</span> / 3</h3>
                         <p class="text-slate-400 text-xs mt-0.5">Best of 3 rounds — win 2 to claim the prize.</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div id="dc-power-diff" class="font-mono text-sm bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700 flex items-center gap-1 flex-wrap"></div>
-                        <div class="font-mono text-sm bg-slate-900 px-4 py-2 rounded-xl border border-slate-700 flex gap-4">
-                            <span class="text-blue-400 font-black"><span id="dc-wins">0</span>W</span>
-                            <span class="text-slate-600">-</span>
-                            <span class="text-red-400 font-black"><span id="dc-losses">0</span>L</span>
-                        </div>
                     </div>
                 </div>
 
@@ -990,21 +1036,29 @@
                 <div class="flex flex-col xl:flex-row gap-5 bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-inner relative">
                     <!-- Left: Your team -->
                     <div class="flex-1 bg-slate-900/50 p-5 rounded-xl border border-blue-900/30 flex flex-col items-center">
-                        <h4 class="text-sm font-black text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <h4 id="dc-my-team-header" class="text-sm font-black text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> Your Draft Team
                         </h4>
                         <div id="dc-my-team" class="flex flex-wrap gap-3 justify-center"></div>
                     </div>
 
-                    <!-- Center: VS + round panel -->
-                    <div class="w-full xl:w-[420px] flex flex-col items-center justify-start gap-4 pt-2">
-                        <div class="text-6xl font-black italic text-slate-700">VS</div>
+                    <!-- Center: power diff + score + VS + round panel -->
+                    <div class="w-full xl:w-[420px] flex flex-col items-center justify-start gap-3 pt-2">
+                        <!-- Power difference (prominent) -->
+                        <div id="dc-power-diff" class="w-full text-center bg-slate-900/80 px-4 py-3 rounded-xl border border-slate-700 font-mono"></div>
+                        <!-- W/L score -->
+                        <div class="font-mono text-sm bg-slate-900 px-6 py-2.5 rounded-xl border border-slate-700 flex gap-5">
+                            <span class="text-blue-400 font-black text-base"><span id="dc-wins">0</span>W</span>
+                            <span class="text-slate-600 font-black">-</span>
+                            <span class="text-red-400 font-black text-base"><span id="dc-losses">0</span>L</span>
+                        </div>
+                        <div class="text-5xl font-black italic text-slate-700 my-1">VS</div>
                         <div id="dc-round-panel" class="w-full"></div>
                     </div>
 
                     <!-- Right: CPU team -->
                     <div class="flex-1 bg-slate-900/50 p-5 rounded-xl border border-red-900/30 flex flex-col items-center">
-                        <h4 class="text-sm font-black text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <h4 id="dc-cpu-team-header" class="text-sm font-black text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span> CPU Draft Team
                         </h4>
                         <div id="dc-cpu-team" class="flex flex-wrap gap-3 justify-center"></div>
@@ -1100,6 +1154,51 @@
             <div id="quests-container"></div>
         </section>
 
+        <!-- UPGRADE LAB TAB -->
+        <section id="tab-upgrade" class="tab-content hidden max-w-4xl mx-auto pb-10">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-900 to-yellow-950/30 p-7 rounded-3xl border border-yellow-700/40 mb-8 shadow-xl flex items-center gap-6">
+                <span class="text-6xl">⚗️</span>
+                <div>
+                    <h2 class="text-3xl font-black text-yellow-400 uppercase tracking-widest mb-1">Upgrade Lab</h2>
+                    <p class="text-slate-400 text-sm">Sacrifice 10 cards of the same role &amp; tier to forge 1 card of the next tier. Squad cards are always protected.</p>
+                </div>
+            </div>
+
+            <!-- Cost reference -->
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-8">
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Silver → Gold</div>
+                    <div class="text-amber-400 font-black text-lg">50 BE</div>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Gold → Plat</div>
+                    <div class="text-emerald-400 font-black text-lg">100 BE</div>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Plat → Diamond</div>
+                    <div class="text-blue-400 font-black text-lg">150 BE</div>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Diamond → Master</div>
+                    <div class="text-purple-400 font-black text-lg">200 BE</div>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Master → GM</div>
+                    <div class="text-red-400 font-black text-lg">250 BE</div>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">GM → Challenger</div>
+                    <div class="text-yellow-300 font-black text-lg">300 BE</div>
+                </div>
+            </div>
+
+            <!-- Upgrade candidates (populated by renderUpgradeLab) -->
+            <div id="upgrade-lab-grid" class="space-y-4">
+                <p class="text-slate-500 text-center py-10 text-sm">No upgrade candidates yet — collect 10 cards of the same role and tier to begin.</p>
+            </div>
+        </section>
+
         <section id="tab-skills" class="tab-content hidden max-w-5xl mx-auto pb-8">
             <div class="bg-slate-800 p-6 rounded-2xl border border-emerald-900/40 shadow-xl mb-8 flex flex-col sm:flex-row justify-between items-center gap-6">
                 <div>
@@ -1186,7 +1285,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.2 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.4 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1194,16 +1293,17 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-cyan-400 font-bold">Draft Mode Rework</span> — Role-based team assignment (TOP/JNG/MID/ADC/SUP + COACH flex). CPU difficulty scales to your pool rating. Rounds 1 &amp; 2 are interactable tactical phases. Round 3 is a new Hybrid Finale with two stat picks.</li>
-                <li><span class="text-yellow-400 font-bold">Upgrade Lab</span> — New in Club tab: sacrifice 10 same-role + same-tier cards to forge 1 card of the next tier. Silver→Challenger upgrade path unlocked.</li>
-                <li><span class="text-emerald-400 font-bold">Expanded Stat Trackers</span> — Club now tracks 8 tournament stats: Cafe, Regional, First Stand, MSI, Worlds, Losses, Golden Road, and Draft Mode wins.</li>
-                <li><span class="text-purple-400 font-bold">Power Difference</span> — Draft combat header now shows your team avg rating vs CPU avg with a delta indicator.</li>
-                <li><span class="text-orange-400 font-bold">5 New Quests</span> — Draft Mode wins (milestone ×2), Upgrade Lab milestones (×2), Cafe wins milestone, plus new repeatables and timed challenges.</li>
+                <li><span class="text-cyan-400 font-bold">Draft UI Overhaul</span> — New 3-column layout: your team left, CPU right, tactical panel in the centre. Team avg power shown next to each team name. Power Advantage displayed in the centre.</li>
+                <li><span class="text-blue-400 font-bold">Draft Round Rework</span> — Round 2 now uses Fundamentals (FRM/CMP/LDR). Round 3 is a 1v1 Winning Play Moment — one card per team, pick your best stat. Winner-takes-all reward (2,500 BE).</li>
+                <li><span class="text-yellow-400 font-bold">Upgrade Lab — Own Tab</span> — Moved to a dedicated Upgrade tab with bigger icons, role images, and clear upgrade progress indicators.</li>
+                <li><span class="text-green-400 font-bold">Welcome Tab</span> — New player onboarding screen is now the default landing page with a step-by-step getting started guide.</li>
+                <li><span class="text-pink-400 font-bold">Worlds MVP Cards</span> — 5 new MVP-tier cards: Faker [2024], Zeus [2023], Kingen [2022], Scout [2021], Canyon [2020]. Buffed stats over their Champion versions.</li>
+                <li><span class="text-purple-400 font-bold">Tab Highlight</span> — Active nav tab now glows so you always know where you are.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.2</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.4</button>
             </div>
         </div>
     </div>

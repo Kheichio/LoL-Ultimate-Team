@@ -1018,6 +1018,18 @@ const baseDatabase = [
 
     // T1 2025 Worlds Finals MVP
     { id: 9501, name: "Gumayusi", role: "ADC", team: "T1", year: 2025, rating: 97, quality: "MVP", region: "Legacy", stats: { mec: 99, tmf: 96, frm: 98, cmp: 94, map: 88, ldr: 89 } },
+
+    // Worlds MVP cards — one per year (2020-2024)
+    // Faker — Worlds 2024 MVP (T1, 4-peat)
+    { id: 9502, name: "Faker", role: "MID", team: "T1", year: 2024, rating: 99, quality: "MVP", region: "Legacy", stats: { mec: 99, tmf: 100, frm: 99, cmp: 100, map: 100, ldr: 100 } },
+    // Zeus — Worlds 2023 MVP (T1, 3-peat)
+    { id: 9503, name: "Zeus", role: "TOP", team: "T1", year: 2023, rating: 97, quality: "MVP", region: "Legacy", stats: { mec: 97, tmf: 96, frm: 97, cmp: 94, map: 93, ldr: 95 } },
+    // Kingen — Worlds 2022 MVP (DRX)
+    { id: 9504, name: "Kingen", role: "TOP", team: "DRX", year: 2022, rating: 96, quality: "MVP", region: "Legacy", stats: { mec: 97, tmf: 96, frm: 94, cmp: 94, map: 93, ldr: 93 } },
+    // Scout — Worlds 2021 MVP (EDG)
+    { id: 9505, name: "Scout", role: "MID", team: "EDG", year: 2021, rating: 97, quality: "MVP", region: "Legacy", stats: { mec: 98, tmf: 97, frm: 98, cmp: 96, map: 97, ldr: 96 } },
+    // Canyon — Worlds 2020 MVP (DAMWON Gaming)
+    { id: 9506, name: "Canyon", role: "JNG", team: "DAMWON", year: 2020, rating: 99, quality: "MVP", region: "Legacy", stats: { mec: 100, tmf: 99, frm: 100, cmp: 98, map: 100, ldr: 97 } },
 ];
 
 window.playerDatabase = baseDatabase.map(p => {

@@ -119,6 +119,13 @@ function switchTab(tabId) {
     const target = document.getElementById('tab-' + tabId);
     if(target) target.classList.remove('hidden');
 
+    // Highlight active nav button
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('nav-active');
+    });
+    const activeBtn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+    if (activeBtn) activeBtn.classList.add('nav-active');
+
     // Clear notification badges when visiting their tabs
     if (tabId === 'club') {
         hasNewClubItems = false;
@@ -126,6 +133,7 @@ function switchTab(tabId) {
     }
 
     if (tabId === 'quests') renderQuests();
+    if (tabId === 'upgrade') renderUpgradeLab();
 
     updateBadges();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -397,7 +405,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_3_2', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_3_4', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -512,7 +520,7 @@ window.onload = () => {
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_3_2';
+    const patchKey = 'lol_patch_seen_v0_3_4';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -542,6 +550,7 @@ window.onload = () => {
     checkAndRecoverTrainingTimer();
     startTradeMarketTimer();
     startTimedQuestTimer();
+    switchTab('welcome');
 };
 
 function saveGame() {
@@ -2133,12 +2142,16 @@ function showDraftCombat() {
         cpuTeamEl.appendChild(wrapper);
     });
 
-    // Power difference display
+    // Power display: avg rating in team headers, diff in center
     const myPwr = draftTeamAvgRating(draftPickRoles);
     const cpuPwr = draftTeamAvgRating(draftCpuTeam);
     const diff = myPwr - cpuPwr;
+    const myHdr = document.getElementById('dc-my-team-header');
+    if (myHdr) myHdr.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1"></span> Your Draft Team <span class="ml-2 text-blue-200 font-mono text-base font-black bg-blue-900/50 px-2 py-0.5 rounded-lg border border-blue-700/50">${myPwr}</span>`;
+    const cpuHdr = document.getElementById('dc-cpu-team-header');
+    if (cpuHdr) cpuHdr.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span> CPU Draft Team <span class="ml-2 text-red-200 font-mono text-base font-black bg-red-900/50 px-2 py-0.5 rounded-lg border border-red-700/50">${cpuPwr}</span>`;
     const pwrEl = document.getElementById('dc-power-diff');
-    if (pwrEl) pwrEl.innerHTML = `<span class="text-blue-400">Your Avg: <strong class="text-blue-300">${myPwr}</strong></span> <span class="text-slate-500 mx-3">vs</span> <span class="text-red-400">CPU Avg: <strong class="text-red-300">${cpuPwr}</strong></span> <span class="ml-4 font-black text-lg ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-slate-400'}">${diff > 0 ? '+' : ''}${diff} ${diff > 0 ? '↑' : diff < 0 ? '↓' : '—'}</span>`;
+    if (pwrEl) pwrEl.innerHTML = `<span class="text-[10px] text-slate-500 uppercase tracking-widest block mb-1">Power Advantage</span><span class="font-black text-3xl ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-slate-400'}">${diff > 0 ? '+' : ''}${diff}</span>`;
 
     setupDraftRound(0);
 }
@@ -2297,7 +2310,7 @@ function processDraftRoundResult(won) {
 
 function endDraftMode() {
     const won = draftMatchWins >= 2;
-    const reward = won ? 5000 : (draftMatchWins >= 1 ? 1500 : 0);
+    const reward = won ? 2500 : 0;
     blueEssence += reward;
     trackStats.draftModesPlayed = (trackStats.draftModesPlayed || 0) + 1;
     if (won) trackStats.draftModesWon = (trackStats.draftModesWon || 0) + 1;
@@ -2317,7 +2330,7 @@ function endDraftMode() {
         icon.innerText = '🏆'; desc.innerText = `Dominant draft performance! Final score ${draftMatchWins} - ${draftMatchLosses}. Awarded ${reward.toLocaleString()} BE.`;
     } else if (draftMatchWins >= 1) {
         title.innerText = 'Draft Runner-Up'; title.className = 'text-3xl font-bold mb-2 text-amber-400';
-        icon.innerText = '🥈'; desc.innerText = `Close match — final score ${draftMatchWins} - ${draftMatchLosses}. Runner-up payout: ${reward.toLocaleString()} BE.`;
+        icon.innerText = '🥈'; desc.innerText = `Close match — final score ${draftMatchWins} - ${draftMatchLosses}. No payout — only the winner takes the prize.`;
     } else {
         title.innerText = 'Draft Eliminated'; title.className = 'text-3xl font-bold mb-2 text-red-500';
         icon.innerText = '💀'; desc.innerText = `Swept ${draftMatchWins} - ${draftMatchLosses}. No payout. Review your picks and bans.`;
@@ -2383,12 +2396,15 @@ function upgradeCards(role, fromTier) {
     );
 }
 
+const ROLE_ICONS = { TOP: 'icons/Top_icon.png', JNG: 'icons/Jungle_icon.png', MID: 'icons/Middle_icon.png', ADC: 'icons/Bottom_icon.png', SUP: 'icons/Support_icon.png' };
+const TIER_COLORS = { Silver: 'text-slate-300', Gold: 'text-amber-400', Platinum: 'text-emerald-400', Diamond: 'text-blue-400', Master: 'text-purple-400', Grandmaster: 'text-red-400', Challenger: 'text-yellow-300' };
+
 function renderUpgradeLab() {
     const container = document.getElementById('upgrade-lab-grid');
     if (!container) return;
     const activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
     const ROLES = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
-    const TIERS = UPGRADE_TIER_ORDER.slice(0, -1); // Silver → Grandmaster (not Challenger as source)
+    const TIERS = UPGRADE_TIER_ORDER.slice(0, -1);
     container.innerHTML = '';
     let hasAny = false;
     TIERS.forEach(fromTier => {
@@ -2399,25 +2415,39 @@ function renderUpgradeLab() {
             if (count === 0) return;
             hasAny = true;
             const canUpgrade = count >= 10 && blueEssence >= cost;
+            const notEnoughCards = count < 10;
+            const notEnoughBE = count >= 10 && blueEssence < cost;
+            const btnLabel = canUpgrade ? 'Upgrade ⚡' : notEnoughCards ? `Need ${10 - count} more` : `Need ${cost - blueEssence} BE`;
             const row = document.createElement('div');
-            row.className = `flex items-center justify-between gap-3 p-3 rounded-xl border text-sm ${canUpgrade ? 'border-green-700/50 bg-green-950/20' : 'border-slate-700/40 bg-slate-900/20'}`;
+            row.className = `flex items-center justify-between gap-4 p-5 rounded-2xl border transition ${canUpgrade ? 'border-green-700/60 bg-green-950/20 shadow-lg shadow-green-950/20' : 'border-slate-700/50 bg-slate-900/30'}`;
             row.innerHTML = `
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="font-black text-xs uppercase tracking-wider text-slate-300 w-8">${role}</span>
-                    <span class="font-bold text-xs text-slate-400">${fromTier}</span>
-                    <span class="text-slate-600 text-xs">→</span>
-                    <span class="font-black text-xs text-yellow-400">${toTier}</span>
+                <div class="flex items-center gap-4">
+                    ${ROLE_ICONS[role] ? `<img src="${ROLE_ICONS[role]}" alt="${role}" class="w-10 h-10 object-contain opacity-90">` : '<span class="text-4xl">🃏</span>'}
+                    <div>
+                        <div class="text-xl font-black text-slate-100 uppercase tracking-wide">${role}</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-sm font-bold ${TIER_COLORS[fromTier] || 'text-slate-400'}">${fromTier}</span>
+                            <span class="text-slate-600 font-black">→</span>
+                            <span class="text-sm font-black ${TIER_COLORS[toTier] || 'text-yellow-400'}">${toTier}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <span class="font-mono text-xs ${count >= 10 ? 'text-green-400 font-black' : 'text-slate-400'}">${count}<span class="text-slate-600">/10</span></span>
-                    <span class="text-xs text-amber-400 font-bold">${cost} BE</span>
-                    <button onclick="upgradeCards('${role}','${fromTier}')" ${canUpgrade ? '' : 'disabled'} class="${canUpgrade ? 'bg-green-600 hover:bg-green-500 cursor-pointer text-white' : 'bg-slate-700 cursor-not-allowed text-slate-500'} px-3 py-1.5 rounded-lg font-black text-xs transition uppercase tracking-wide">Upgrade</button>
+                <div class="flex items-center gap-6 flex-wrap justify-end">
+                    <div class="text-center min-w-[56px]">
+                        <div class="text-3xl font-black font-mono ${count >= 10 ? 'text-green-400' : 'text-slate-400'}">${count}<span class="text-slate-600 text-xl">/10</span></div>
+                        <div class="text-[10px] text-slate-500 uppercase font-bold">cards</div>
+                    </div>
+                    <div class="text-center min-w-[60px]">
+                        <div class="text-2xl font-black text-amber-400">${cost}</div>
+                        <div class="text-[10px] text-slate-500 uppercase font-bold">BE cost</div>
+                    </div>
+                    <button onclick="upgradeCards('${role}','${fromTier}')" ${canUpgrade ? '' : 'disabled'} class="${canUpgrade ? 'bg-green-600 hover:bg-green-500 cursor-pointer text-white shadow-lg shadow-green-900/30' : 'bg-slate-700 cursor-not-allowed text-slate-500'} px-6 py-3 rounded-xl font-black text-sm transition uppercase tracking-wide min-w-[130px] text-center">${btnLabel}</button>
                 </div>`;
             container.appendChild(row);
         });
     });
     if (!hasAny) {
-        container.innerHTML = `<p class="text-slate-500 text-sm text-center py-3">No upgrade candidates yet — collect 10 cards of the same role and tier to begin.</p>`;
+        container.innerHTML = `<div class="text-center py-14"><div class="text-5xl mb-4">⚗️</div><p class="text-slate-500 text-base">No upgrade candidates yet.</p><p class="text-slate-600 text-sm mt-2">Collect 10 unassigned cards of the same role &amp; tier to unlock an upgrade.</p></div>`;
     }
 }
 
