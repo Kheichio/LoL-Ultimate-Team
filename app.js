@@ -66,10 +66,9 @@ let quests = [
     { id: 'q16', desc: 'Perform your first card Upgrade', target: 1, type: 'upgradesPerformed', reward: 1000, claimed: false },
     { id: 'q17', desc: 'Perform 10 card Upgrades', target: 10, type: 'upgradesPerformed', reward: 5000, claimed: false },
     // New repeatable quests (0.3.2)
-    { id: 'rq4', desc: 'Win a Draft Mode', target: 1, type: 'draftModesWon', reward: 2000, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     { id: 'rq5', desc: 'Perform 3 card Upgrades', target: 3, type: 'upgradesPerformed', reward: 1500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     // New timed quests (0.3.2)
-    { id: 'tq4', desc: 'Win 2 Draft Modes', target: 2, type: 'draftModesWon', reward: 4000, timed: true, timerMins: 30, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq4', desc: 'Win 5 Draft Modes', target: 5, type: 'draftModesWon', reward: 4000, timed: true, timerMins: 30, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
     { id: 'tq5', desc: 'Perform 3 Upgrades', target: 3, type: 'upgradesPerformed', reward: 2500, timed: true, timerMins: 15, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 }
 ];
 
@@ -104,10 +103,11 @@ let draftCpuBanIds = [];    // IDs CPU bans from user pool (max 5)
 let draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
 let draftActivePickRole = null; // currently selected role slot in pick UI
 let draftCpuTeam = {};      // { TOP: card, JNG: card, ... }
-let draftMatchRound = 0;    // 0=tactical, 1=tactical, 2=hybrid
+let draftMatchRound = 0;    // 0=tactical(MEC/TMF/MAP), 1=fundamentals(FRM/CMP/LDR), 2=1v1
 let draftMatchWins = 0;
 let draftMatchLosses = 0;
-let draftHybridScore1 = null; // stores phase-1 stat value for hybrid round
+let draftHybridScore1 = null;
+let draft1v1Cards = { my: null, cpu: null };
 let marketTimerInterval = null;
 let timedQuestInterval = null;
 let activeSlot = "TOP";
@@ -1811,7 +1811,7 @@ function emergencyResetSim() {
     document.getElementById("pre-match-stats").classList.add("hidden");
     tourActive = false; isGoldenRoad = false; draftModeActive = false;
     draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
-    draftActivePickRole = null; draftCpuTeam = {}; draftHybridScore1 = null;
+    draftActivePickRole = null; draftCpuTeam = {}; draftHybridScore1 = null; draft1v1Cards = { my: null, cpu: null };
     ['tournament-active','tournament-results','draft-screen','draft-combat'].forEach(id => {
         const el = document.getElementById(id); if(el) el.classList.add('hidden');
     });
@@ -1904,14 +1904,20 @@ function setupDraftPools() {
     const shuffledClub = [...club].sort(() => Math.random() - 0.5);
     draftUserPool = shuffledClub.slice(0, 15);
 
-    // Difficulty scaling: CPU pool matches user pool average rating
+    // Difficulty scaling: mostly near user avg, with some spread for variety
     const userAvg = Math.round(draftUserPool.reduce((s, c) => s + c.rating, 0) / draftUserPool.length);
-    const cpuTarget = userAvg + 2; // slight CPU edge
+    const cpuTarget = userAvg + 2;
     const db = getDB().filter(p => p.role !== 'COACH');
-    const sorted = [...db].sort((a, b) => Math.abs(a.rating - cpuTarget) - Math.abs(b.rating - cpuTarget));
-    draftCpuPool = sorted.slice(0, Math.min(60, sorted.length))
-        .sort(() => Math.random() - 0.5).slice(0, 15)
-        .map((p, i) => ({ ...p, uniqueId: 'dcpu_' + i + '_' + Date.now() }));
+    const shuffled = [...db].sort(() => Math.random() - 0.5);
+    const near = shuffled.filter(p => Math.abs(p.rating - cpuTarget) <= 5);
+    const spread = shuffled.filter(p => Math.abs(p.rating - cpuTarget) > 5 && Math.abs(p.rating - cpuTarget) <= 12);
+    const outer = shuffled.filter(p => Math.abs(p.rating - cpuTarget) > 12);
+    const pool = [...near.slice(0, 9), ...spread.slice(0, 4), ...outer.slice(0, 2)];
+    if (pool.length < 15) {
+        const inPool = new Set(pool.map(p => p.name));
+        pool.push(...shuffled.filter(p => !inPool.has(p.name)).slice(0, 15 - pool.length));
+    }
+    draftCpuPool = pool.slice(0, 15).map((p, i) => ({ ...p, uniqueId: 'dcpu_' + i + '_' + Date.now() }));
 
     draftUserBanIds = [];
     draftCpuBanIds = [];
@@ -2082,6 +2088,14 @@ function confirmDraftTeam() {
         const pick = byRole[0] || fallback[0];
         if (pick) { draftCpuTeam[role] = pick; usedIds.add(pick.uniqueId); }
     });
+    // CPU optionally picks a coach (60% chance)
+    if (Math.random() > 0.4) {
+        const allCoaches = getDB().filter(p => p.role === 'COACH');
+        if (allCoaches.length > 0) {
+            const coach = allCoaches[Math.floor(Math.random() * allCoaches.length)];
+            draftCpuTeam['COACH'] = { ...coach, uniqueId: 'dcpu_coach_' + Date.now() };
+        }
+    }
     showToast("Teams locked in! Starting the match...", 'success');
     setTimeout(() => showDraftCombat(), 700);
 }
@@ -2106,10 +2120,10 @@ function showDraftCombat() {
         myTeamEl.appendChild(wrapper);
     });
 
-    // Render CPU team
+    // Render CPU team (including coach if picked)
     const cpuTeamEl = document.getElementById('dc-cpu-team');
     cpuTeamEl.innerHTML = '';
-    ['TOP','JNG','MID','ADC','SUP'].forEach(role => {
+    ['TOP','JNG','MID','ADC','SUP','COACH'].forEach(role => {
         const card = draftCpuTeam[role];
         if (!card) return;
         const wrapper = document.createElement('div');
@@ -2136,16 +2150,18 @@ function setupDraftRound(roundIdx) {
     document.getElementById('dc-losses').innerText = draftMatchLosses;
     document.getElementById('dc-log').innerHTML = '';
     draftHybridScore1 = null;
+    draft1v1Cards = { my: null, cpu: null };
 
     const S = (team, s) => draftAvgStat(team, s);
     const myT = draftPickRoles, cpuT = draftCpuTeam;
 
-    if (roundIdx === 0 || roundIdx === 1) {
+    if (roundIdx === 0) {
+        // Round 1: Tactical — MEC / TMF / MAP
         const myMEC = S(myT,'mec'), myTMF = S(myT,'tmf'), myMAP = S(myT,'map');
         const cpuMEC = S(cpuT,'mec'), cpuTMF = S(cpuT,'tmf'), cpuMAP = S(cpuT,'map');
         document.getElementById('dc-round-panel').innerHTML = `
             <div class="bg-slate-800 p-6 rounded-2xl border border-purple-500/50 shadow-xl">
-                <h4 class="text-lg font-black text-purple-400 mb-1 uppercase tracking-widest text-center">Round ${roundIdx + 1} — Tactical Phase</h4>
+                <h4 class="text-lg font-black text-purple-400 mb-1 uppercase tracking-widest text-center">Round 1 — Tactical Phase</h4>
                 <p class="text-xs text-slate-400 text-center mb-4">Choose your strategic focus. Pick the stat where you have the biggest edge.</p>
                 <div class="grid grid-cols-3 gap-3 mb-5 text-center font-mono">
                     <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">MEC</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMEC}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMEC}</span></div></div>
@@ -2158,43 +2174,28 @@ function setupDraftRound(roundIdx) {
                     <button onclick="resolveDraftTactical('map')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Objective Focus (MAP)</button>
                 </div>
             </div>`;
-    } else {
-        // Round 3: Hybrid finale — two-stage pick
-        const myMEC = S(myT,'mec'), myTMF = S(myT,'tmf'), myMAP = S(myT,'map');
-        const cpuMEC = S(cpuT,'mec'), cpuTMF = S(cpuT,'tmf'), cpuMAP = S(cpuT,'map');
+    } else if (roundIdx === 1) {
+        // Round 2: Fundamentals — FRM / CMP / LDR
         const myFRM = S(myT,'frm'), myCMP = S(myT,'cmp'), myLDR = S(myT,'ldr');
         const cpuFRM = S(cpuT,'frm'), cpuCMP = S(cpuT,'cmp'), cpuLDR = S(cpuT,'ldr');
         document.getElementById('dc-round-panel').innerHTML = `
-            <div class="bg-slate-800 p-6 rounded-2xl border border-amber-500/50 shadow-xl">
-                <h4 class="text-lg font-black text-amber-400 mb-1 uppercase tracking-widest text-center">Round 3 — Hybrid Finale</h4>
-                <p class="text-xs text-slate-400 text-center mb-5">Two-phase decider. First pick a tactical stat (MEC/TMF/MAP), then a fundamentals stat (FRM/CMP/LDR). Average of both decides the winner.</p>
-                <div id="dc-hybrid-phase1">
-                    <p class="text-[10px] text-amber-400 font-black uppercase tracking-widest text-center mb-2">Phase 1 — Tactical Stat</p>
-                    <div class="grid grid-cols-3 gap-3 mb-4 text-center font-mono">
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">MEC</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMEC}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMEC}</span></div></div>
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">TMF</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myTMF}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuTMF}</span></div></div>
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">MAP</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMAP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMAP}</span></div></div>
-                    </div>
-                    <div class="flex flex-col gap-2 mb-4">
-                        <button onclick="resolveHybridPhase1('mec')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Aggression (MEC)</button>
-                        <button onclick="resolveHybridPhase1('tmf')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Teamfight (TMF)</button>
-                        <button onclick="resolveHybridPhase1('map')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Objective (MAP)</button>
-                    </div>
+            <div class="bg-slate-800 p-6 rounded-2xl border border-blue-500/50 shadow-xl">
+                <h4 class="text-lg font-black text-blue-400 mb-1 uppercase tracking-widest text-center">Round 2 — Fundamentals Phase</h4>
+                <p class="text-xs text-slate-400 text-center mb-4">Assess your team's core fundamentals. Pick the stat where you have the edge.</p>
+                <div class="grid grid-cols-3 gap-3 mb-5 text-center font-mono">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">FRM</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myFRM}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuFRM}</span></div></div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">CMP</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myCMP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuCMP}</span></div></div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">LDR</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myLDR}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuLDR}</span></div></div>
                 </div>
-                <div id="dc-hybrid-phase2" class="hidden">
-                    <p class="text-[10px] text-amber-400 font-black uppercase tracking-widest text-center mb-2">Phase 2 — Fundamentals Stat</p>
-                    <div class="grid grid-cols-3 gap-3 mb-4 text-center font-mono">
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">FRM</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myFRM}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuFRM}</span></div></div>
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">CMP</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myCMP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuCMP}</span></div></div>
-                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">LDR</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myLDR}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuLDR}</span></div></div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <button onclick="resolveHybridPhase2('frm')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Form (FRM)</button>
-                        <button onclick="resolveHybridPhase2('cmp')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Composure (CMP)</button>
-                        <button onclick="resolveHybridPhase2('ldr')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Leadership (LDR)</button>
-                    </div>
+                <div class="flex flex-col gap-2.5">
+                    <button onclick="resolveDraftTactical('frm')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Form Focus (FRM)</button>
+                    <button onclick="resolveDraftTactical('cmp')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Composure Focus (CMP)</button>
+                    <button onclick="resolveDraftTactical('ldr')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Leadership Focus (LDR)</button>
                 </div>
             </div>`;
+    } else {
+        // Round 3: Winning Play Moment — 1v1 individual card duel
+        setup1v1Round();
     }
 }
 
@@ -2205,29 +2206,51 @@ function appendDraftLog(msg, cls) {
     log.scrollTop = log.scrollHeight;
 }
 
-function resolveHybridPhase1(stat) {
-    const myVal = draftAvgStat(draftPickRoles, stat);
-    const cpuVal = draftAvgStat(draftCpuTeam, stat);
-    draftHybridScore1 = { myVal, cpuVal, stat };
-    document.querySelectorAll('#dc-hybrid-phase1 button').forEach(b => b.disabled = true);
-    appendDraftLog(`[HYBRID P1] ${stat.toUpperCase()} — You: ${myVal} | CPU: ${cpuVal}`, 'text-amber-400 font-bold');
-    setTimeout(() => { document.getElementById('dc-hybrid-phase2').classList.remove('hidden'); }, 400);
+function setup1v1Round() {
+    // Pick a random non-coach card from each team
+    const myCards = Object.entries(draftPickRoles).filter(([r, c]) => c && r !== 'COACH').map(([, c]) => c);
+    const cpuCards = Object.entries(draftCpuTeam).filter(([r, c]) => c && r !== 'COACH').map(([, c]) => c);
+    draft1v1Cards.my = myCards[Math.floor(Math.random() * myCards.length)];
+    draft1v1Cards.cpu = cpuCards[Math.floor(Math.random() * cpuCards.length)];
+    const mc = draft1v1Cards.my, cc = draft1v1Cards.cpu;
+    if (!mc || !cc) return;
+    document.getElementById('dc-round-panel').innerHTML = `
+        <div class="bg-slate-800 p-6 rounded-2xl border border-amber-500/50 shadow-xl">
+            <h4 class="text-lg font-black text-amber-400 mb-1 uppercase tracking-widest text-center">Round 3 — Winning Play Moment</h4>
+            <p class="text-xs text-slate-400 text-center mb-5">1v1 showdown! Pick your player's best stat — MEC, FRM, or CMP — to outperform the CPU's card.</p>
+            <div class="flex items-center justify-center gap-6 mb-5">
+                <div class="text-center">
+                    <p class="text-blue-300 font-black text-sm mb-1">${mc.name}</p>
+                    <p class="text-slate-400 text-xs">MEC <strong class="text-blue-300">${mc.stats.mec}</strong> · FRM <strong class="text-blue-300">${mc.stats.frm}</strong> · CMP <strong class="text-blue-300">${mc.stats.cmp}</strong></p>
+                </div>
+                <div class="text-3xl font-black italic text-slate-600">vs</div>
+                <div class="text-center">
+                    <p class="text-red-300 font-black text-sm mb-1">${cc.name}</p>
+                    <p class="text-slate-400 text-xs">MEC <strong class="text-red-300">${cc.stats.mec}</strong> · FRM <strong class="text-red-300">${cc.stats.frm}</strong> · CMP <strong class="text-red-300">${cc.stats.cmp}</strong></p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2.5">
+                <button onclick="resolveDraft1v1('mec')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Mechanical Skill (MEC) — ${mc.stats.mec} vs ${cc.stats.mec}</button>
+                <button onclick="resolveDraft1v1('frm')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Form (FRM) — ${mc.stats.frm} vs ${cc.stats.frm}</button>
+                <button onclick="resolveDraft1v1('cmp')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Composure (CMP) — ${mc.stats.cmp} vs ${cc.stats.cmp}</button>
+            </div>
+        </div>`;
 }
 
-function resolveHybridPhase2(stat) {
-    if (!draftHybridScore1) return;
-    const myVal2 = draftAvgStat(draftPickRoles, stat);
-    const cpuVal2 = draftAvgStat(draftCpuTeam, stat);
+function resolveDraft1v1(stat) {
+    const mc = draft1v1Cards.my, cc = draft1v1Cards.cpu;
+    if (!mc || !cc) return;
+    const myVal = mc.stats[stat] || 0;
+    const cpuVal = cc.stats[stat] || 0;
     const variance = (Math.random() * 14) - 7;
-    const myFinal = (draftHybridScore1.myVal + myVal2) / 2 + variance;
-    const cpuFinal = (draftHybridScore1.cpuVal + cpuVal2) / 2;
-    document.querySelectorAll('#dc-hybrid-phase2 button').forEach(b => b.disabled = true);
-    appendDraftLog(`[HYBRID P2] ${stat.toUpperCase()} — You: ${myVal2} | CPU: ${cpuVal2} | Variance: ${variance >= 0 ? '+' : ''}${variance.toFixed(1)}`, 'text-amber-400 font-bold');
+    const myFinal = myVal + variance;
+    document.querySelectorAll('#dc-round-panel button').forEach(b => b.disabled = true);
+    appendDraftLog(`[1v1] ${mc.name} vs ${cc.name} · ${stat.toUpperCase()}: You ${myVal} | CPU ${cpuVal} | Variance: ${variance >= 0 ? '+' : ''}${variance.toFixed(1)}`, 'text-amber-400 font-bold');
     setTimeout(() => {
-        const won = myFinal >= cpuFinal;
+        const won = myFinal >= cpuVal;
         appendDraftLog(won
-            ? `✅ Hybrid finale won! Combined score ${myFinal.toFixed(0)} vs ${cpuFinal.toFixed(0)}`
-            : `❌ CPU wins the hybrid finale. ${myFinal.toFixed(0)} vs ${cpuFinal.toFixed(0)}`,
+            ? `✅ ${mc.name} makes the winning play! (${myFinal.toFixed(0)} vs ${cpuVal})`
+            : `❌ ${cc.name} outplays and takes the round. (${myFinal.toFixed(0)} vs ${cpuVal})`,
             won ? 'text-green-400 font-black' : 'text-red-400 font-black');
         setTimeout(() => processDraftRoundResult(won), 700);
     }, 700);

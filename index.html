@@ -986,19 +986,29 @@
                     </div>
                 </div>
 
-                <!-- Your team -->
-                <div class="bg-slate-900/60 p-4 rounded-2xl border border-blue-900/40">
-                    <h4 class="text-sm font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> Your Draft Team</h4>
-                    <div id="dc-my-team" class="flex flex-wrap gap-3"></div>
-                </div>
+                <!-- 3-column match layout -->
+                <div class="flex flex-col xl:flex-row gap-5 bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-inner relative">
+                    <!-- Left: Your team -->
+                    <div class="flex-1 bg-slate-900/50 p-5 rounded-xl border border-blue-900/30 flex flex-col items-center">
+                        <h4 class="text-sm font-black text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> Your Draft Team
+                        </h4>
+                        <div id="dc-my-team" class="flex flex-wrap gap-3 justify-center"></div>
+                    </div>
 
-                <!-- Tactical selection panel — between the two teams -->
-                <div id="dc-round-panel"></div>
+                    <!-- Center: VS + round panel -->
+                    <div class="w-full xl:w-[420px] flex flex-col items-center justify-start gap-4 pt-2">
+                        <div class="text-6xl font-black italic text-slate-700">VS</div>
+                        <div id="dc-round-panel" class="w-full"></div>
+                    </div>
 
-                <!-- CPU team -->
-                <div class="bg-slate-900/60 p-4 rounded-2xl border border-red-900/40">
-                    <h4 class="text-sm font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-red-500"></span> CPU Draft Team</h4>
-                    <div id="dc-cpu-team" class="flex flex-wrap gap-3"></div>
+                    <!-- Right: CPU team -->
+                    <div class="flex-1 bg-slate-900/50 p-5 rounded-xl border border-red-900/30 flex flex-col items-center">
+                        <h4 class="text-sm font-black text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span> CPU Draft Team
+                        </h4>
+                        <div id="dc-cpu-team" class="flex flex-wrap gap-3 justify-center"></div>
+                    </div>
                 </div>
 
                 <!-- Match log -->
