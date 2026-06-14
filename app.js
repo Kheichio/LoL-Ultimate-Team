@@ -1680,20 +1680,26 @@ function playMatchStep() {
 
 function handleTournamentWin() {
     blueEssence += tourData.reward1; addXP(100);
+
+    // Track stage-specific wins for quests — applies to both standalone and Golden Road
+    const stageName = tourData.name;
+    if (stageName.includes('Regional Split')) trackStats.regionalSplitWon = (trackStats.regionalSplitWon || 0) + 1;
+    else if (stageName === 'First Stand') trackStats.firstStandWon = (trackStats.firstStandWon || 0) + 1;
+    else if (stageName === 'MSI Arena' || stageName === 'MSI') trackStats.msiWon = (trackStats.msiWon || 0) + 1;
+    else if (stageName === 'World Championship' || stageName === 'Worlds') trackStats.worldsWon = (trackStats.worldsWon || 0) + 1;
+
+    // Notify any newly claimable milestone quests
+    quests.filter(q => !q.repeatable && !q.timed && !q.claimed).forEach(q => {
+        if ((trackStats[q.type] || 0) >= q.target) {
+            showToast(`Quest Ready: "${q.desc}" — Claim ${q.reward} BE in Quests!`, 'success');
+        }
+    });
+    renderQuests();
+    updateBadges();
+
     if (isGoldenRoad) {
         grAccruedEssence += tourData.reward1; document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
         appendLog(`[STAGE CLEARED] Credited +${tourData.reward1} BE. Run Total: ${grAccruedEssence} BE`, "text-yellow-400 font-black");
-        const stageName = tourData.name;
-        if (stageName.includes('Regional Split')) trackStats.regionalSplitWon = (trackStats.regionalSplitWon || 0) + 1;
-        else if (stageName === 'First Stand') trackStats.firstStandWon = (trackStats.firstStandWon || 0) + 1;
-        else if (stageName === 'MSI Arena') trackStats.msiWon = (trackStats.msiWon || 0) + 1;
-        else if (stageName === 'World Championship') trackStats.worldsWon = (trackStats.worldsWon || 0) + 1;
-        quests.filter(q => !q.repeatable && !q.timed && !q.claimed).forEach(q => {
-            if ((trackStats[q.type] || 0) >= q.target) {
-                showToast(`Quest Ready: "${q.desc}" — Claim ${q.reward} BE in Quests!`, 'success');
-            }
-        });
-        renderQuests();
         if (grStageIndex === grStages.length - 1) { blueEssence += 5000; trackStats.goldenRoads++; saveGame(); endTournament(true, true); }
         else { saveGame(); document.getElementById("btn-play-match").classList.add("hidden"); document.getElementById("btn-gr-next").classList.remove("hidden"); }
     } else { trackStats.tournamentsWon++; saveGame(); endTournament(true, false); }
