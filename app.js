@@ -28,6 +28,7 @@ let skills = { scouting: 0, negotiation: 0, tactics: 0 };
 
 // New Systems State
 let collectionRegistry = {};
+let archiveLastSeen = {};
 let tradeMarket = { expires: 0, offers: [] };
 let teamCompletionRewards = {};
 
@@ -405,7 +406,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_3_5', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_3_6', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -499,6 +500,8 @@ window.onload = () => {
     
     const savedCol = localStorage.getItem("lol_collection_v7_pro");
     if (savedCol) collectionRegistry = JSON.parse(savedCol);
+    const savedArchiveSeen = localStorage.getItem("lol_archive_seen_v1");
+    if (savedArchiveSeen) archiveLastSeen = JSON.parse(savedArchiveSeen);
     const savedTrade = localStorage.getItem("lol_trade_v7_pro");
     if (savedTrade) tradeMarket = JSON.parse(savedTrade);
     const savedTeamComplete = localStorage.getItem("lol_team_complete_v8");
@@ -520,7 +523,7 @@ window.onload = () => {
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_3_5';
+    const patchKey = 'lol_patch_seen_v0_3_6';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -565,6 +568,7 @@ function saveGame() {
     localStorage.setItem("lol_prog_v7_pro", JSON.stringify({managerXP, managerLevel, skillPoints, skills}));
     localStorage.setItem("lol_new_items_v7_pro", hasNewClubItems);
     localStorage.setItem("lol_collection_v7_pro", JSON.stringify(collectionRegistry));
+    localStorage.setItem("lol_archive_seen_v1", JSON.stringify(archiveLastSeen));
     localStorage.setItem("lol_trade_v7_pro", JSON.stringify(tradeMarket));
     localStorage.setItem("lol_team_complete_v8", JSON.stringify(teamCompletionRewards));
     updateDisplays();
@@ -763,8 +767,18 @@ let currentCollectionRegion = 'LCK';
 let currentCollectionSort = 'team';
 let teamYearFilter = {};
 
-function setArchiveCategory(cat) { currentArchiveCategory = cat; renderCollection(); }
-function setCollectionRegion(reg) { currentCollectionRegion = reg; renderCollection(); }
+function setArchiveCategory(cat) {
+    currentArchiveCategory = cat;
+    if (cat !== 'regular') { archiveLastSeen[cat] = Date.now(); saveGame(); }
+    else { archiveLastSeen[`regular_${currentCollectionRegion}`] = Date.now(); saveGame(); }
+    renderCollection();
+}
+function setCollectionRegion(reg) {
+    currentCollectionRegion = reg;
+    archiveLastSeen[`regular_${reg}`] = Date.now();
+    saveGame();
+    renderCollection();
+}
 function setCollectionSort(sort) { currentCollectionSort = sort; renderCollection(); }
 function setTeamYearFilter(teamKey, year) {
     if (year === null || teamYearFilter[teamKey] === year) delete teamYearFilter[teamKey];
@@ -781,23 +795,42 @@ function _getArchiveCards(db) {
     return db.filter(c => c.quality === qualMap[currentArchiveCategory]);
 }
 
+function _archiveNewCount(db, cat, region) {
+    const SPECIAL_Q = ["Champion", "Finalist", "MSI", "FirstStand", "MVP"];
+    const qualMap = { firststand: 'FirstStand', msi: 'MSI', finalists: 'Finalist', champion: 'Champion', mvp: 'MVP' };
+    if (cat === 'regular') {
+        if (region) {
+            const lastSeen = archiveLastSeen[`regular_${region}`] || 0;
+            return db.filter(c => c.region === region && !SPECIAL_Q.includes(c.quality) && collectionRegistry[c.id] && (collectionRegistry[c.id].acquiredAt || 0) > lastSeen).length;
+        }
+        return ['LCK','LPL','LEC','LCS'].reduce((sum, r) => sum + _archiveNewCount(db, 'regular', r), 0);
+    }
+    const lastSeen = archiveLastSeen[cat] || 0;
+    return db.filter(c => c.quality === qualMap[cat] && collectionRegistry[c.id] && (collectionRegistry[c.id].acquiredAt || 0) > lastSeen).length;
+}
+
 function renderCollection() {
     let db = getDB(); if (!db) return;
 
     // Category button styles
     const catDefs = [
-        { id: 'arch-cat-regular',    cat: 'regular',    active: 'bg-blue-600/20 border-blue-500/50 text-blue-300' },
-        { id: 'arch-cat-firststand', cat: 'firststand', active: 'bg-orange-600/20 border-orange-500/50 text-orange-300' },
-        { id: 'arch-cat-msi',        cat: 'msi',        active: 'bg-teal-600/20 border-teal-500/50 text-teal-300' },
-        { id: 'arch-cat-finalists',  cat: 'finalists',  active: 'bg-slate-500/30 border-slate-400/60 text-slate-200' },
-        { id: 'arch-cat-champion',   cat: 'champion',   active: 'bg-amber-600/20 border-amber-500/50 text-amber-300' },
-        { id: 'arch-cat-mvp',        cat: 'mvp',        active: 'bg-pink-600/20 border-pink-500/50 text-pink-300' },
+        { id: 'arch-cat-regular',    cat: 'regular',    label: '⚔️ Regular Season', active: 'bg-blue-600/20 border-blue-500/50 text-blue-300' },
+        { id: 'arch-cat-firststand', cat: 'firststand', label: '🟠 First Stand',     active: 'bg-orange-600/20 border-orange-500/50 text-orange-300' },
+        { id: 'arch-cat-msi',        cat: 'msi',        label: '🌊 MSI',             active: 'bg-teal-600/20 border-teal-500/50 text-teal-300' },
+        { id: 'arch-cat-finalists',  cat: 'finalists',  label: '🥈 Finalists',       active: 'bg-slate-500/30 border-slate-400/60 text-slate-200' },
+        { id: 'arch-cat-champion',   cat: 'champion',   label: '🏆 Champion',        active: 'bg-amber-600/20 border-amber-500/50 text-amber-300' },
+        { id: 'arch-cat-mvp',        cat: 'mvp',        label: '✨ MVP',             active: 'bg-pink-600/20 border-pink-500/50 text-pink-300' },
     ];
-    catDefs.forEach(({ id, cat, active }) => {
+    catDefs.forEach(({ id, cat, label, active }) => {
         let btn = document.getElementById(id); if (!btn) return;
         btn.className = cat === currentArchiveCategory
-            ? `flex-1 py-2 px-3 rounded-lg font-black text-sm cursor-pointer border shadow-inner ${active}`
-            : 'flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-transparent';
+            ? `flex-1 py-2 px-3 rounded-lg font-black text-sm cursor-pointer border shadow-inner relative ${active}`
+            : 'flex-1 py-2 px-3 rounded-lg font-bold text-sm cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-transparent relative';
+        const newCount = _archiveNewCount(db, cat, null);
+        const badge = newCount > 0
+            ? `<span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 text-[10px] font-black bg-red-500 text-white rounded-full flex items-center justify-center border border-slate-900 z-10 pointer-events-none">${newCount > 99 ? '99+' : newCount}</span>`
+            : '';
+        btn.innerHTML = label + badge;
     });
 
     // Show/hide region bar
@@ -806,16 +839,21 @@ function renderCollection() {
 
     // Region button styles
     if (currentArchiveCategory === 'regular') {
+        const regionLabels = { LCK: '🇰🇷 LCK', LPL: '🇨🇳 LPL', LEC: '🇪🇺 LEC', LCS: '🇺🇸 LCS' };
         ['LCK', 'LPL', 'LEC', 'LCS'].forEach(r => {
             let btn = document.getElementById(`col-reg-${r}`); if (!btn) return;
             let hasClaimable = db.filter(c => c.region === r).some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
             btn.className = r === currentCollectionRegion
                 ? 'flex-1 py-2 px-4 rounded-lg font-black text-sm transition bg-blue-600/20 border border-blue-500/50 text-blue-300 shadow-inner cursor-pointer relative'
                 : 'flex-1 py-2 px-4 rounded-lg font-bold text-sm transition bg-slate-800 hover:text-slate-200 hover:bg-slate-700 cursor-pointer relative text-slate-400 border border-transparent';
-            let dot = btn.querySelector('.region-notify-dot');
-            if (hasClaimable) {
-                if (!dot) { dot = document.createElement('span'); dot.className = 'region-notify-dot absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-slate-900 animate-pulse z-10 pointer-events-none'; btn.appendChild(dot); }
-            } else { if (dot) dot.remove(); }
+            const newCount = _archiveNewCount(db, 'regular', r);
+            const newBadge = newCount > 0
+                ? `<span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 text-[10px] font-black bg-red-500 text-white rounded-full flex items-center justify-center border border-slate-900 z-10 pointer-events-none">${newCount > 99 ? '99+' : newCount}</span>`
+                : '';
+            const claimDot = hasClaimable
+                ? `<span class="absolute -top-1 -left-1 w-3 h-3 bg-yellow-400 rounded-full border border-slate-900 animate-pulse z-10 pointer-events-none"></span>`
+                : '';
+            btn.innerHTML = regionLabels[r] + newBadge + claimDot;
         });
     }
 
@@ -2329,8 +2367,8 @@ function endDraftMode() {
         title.innerText = 'Draft Champion!'; title.className = 'text-3xl font-black mb-2 text-emerald-400';
         icon.innerText = '🏆'; desc.innerText = `Dominant draft performance! Final score ${draftMatchWins} - ${draftMatchLosses}. Awarded ${reward.toLocaleString()} BE.`;
     } else if (draftMatchWins >= 1) {
-        title.innerText = 'Draft Runner-Up'; title.className = 'text-3xl font-bold mb-2 text-amber-400';
-        icon.innerText = '🥈'; desc.innerText = `Close match — final score ${draftMatchWins} - ${draftMatchLosses}. No payout — only the winner takes the prize.`;
+        title.innerText = 'Draft Defeated'; title.className = 'text-3xl font-bold mb-2 text-red-500';
+        icon.innerText = '💀'; desc.innerText = `Close series, but a loss is a loss — final score ${draftMatchWins} - ${draftMatchLosses}. No payout. Only the winner takes the prize.`;
     } else {
         title.innerText = 'Draft Eliminated'; title.className = 'text-3xl font-bold mb-2 text-red-500';
         icon.innerText = '💀'; desc.innerText = `Swept ${draftMatchWins} - ${draftMatchLosses}. No payout. Review your picks and bans.`;

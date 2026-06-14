@@ -313,7 +313,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.5</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.6</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -619,16 +619,14 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.5)</h3>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.6)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-orange-400 font-bold">Worlds MVP Expansion (×9)</span> — Nine more Worlds MVP cards added covering every year from 2011 to 2019: Shushei [FNC 2011], Toyz [TPA 2012], Faker [SKT 2013], Mata [SSW 2014], MaRin [SKT 2015], Faker [SKT 2016], Ruler [SSG 2017], Ning [iG 2018], Tian [FPX 2019]. All stat-buffed over their Champion versions.</li>
-                    <li><span class="text-cyan-400 font-bold">BLG 2024 Worlds Finalist Cards</span> — Full 7-card set for Bilibili Gaming's Worlds 2024 run: Bin, XUN, knight, Elk, ON, BigWei &amp; Easyhoon. Stats based on their tournament performance (knight leads at 95, Elk 93, Bin 92, XUN 91, ON 88). Uses the Finalist card quality.</li>
-                    <li><span class="text-red-400 font-bold">FRM Stat Rework (~136 cards)</span> — FRM was previously misinterpreted as a farming/CS stat, leaving Coaches and Supports with FRM values of 10–28. FRM stands for FORM (overall performance level). All affected cards updated — Coaches and Supports now have FRM matching their actual form rating.</li>
-                    <li><span class="text-yellow-400 font-bold">Faker 2024 Rating Adjustments</span> — Downgraded to reflect a below-peak year: Grandmaster 93 (was Challenger 98), Champion 95 (was 99), MVP 97 (was 99). Stats adjusted proportionally across all three cards.</li>
-                    <li><span class="text-slate-300 font-bold">Draft Reward Display Fix</span> — Draft Mode entry screen and guide description now correctly show 2,500 BE winner reward (was still showing 5,000 BE from pre-0.3.4).</li>
+                    <li><span class="text-blue-400 font-bold">Archive New Card Badges</span> — Red notification badges now appear on each Archive tab (Regular Season, First Stand, MSI, Finalists, Champion, MVP) whenever you receive a new card you haven't viewed yet. Region sub-tabs (LCK/LPL/LEC/LCS) show individual counts. Badges clear automatically when you open that tab.</li>
+                    <li><span class="text-cyan-400 font-bold">Draft Mode Log Relocated</span> — The match commentary log has been moved from below the screen into the centre column alongside the round panel and score display. No more scrolling down to read what happened in a round.</li>
+                    <li><span class="text-red-400 font-bold">Draft End Screen Fix</span> — Losing with 1 round win no longer incorrectly shows "Runner-Up" (which implied a prize). It now correctly shows "Draft Defeated" — consistent with the winner-takes-all format.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.4): Draft UI Overhaul · Round 2 FRM stats · 1v1 Round 3 · Upgrade Tab · Welcome Tab · Tab Highlight · MVP Cards ×5 · CPU Pool rework</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.2): Draft Mode role picks · Upgrade Lab · 8 stat trackers · Hybrid Finale round 3 · CPU difficulty scaler · new quests</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.5): Worlds MVP ×9 (2011–2019) · BLG 2024 Finalist cards · FRM stat rework (136 cards) · Faker 2024 rebalance · Draft reward display fix</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.4): Draft UI Overhaul · Round 2 FRM stats · 1v1 Round 3 · Upgrade Tab · Welcome Tab · Tab Highlight · MVP Cards ×5</p>
             </div>
 
         </section>
@@ -1039,7 +1037,7 @@
                         <div id="dc-my-team" class="flex flex-wrap gap-3 justify-center"></div>
                     </div>
 
-                    <!-- Center: power diff + score + VS + round panel -->
+                    <!-- Center: power diff + score + VS + round panel + log -->
                     <div class="w-full xl:w-[420px] flex flex-col items-center justify-start gap-3 pt-2">
                         <!-- Power difference (prominent) -->
                         <div id="dc-power-diff" class="w-full text-center bg-slate-900/80 px-4 py-3 rounded-xl border border-slate-700 font-mono"></div>
@@ -1051,6 +1049,8 @@
                         </div>
                         <div class="text-5xl font-black italic text-slate-700 my-1">VS</div>
                         <div id="dc-round-panel" class="w-full"></div>
+                        <!-- Match log -->
+                        <div class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 h-36 overflow-y-auto font-mono text-xs shadow-inner" id="dc-log"></div>
                     </div>
 
                     <!-- Right: CPU team -->
@@ -1061,9 +1061,6 @@
                         <div id="dc-cpu-team" class="flex flex-wrap gap-3 justify-center"></div>
                     </div>
                 </div>
-
-                <!-- Match log -->
-                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 h-44 overflow-y-auto font-mono text-xs shadow-inner" id="dc-log"></div>
             </div>
 
             <div id="tournament-active" class="hidden space-y-6">
@@ -1282,7 +1279,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.5 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.6 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1290,15 +1287,14 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-orange-400 font-bold">Worlds MVP Expansion (×9)</span> — Full MVP coverage from 2011–2019: Shushei, Toyz, Faker ×2 (2013 &amp; 2016), Mata, MaRin, Ruler, Ning, Tian. All buffed over their Champion cards.</li>
-                <li><span class="text-cyan-400 font-bold">BLG 2024 Finalist Cards</span> — 7-card Worlds Finalist set for Bilibili Gaming: Bin (92), XUN (91), knight (95), Elk (93), ON (88), BigWei &amp; Easyhoon. Stats based on tournament performance.</li>
-                <li><span class="text-red-400 font-bold">FRM Stat Rework</span> — FRM = FORM, not Farm. ~136 Coach and Support cards corrected from incorrectly low values (10–28) to proper form ratings matching each player's level.</li>
-                <li><span class="text-yellow-400 font-bold">Faker 2024 Rebalance</span> — All three 2024 Faker cards downgraded: Grandmaster 93, Champion 95, MVP 97. Stats adjusted to reflect a below-peak year.</li>
+                <li><span class="text-blue-400 font-bold">Archive New Card Badges</span> — Red badges now appear on each Archive tab when you have unseen cards. Region tabs show individual counts. Clears when you open the tab.</li>
+                <li><span class="text-cyan-400 font-bold">Draft Log Moved to Centre</span> — Match commentary is now in the centre column with the round panel — no more scrolling to read it.</li>
+                <li><span class="text-red-400 font-bold">Draft End Screen Fix</span> — A 1-win loss no longer shows "Runner-Up." It now correctly shows "Draft Defeated" to match the winner-takes-all format.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.5</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.6</button>
             </div>
         </div>
     </div>
