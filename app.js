@@ -99,6 +99,7 @@ function switchTab(tabId) {
 
     if (tabId === 'quests') renderQuests();
 
+    updateBadges();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -368,7 +369,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_2_8', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_2_9', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -478,7 +479,7 @@ window.onload = () => {
     if(!trackStats.msiWon) trackStats.msiWon = 0;
     if(!trackStats.worldsWon) trackStats.worldsWon = 0;
 
-    const patchKey = 'lol_patch_seen_v0_2_8';
+    const patchKey = 'lol_patch_seen_v0_2_9';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1376,8 +1377,13 @@ function renderSquadView() {
 function clearSquad() { squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null }; saveGame(); }
 
 function getTierFromRating(rating) {
-    if (rating >= 97) return "Challenger"; if (rating >= 95) return "Grandmaster"; if (rating >= 92) return "Master";
-    if (rating >= 89) return "Diamond"; if (rating >= 85) return "Platinum"; if (rating >= 80) return "Gold"; return "Silver";
+    if (rating >= 98) return "Challenger";
+    if (rating >= 96) return "Grandmaster";
+    if (rating >= 94) return "Master";
+    if (rating >= 90) return "Diamond";
+    if (rating >= 85) return "Platinum";
+    if (rating >= 80) return "Gold";
+    return "Silver";
 }
 
 function computeChemistry() {
@@ -1449,7 +1455,7 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
         bgClass = legacyCoachQualities.includes(card.quality) ? "legacy-coach-card-style" : "coach-card-style";
     }
 
-    const darkCardTypes = ["Challenger", "Champion", "MVP", "Finalist", "MSI", "FirstStand"];
+    const darkCardTypes = ["Challenger", "Champion", "MVP", "Finalist", "MSI", "FirstStand", "Diamond"];
     const isDarkCard = darkCardTypes.includes(card.quality) || card.role === "COACH";
     // Master/Grandmaster use dark text — their gradients start very light, white text disappears
     const isMidCard = ["Master", "Grandmaster"].includes(card.quality);
