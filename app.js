@@ -83,12 +83,15 @@ let trainingTier = 0; // 1=Basic, 2=Medium, 3=Hard
 let trainingTimerInterval = null;
 
 let draftModeActive = false;
-let draftPool = [];
-let draftPlayerBanIds = [];
-let draftCpuBanIds = [];
-let draftRound = 0;
-let draftWins = 0;
-let draftLosses = 0;
+let draftUserPool = [];     // 15 cards from user's club
+let draftCpuPool = [];      // 15 cards from DB
+let draftUserBanIds = [];   // IDs user bans from CPU pool (max 5)
+let draftCpuBanIds = [];    // IDs CPU bans from user pool (max 5)
+let draftSelectedTeam = []; // 5 cards user picks
+let draftCpuTeam = [];      // 5 cards CPU picks
+let draftMatchRound = 0;    // 0=tactical, 1=auto, 2=auto
+let draftMatchWins = 0;
+let draftMatchLosses = 0;
 let marketTimerInterval = null;
 let timedQuestInterval = null;
 let activeSlot = "TOP";
@@ -1717,7 +1720,6 @@ function playMatchStep() {
 }
 
 function handleTournamentWin() {
-    if (draftModeActive) { handleDraftRoundResult(true); return; }
     blueEssence += tourData.reward1; addXP(100);
 
     // Track stage-specific wins for quests — applies to both standalone and Golden Road
@@ -1745,7 +1747,6 @@ function handleTournamentWin() {
 }
 
 function handleTournamentLoss() {
-    if (draftModeActive) { handleDraftRoundResult(false); return; }
     let reachedFinals = (tourRound === tourData.maxRounds - 1);
     if (reachedFinals) { blueEssence += tourData.reward2; if(isGoldenRoad) grAccruedEssence += tourData.reward2; }
     saveGame(); endTournament(false, false, reachedFinals);
@@ -1772,7 +1773,7 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
 
 function setupNextRound() { if (tourRound < tourData.maxRounds - 1) { tourRound++; setupBracketUI(); setupNextRoundUI(); } }
 function advanceGoldenRoadStage() { grStageIndex++; loadGoldenRoadStage(); document.getElementById("tour-active-title").innerText = "Golden Road Run: " + tourData.name; setupBracketUI(); setupNextRoundUI(); }
-function emergencyResetSim() { if(simIntervalId) clearTimeout(simIntervalId); document.getElementById("pre-match-stats").classList.add("hidden"); tourActive = false; isGoldenRoad = false; draftModeActive = false; document.getElementById("tournament-active").classList.add("hidden"); document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("draft-ban-screen").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); }
+function emergencyResetSim() { if(simIntervalId) clearTimeout(simIntervalId); document.getElementById("pre-match-stats").classList.add("hidden"); tourActive = false; isGoldenRoad = false; draftModeActive = false; ['tournament-active','tournament-results','draft-screen','draft-combat'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }); document.getElementById("tournament-lobby").classList.remove("hidden"); }
 function finishTournamentUI() { document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
 function setupBracketUI() {
     const container = document.getElementById("bracket-container"); container.innerHTML = "";
@@ -1821,191 +1822,349 @@ function purgeUnderTier(keepTier) {
 // ─── DRAFT MODE ────────────────────────────────────────────────────────────────
 
 function startDraftMode() {
-    if (!checkSquadReady()) return;
+    if (club.length < 15) {
+        showToast(`Draft Mode requires at least 15 cards in your club. You have ${club.length}.`, 'error');
+        return;
+    }
     if (blueEssence < 1000) { showToast("Draft Mode requires 1000 BE.", "error"); return; }
     blueEssence -= 1000;
     draftModeActive = true;
-    draftRound = 0;
-    draftWins = 0;
-    draftLosses = 0;
+    draftMatchRound = 0;
+    draftMatchWins = 0;
+    draftMatchLosses = 0;
     saveGame();
-    setupDraftBanPhase();
+    setupDraftPools();
 }
 
-function setupDraftBanPhase() {
+function setupDraftPools() {
+    // User pool: shuffle all club cards, take 15
+    const shuffledClub = [...club].sort(() => Math.random() - 0.5);
+    draftUserPool = shuffledClub.slice(0, 15);
+
+    // CPU pool: 15 random non-coach DB cards
     const db = getDB().filter(p => p.role !== 'COACH');
-    const shuffled = [...db].sort(() => Math.random() - 0.5);
-    draftPool = shuffled.slice(0, 15).map((p, i) => ({
+    const shuffledDb = [...db].sort(() => Math.random() - 0.5);
+    draftCpuPool = shuffledDb.slice(0, 15).map((p, i) => ({
         ...p,
-        uniqueId: "draft_" + i + "_" + Date.now()
+        uniqueId: 'dcpu_' + i + '_' + Date.now()
     }));
-    draftPlayerBanIds = [];
+
+    draftUserBanIds = [];
     draftCpuBanIds = [];
+    draftSelectedTeam = [];
+    draftCpuTeam = [];
 
-    document.getElementById("tournament-lobby").classList.add("hidden");
-    document.getElementById("tournament-results").classList.add("hidden");
-    document.getElementById("tournament-active").classList.add("hidden");
-    document.getElementById("draft-ban-screen").classList.remove("hidden");
-    document.getElementById("draft-ban-screen").scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    renderDraftBanPool();
+    showDraftScreen('ban');
+    renderDraftBanPhase();
 }
 
-function renderDraftBanPool() {
-    document.getElementById("draft-round-label").innerText = `Round ${draftRound + 1} of 3 — Score: ${draftWins}W - ${draftLosses}L`;
-    document.getElementById("draft-ban-counter").innerText = `Your bans: ${draftPlayerBanIds.length} / 5`;
-
-    const qualityColors = {
-        Silver: 'border-slate-500 text-slate-300', Gold: 'border-yellow-600 text-yellow-400',
-        Platinum: 'border-teal-600 text-teal-300', Diamond: 'border-blue-500 text-blue-300',
-        Master: 'border-purple-500 text-purple-400', Grandmaster: 'border-red-500 text-red-400',
-        Challenger: 'border-orange-400 text-orange-300',
-        Champion: 'border-yellow-400 text-yellow-300', Finalist: 'border-pink-400 text-pink-300',
-        MSI: 'border-cyan-400 text-cyan-300', FirstStand: 'border-emerald-400 text-emerald-300'
-    };
-
-    const grid = document.getElementById("draft-pool-grid");
-    grid.innerHTML = "";
-    draftPool.forEach(card => {
-        const playerBanned = draftPlayerBanIds.includes(card.uniqueId);
-        const cpuBanned = draftCpuBanIds.includes(card.uniqueId);
-        const qcls = qualityColors[card.quality] || 'border-slate-500 text-slate-300';
-
-        const div = document.createElement("div");
-        div.className = `relative cursor-pointer rounded-xl border-2 p-3 text-center transition select-none
-            ${playerBanned ? 'border-red-500 bg-red-950/50 opacity-60' : cpuBanned ? 'border-orange-500 bg-orange-950/50 opacity-60' : `bg-slate-900 ${qcls} hover:brightness-125`}`;
-        div.onclick = () => { if (!cpuBanned) toggleDraftBan(card.uniqueId); };
-
-        const banOverlay = playerBanned
-            ? `<div class="absolute inset-0 bg-red-900/60 rounded-xl flex items-center justify-center z-10"><span class="text-3xl font-black text-red-400">✕</span><span class="absolute bottom-1 text-[10px] text-red-300 font-bold">YOUR BAN</span></div>`
-            : cpuBanned
-            ? `<div class="absolute inset-0 bg-orange-900/60 rounded-xl flex items-center justify-center z-10"><span class="text-3xl font-black text-orange-400">✕</span><span class="absolute bottom-1 text-[10px] text-orange-300 font-bold">CPU BAN</span></div>`
-            : '';
-
-        const [qTextCls] = qcls.split(' ').filter(c => c.startsWith('text-'));
-        div.innerHTML = `${banOverlay}
-            <div class="${qTextCls} font-black text-[10px] uppercase tracking-widest mb-1">${card.quality}</div>
-            <div class="font-black text-sm truncate text-white">${card.name}</div>
-            <div class="text-slate-400 text-[11px] mt-0.5">${card.role} · ${card.region}</div>
-            <div class="text-slate-500 text-[10px] font-mono mt-1">${card.team} [${card.year}]</div>`;
-        grid.appendChild(div);
+function showDraftScreen(phase) {
+    ['tournament-lobby','tournament-results','tournament-active','draft-combat'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.classList.add('hidden');
     });
-
-    const confirmBtn = document.getElementById("draft-confirm-bans-btn");
-    confirmBtn.disabled = draftCpuBanIds.length > 0;
+    const screen = document.getElementById('draft-screen');
+    screen.classList.remove('hidden');
+    screen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('draft-ban-panel').classList.toggle('hidden', phase !== 'ban');
+    document.getElementById('draft-pick-panel').classList.toggle('hidden', phase !== 'pick');
 }
 
-function toggleDraftBan(uniqueId) {
-    const idx = draftPlayerBanIds.indexOf(uniqueId);
+function renderDraftBanPhase() {
+    document.getElementById('draft-phase-title').innerText = "Ban Phase";
+    document.getElementById('draft-phase-subtitle').innerText = "Click cards in the CPU pool to ban them (max 5). Your pool is shown below for reference.";
+    document.getElementById('draft-ban-counter').innerText = `Your bans: ${draftUserBanIds.length} / 5`;
+    document.getElementById('draft-confirm-bans-btn').disabled = false;
+    document.getElementById('draft-proceed-pick-btn').classList.add('hidden');
+
+    renderDraftCardPool('draft-cpu-pool-grid', draftCpuPool, 'ban-cpu');
+    renderDraftCardPool('draft-user-pool-ban-view', draftUserPool, 'ban-view');
+}
+
+function renderDraftCardPool(containerId, cards, mode) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    cards.forEach(card => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative flex-shrink-0';
+
+        let clickFn = null;
+        let overlayHTML = '';
+
+        if (mode === 'ban-cpu') {
+            const banned = draftUserBanIds.includes(card.uniqueId);
+            if (!banned) {
+                clickFn = () => toggleCpuBan(card.uniqueId);
+            } else {
+                overlayHTML = `<div class="absolute inset-0 rounded-xl z-20 pointer-events-none flex flex-col items-center justify-center bg-red-950/90"><span class="text-5xl font-black text-red-400">✕</span><span class="text-[11px] font-black text-red-300 uppercase tracking-widest mt-1">Banned</span></div>`;
+            }
+        } else if (mode === 'ban-view') {
+            const cpuBanned = draftCpuBanIds.includes(card.uniqueId);
+            if (cpuBanned) {
+                overlayHTML = `<div class="absolute inset-0 rounded-xl z-20 pointer-events-none flex flex-col items-center justify-center bg-orange-950/90"><span class="text-5xl font-black text-orange-400">✕</span><span class="text-[11px] font-black text-orange-300 uppercase tracking-widest mt-1">CPU Ban</span></div>`;
+            }
+        } else if (mode === 'pick') {
+            const cpuBanned = draftCpuBanIds.includes(card.uniqueId);
+            const selected = draftSelectedTeam.some(c => c.uniqueId === card.uniqueId);
+            if (cpuBanned) {
+                overlayHTML = `<div class="absolute inset-0 rounded-xl z-20 pointer-events-none flex flex-col items-center justify-center bg-orange-950/90"><span class="text-5xl font-black text-orange-400">✕</span><span class="text-[11px] font-black text-orange-300 uppercase tracking-widest mt-1">Banned</span></div>`;
+            } else if (selected) {
+                overlayHTML = `<div class="absolute inset-0 rounded-xl z-20 pointer-events-none flex flex-col items-center justify-center bg-green-900/80 border-2 border-green-400"><span class="text-4xl font-black text-green-200">✓</span><span class="text-[11px] font-black text-green-200 uppercase tracking-widest mt-1">Picked</span></div>`;
+                clickFn = () => togglePickCard(card.uniqueId);
+            } else {
+                clickFn = () => togglePickCard(card.uniqueId);
+            }
+        } else if (mode === 'cpu-remaining') {
+            // read-only display
+        }
+        // mode === 'combat': read-only display with card element only
+
+        const cardEl = createCardElement(card, false, clickFn, null);
+        wrapper.appendChild(cardEl);
+        if (overlayHTML) wrapper.insertAdjacentHTML('beforeend', overlayHTML);
+        container.appendChild(wrapper);
+    });
+}
+
+function toggleCpuBan(uniqueId) {
+    const idx = draftUserBanIds.indexOf(uniqueId);
     if (idx >= 0) {
-        draftPlayerBanIds.splice(idx, 1);
+        draftUserBanIds.splice(idx, 1);
     } else {
-        if (draftPlayerBanIds.length >= 5) { showToast("Maximum 5 bans per round.", "info"); return; }
-        draftPlayerBanIds.push(uniqueId);
+        if (draftUserBanIds.length >= 5) { showToast('Maximum 5 bans.', 'info'); return; }
+        draftUserBanIds.push(uniqueId);
     }
-    renderDraftBanPool();
+    document.getElementById('draft-ban-counter').innerText = `Your bans: ${draftUserBanIds.length} / 5`;
+    renderDraftCardPool('draft-cpu-pool-grid', draftCpuPool, 'ban-cpu');
 }
 
 function confirmDraftBans() {
-    if (draftPlayerBanIds.length === 0) { showToast("Ban at least 1 player before confirming.", "info"); return; }
-
-    // CPU randomly bans 5 from what's left
-    const remaining = draftPool.filter(c => !draftPlayerBanIds.includes(c.uniqueId));
-    const shuffled = [...remaining].sort(() => Math.random() - 0.5);
+    if (draftUserBanIds.length === 0) { showToast("Ban at least 1 CPU card first.", "info"); return; }
+    // CPU bans up to 5 from user pool randomly
+    const available = draftUserPool.filter(c => !draftUserBanIds.includes(c.uniqueId));
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
     draftCpuBanIds = shuffled.slice(0, Math.min(5, shuffled.length)).map(c => c.uniqueId);
 
-    renderDraftBanPool();
-    document.getElementById("draft-confirm-bans-btn").disabled = true;
-    document.getElementById("draft-start-combat-btn").classList.remove("hidden");
-    showToast("CPU has placed their bans! Review and start the match.", "info");
+    renderDraftCardPool('draft-user-pool-ban-view', draftUserPool, 'ban-view');
+    document.getElementById('draft-ban-counter').innerText = `Your bans: ${draftUserBanIds.length} / 5 · CPU banned ${draftCpuBanIds.length} of your cards`;
+    document.getElementById('draft-confirm-bans-btn').disabled = true;
+    document.getElementById('draft-proceed-pick-btn').classList.remove('hidden');
+    showToast("CPU bans placed. Review, then proceed to team selection.", 'info');
 }
 
-function startDraftCombat() {
-    const surviving = draftPool.filter(c =>
-        !draftPlayerBanIds.includes(c.uniqueId) &&
-        !draftCpuBanIds.includes(c.uniqueId)
-    );
-
-    const qualityPower = {
-        Silver: 67, Gold: 77, Platinum: 84, Diamond: 90,
-        Master: 94, Grandmaster: 96, Challenger: 99,
-        Champion: 100, Finalist: 100, MSI: 100, FirstStand: 100
-    };
-    const avgPower = surviving.length > 0
-        ? Math.round(surviving.reduce((sum, c) => sum + (qualityPower[c.quality] || 70), 0) / surviving.length)
-        : 80;
-
-    const draftTeams = ["T1 Draft Roster", "Gen.G Picks", "G2 Draft Core", "BLG Selections", "Fnatic Draft", "Team Liquid Picks"];
-    enemies = [{
-        name: draftTeams[Math.floor(Math.random() * draftTeams.length)],
-        power: avgPower,
-        rosterNames: surviving.slice(0, 5).map(c => c.name),
-        generatedStats: surviving.slice(0, 5).map(c => ({
-            mec: c.stats.mec, tmf: c.stats.tmf, frm: c.stats.frm,
-            cmp: c.stats.cmp, map: c.stats.map, ldr: c.stats.ldr
-        }))
-    }];
-
-    tourData = { name: `Draft Round ${draftRound + 1}`, maxRounds: 1, reward1: 0, reward2: 0 };
-    tourRound = 0;
-    tourActive = true;
-
-    document.getElementById("draft-ban-screen").classList.add("hidden");
-    transitionToArena(`Draft Mode — Round ${draftRound + 1} / 3`);
-    document.getElementById("gr-badge").classList.add("hidden");
-    document.getElementById("gr-accrued-display").classList.add("hidden");
+function proceedToPick() {
+    showDraftScreen('pick');
+    renderDraftPickPhase();
 }
 
-function handleDraftRoundResult(won) {
-    if (won) { draftWins++; appendLog(`[DRAFT] Round ${draftRound + 1} WIN! Score: ${draftWins} - ${draftLosses}`, "text-green-400 font-black"); }
-    else      { draftLosses++; appendLog(`[DRAFT] Round ${draftRound + 1} LOSS. Score: ${draftWins} - ${draftLosses}`, "text-red-400 font-black"); }
+function renderDraftPickPhase() {
+    document.getElementById('draft-phase-title').innerText = "Pick Your Team";
+    document.getElementById('draft-phase-subtitle').innerText = "Select exactly 5 players from your available (non-banned) cards.";
+    document.getElementById('draft-pick-counter').innerText = `Selected: ${draftSelectedTeam.length} / 5`;
+    document.getElementById('draft-confirm-team-btn').disabled = true;
 
-    const seriesDecided = draftWins >= 2 || draftLosses >= 2 || draftRound >= 2;
-    if (seriesDecided) {
-        endDraftMode();
+    renderDraftCardPool('draft-user-pick-grid', draftUserPool, 'pick');
+    const cpuRemaining = draftCpuPool.filter(c => !draftUserBanIds.includes(c.uniqueId));
+    renderDraftCardPool('draft-cpu-remaining-grid', cpuRemaining, 'cpu-remaining');
+}
+
+function togglePickCard(uniqueId) {
+    if (draftCpuBanIds.includes(uniqueId)) return;
+    const card = draftUserPool.find(c => c.uniqueId === uniqueId);
+    if (!card) return;
+    const idx = draftSelectedTeam.findIndex(c => c.uniqueId === uniqueId);
+    if (idx >= 0) {
+        draftSelectedTeam.splice(idx, 1);
     } else {
-        draftRound++;
-        document.getElementById("btn-play-match").classList.add("hidden");
-        document.getElementById("btn-next-round").classList.add("hidden");
-        document.getElementById("btn-draft-next-round").classList.remove("hidden");
+        if (draftSelectedTeam.length >= 5) { showToast('Select exactly 5 players.', 'info'); return; }
+        draftSelectedTeam.push(card);
+    }
+    document.getElementById('draft-pick-counter').innerText = `Selected: ${draftSelectedTeam.length} / 5`;
+    document.getElementById('draft-confirm-team-btn').disabled = draftSelectedTeam.length !== 5;
+    renderDraftCardPool('draft-user-pick-grid', draftUserPool, 'pick');
+}
+
+function confirmDraftTeam() {
+    // CPU picks 5 best remaining by rating
+    const cpuRemaining = draftCpuPool.filter(c => !draftUserBanIds.includes(c.uniqueId));
+    draftCpuTeam = [...cpuRemaining].sort((a, b) => b.rating - a.rating).slice(0, 5);
+    showToast("Teams locked in! Starting the match...", 'success');
+    setTimeout(() => showDraftCombat(), 700);
+}
+
+function showDraftCombat() {
+    document.getElementById('draft-screen').classList.add('hidden');
+    const dc = document.getElementById('draft-combat');
+    dc.classList.remove('hidden');
+    dc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    renderDraftCardPool('dc-my-team', draftSelectedTeam, 'combat');
+    renderDraftCardPool('dc-cpu-team', draftCpuTeam, 'combat');
+    setupDraftRound(0);
+}
+
+function setupDraftRound(roundIdx) {
+    draftMatchRound = roundIdx;
+    document.getElementById('dc-round').innerText = roundIdx + 1;
+    document.getElementById('dc-wins').innerText = draftMatchWins;
+    document.getElementById('dc-losses').innerText = draftMatchLosses;
+    document.getElementById('dc-log').innerHTML = '';
+
+    const avgStat = (team, s) => team.length ? Math.round(team.reduce((sum, c) => sum + (c.stats[s] || 0), 0) / team.length) : 0;
+
+    if (roundIdx === 0) {
+        const myMEC = avgStat(draftSelectedTeam, 'mec'), myTMF = avgStat(draftSelectedTeam, 'tmf'), myMAP = avgStat(draftSelectedTeam, 'map');
+        const cpuMEC = avgStat(draftCpuTeam, 'mec'), cpuTMF = avgStat(draftCpuTeam, 'tmf'), cpuMAP = avgStat(draftCpuTeam, 'map');
+
+        document.getElementById('dc-round-panel').innerHTML = `
+            <div class="bg-slate-800 p-6 rounded-2xl border border-purple-500/50 shadow-xl">
+                <h4 class="text-lg font-black text-purple-400 mb-1 uppercase tracking-widest text-center">Round 1 — Tactical Draft</h4>
+                <p class="text-xs text-slate-400 text-center mb-4">Choose your strategic focus for this round. Your team's stat average vs the CPU's.</p>
+                <div class="grid grid-cols-3 gap-3 mb-5 text-center font-mono">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-[11px] uppercase mb-2">MEC</div>
+                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMEC}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMEC}</span></div>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-[11px] uppercase mb-2">TMF</div>
+                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myTMF}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuTMF}</span></div>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-[11px] uppercase mb-2">MAP</div>
+                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMAP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMAP}</span></div>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2.5">
+                    <button onclick="resolveDraftTactical('mec')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Aggression Focus (MEC)</button>
+                    <button onclick="resolveDraftTactical('tmf')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Teamfight Focus (TMF)</button>
+                    <button onclick="resolveDraftTactical('map')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Objective Focus (MAP)</button>
+                </div>
+            </div>`;
+    } else {
+        const myFRM = avgStat(draftSelectedTeam, 'frm'), myCMP = avgStat(draftSelectedTeam, 'cmp'), myLDR = avgStat(draftSelectedTeam, 'ldr');
+        const cpuFRM = avgStat(draftCpuTeam, 'frm'), cpuCMP = avgStat(draftCpuTeam, 'cmp'), cpuLDR = avgStat(draftCpuTeam, 'ldr');
+        const myAvg = Math.round((myFRM + myCMP + myLDR) / 3);
+        const cpuAvg = Math.round((cpuFRM + cpuCMP + cpuLDR) / 3);
+
+        document.getElementById('dc-round-panel').innerHTML = `
+            <div class="bg-slate-800 p-6 rounded-2xl border border-cyan-500/50 shadow-xl">
+                <h4 class="text-lg font-black text-cyan-400 mb-1 uppercase tracking-widest text-center">Round ${roundIdx + 1} — Secondary Stat Battle</h4>
+                <p class="text-xs text-slate-400 text-center mb-4">Form · Composure · Leadership — these stats auto-resolve this round.</p>
+                <div class="grid grid-cols-3 gap-3 mb-4 text-center font-mono">
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-[11px] uppercase mb-2">FRM</div>
+                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myFRM}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuFRM}</span></div>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-[11px] uppercase mb-2">CMP</div>
+                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myCMP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuCMP}</span></div>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <div class="text-slate-400 text-[11px] uppercase mb-2">LDR</div>
+                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myLDR}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuLDR}</span></div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-slate-700 font-mono mb-5">
+                    <span class="text-blue-400 font-black text-2xl">${myAvg}</span>
+                    <span class="text-slate-500 font-bold text-xs uppercase">Combined Avg</span>
+                    <span class="text-red-400 font-black text-2xl">${cpuAvg}</span>
+                </div>
+                <button onclick="resolveDraftAutoRound()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-lg font-black text-base cursor-pointer transition shadow uppercase tracking-wider">⚡ Battle</button>
+            </div>`;
+    }
+}
+
+function appendDraftLog(msg, cls) {
+    const log = document.getElementById('dc-log');
+    if (!log) return;
+    log.innerHTML += `<div class="py-1 ${cls || 'text-slate-300'}"><span class="opacity-40 text-[10px] mr-2">${new Date().toLocaleTimeString()}</span>${msg}</div>`;
+    log.scrollTop = log.scrollHeight;
+}
+
+function resolveDraftTactical(stat) {
+    const avgStat = (team, s) => team.length ? Math.round(team.reduce((sum, c) => sum + (c.stats[s] || 0), 0) / team.length) : 0;
+    const myVal = avgStat(draftSelectedTeam, stat);
+    const cpuVal = avgStat(draftCpuTeam, stat);
+    const variance = (Math.random() * 14) - 7;
+    const myFinal = myVal + variance;
+
+    document.querySelectorAll('#dc-round-panel button').forEach(b => b.disabled = true);
+    appendDraftLog(`[TACTICAL] ${stat.toUpperCase()} focus — You: ${myVal} | CPU: ${cpuVal} | Variance: ${variance >= 0 ? '+' : ''}${variance.toFixed(1)}`, 'text-purple-400 font-bold');
+
+    setTimeout(() => {
+        const won = myFinal >= cpuVal;
+        appendDraftLog(won
+            ? `✅ Tactical advantage secured! (${myFinal.toFixed(0)} vs ${cpuVal})`
+            : `❌ CPU holds the tactical edge. (${myFinal.toFixed(0)} vs ${cpuVal})`,
+            won ? 'text-green-400 font-black' : 'text-red-400 font-black');
+        setTimeout(() => processDraftRoundResult(won), 700);
+    }, 700);
+}
+
+function resolveDraftAutoRound() {
+    const avg = (team, s) => team.length ? team.reduce((sum, c) => sum + (c.stats[s] || 0), 0) / team.length : 0;
+    const myScore = (avg(draftSelectedTeam, 'frm') + avg(draftSelectedTeam, 'cmp') + avg(draftSelectedTeam, 'ldr')) / 3;
+    const cpuScore = (avg(draftCpuTeam, 'frm') + avg(draftCpuTeam, 'cmp') + avg(draftCpuTeam, 'ldr')) / 3;
+    const variance = (Math.random() * 14) - 7;
+    const myFinal = myScore + variance;
+
+    document.querySelectorAll('#dc-round-panel button').forEach(b => b.disabled = true);
+    appendDraftLog(`[SECONDARY] FRM/CMP/LDR — You avg: ${myScore.toFixed(0)} | CPU avg: ${cpuScore.toFixed(0)} | Variance: ${variance >= 0 ? '+' : ''}${variance.toFixed(1)}`, 'text-cyan-400 font-bold');
+
+    setTimeout(() => {
+        const won = myFinal >= cpuScore;
+        appendDraftLog(won
+            ? `✅ Secondary stats secured! (${myFinal.toFixed(0)} vs ${cpuScore.toFixed(0)})`
+            : `❌ CPU secondary stats prevail. (${myFinal.toFixed(0)} vs ${cpuScore.toFixed(0)})`,
+            won ? 'text-green-400 font-black' : 'text-red-400 font-black');
+        setTimeout(() => processDraftRoundResult(won), 700);
+    }, 700);
+}
+
+function processDraftRoundResult(won) {
+    if (won) draftMatchWins++; else draftMatchLosses++;
+    document.getElementById('dc-wins').innerText = draftMatchWins;
+    document.getElementById('dc-losses').innerText = draftMatchLosses;
+
+    const matchOver = draftMatchWins >= 2 || draftMatchLosses >= 2 || draftMatchRound >= 2;
+    if (matchOver) {
+        setTimeout(() => endDraftMode(), 1000);
+    } else {
+        const nextRound = draftMatchRound + 1;
+        const btn = document.createElement('button');
+        btn.className = 'mt-4 w-full bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-lg font-black cursor-pointer transition text-sm uppercase tracking-wider';
+        btn.innerText = `Next Round (${draftMatchWins}W - ${draftMatchLosses}L) →`;
+        btn.onclick = () => { btn.remove(); setupDraftRound(nextRound); };
+        document.getElementById('dc-round-panel').appendChild(btn);
     }
     saveGame();
 }
 
-function nextDraftRound() {
-    document.getElementById("btn-draft-next-round").classList.add("hidden");
-    document.getElementById("tournament-active").classList.add("hidden");
-    setupDraftBanPhase();
-}
-
 function endDraftMode() {
-    const won = draftWins >= 2;
-    const reward = won ? 5000 : (draftWins >= 1 ? 1500 : 0);
+    const won = draftMatchWins >= 2;
+    const reward = won ? 5000 : (draftMatchWins >= 1 ? 1500 : 0);
     blueEssence += reward;
     trackStats.draftModesPlayed = (trackStats.draftModesPlayed || 0) + 1;
     if (won) trackStats.draftModesWon = (trackStats.draftModesWon || 0) + 1;
     draftModeActive = false;
-    tourActive = false;
-    if (simIntervalId) clearTimeout(simIntervalId);
 
-    document.getElementById("tournament-active").classList.add("hidden");
-    document.getElementById("draft-ban-screen").classList.add("hidden");
-    const outcomeDiv = document.getElementById("tournament-results");
-    outcomeDiv.classList.remove("hidden");
+    document.getElementById('draft-combat').classList.add('hidden');
+    const outcomeDiv = document.getElementById('tournament-results');
+    outcomeDiv.classList.remove('hidden');
 
-    const title = document.getElementById("result-title");
-    const desc = document.getElementById("result-desc");
-    const icon = document.getElementById("result-icon");
+    const title = document.getElementById('result-title');
+    const desc = document.getElementById('result-desc');
+    const icon = document.getElementById('result-icon');
 
     if (won) {
-        title.innerText = "Draft Champion!"; title.className = "text-3xl font-black mb-2 text-emerald-400";
-        icon.innerText = "🏆"; desc.innerText = `Perfect draft execution! Final score ${draftWins} - ${draftLosses}. Awarded ${reward.toLocaleString()} BE.`;
-    } else if (draftWins >= 1) {
-        title.innerText = "Draft Runner-Up"; title.className = "text-3xl font-bold mb-2 text-amber-400";
-        icon.innerText = "🥈"; desc.innerText = `Strong effort — final score ${draftWins} - ${draftLosses}. Runner-up payout: ${reward.toLocaleString()} BE.`;
+        title.innerText = 'Draft Champion!'; title.className = 'text-3xl font-black mb-2 text-emerald-400';
+        icon.innerText = '🏆'; desc.innerText = `Dominant draft performance! Final score ${draftMatchWins} - ${draftMatchLosses}. Awarded ${reward.toLocaleString()} BE.`;
+    } else if (draftMatchWins >= 1) {
+        title.innerText = 'Draft Runner-Up'; title.className = 'text-3xl font-bold mb-2 text-amber-400';
+        icon.innerText = '🥈'; desc.innerText = `Close match — final score ${draftMatchWins} - ${draftMatchLosses}. Runner-up payout: ${reward.toLocaleString()} BE.`;
     } else {
-        title.innerText = "Draft Eliminated"; title.className = "text-3xl font-bold mb-2 text-red-500";
-        icon.innerText = "💀"; desc.innerText = `Swept 0 - ${draftLosses}. No payout this run. Review your bans and try again.`;
+        title.innerText = 'Draft Eliminated'; title.className = 'text-3xl font-bold mb-2 text-red-500';
+        icon.innerText = '💀'; desc.innerText = `Swept ${draftMatchWins} - ${draftMatchLosses}. No payout. Review your picks and bans.`;
     }
 
     addXP(won ? 150 : 50);

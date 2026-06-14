@@ -818,22 +818,91 @@
                 </div>
             </div>
 
-            <div id="draft-ban-screen" class="hidden space-y-6">
-                <div class="bg-slate-800 p-5 rounded-2xl border border-cyan-700/60 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-sm">
+            <!-- DRAFT MODE SCREENS -->
+            <div id="draft-screen" class="hidden space-y-6">
+
+                <!-- BAN PHASE -->
+                <div id="draft-ban-panel">
+                    <div class="bg-slate-800 p-5 rounded-2xl border border-cyan-700/60 flex flex-col sm:flex-row justify-between items-start gap-4 shadow-sm mb-5">
+                        <div>
+                            <div class="text-xs text-cyan-500 font-black uppercase tracking-widest mb-0.5">Draft Mode</div>
+                            <h3 id="draft-phase-title" class="text-xl font-black text-cyan-300 uppercase tracking-widest">Ban Phase</h3>
+                            <p id="draft-phase-subtitle" class="text-slate-400 text-xs mt-1 max-w-lg">Click cards in the CPU pool to ban them (max 5). Your pool is shown below for reference.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <span id="draft-ban-counter" class="font-mono text-sm text-cyan-200 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700">Your bans: 0 / 5</span>
+                            <button id="draft-confirm-bans-btn" onclick="confirmDraftBans()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-4 py-2 rounded-lg cursor-pointer transition text-sm uppercase tracking-wide shadow">Lock Bans</button>
+                            <button id="draft-proceed-pick-btn" onclick="proceedToPick()" class="hidden bg-green-600 hover:bg-green-500 text-white font-black px-4 py-2 rounded-lg cursor-pointer transition text-sm uppercase tracking-wide shadow">Pick Team →</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-sm font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-red-500"></span> CPU Pool — Click to Ban</h4>
+                            <div id="draft-cpu-pool-grid" class="flex flex-wrap gap-3"></div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> Your Pool — Reference (CPU bans shown in orange)</h4>
+                            <div id="draft-user-pool-ban-view" class="flex flex-wrap gap-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PICK PHASE -->
+                <div id="draft-pick-panel" class="hidden">
+                    <div class="bg-slate-800 p-5 rounded-2xl border border-green-700/60 flex flex-col sm:flex-row justify-between items-start gap-4 shadow-sm mb-5">
+                        <div>
+                            <div class="text-xs text-green-500 font-black uppercase tracking-widest mb-0.5">Draft Mode</div>
+                            <h3 id="draft-phase-title" class="text-xl font-black text-green-300 uppercase tracking-widest">Pick Your Team</h3>
+                            <p id="draft-phase-subtitle" class="text-slate-400 text-xs mt-1 max-w-lg">Select exactly 5 players from your available cards. Banned cards (orange) cannot be picked.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <span id="draft-pick-counter" class="font-mono text-sm text-green-200 bg-slate-900 px-3 py-2 rounded-lg border border-slate-700">Selected: 0 / 5</span>
+                            <button id="draft-confirm-team-btn" onclick="confirmDraftTeam()" disabled class="bg-green-600 hover:bg-green-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-black px-4 py-2 rounded-lg cursor-pointer transition text-sm uppercase tracking-wide shadow">Confirm Team ⚔️</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-sm font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> Your Pool — Click to Select (5 max)</h4>
+                            <div id="draft-user-pick-grid" class="flex flex-wrap gap-3"></div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-red-500"></span> CPU's Available Pool (reference)</h4>
+                            <div id="draft-cpu-remaining-grid" class="flex flex-wrap gap-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DRAFT COMBAT -->
+            <div id="draft-combat" class="hidden space-y-6">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-cyan-700/50 flex justify-between items-center shadow-sm">
                     <div>
-                        <h3 class="text-xl font-black text-cyan-300 uppercase tracking-widest">Draft Mode — Ban Phase</h3>
-                        <p id="draft-round-label" class="text-slate-400 text-sm mt-1">Round 1 of 3 — Score: 0W - 0L</p>
+                        <h3 class="text-xl font-black text-cyan-300 uppercase tracking-widest">Draft Mode — Round <span id="dc-round">1</span> / 3</h3>
+                        <p class="text-slate-400 text-xs mt-1">Best of 3 rounds — win 2 to claim the prize.</p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span id="draft-ban-counter" class="font-mono text-sm text-cyan-200 bg-slate-900 px-4 py-2 rounded-lg border border-slate-700">Your bans: 0 / 5</span>
-                        <button id="draft-confirm-bans-btn" onclick="confirmDraftBans()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-5 py-2 rounded-lg cursor-pointer transition text-sm uppercase tracking-wide shadow">Lock Bans</button>
-                        <button id="draft-start-combat-btn" onclick="startDraftCombat()" class="hidden bg-green-600 hover:bg-green-500 text-white font-black px-5 py-2 rounded-lg cursor-pointer transition text-sm uppercase tracking-wide shadow">Start Match ⚔️</button>
+                    <div class="font-mono text-sm bg-slate-900 px-4 py-2 rounded-xl border border-slate-700 flex gap-4">
+                        <span class="text-blue-400 font-black"><span id="dc-wins">0</span>W</span>
+                        <span class="text-slate-600">-</span>
+                        <span class="text-red-400 font-black"><span id="dc-losses">0</span>L</span>
                     </div>
                 </div>
-                <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-4 text-xs text-slate-400 leading-relaxed">
-                    <span class="text-cyan-300 font-bold">How to draft:</span> Click cards to ban them (red). You can ban up to 5. Click <em>Lock Bans</em> — the CPU will then reveal their own 5 bans (orange). Any card left standing becomes the opponent's combat roster. Then start the match.
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div class="bg-slate-900/60 p-4 rounded-2xl border border-blue-900/40">
+                        <h4 class="text-sm font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> Your Draft Team</h4>
+                        <div id="dc-my-team" class="flex flex-wrap gap-3"></div>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-2xl border border-red-900/40">
+                        <h4 class="text-sm font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2"><span class="inline-block w-2 h-2 rounded-full bg-red-500"></span> CPU Draft Team</h4>
+                        <div id="dc-cpu-team" class="flex flex-wrap gap-3"></div>
+                    </div>
                 </div>
-                <div id="draft-pool-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
+
+                <div id="dc-round-panel"></div>
+
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 h-48 overflow-y-auto font-mono text-xs shadow-inner" id="dc-log"></div>
             </div>
 
             <div id="tournament-active" class="hidden space-y-6">
@@ -893,7 +962,6 @@
                             <button id="btn-play-match" onclick="playMatchStep()" class="hidden bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black text-lg cursor-pointer transition shadow-[0_0_15px_rgba(37,99,235,0.4)] text-white uppercase tracking-wider w-full">Execute Match ⏩</button>
                             <button id="btn-next-round" onclick="setupNextRound()" class="hidden bg-green-600 hover:bg-green-500 py-4 rounded-xl font-black text-lg cursor-pointer transition shadow-[0_0_15px_rgba(22,163,74,0.4)] text-white uppercase tracking-wider w-full">Next Round 🏆</button>
                             <button id="btn-gr-next" onclick="advanceGoldenRoadStage()" class="hidden bg-yellow-500 hover:bg-yellow-400 text-slate-900 py-4 rounded-xl font-black text-lg cursor-pointer transition shadow-[0_0_15px_rgba(234,179,8,0.4)] uppercase tracking-wider w-full">Next Stage</button>
-                            <button id="btn-draft-next-round" onclick="nextDraftRound()" class="hidden bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-black text-lg cursor-pointer transition shadow-[0_0_15px_rgba(6,182,212,0.4)] uppercase tracking-wider w-full">Next Draft Round 🎯</button>
                             <button onclick="triggerForfeit()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-400 hover:text-slate-200 py-3 rounded-lg text-sm font-mono cursor-pointer transition uppercase w-full font-bold">Forfeit Run</button>
                         </div>
                     </div>
