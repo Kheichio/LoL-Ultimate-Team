@@ -79,7 +79,16 @@ let simIntervalId = null;
 let tacticalBonus = 0;
 
 let trainingActiveUntil = 0;
+let trainingTier = 0; // 1=Basic, 2=Medium, 3=Hard
 let trainingTimerInterval = null;
+
+let draftModeActive = false;
+let draftPool = [];
+let draftPlayerBanIds = [];
+let draftCpuBanIds = [];
+let draftRound = 0;
+let draftWins = 0;
+let draftLosses = 0;
 let marketTimerInterval = null;
 let timedQuestInterval = null;
 let activeSlot = "TOP";
@@ -945,32 +954,61 @@ function renderSkillsUI() {
     });
 }
 
-function executeTeamTraining() {
-    if (blueEssence < 50) { showToast("Insufficient assets.", "error"); return; }
-    blueEssence -= 50; trainingActiveUntil = Date.now() + 60000;
-    localStorage.setItem("lol_training_expiry", trainingActiveUntil); saveGame(); startTrainingVisualCountdown();
+function executeTeamTraining(tier) {
+    if (Date.now() < trainingActiveUntil) { showToast("A bootcamp session is already active!", "info"); return; }
+    const costs = [0, 50, 250, 500];
+    const names = ['', 'Basic', 'Medium', 'Hard'];
+    if (blueEssence < costs[tier]) { showToast("Insufficient assets.", "error"); return; }
+    blueEssence -= costs[tier];
+    trainingTier = tier;
+    trainingActiveUntil = Date.now() + 60000;
+    localStorage.setItem("lol_training_expiry", trainingActiveUntil);
+    localStorage.setItem("lol_training_tier", trainingTier);
+    saveGame(); startTrainingVisualCountdown();
+    showToast(`${names[tier]} Bootcamp started! +${getTrainingBonus()} Power for 60s.`, "success");
 }
 
 function checkAndRecoverTrainingTimer() {
     const savedExpiry = localStorage.getItem("lol_training_expiry");
-    if (savedExpiry) { trainingActiveUntil = parseInt(savedExpiry, 10); if (trainingActiveUntil > Date.now()) startTrainingVisualCountdown(); }
+    const savedTier = localStorage.getItem("lol_training_tier");
+    if (savedExpiry) {
+        trainingActiveUntil = parseInt(savedExpiry, 10);
+        trainingTier = savedTier ? parseInt(savedTier, 10) : 1;
+        if (trainingActiveUntil > Date.now()) startTrainingVisualCountdown();
+    }
 }
 
 function startTrainingVisualCountdown() {
     if(trainingTimerInterval) clearInterval(trainingTimerInterval);
-    const display = document.getElementById("training-timer-display"); const btn = document.getElementById("btn-run-training"); if(!display || !btn) return;
-    btn.disabled = true; btn.classList.replace("bg-orange-500", "bg-slate-700"); btn.classList.add("cursor-not-allowed");
+    const tierNames = ['', 'Basic', 'Medium', 'Hard'];
+    const tierBonuses = [0, 5, 10, 15];
+    const display = document.getElementById("training-timer-display");
+    if(!display) return;
+    const disableBootcampBtns = (disabled) => {
+        [1,2,3].forEach(t => {
+            const btn = document.getElementById(`btn-bootcamp-${t}`);
+            if (!btn) return;
+            btn.disabled = disabled;
+            if (disabled) { btn.classList.replace("bg-orange-500","bg-slate-700"); btn.classList.add("cursor-not-allowed","opacity-60"); }
+            else { btn.classList.replace("bg-slate-700","bg-orange-500"); btn.classList.remove("cursor-not-allowed","opacity-60"); }
+        });
+    };
+    disableBootcampBtns(true);
     trainingTimerInterval = setInterval(() => {
         let remaining = Math.round((trainingActiveUntil - Date.now()) / 1000);
         if (remaining <= 0) {
             clearInterval(trainingTimerInterval);
-            display.innerText = "Facility Idle"; display.className = "font-mono font-bold text-slate-500 text-xs";
-            btn.disabled = false; btn.classList.replace("bg-slate-700", "bg-orange-500"); btn.classList.remove("cursor-not-allowed"); computeChemistry();
-        } else { display.innerText = `Live: ${remaining}s left`; display.className = "font-mono font-bold text-orange-400 animate-pulse text-xs"; computeChemistry(); }
+            display.innerText = "Facility Idle"; display.className = "font-mono font-bold text-slate-500 text-sm";
+            disableBootcampBtns(false); computeChemistry();
+        } else {
+            display.innerText = `${tierNames[trainingTier]} Bootcamp: ${remaining}s (+${tierBonuses[trainingTier]} Power active)`;
+            display.className = "font-mono font-bold text-orange-400 animate-pulse text-sm";
+            computeChemistry();
+        }
     }, 1000);
 }
 
-function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? 5 : 0; }
+function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? ([0,5,10,15][trainingTier] || 0) : 0; }
 function getLoanPremium() { let basePremium = 150 - (skills.negotiation * 20); return activeLoans * Math.max(0, basePremium); }
 function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); showToast("Credit allocated!", "success"); }
 function payLoan() {
@@ -1679,6 +1717,7 @@ function playMatchStep() {
 }
 
 function handleTournamentWin() {
+    if (draftModeActive) { handleDraftRoundResult(true); return; }
     blueEssence += tourData.reward1; addXP(100);
 
     // Track stage-specific wins for quests — applies to both standalone and Golden Road
@@ -1706,6 +1745,7 @@ function handleTournamentWin() {
 }
 
 function handleTournamentLoss() {
+    if (draftModeActive) { handleDraftRoundResult(false); return; }
     let reachedFinals = (tourRound === tourData.maxRounds - 1);
     if (reachedFinals) { blueEssence += tourData.reward2; if(isGoldenRoad) grAccruedEssence += tourData.reward2; }
     saveGame(); endTournament(false, false, reachedFinals);
@@ -1732,7 +1772,7 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
 
 function setupNextRound() { if (tourRound < tourData.maxRounds - 1) { tourRound++; setupBracketUI(); setupNextRoundUI(); } }
 function advanceGoldenRoadStage() { grStageIndex++; loadGoldenRoadStage(); document.getElementById("tour-active-title").innerText = "Golden Road Run: " + tourData.name; setupBracketUI(); setupNextRoundUI(); }
-function emergencyResetSim() { if(simIntervalId) clearTimeout(simIntervalId); document.getElementById("pre-match-stats").classList.add("hidden"); tourActive = false; isGoldenRoad = false; document.getElementById("tournament-active").classList.add("hidden"); document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); }
+function emergencyResetSim() { if(simIntervalId) clearTimeout(simIntervalId); document.getElementById("pre-match-stats").classList.add("hidden"); tourActive = false; isGoldenRoad = false; draftModeActive = false; document.getElementById("tournament-active").classList.add("hidden"); document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("draft-ban-screen").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); }
 function finishTournamentUI() { document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
 function setupBracketUI() {
     const container = document.getElementById("bracket-container"); container.innerHTML = "";
@@ -1777,6 +1817,203 @@ function purgeUnderTier(keepTier) {
         saveGame(); renderClubGrid();
     } else showToast(`No cards below ${keepTier} found.`, 'info');
 }
+
+// ─── DRAFT MODE ────────────────────────────────────────────────────────────────
+
+function startDraftMode() {
+    if (!checkSquadReady()) return;
+    if (blueEssence < 1000) { showToast("Draft Mode requires 1000 BE.", "error"); return; }
+    blueEssence -= 1000;
+    draftModeActive = true;
+    draftRound = 0;
+    draftWins = 0;
+    draftLosses = 0;
+    saveGame();
+    setupDraftBanPhase();
+}
+
+function setupDraftBanPhase() {
+    const db = getDB().filter(p => p.role !== 'COACH');
+    const shuffled = [...db].sort(() => Math.random() - 0.5);
+    draftPool = shuffled.slice(0, 15).map((p, i) => ({
+        ...p,
+        uniqueId: "draft_" + i + "_" + Date.now()
+    }));
+    draftPlayerBanIds = [];
+    draftCpuBanIds = [];
+
+    document.getElementById("tournament-lobby").classList.add("hidden");
+    document.getElementById("tournament-results").classList.add("hidden");
+    document.getElementById("tournament-active").classList.add("hidden");
+    document.getElementById("draft-ban-screen").classList.remove("hidden");
+    document.getElementById("draft-ban-screen").scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    renderDraftBanPool();
+}
+
+function renderDraftBanPool() {
+    document.getElementById("draft-round-label").innerText = `Round ${draftRound + 1} of 3 — Score: ${draftWins}W - ${draftLosses}L`;
+    document.getElementById("draft-ban-counter").innerText = `Your bans: ${draftPlayerBanIds.length} / 5`;
+
+    const qualityColors = {
+        Silver: 'border-slate-500 text-slate-300', Gold: 'border-yellow-600 text-yellow-400',
+        Platinum: 'border-teal-600 text-teal-300', Diamond: 'border-blue-500 text-blue-300',
+        Master: 'border-purple-500 text-purple-400', Grandmaster: 'border-red-500 text-red-400',
+        Challenger: 'border-orange-400 text-orange-300',
+        Champion: 'border-yellow-400 text-yellow-300', Finalist: 'border-pink-400 text-pink-300',
+        MSI: 'border-cyan-400 text-cyan-300', FirstStand: 'border-emerald-400 text-emerald-300'
+    };
+
+    const grid = document.getElementById("draft-pool-grid");
+    grid.innerHTML = "";
+    draftPool.forEach(card => {
+        const playerBanned = draftPlayerBanIds.includes(card.uniqueId);
+        const cpuBanned = draftCpuBanIds.includes(card.uniqueId);
+        const qcls = qualityColors[card.quality] || 'border-slate-500 text-slate-300';
+
+        const div = document.createElement("div");
+        div.className = `relative cursor-pointer rounded-xl border-2 p-3 text-center transition select-none
+            ${playerBanned ? 'border-red-500 bg-red-950/50 opacity-60' : cpuBanned ? 'border-orange-500 bg-orange-950/50 opacity-60' : `bg-slate-900 ${qcls} hover:brightness-125`}`;
+        div.onclick = () => { if (!cpuBanned) toggleDraftBan(card.uniqueId); };
+
+        const banOverlay = playerBanned
+            ? `<div class="absolute inset-0 bg-red-900/60 rounded-xl flex items-center justify-center z-10"><span class="text-3xl font-black text-red-400">✕</span><span class="absolute bottom-1 text-[10px] text-red-300 font-bold">YOUR BAN</span></div>`
+            : cpuBanned
+            ? `<div class="absolute inset-0 bg-orange-900/60 rounded-xl flex items-center justify-center z-10"><span class="text-3xl font-black text-orange-400">✕</span><span class="absolute bottom-1 text-[10px] text-orange-300 font-bold">CPU BAN</span></div>`
+            : '';
+
+        const [qTextCls] = qcls.split(' ').filter(c => c.startsWith('text-'));
+        div.innerHTML = `${banOverlay}
+            <div class="${qTextCls} font-black text-[10px] uppercase tracking-widest mb-1">${card.quality}</div>
+            <div class="font-black text-sm truncate text-white">${card.name}</div>
+            <div class="text-slate-400 text-[11px] mt-0.5">${card.role} · ${card.region}</div>
+            <div class="text-slate-500 text-[10px] font-mono mt-1">${card.team} [${card.year}]</div>`;
+        grid.appendChild(div);
+    });
+
+    const confirmBtn = document.getElementById("draft-confirm-bans-btn");
+    confirmBtn.disabled = draftCpuBanIds.length > 0;
+}
+
+function toggleDraftBan(uniqueId) {
+    const idx = draftPlayerBanIds.indexOf(uniqueId);
+    if (idx >= 0) {
+        draftPlayerBanIds.splice(idx, 1);
+    } else {
+        if (draftPlayerBanIds.length >= 5) { showToast("Maximum 5 bans per round.", "info"); return; }
+        draftPlayerBanIds.push(uniqueId);
+    }
+    renderDraftBanPool();
+}
+
+function confirmDraftBans() {
+    if (draftPlayerBanIds.length === 0) { showToast("Ban at least 1 player before confirming.", "info"); return; }
+
+    // CPU randomly bans 5 from what's left
+    const remaining = draftPool.filter(c => !draftPlayerBanIds.includes(c.uniqueId));
+    const shuffled = [...remaining].sort(() => Math.random() - 0.5);
+    draftCpuBanIds = shuffled.slice(0, Math.min(5, shuffled.length)).map(c => c.uniqueId);
+
+    renderDraftBanPool();
+    document.getElementById("draft-confirm-bans-btn").disabled = true;
+    document.getElementById("draft-start-combat-btn").classList.remove("hidden");
+    showToast("CPU has placed their bans! Review and start the match.", "info");
+}
+
+function startDraftCombat() {
+    const surviving = draftPool.filter(c =>
+        !draftPlayerBanIds.includes(c.uniqueId) &&
+        !draftCpuBanIds.includes(c.uniqueId)
+    );
+
+    const qualityPower = {
+        Silver: 67, Gold: 77, Platinum: 84, Diamond: 90,
+        Master: 94, Grandmaster: 96, Challenger: 99,
+        Champion: 100, Finalist: 100, MSI: 100, FirstStand: 100
+    };
+    const avgPower = surviving.length > 0
+        ? Math.round(surviving.reduce((sum, c) => sum + (qualityPower[c.quality] || 70), 0) / surviving.length)
+        : 80;
+
+    const draftTeams = ["T1 Draft Roster", "Gen.G Picks", "G2 Draft Core", "BLG Selections", "Fnatic Draft", "Team Liquid Picks"];
+    enemies = [{
+        name: draftTeams[Math.floor(Math.random() * draftTeams.length)],
+        power: avgPower,
+        rosterNames: surviving.slice(0, 5).map(c => c.name),
+        generatedStats: surviving.slice(0, 5).map(c => ({
+            mec: c.stats.mec, tmf: c.stats.tmf, frm: c.stats.frm,
+            cmp: c.stats.cmp, map: c.stats.map, ldr: c.stats.ldr
+        }))
+    }];
+
+    tourData = { name: `Draft Round ${draftRound + 1}`, maxRounds: 1, reward1: 0, reward2: 0 };
+    tourRound = 0;
+    tourActive = true;
+
+    document.getElementById("draft-ban-screen").classList.add("hidden");
+    transitionToArena(`Draft Mode — Round ${draftRound + 1} / 3`);
+    document.getElementById("gr-badge").classList.add("hidden");
+    document.getElementById("gr-accrued-display").classList.add("hidden");
+}
+
+function handleDraftRoundResult(won) {
+    if (won) { draftWins++; appendLog(`[DRAFT] Round ${draftRound + 1} WIN! Score: ${draftWins} - ${draftLosses}`, "text-green-400 font-black"); }
+    else      { draftLosses++; appendLog(`[DRAFT] Round ${draftRound + 1} LOSS. Score: ${draftWins} - ${draftLosses}`, "text-red-400 font-black"); }
+
+    const seriesDecided = draftWins >= 2 || draftLosses >= 2 || draftRound >= 2;
+    if (seriesDecided) {
+        endDraftMode();
+    } else {
+        draftRound++;
+        document.getElementById("btn-play-match").classList.add("hidden");
+        document.getElementById("btn-next-round").classList.add("hidden");
+        document.getElementById("btn-draft-next-round").classList.remove("hidden");
+    }
+    saveGame();
+}
+
+function nextDraftRound() {
+    document.getElementById("btn-draft-next-round").classList.add("hidden");
+    document.getElementById("tournament-active").classList.add("hidden");
+    setupDraftBanPhase();
+}
+
+function endDraftMode() {
+    const won = draftWins >= 2;
+    const reward = won ? 5000 : (draftWins >= 1 ? 1500 : 0);
+    blueEssence += reward;
+    trackStats.draftModesPlayed = (trackStats.draftModesPlayed || 0) + 1;
+    if (won) trackStats.draftModesWon = (trackStats.draftModesWon || 0) + 1;
+    draftModeActive = false;
+    tourActive = false;
+    if (simIntervalId) clearTimeout(simIntervalId);
+
+    document.getElementById("tournament-active").classList.add("hidden");
+    document.getElementById("draft-ban-screen").classList.add("hidden");
+    const outcomeDiv = document.getElementById("tournament-results");
+    outcomeDiv.classList.remove("hidden");
+
+    const title = document.getElementById("result-title");
+    const desc = document.getElementById("result-desc");
+    const icon = document.getElementById("result-icon");
+
+    if (won) {
+        title.innerText = "Draft Champion!"; title.className = "text-3xl font-black mb-2 text-emerald-400";
+        icon.innerText = "🏆"; desc.innerText = `Perfect draft execution! Final score ${draftWins} - ${draftLosses}. Awarded ${reward.toLocaleString()} BE.`;
+    } else if (draftWins >= 1) {
+        title.innerText = "Draft Runner-Up"; title.className = "text-3xl font-bold mb-2 text-amber-400";
+        icon.innerText = "🥈"; desc.innerText = `Strong effort — final score ${draftWins} - ${draftLosses}. Runner-up payout: ${reward.toLocaleString()} BE.`;
+    } else {
+        title.innerText = "Draft Eliminated"; title.className = "text-3xl font-bold mb-2 text-red-500";
+        icon.innerText = "💀"; desc.innerText = `Swept 0 - ${draftLosses}. No payout this run. Review your bans and try again.`;
+    }
+
+    addXP(won ? 150 : 50);
+    saveGame(); updateDisplays();
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 function quickSellDuplicates() {
     let sold = 0; let val = 0; let seen = new Set(); let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
     let toKeep = [];
