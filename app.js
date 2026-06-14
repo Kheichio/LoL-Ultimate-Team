@@ -31,8 +31,10 @@ let collectionRegistry = {};
 let tradeMarket = { expires: 0, offers: [] };
 let teamCompletionRewards = {};
 
-let trackStats = { 
-    packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {} 
+let trackStats = {
+    packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {},
+    cafeWins: 0, regionalSplitWon: 0, firstStandWon: 0, msiWon: 0, worldsWon: 0,
+    losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0
 };
 
 let quests = [
@@ -56,7 +58,19 @@ let quests = [
     // Timed challenges (must accept first; repeatable after claiming or expiry)
     { id: 'tq1', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1500, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
     { id: 'tq2', desc: 'Open 10 Card Packs', target: 10, type: 'packs', reward: 1000, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq3', desc: 'Liquidate 15 Players', target: 15, type: 'soldCount', reward: 800, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 }
+    { id: 'tq3', desc: 'Liquidate 15 Players', target: 15, type: 'soldCount', reward: 800, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    // New milestone quests (0.3.2)
+    { id: 'q13', desc: 'Win a Draft Mode', target: 1, type: 'draftModesWon', reward: 3000, claimed: false },
+    { id: 'q14', desc: 'Win 5 Draft Modes', target: 5, type: 'draftModesWon', reward: 10000, claimed: false },
+    { id: 'q15', desc: 'Win 5 Gaming Cafe Tournaments', target: 5, type: 'cafeWins', reward: 2000, claimed: false },
+    { id: 'q16', desc: 'Perform your first card Upgrade', target: 1, type: 'upgradesPerformed', reward: 1000, claimed: false },
+    { id: 'q17', desc: 'Perform 10 card Upgrades', target: 10, type: 'upgradesPerformed', reward: 5000, claimed: false },
+    // New repeatable quests (0.3.2)
+    { id: 'rq4', desc: 'Win a Draft Mode', target: 1, type: 'draftModesWon', reward: 2000, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq5', desc: 'Perform 3 card Upgrades', target: 3, type: 'upgradesPerformed', reward: 1500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    // New timed quests (0.3.2)
+    { id: 'tq4', desc: 'Win 2 Draft Modes', target: 2, type: 'draftModesWon', reward: 4000, timed: true, timerMins: 30, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq5', desc: 'Perform 3 Upgrades', target: 3, type: 'upgradesPerformed', reward: 2500, timed: true, timerMins: 15, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 }
 ];
 
 let isGoldenRoad = false;
@@ -84,14 +98,16 @@ let trainingTimerInterval = null;
 
 let draftModeActive = false;
 let draftUserPool = [];     // 15 cards from user's club
-let draftCpuPool = [];      // 15 cards from DB
+let draftCpuPool = [];      // 15 cards from DB (difficulty-scaled)
 let draftUserBanIds = [];   // IDs user bans from CPU pool (max 5)
 let draftCpuBanIds = [];    // IDs CPU bans from user pool (max 5)
-let draftSelectedTeam = []; // 5 cards user picks
-let draftCpuTeam = [];      // 5 cards CPU picks
-let draftMatchRound = 0;    // 0=tactical, 1=auto, 2=auto
+let draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
+let draftActivePickRole = null; // currently selected role slot in pick UI
+let draftCpuTeam = {};      // { TOP: card, JNG: card, ... }
+let draftMatchRound = 0;    // 0=tactical, 1=tactical, 2=hybrid
 let draftMatchWins = 0;
 let draftMatchLosses = 0;
+let draftHybridScore1 = null; // stores phase-1 stat value for hybrid round
 let marketTimerInterval = null;
 let timedQuestInterval = null;
 let activeSlot = "TOP";
@@ -381,7 +397,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_2_9', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_3_2', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -490,8 +506,13 @@ window.onload = () => {
     if(!trackStats.firstStandWon) trackStats.firstStandWon = 0;
     if(!trackStats.msiWon) trackStats.msiWon = 0;
     if(!trackStats.worldsWon) trackStats.worldsWon = 0;
+    if(!trackStats.cafeWins) trackStats.cafeWins = 0;
+    if(!trackStats.losses) trackStats.losses = 0;
+    if(!trackStats.draftModesPlayed) trackStats.draftModesPlayed = 0;
+    if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
+    if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_2_9';
+    const patchKey = 'lol_patch_seen_v0_3_2';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1077,10 +1098,20 @@ function updateClubStatsUI() {
     document.getElementById("stat-packs").innerText = trackStats.packs || 0;
     document.getElementById("stat-liquidated").innerText = trackStats.soldBE || 0;
     let mvp = "None"; let highestMatches = 0;
-    for (const [playerName, count] of Object.entries(trackStats.matchesPlayed)) {
+    for (const [playerName, count] of Object.entries(trackStats.matchesPlayed || {})) {
         if (count > highestMatches) { highestMatches = count; mvp = playerName; }
     }
     document.getElementById("stat-mvp").innerText = highestMatches > 0 ? `${mvp} (${highestMatches}m)` : "None";
+    // New stat trackers
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    setEl("stat-cafe-wins", trackStats.cafeWins || 0);
+    setEl("stat-regional-wins", trackStats.regionalSplitWon || 0);
+    setEl("stat-firststand-wins", trackStats.firstStandWon || 0);
+    setEl("stat-msi-wins", trackStats.msiWon || 0);
+    setEl("stat-world-wins", trackStats.worldsWon || 0);
+    setEl("stat-losses", trackStats.losses || 0);
+    setEl("stat-golden-road-wins", trackStats.goldenRoads || 0);
+    setEl("stat-draft-wins", trackStats.draftModesWon || 0);
 }
 
 function recalculateRegionalPrice() {
@@ -1105,7 +1136,7 @@ function updateDisplays() {
     });
     const starterBtn = document.getElementById("starter-pack-container");
     if (hasBoughtStarter) starterBtn.classList.add("hidden"); else starterBtn.classList.remove("hidden");
-    updateBadges(); updateClubStatsUI(); renderClubGrid(); renderSquadView(); renderQuests();
+    updateBadges(); updateClubStatsUI(); renderClubGrid(); renderSquadView(); renderQuests(); renderUpgradeLab();
     if(currentCollectionRegion) renderCollection();
 }
 
@@ -1724,7 +1755,8 @@ function handleTournamentWin() {
 
     // Track stage-specific wins for quests — applies to both standalone and Golden Road
     const stageName = tourData.name;
-    if (stageName.includes('Regional Split')) trackStats.regionalSplitWon = (trackStats.regionalSplitWon || 0) + 1;
+    if (stageName === 'Gaming Cafe Tournament') trackStats.cafeWins = (trackStats.cafeWins || 0) + 1;
+    else if (stageName.includes('Regional Split')) trackStats.regionalSplitWon = (trackStats.regionalSplitWon || 0) + 1;
     else if (stageName === 'First Stand') trackStats.firstStandWon = (trackStats.firstStandWon || 0) + 1;
     else if (stageName === 'MSI Arena' || stageName === 'MSI') trackStats.msiWon = (trackStats.msiWon || 0) + 1;
     else if (stageName === 'World Championship' || stageName === 'Worlds') trackStats.worldsWon = (trackStats.worldsWon || 0) + 1;
@@ -1747,6 +1779,7 @@ function handleTournamentWin() {
 }
 
 function handleTournamentLoss() {
+    trackStats.losses = (trackStats.losses || 0) + 1;
     let reachedFinals = (tourRound === tourData.maxRounds - 1);
     if (reachedFinals) { blueEssence += tourData.reward2; if(isGoldenRoad) grAccruedEssence += tourData.reward2; }
     saveGame(); endTournament(false, false, reachedFinals);
@@ -1773,7 +1806,17 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
 
 function setupNextRound() { if (tourRound < tourData.maxRounds - 1) { tourRound++; setupBracketUI(); setupNextRoundUI(); } }
 function advanceGoldenRoadStage() { grStageIndex++; loadGoldenRoadStage(); document.getElementById("tour-active-title").innerText = "Golden Road Run: " + tourData.name; setupBracketUI(); setupNextRoundUI(); }
-function emergencyResetSim() { if(simIntervalId) clearTimeout(simIntervalId); document.getElementById("pre-match-stats").classList.add("hidden"); tourActive = false; isGoldenRoad = false; draftModeActive = false; ['tournament-active','tournament-results','draft-screen','draft-combat'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }); document.getElementById("tournament-lobby").classList.remove("hidden"); }
+function emergencyResetSim() {
+    if(simIntervalId) clearTimeout(simIntervalId);
+    document.getElementById("pre-match-stats").classList.add("hidden");
+    tourActive = false; isGoldenRoad = false; draftModeActive = false;
+    draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
+    draftActivePickRole = null; draftCpuTeam = {}; draftHybridScore1 = null;
+    ['tournament-active','tournament-results','draft-screen','draft-combat'].forEach(id => {
+        const el = document.getElementById(id); if(el) el.classList.add('hidden');
+    });
+    document.getElementById("tournament-lobby").classList.remove("hidden");
+}
 function finishTournamentUI() { document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
 function setupBracketUI() {
     const container = document.getElementById("bracket-container"); container.innerHTML = "";
@@ -1821,6 +1864,27 @@ function purgeUnderTier(keepTier) {
 
 // ─── DRAFT MODE ────────────────────────────────────────────────────────────────
 
+// Stat avg helper — handles role-keyed object, applies -10 flex penalty
+function draftAvgStat(team, stat) {
+    const entries = Object.entries(team).filter(([, c]) => c);
+    if (!entries.length) return 0;
+    const total = entries.reduce((sum, [slot, card]) => {
+        const natural = card.role === slot || (card.role === 'COACH' && slot === 'COACH');
+        return sum + Math.max(0, (card.stats[stat] || 0) + (natural ? 0 : -10));
+    }, 0);
+    return Math.round(total / entries.length);
+}
+
+function draftTeamAvgRating(team) {
+    const entries = Object.entries(team).filter(([, c]) => c);
+    if (!entries.length) return 0;
+    const total = entries.reduce((sum, [slot, card]) => {
+        const natural = card.role === slot || (card.role === 'COACH' && slot === 'COACH');
+        return sum + Math.max(0, card.rating + (natural ? 0 : -10));
+    }, 0);
+    return Math.round(total / entries.length);
+}
+
 function startDraftMode() {
     if (club.length < 15) {
         showToast(`Draft Mode requires at least 15 cards in your club. You have ${club.length}.`, 'error');
@@ -1837,22 +1901,24 @@ function startDraftMode() {
 }
 
 function setupDraftPools() {
-    // User pool: shuffle all club cards, take 15
     const shuffledClub = [...club].sort(() => Math.random() - 0.5);
     draftUserPool = shuffledClub.slice(0, 15);
 
-    // CPU pool: 15 random non-coach DB cards
+    // Difficulty scaling: CPU pool matches user pool average rating
+    const userAvg = Math.round(draftUserPool.reduce((s, c) => s + c.rating, 0) / draftUserPool.length);
+    const cpuTarget = userAvg + 2; // slight CPU edge
     const db = getDB().filter(p => p.role !== 'COACH');
-    const shuffledDb = [...db].sort(() => Math.random() - 0.5);
-    draftCpuPool = shuffledDb.slice(0, 15).map((p, i) => ({
-        ...p,
-        uniqueId: 'dcpu_' + i + '_' + Date.now()
-    }));
+    const sorted = [...db].sort((a, b) => Math.abs(a.rating - cpuTarget) - Math.abs(b.rating - cpuTarget));
+    draftCpuPool = sorted.slice(0, Math.min(60, sorted.length))
+        .sort(() => Math.random() - 0.5).slice(0, 15)
+        .map((p, i) => ({ ...p, uniqueId: 'dcpu_' + i + '_' + Date.now() }));
 
     draftUserBanIds = [];
     draftCpuBanIds = [];
-    draftSelectedTeam = [];
-    draftCpuTeam = [];
+    draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
+    draftActivePickRole = null;
+    draftCpuTeam = {};
+    draftHybridScore1 = null;
 
     showDraftScreen('ban');
     renderDraftBanPhase();
@@ -1888,7 +1954,6 @@ function renderDraftCardPool(containerId, cards, mode) {
     cards.forEach(card => {
         const wrapper = document.createElement('div');
         wrapper.className = 'relative flex-shrink-0';
-
         let clickFn = null;
         let overlayHTML = '';
 
@@ -1906,19 +1971,16 @@ function renderDraftCardPool(containerId, cards, mode) {
             }
         } else if (mode === 'pick') {
             const cpuBanned = draftCpuBanIds.includes(card.uniqueId);
-            const selected = draftSelectedTeam.some(c => c.uniqueId === card.uniqueId);
+            const assignedRole = Object.entries(draftPickRoles).find(([, c]) => c && c.uniqueId === card.uniqueId)?.[0];
             if (cpuBanned) {
                 overlayHTML = `<div class="absolute inset-0 rounded-xl z-20 pointer-events-none flex flex-col items-center justify-center bg-orange-950/90"><span class="text-5xl font-black text-orange-400">✕</span><span class="text-[11px] font-black text-orange-300 uppercase tracking-widest mt-1">Banned</span></div>`;
-            } else if (selected) {
-                overlayHTML = `<div class="absolute inset-0 rounded-xl z-20 pointer-events-none flex flex-col items-center justify-center bg-green-900/80 border-2 border-green-400"><span class="text-4xl font-black text-green-200">✓</span><span class="text-[11px] font-black text-green-200 uppercase tracking-widest mt-1">Picked</span></div>`;
-                clickFn = () => togglePickCard(card.uniqueId);
+            } else if (assignedRole) {
+                overlayHTML = `<div class="absolute inset-0 rounded-xl z-20 pointer-events-none flex flex-col items-center justify-center bg-green-900/80 border-2 border-green-400"><span class="text-4xl font-black text-green-200">✓</span><span class="text-[11px] font-black text-green-200 uppercase tracking-widest mt-1">${assignedRole}</span></div>`;
+                clickFn = () => assignCardToRole(card.uniqueId);
             } else {
-                clickFn = () => togglePickCard(card.uniqueId);
+                clickFn = () => assignCardToRole(card.uniqueId);
             }
-        } else if (mode === 'cpu-remaining') {
-            // read-only display
         }
-        // mode === 'combat': read-only display with card element only
 
         const cardEl = createCardElement(card, false, clickFn, null);
         wrapper.appendChild(cardEl);
@@ -1941,11 +2003,9 @@ function toggleCpuBan(uniqueId) {
 
 function confirmDraftBans() {
     if (draftUserBanIds.length === 0) { showToast("Ban at least 1 CPU card first.", "info"); return; }
-    // CPU bans up to 5 from user pool randomly
     const available = draftUserPool.filter(c => !draftUserBanIds.includes(c.uniqueId));
     const shuffled = [...available].sort(() => Math.random() - 0.5);
     draftCpuBanIds = shuffled.slice(0, Math.min(5, shuffled.length)).map(c => c.uniqueId);
-
     renderDraftCardPool('draft-user-pool-ban-view', draftUserPool, 'ban-view');
     document.getElementById('draft-ban-counter').innerText = `Your bans: ${draftUserBanIds.length} / 5 · CPU banned ${draftCpuBanIds.length} of your cards`;
     document.getElementById('draft-confirm-bans-btn').disabled = true;
@@ -1958,37 +2018,70 @@ function proceedToPick() {
     renderDraftPickPhase();
 }
 
-function renderDraftPickPhase() {
-    document.getElementById('draft-phase-title').innerText = "Pick Your Team";
-    document.getElementById('draft-phase-subtitle').innerText = "Select exactly 5 players from your available (non-banned) cards.";
-    document.getElementById('draft-pick-counter').innerText = `Selected: ${draftSelectedTeam.length} / 5`;
-    document.getElementById('draft-confirm-team-btn').disabled = true;
+function selectPickRole(role) {
+    draftActivePickRole = role;
+    updateDraftPickUI();
+}
 
+function assignCardToRole(uniqueId) {
+    if (!draftActivePickRole) { showToast('Select a role slot first (TOP · JNG · MID · ADC · SUP · COACH).', 'info'); return; }
+    if (draftCpuBanIds.includes(uniqueId)) return;
+    const card = draftUserPool.find(c => c.uniqueId === uniqueId);
+    if (!card) return;
+    // Remove card from any existing slot assignment
+    Object.keys(draftPickRoles).forEach(r => {
+        if (draftPickRoles[r] && draftPickRoles[r].uniqueId === uniqueId) draftPickRoles[r] = null;
+    });
+    draftPickRoles[draftActivePickRole] = card;
+    updateDraftPickUI();
+}
+
+function updateDraftPickUI() {
+    const ALL_ROLES = ['TOP', 'JNG', 'MID', 'ADC', 'SUP', 'COACH'];
+    ALL_ROLES.forEach(role => {
+        const slot = document.getElementById(`draft-role-slot-${role}`);
+        if (!slot) return;
+        const card = draftPickRoles[role];
+        const isActive = draftActivePickRole === role;
+        slot.className = `flex flex-col items-center justify-center p-2 rounded-xl border cursor-pointer transition text-center min-w-[70px] ${
+            isActive ? 'ring-2 ring-green-400 bg-green-900/30 border-green-500' :
+            card ? 'bg-emerald-950/30 border-emerald-700/60' :
+            role === 'COACH' ? 'bg-slate-800/50 border-slate-600/40 opacity-70' : 'bg-slate-800 border-slate-600 hover:border-blue-500'
+        }`;
+        if (card) {
+            const natural = card.role === role || (card.role === 'COACH' && role === 'COACH');
+            slot.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-green-300' : 'text-emerald-400'}">${role}</span><span class="text-[10px] text-slate-200 truncate max-w-[65px] mt-0.5">${card.name}</span>${!natural ? '<span class="text-[9px] text-amber-400 font-bold">FLEX -10</span>' : ''}`;
+        } else {
+            slot.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-green-300' : role === 'COACH' ? 'text-slate-500' : 'text-slate-400'}">${role}</span><span class="text-[10px] ${role === 'COACH' ? 'text-slate-600' : 'text-slate-600'} mt-0.5">${role === 'COACH' ? 'Optional' : 'Empty'}</span>`;
+        }
+    });
+    const filledCount = ['TOP','JNG','MID','ADC','SUP'].filter(r => draftPickRoles[r]).length;
+    document.getElementById('draft-pick-counter').innerText = `Roles Filled: ${filledCount} / 5`;
+    document.getElementById('draft-confirm-team-btn').disabled = filledCount < 5;
     renderDraftCardPool('draft-user-pick-grid', draftUserPool, 'pick');
+}
+
+function renderDraftPickPhase() {
+    document.getElementById('draft-phase-title').innerText = "Assign Your Roles";
+    document.getElementById('draft-phase-subtitle').innerText = "Click a role slot to activate it, then click a card to assign. Fill all 5 roles to confirm. COACH is optional (+flex at −10 rating).";
+    draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
+    draftActivePickRole = null;
+    updateDraftPickUI();
     const cpuRemaining = draftCpuPool.filter(c => !draftUserBanIds.includes(c.uniqueId));
     renderDraftCardPool('draft-cpu-remaining-grid', cpuRemaining, 'cpu-remaining');
 }
 
-function togglePickCard(uniqueId) {
-    if (draftCpuBanIds.includes(uniqueId)) return;
-    const card = draftUserPool.find(c => c.uniqueId === uniqueId);
-    if (!card) return;
-    const idx = draftSelectedTeam.findIndex(c => c.uniqueId === uniqueId);
-    if (idx >= 0) {
-        draftSelectedTeam.splice(idx, 1);
-    } else {
-        if (draftSelectedTeam.length >= 5) { showToast('Select exactly 5 players.', 'info'); return; }
-        draftSelectedTeam.push(card);
-    }
-    document.getElementById('draft-pick-counter').innerText = `Selected: ${draftSelectedTeam.length} / 5`;
-    document.getElementById('draft-confirm-team-btn').disabled = draftSelectedTeam.length !== 5;
-    renderDraftCardPool('draft-user-pick-grid', draftUserPool, 'pick');
-}
-
 function confirmDraftTeam() {
-    // CPU picks 5 best remaining by rating
-    const cpuRemaining = draftCpuPool.filter(c => !draftUserBanIds.includes(c.uniqueId));
-    draftCpuTeam = [...cpuRemaining].sort((a, b) => b.rating - a.rating).slice(0, 5);
+    // CPU picks best-rated card per role from its remaining pool (prefer natural role)
+    const cpuAvail = draftCpuPool.filter(c => !draftUserBanIds.includes(c.uniqueId));
+    const cpuRoles = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
+    const usedIds = new Set();
+    cpuRoles.forEach(role => {
+        const byRole = cpuAvail.filter(c => c.role === role && !usedIds.has(c.uniqueId)).sort((a, b) => b.rating - a.rating);
+        const fallback = cpuAvail.filter(c => !usedIds.has(c.uniqueId)).sort((a, b) => b.rating - a.rating);
+        const pick = byRole[0] || fallback[0];
+        if (pick) { draftCpuTeam[role] = pick; usedIds.add(pick.uniqueId); }
+    });
     showToast("Teams locked in! Starting the match...", 'success');
     setTimeout(() => showDraftCombat(), 700);
 }
@@ -1998,8 +2091,41 @@ function showDraftCombat() {
     const dc = document.getElementById('draft-combat');
     dc.classList.remove('hidden');
     dc.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    renderDraftCardPool('dc-my-team', draftSelectedTeam, 'combat');
-    renderDraftCardPool('dc-cpu-team', draftCpuTeam, 'combat');
+
+    // Render user team with role labels and flex badge
+    const myTeamEl = document.getElementById('dc-my-team');
+    myTeamEl.innerHTML = '';
+    ['TOP','JNG','MID','ADC','SUP','COACH'].forEach(role => {
+        const card = draftPickRoles[role];
+        if (!card) return;
+        const natural = card.role === role || (card.role === 'COACH' && role === 'COACH');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative flex-shrink-0';
+        wrapper.appendChild(createCardElement(card, false, null, null));
+        wrapper.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 ${natural ? 'bg-slate-900/80 text-slate-400' : 'bg-amber-900/90 text-amber-300'} text-[9px] font-black px-1.5 py-0.5 rounded-tl-xl rounded-br-xl z-30">${role}${natural ? '' : ' FLEX'}</div>`);
+        myTeamEl.appendChild(wrapper);
+    });
+
+    // Render CPU team
+    const cpuTeamEl = document.getElementById('dc-cpu-team');
+    cpuTeamEl.innerHTML = '';
+    ['TOP','JNG','MID','ADC','SUP'].forEach(role => {
+        const card = draftCpuTeam[role];
+        if (!card) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative flex-shrink-0';
+        wrapper.appendChild(createCardElement(card, false, null, null));
+        wrapper.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 bg-slate-900/80 text-slate-400 text-[9px] font-black px-1.5 py-0.5 rounded-tl-xl rounded-br-xl z-30">${role}</div>`);
+        cpuTeamEl.appendChild(wrapper);
+    });
+
+    // Power difference display
+    const myPwr = draftTeamAvgRating(draftPickRoles);
+    const cpuPwr = draftTeamAvgRating(draftCpuTeam);
+    const diff = myPwr - cpuPwr;
+    const pwrEl = document.getElementById('dc-power-diff');
+    if (pwrEl) pwrEl.innerHTML = `<span class="text-blue-400">Your Avg: <strong class="text-blue-300">${myPwr}</strong></span> <span class="text-slate-500 mx-3">vs</span> <span class="text-red-400">CPU Avg: <strong class="text-red-300">${cpuPwr}</strong></span> <span class="ml-4 font-black text-lg ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-slate-400'}">${diff > 0 ? '+' : ''}${diff} ${diff > 0 ? '↑' : diff < 0 ? '↓' : '—'}</span>`;
+
     setupDraftRound(0);
 }
 
@@ -2009,30 +2135,22 @@ function setupDraftRound(roundIdx) {
     document.getElementById('dc-wins').innerText = draftMatchWins;
     document.getElementById('dc-losses').innerText = draftMatchLosses;
     document.getElementById('dc-log').innerHTML = '';
+    draftHybridScore1 = null;
 
-    const avgStat = (team, s) => team.length ? Math.round(team.reduce((sum, c) => sum + (c.stats[s] || 0), 0) / team.length) : 0;
+    const S = (team, s) => draftAvgStat(team, s);
+    const myT = draftPickRoles, cpuT = draftCpuTeam;
 
-    if (roundIdx === 0) {
-        const myMEC = avgStat(draftSelectedTeam, 'mec'), myTMF = avgStat(draftSelectedTeam, 'tmf'), myMAP = avgStat(draftSelectedTeam, 'map');
-        const cpuMEC = avgStat(draftCpuTeam, 'mec'), cpuTMF = avgStat(draftCpuTeam, 'tmf'), cpuMAP = avgStat(draftCpuTeam, 'map');
-
+    if (roundIdx === 0 || roundIdx === 1) {
+        const myMEC = S(myT,'mec'), myTMF = S(myT,'tmf'), myMAP = S(myT,'map');
+        const cpuMEC = S(cpuT,'mec'), cpuTMF = S(cpuT,'tmf'), cpuMAP = S(cpuT,'map');
         document.getElementById('dc-round-panel').innerHTML = `
             <div class="bg-slate-800 p-6 rounded-2xl border border-purple-500/50 shadow-xl">
-                <h4 class="text-lg font-black text-purple-400 mb-1 uppercase tracking-widest text-center">Round 1 — Tactical Draft</h4>
-                <p class="text-xs text-slate-400 text-center mb-4">Choose your strategic focus for this round. Your team's stat average vs the CPU's.</p>
+                <h4 class="text-lg font-black text-purple-400 mb-1 uppercase tracking-widest text-center">Round ${roundIdx + 1} — Tactical Phase</h4>
+                <p class="text-xs text-slate-400 text-center mb-4">Choose your strategic focus. Pick the stat where you have the biggest edge.</p>
                 <div class="grid grid-cols-3 gap-3 mb-5 text-center font-mono">
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <div class="text-slate-400 text-[11px] uppercase mb-2">MEC</div>
-                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMEC}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMEC}</span></div>
-                    </div>
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <div class="text-slate-400 text-[11px] uppercase mb-2">TMF</div>
-                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myTMF}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuTMF}</span></div>
-                    </div>
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <div class="text-slate-400 text-[11px] uppercase mb-2">MAP</div>
-                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMAP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMAP}</span></div>
-                    </div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">MEC</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMEC}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMEC}</span></div></div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">TMF</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myTMF}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuTMF}</span></div></div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">MAP</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMAP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMAP}</span></div></div>
                 </div>
                 <div class="flex flex-col gap-2.5">
                     <button onclick="resolveDraftTactical('mec')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-3 rounded-lg font-bold transition text-sm cursor-pointer shadow uppercase tracking-wider">Aggression Focus (MEC)</button>
@@ -2041,35 +2159,41 @@ function setupDraftRound(roundIdx) {
                 </div>
             </div>`;
     } else {
-        const myFRM = avgStat(draftSelectedTeam, 'frm'), myCMP = avgStat(draftSelectedTeam, 'cmp'), myLDR = avgStat(draftSelectedTeam, 'ldr');
-        const cpuFRM = avgStat(draftCpuTeam, 'frm'), cpuCMP = avgStat(draftCpuTeam, 'cmp'), cpuLDR = avgStat(draftCpuTeam, 'ldr');
-        const myAvg = Math.round((myFRM + myCMP + myLDR) / 3);
-        const cpuAvg = Math.round((cpuFRM + cpuCMP + cpuLDR) / 3);
-
+        // Round 3: Hybrid finale — two-stage pick
+        const myMEC = S(myT,'mec'), myTMF = S(myT,'tmf'), myMAP = S(myT,'map');
+        const cpuMEC = S(cpuT,'mec'), cpuTMF = S(cpuT,'tmf'), cpuMAP = S(cpuT,'map');
+        const myFRM = S(myT,'frm'), myCMP = S(myT,'cmp'), myLDR = S(myT,'ldr');
+        const cpuFRM = S(cpuT,'frm'), cpuCMP = S(cpuT,'cmp'), cpuLDR = S(cpuT,'ldr');
         document.getElementById('dc-round-panel').innerHTML = `
-            <div class="bg-slate-800 p-6 rounded-2xl border border-cyan-500/50 shadow-xl">
-                <h4 class="text-lg font-black text-cyan-400 mb-1 uppercase tracking-widest text-center">Round ${roundIdx + 1} — Secondary Stat Battle</h4>
-                <p class="text-xs text-slate-400 text-center mb-4">Form · Composure · Leadership — these stats auto-resolve this round.</p>
-                <div class="grid grid-cols-3 gap-3 mb-4 text-center font-mono">
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <div class="text-slate-400 text-[11px] uppercase mb-2">FRM</div>
-                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myFRM}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuFRM}</span></div>
+            <div class="bg-slate-800 p-6 rounded-2xl border border-amber-500/50 shadow-xl">
+                <h4 class="text-lg font-black text-amber-400 mb-1 uppercase tracking-widest text-center">Round 3 — Hybrid Finale</h4>
+                <p class="text-xs text-slate-400 text-center mb-5">Two-phase decider. First pick a tactical stat (MEC/TMF/MAP), then a fundamentals stat (FRM/CMP/LDR). Average of both decides the winner.</p>
+                <div id="dc-hybrid-phase1">
+                    <p class="text-[10px] text-amber-400 font-black uppercase tracking-widest text-center mb-2">Phase 1 — Tactical Stat</p>
+                    <div class="grid grid-cols-3 gap-3 mb-4 text-center font-mono">
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">MEC</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMEC}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMEC}</span></div></div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">TMF</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myTMF}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuTMF}</span></div></div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">MAP</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myMAP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuMAP}</span></div></div>
                     </div>
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <div class="text-slate-400 text-[11px] uppercase mb-2">CMP</div>
-                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myCMP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuCMP}</span></div>
-                    </div>
-                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                        <div class="text-slate-400 text-[11px] uppercase mb-2">LDR</div>
-                        <div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myLDR}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuLDR}</span></div>
+                    <div class="flex flex-col gap-2 mb-4">
+                        <button onclick="resolveHybridPhase1('mec')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Aggression (MEC)</button>
+                        <button onclick="resolveHybridPhase1('tmf')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Teamfight (TMF)</button>
+                        <button onclick="resolveHybridPhase1('map')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Objective (MAP)</button>
                     </div>
                 </div>
-                <div class="flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-slate-700 font-mono mb-5">
-                    <span class="text-blue-400 font-black text-2xl">${myAvg}</span>
-                    <span class="text-slate-500 font-bold text-xs uppercase">Combined Avg</span>
-                    <span class="text-red-400 font-black text-2xl">${cpuAvg}</span>
+                <div id="dc-hybrid-phase2" class="hidden">
+                    <p class="text-[10px] text-amber-400 font-black uppercase tracking-widest text-center mb-2">Phase 2 — Fundamentals Stat</p>
+                    <div class="grid grid-cols-3 gap-3 mb-4 text-center font-mono">
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">FRM</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myFRM}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuFRM}</span></div></div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">CMP</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myCMP}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuCMP}</span></div></div>
+                        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700"><div class="text-slate-400 text-[11px] uppercase mb-2">LDR</div><div class="flex justify-between items-center px-1"><span class="text-blue-400 font-black text-xl">${myLDR}</span><span class="text-slate-600 text-xs">vs</span><span class="text-red-400 font-black text-xl">${cpuLDR}</span></div></div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="resolveHybridPhase2('frm')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Form (FRM)</button>
+                        <button onclick="resolveHybridPhase2('cmp')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Composure (CMP)</button>
+                        <button onclick="resolveHybridPhase2('ldr')" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 py-2.5 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wider">Leadership (LDR)</button>
+                    </div>
                 </div>
-                <button onclick="resolveDraftAutoRound()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-lg font-black text-base cursor-pointer transition shadow uppercase tracking-wider">⚡ Battle</button>
             </div>`;
     }
 }
@@ -2081,10 +2205,37 @@ function appendDraftLog(msg, cls) {
     log.scrollTop = log.scrollHeight;
 }
 
+function resolveHybridPhase1(stat) {
+    const myVal = draftAvgStat(draftPickRoles, stat);
+    const cpuVal = draftAvgStat(draftCpuTeam, stat);
+    draftHybridScore1 = { myVal, cpuVal, stat };
+    document.querySelectorAll('#dc-hybrid-phase1 button').forEach(b => b.disabled = true);
+    appendDraftLog(`[HYBRID P1] ${stat.toUpperCase()} — You: ${myVal} | CPU: ${cpuVal}`, 'text-amber-400 font-bold');
+    setTimeout(() => { document.getElementById('dc-hybrid-phase2').classList.remove('hidden'); }, 400);
+}
+
+function resolveHybridPhase2(stat) {
+    if (!draftHybridScore1) return;
+    const myVal2 = draftAvgStat(draftPickRoles, stat);
+    const cpuVal2 = draftAvgStat(draftCpuTeam, stat);
+    const variance = (Math.random() * 14) - 7;
+    const myFinal = (draftHybridScore1.myVal + myVal2) / 2 + variance;
+    const cpuFinal = (draftHybridScore1.cpuVal + cpuVal2) / 2;
+    document.querySelectorAll('#dc-hybrid-phase2 button').forEach(b => b.disabled = true);
+    appendDraftLog(`[HYBRID P2] ${stat.toUpperCase()} — You: ${myVal2} | CPU: ${cpuVal2} | Variance: ${variance >= 0 ? '+' : ''}${variance.toFixed(1)}`, 'text-amber-400 font-bold');
+    setTimeout(() => {
+        const won = myFinal >= cpuFinal;
+        appendDraftLog(won
+            ? `✅ Hybrid finale won! Combined score ${myFinal.toFixed(0)} vs ${cpuFinal.toFixed(0)}`
+            : `❌ CPU wins the hybrid finale. ${myFinal.toFixed(0)} vs ${cpuFinal.toFixed(0)}`,
+            won ? 'text-green-400 font-black' : 'text-red-400 font-black');
+        setTimeout(() => processDraftRoundResult(won), 700);
+    }, 700);
+}
+
 function resolveDraftTactical(stat) {
-    const avgStat = (team, s) => team.length ? Math.round(team.reduce((sum, c) => sum + (c.stats[s] || 0), 0) / team.length) : 0;
-    const myVal = avgStat(draftSelectedTeam, stat);
-    const cpuVal = avgStat(draftCpuTeam, stat);
+    const myVal = draftAvgStat(draftPickRoles, stat);
+    const cpuVal = draftAvgStat(draftCpuTeam, stat);
     const variance = (Math.random() * 14) - 7;
     const myFinal = myVal + variance;
 
@@ -2101,25 +2252,6 @@ function resolveDraftTactical(stat) {
     }, 700);
 }
 
-function resolveDraftAutoRound() {
-    const avg = (team, s) => team.length ? team.reduce((sum, c) => sum + (c.stats[s] || 0), 0) / team.length : 0;
-    const myScore = (avg(draftSelectedTeam, 'frm') + avg(draftSelectedTeam, 'cmp') + avg(draftSelectedTeam, 'ldr')) / 3;
-    const cpuScore = (avg(draftCpuTeam, 'frm') + avg(draftCpuTeam, 'cmp') + avg(draftCpuTeam, 'ldr')) / 3;
-    const variance = (Math.random() * 14) - 7;
-    const myFinal = myScore + variance;
-
-    document.querySelectorAll('#dc-round-panel button').forEach(b => b.disabled = true);
-    appendDraftLog(`[SECONDARY] FRM/CMP/LDR — You avg: ${myScore.toFixed(0)} | CPU avg: ${cpuScore.toFixed(0)} | Variance: ${variance >= 0 ? '+' : ''}${variance.toFixed(1)}`, 'text-cyan-400 font-bold');
-
-    setTimeout(() => {
-        const won = myFinal >= cpuScore;
-        appendDraftLog(won
-            ? `✅ Secondary stats secured! (${myFinal.toFixed(0)} vs ${cpuScore.toFixed(0)})`
-            : `❌ CPU secondary stats prevail. (${myFinal.toFixed(0)} vs ${cpuScore.toFixed(0)})`,
-            won ? 'text-green-400 font-black' : 'text-red-400 font-black');
-        setTimeout(() => processDraftRoundResult(won), 700);
-    }, 700);
-}
 
 function processDraftRoundResult(won) {
     if (won) draftMatchWins++; else draftMatchLosses++;
@@ -2146,6 +2278,7 @@ function endDraftMode() {
     blueEssence += reward;
     trackStats.draftModesPlayed = (trackStats.draftModesPlayed || 0) + 1;
     if (won) trackStats.draftModesWon = (trackStats.draftModesWon || 0) + 1;
+    else trackStats.losses = (trackStats.losses || 0) + 1;
     draftModeActive = false;
 
     document.getElementById('draft-combat').classList.add('hidden');
@@ -2172,6 +2305,98 @@ function endDraftMode() {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+
+// ─── UPGRADE SYSTEM ─────────────────────────────────────────────────────────────
+
+const UPGRADE_TIER_ORDER = ['Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
+const UPGRADE_COSTS = { Silver: 50, Gold: 100, Platinum: 150, Diamond: 200, Master: 250, Grandmaster: 300 };
+const UPGRADE_RATING_RANGES = { Gold: [80,84], Platinum: [85,89], Diamond: [90,93], Master: [94,95], Grandmaster: [96,97], Challenger: [98,100] };
+
+function upgradeCards(role, fromTier) {
+    const fromIdx = UPGRADE_TIER_ORDER.indexOf(fromTier);
+    if (fromIdx < 0 || fromIdx >= UPGRADE_TIER_ORDER.length - 1) {
+        showToast('Cannot upgrade past Challenger.', 'error'); return;
+    }
+    const toTier = UPGRADE_TIER_ORDER[fromIdx + 1];
+    const cost = UPGRADE_COSTS[fromTier];
+    const activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
+    const eligible = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId));
+    if (eligible.length < 10) {
+        showToast(`Need 10 ${fromTier} ${role} cards. You have ${eligible.length}.`, 'error'); return;
+    }
+    if (blueEssence < cost) {
+        showToast(`Need ${cost} BE for this upgrade.`, 'error'); return;
+    }
+    showConfirm(
+        `Upgrade ${fromTier} → ${toTier}?`,
+        `Sacrifice 10 ${fromTier} ${role} cards + ${cost} BE to forge 1 ${toTier} ${role} card.`,
+        () => {
+            const toRemove = [...eligible].sort((a, b) => b.rating - a.rating).slice(0, 10);
+            club = club.filter(c => !toRemove.some(r => r.uniqueId === c.uniqueId));
+            blueEssence -= cost;
+            const base = toRemove[0];
+            const [minR, maxR] = UPGRADE_RATING_RANGES[toTier];
+            const newRating = Math.floor(Math.random() * (maxR - minR + 1)) + minR;
+            const boost = newRating - base.rating;
+            const newCard = {
+                ...base,
+                quality: toTier,
+                rating: newRating,
+                stats: {
+                    mec: Math.min(99, (base.stats.mec || 70) + boost),
+                    tmf: Math.min(99, (base.stats.tmf || 70) + boost),
+                    map: Math.min(99, (base.stats.map || 70) + boost),
+                    frm: Math.min(99, (base.stats.frm || 70) + boost),
+                    cmp: Math.min(99, (base.stats.cmp || 70) + boost),
+                    ldr: Math.min(99, (base.stats.ldr || 70) + boost)
+                },
+                uniqueId: 'upg_' + Date.now() + '_' + Math.random().toString(36).substr(2,6)
+            };
+            club.push(newCard);
+            trackStats.upgradesPerformed = (trackStats.upgradesPerformed || 0) + 1;
+            showToast(`✨ ${base.name} forged into ${toTier} tier!`, 'success');
+            saveGame(); updateDisplays(); renderUpgradeLab();
+        }
+    );
+}
+
+function renderUpgradeLab() {
+    const container = document.getElementById('upgrade-lab-grid');
+    if (!container) return;
+    const activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
+    const ROLES = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
+    const TIERS = UPGRADE_TIER_ORDER.slice(0, -1); // Silver → Grandmaster (not Challenger as source)
+    container.innerHTML = '';
+    let hasAny = false;
+    TIERS.forEach(fromTier => {
+        const toTier = UPGRADE_TIER_ORDER[UPGRADE_TIER_ORDER.indexOf(fromTier) + 1];
+        const cost = UPGRADE_COSTS[fromTier];
+        ROLES.forEach(role => {
+            const count = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId)).length;
+            if (count === 0) return;
+            hasAny = true;
+            const canUpgrade = count >= 10 && blueEssence >= cost;
+            const row = document.createElement('div');
+            row.className = `flex items-center justify-between gap-3 p-3 rounded-xl border text-sm ${canUpgrade ? 'border-green-700/50 bg-green-950/20' : 'border-slate-700/40 bg-slate-900/20'}`;
+            row.innerHTML = `
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-black text-xs uppercase tracking-wider text-slate-300 w-8">${role}</span>
+                    <span class="font-bold text-xs text-slate-400">${fromTier}</span>
+                    <span class="text-slate-600 text-xs">→</span>
+                    <span class="font-black text-xs text-yellow-400">${toTier}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="font-mono text-xs ${count >= 10 ? 'text-green-400 font-black' : 'text-slate-400'}">${count}<span class="text-slate-600">/10</span></span>
+                    <span class="text-xs text-amber-400 font-bold">${cost} BE</span>
+                    <button onclick="upgradeCards('${role}','${fromTier}')" ${canUpgrade ? '' : 'disabled'} class="${canUpgrade ? 'bg-green-600 hover:bg-green-500 cursor-pointer text-white' : 'bg-slate-700 cursor-not-allowed text-slate-500'} px-3 py-1.5 rounded-lg font-black text-xs transition uppercase tracking-wide">Upgrade</button>
+                </div>`;
+            container.appendChild(row);
+        });
+    });
+    if (!hasAny) {
+        container.innerHTML = `<p class="text-slate-500 text-sm text-center py-3">No upgrade candidates yet — collect 10 cards of the same role and tier to begin.</p>`;
+    }
+}
 
 function quickSellDuplicates() {
     let sold = 0; let val = 0; let seen = new Set(); let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
