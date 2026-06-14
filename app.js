@@ -3,12 +3,12 @@
 const _SPECIAL_QUALITIES = new Set(['Champion', 'MVP', 'Finalist', 'MSI', 'FirstStand']);
 
 function ratingToQuality(rating) {
-    if (rating >= 97) return 'Challenger';
-    if (rating >= 95) return 'Grandmaster';
-    if (rating >= 92) return 'Master';
-    if (rating >= 88) return 'Diamond';
-    if (rating >= 83) return 'Platinum';
-    if (rating >= 76) return 'Gold';
+    if (rating >= 98) return 'Challenger';
+    if (rating >= 96) return 'Grandmaster';
+    if (rating >= 94) return 'Master';
+    if (rating >= 90) return 'Diamond';
+    if (rating >= 85) return 'Platinum';
+    if (rating >= 80) return 'Gold';
     return 'Silver';
 }
 
