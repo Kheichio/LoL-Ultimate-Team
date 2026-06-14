@@ -1,7 +1,21 @@
 // app.js
 
+const _SPECIAL_QUALITIES = new Set(['Champion', 'MVP', 'Finalist', 'MSI', 'FirstStand']);
+
+function ratingToQuality(rating) {
+    if (rating >= 97) return 'Challenger';
+    if (rating >= 95) return 'Grandmaster';
+    if (rating >= 92) return 'Master';
+    if (rating >= 88) return 'Diamond';
+    if (rating >= 83) return 'Platinum';
+    if (rating >= 76) return 'Gold';
+    return 'Silver';
+}
+
 function getDB() {
-    return typeof playerDatabase !== 'undefined' ? playerDatabase : window.playerDatabase;
+    const raw = typeof playerDatabase !== 'undefined' ? playerDatabase : window.playerDatabase;
+    if (!raw) return raw;
+    return raw.map(c => _SPECIAL_QUALITIES.has(c.quality) ? c : { ...c, quality: ratingToQuality(c.rating) });
 }
 
 function getSellValue(quality) {
