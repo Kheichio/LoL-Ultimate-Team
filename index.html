@@ -313,7 +313,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.6</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.7</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -619,13 +619,15 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.6)</h3>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.7)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-blue-400 font-bold">Archive New Card Badges</span> — Red notification badges now appear on each Archive tab (Regular Season, First Stand, MSI, Finalists, Champion, MVP) whenever you receive a new card you haven't viewed yet. Region sub-tabs (LCK/LPL/LEC/LCS) show individual counts. Badges clear automatically when you open that tab.</li>
+                    <li><span class="text-yellow-400 font-bold">Quality Auto-Assignment</span> — Card quality is now automatically derived from rating for all regular season cards. Brackets: Silver ≤79 · Gold 80–84 · Platinum 85–89 · Diamond 90–93 · Master 94–95 · Grandmaster 96–97 · Challenger 98–100. Legacy cards (Champion, MVP, MSI, Finalist, FirstStand) are unaffected.</li>
+                    <li><span class="text-teal-400 font-bold">MSI Cards ×18</span> — Three MSI winning rosters added: RNG 2022 (83.3% WR), JDG 2023 (80% WR), Gen.G 2024 (75% WR). Stats based on each team's MSI tournament performance.</li>
                     <li><span class="text-cyan-400 font-bold">Draft Mode Log Relocated</span> — The match commentary log has been moved from below the screen into the centre column alongside the round panel and score display. No more scrolling down to read what happened in a round.</li>
                     <li><span class="text-red-400 font-bold">Draft End Screen Fix</span> — Losing with 1 round win no longer incorrectly shows "Runner-Up" (which implied a prize). It now correctly shows "Draft Defeated" — consistent with the winner-takes-all format.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.5): Worlds MVP ×9 (2011–2019) · BLG 2024 Finalist cards · FRM stat rework (136 cards) · Faker 2024 rebalance · Draft reward display fix</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.6): Archive New Card Badges · Draft Log Relocated · Draft End Screen Fix</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.5): Worlds MVP ×9 (2011–2019) · BLG 2024 Finalist cards · FRM stat rework (136 cards) · Faker 2024 rebalance · Draft reward display fix</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.4): Draft UI Overhaul · Round 2 FRM stats · 1v1 Round 3 · Upgrade Tab · Welcome Tab · Tab Highlight · MVP Cards ×5</p>
             </div>
 
@@ -1279,7 +1281,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.6 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.7 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1287,14 +1289,13 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-blue-400 font-bold">Archive New Card Badges</span> — Red badges now appear on each Archive tab when you have unseen cards. Region tabs show individual counts. Clears when you open the tab.</li>
-                <li><span class="text-cyan-400 font-bold">Draft Log Moved to Centre</span> — Match commentary is now in the centre column with the round panel — no more scrolling to read it.</li>
-                <li><span class="text-red-400 font-bold">Draft End Screen Fix</span> — A 1-win loss no longer shows "Runner-Up." It now correctly shows "Draft Defeated" to match the winner-takes-all format.</li>
+                <li><span class="text-yellow-400 font-bold">Quality Auto-Assignment</span> — Card quality now derives automatically from rating for all regular season cards. Silver ≤79 · Gold 80–84 · Platinum 85–89 · Diamond 90–93 · Master 94–95 · Grandmaster 96–97 · Challenger 98–100. Legacy cards are unaffected.</li>
+                <li><span class="text-teal-400 font-bold">MSI Cards ×18</span> — RNG 2022, JDG 2023, and Gen.G 2024 MSI winning rosters added. Stats based on tournament performance data.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.6</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.7</button>
             </div>
         </div>
     </div>

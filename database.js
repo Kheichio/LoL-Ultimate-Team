@@ -994,6 +994,30 @@ const baseDatabase = [
     { id: 9204, name: "Ruler",  role: "ADC", team: "Gen.G", year: 2025, rating: 95, quality: "MSI", region: "Legacy", stats: { mec: 96, tmf: 95, frm: 95, cmp: 93, map: 89, ldr: 88 } },
     { id: 9205, name: "Duro",   role: "SUP", team: "Gen.G", year: 2025, rating: 87, quality: "MSI", region: "Legacy", stats: { mec: 80, tmf: 88, frm: 88, cmp: 87, map: 90, ldr: 85 } },
 
+    // RNG 2022 — MSI Champions (83.3% WR, 24G)
+    { id: 9218, name: "Bin",    role: "TOP",   team: "RNG", year: 2022, rating: 90, quality: "MSI", region: "Legacy", stats: { mec: 93, tmf: 88, frm: 91, cmp: 91, map: 87, ldr: 89 } },
+    { id: 9219, name: "Wei",    role: "JNG",   team: "RNG", year: 2022, rating: 93, quality: "MSI", region: "Legacy", stats: { mec: 91, tmf: 93, frm: 93, cmp: 96, map: 95, ldr: 92 } },
+    { id: 9220, name: "Xiaohu", role: "MID",   team: "RNG", year: 2022, rating: 94, quality: "MSI", region: "Legacy", stats: { mec: 95, tmf: 95, frm: 94, cmp: 94, map: 91, ldr: 91 } },
+    { id: 9221, name: "GALA",   role: "ADC",   team: "RNG", year: 2022, rating: 94, quality: "MSI", region: "Legacy", stats: { mec: 97, tmf: 93, frm: 95, cmp: 96, map: 90, ldr: 88 } },
+    { id: 9222, name: "Ming",   role: "SUP",   team: "RNG", year: 2022, rating: 94, quality: "MSI", region: "Legacy", stats: { mec: 85, tmf: 94, frm: 94, cmp: 94, map: 97, ldr: 95 } },
+    { id: 9223, name: "KenZhu", role: "COACH", team: "RNG", year: 2022, rating: 91, quality: "MSI", region: "Legacy", stats: { mec: 20, tmf: 89, frm: 91, cmp: 90, map: 91, ldr: 93 } },
+
+    // JDG 2023 — MSI Champions (80% WR, 15G)
+    { id: 9212, name: "369",     role: "TOP",   team: "JDG", year: 2023, rating: 91, quality: "MSI", region: "Legacy", stats: { mec: 93, tmf: 89, frm: 92, cmp: 94, map: 88, ldr: 89 } },
+    { id: 9213, name: "Kanavi",  role: "JNG",   team: "JDG", year: 2023, rating: 94, quality: "MSI", region: "Legacy", stats: { mec: 93, tmf: 94, frm: 93, cmp: 95, map: 95, ldr: 91 } },
+    { id: 9214, name: "knight",  role: "MID",   team: "JDG", year: 2023, rating: 95, quality: "MSI", region: "Legacy", stats: { mec: 97, tmf: 96, frm: 96, cmp: 96, map: 92, ldr: 91 } },
+    { id: 9215, name: "Ruler",   role: "ADC",   team: "JDG", year: 2023, rating: 95, quality: "MSI", region: "Legacy", stats: { mec: 98, tmf: 95, frm: 95, cmp: 98, map: 91, ldr: 89 } },
+    { id: 9216, name: "Missing", role: "SUP",   team: "JDG", year: 2023, rating: 93, quality: "MSI", region: "Legacy", stats: { mec: 85, tmf: 95, frm: 92, cmp: 93, map: 96, ldr: 93 } },
+    { id: 9217, name: "Homme",   role: "COACH", team: "JDG", year: 2023, rating: 91, quality: "MSI", region: "Legacy", stats: { mec: 20, tmf: 89, frm: 90, cmp: 89, map: 90, ldr: 93 } },
+
+    // Gen.G 2024 — MSI Champions (75% WR, 16G)
+    { id: 9206, name: "Kiin",    role: "TOP",   team: "Gen.G", year: 2024, rating: 90, quality: "MSI", region: "Legacy", stats: { mec: 90, tmf: 91, frm: 91, cmp: 88, map: 89, ldr: 90 } },
+    { id: 9207, name: "Canyon",  role: "JNG",   team: "Gen.G", year: 2024, rating: 94, quality: "MSI", region: "Legacy", stats: { mec: 94, tmf: 95, frm: 94, cmp: 93, map: 96, ldr: 94 } },
+    { id: 9208, name: "Chovy",   role: "MID",   team: "Gen.G", year: 2024, rating: 95, quality: "MSI", region: "Legacy", stats: { mec: 97, tmf: 94, frm: 96, cmp: 97, map: 92, ldr: 90 } },
+    { id: 9209, name: "Peyz",    role: "ADC",   team: "Gen.G", year: 2024, rating: 94, quality: "MSI", region: "Legacy", stats: { mec: 95, tmf: 95, frm: 94, cmp: 94, map: 91, ldr: 89 } },
+    { id: 9210, name: "Lehends", role: "SUP",   team: "Gen.G", year: 2024, rating: 93, quality: "MSI", region: "Legacy", stats: { mec: 85, tmf: 94, frm: 93, cmp: 91, map: 96, ldr: 94 } },
+    { id: 9211, name: "KIM",     role: "COACH", team: "Gen.G", year: 2024, rating: 92, quality: "MSI", region: "Legacy", stats: { mec: 20, tmf: 90, frm: 92, cmp: 90, map: 91, ldr: 94 } },
+
     // ==========================================
     // --- 6. FIRST STAND WINNERS ---
     // ==========================================
