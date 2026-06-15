@@ -38,7 +38,8 @@ let hasNewClubItems = false;
 let managerXP = 0;
 let managerLevel = 1;
 let skillPoints = 0;
-let skills = { scouting: 0, negotiation: 0, tactics: 0 };
+let skills = { scouting: 0, negotiation: 0, tactics: 0, transfer: 0 };
+let tradeRoleFilter = null;
 
 // New Systems State
 let collectionRegistry = {};
@@ -52,7 +53,9 @@ let trackStats = {
     losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0
 };
 
-let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [] };
+let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [], lastMatchTs: 0, splitComplete: false };
+let _smState = null; // active season match game state
+let _smCdInterval = null; // cooldown countdown interval
 let compareMode = false;
 let compareSlots = [];
 
@@ -448,7 +451,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_1', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_2', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -537,7 +540,8 @@ window.onload = () => {
         managerXP = p.managerXP || 0; 
         managerLevel = p.managerLevel || 1; 
         skillPoints = p.skillPoints || 0; 
-        skills = p.skills || { scouting: 0, negotiation: 0, tactics: 0 };
+        skills = p.skills || { scouting: 0, negotiation: 0, tactics: 0, transfer: 0 };
+        if (skills.transfer === undefined) skills.transfer = 0;
     }
     
     const savedCol = localStorage.getItem("lol_collection_v7_pro");
@@ -553,6 +557,8 @@ window.onload = () => {
         seasonData = JSON.parse(savedSeason);
         if (!seasonData.opponents) seasonData.opponents = [];
         if (!seasonData.matchResults) seasonData.matchResults = [];
+        if (!seasonData.lastMatchTs) seasonData.lastMatchTs = 0;
+        if (seasonData.splitComplete === undefined) seasonData.splitComplete = false;
     }
     if (localStorage.getItem("lol_light_mode") === "1") {
         document.documentElement.classList.add("light-mode");
@@ -576,7 +582,7 @@ window.onload = () => {
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_4_1';
+    const patchKey = 'lol_patch_seen_v0_4_2';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -720,13 +726,20 @@ function generateTradeOffers() {
     let db = getDB();
     if(!db) return;
     let elitePool = db.filter(p => ["Master", "Grandmaster", "Challenger", "Champion", "MVP", "Finalist", "MSI", "FirstStand"].includes(p.quality));
+    // Transfer Window skill: levels 2-3 → 4 offers, levels 4-5 → 5 offers
+    const offerCount = skills.transfer >= 4 ? 5 : skills.transfer >= 2 ? 4 : 3;
+    // Level 5: if a role filter is active, draw exclusively from that role's pool
+    let drawPool = [...elitePool];
+    if (skills.transfer >= 5 && tradeRoleFilter) {
+        const rolePool = elitePool.filter(p => p.role === tradeRoleFilter);
+        if (rolePool.length >= offerCount) drawPool = rolePool;
+    }
     let offers = [];
-    for(let i=0; i<3; i++) {
-        if(elitePool.length === 0) break;
-        let cIdx = Math.floor(Math.random() * elitePool.length);
-        let rewardCard = elitePool[cIdx];
-        elitePool.splice(cIdx, 1); 
-        
+    for(let i = 0; i < offerCount; i++) {
+        if(drawPool.length === 0) break;
+        let cIdx = Math.floor(Math.random() * drawPool.length);
+        let rewardCard = drawPool[cIdx];
+        drawPool.splice(cIdx, 1);
         let reqQuality = "Platinum";
         let reqCount = 3;
         if (rewardCard.quality === "Master") {
@@ -742,9 +755,9 @@ function generateTradeOffers() {
             reqQuality = Math.random() > 0.5 ? "Master" : "Grandmaster";
             reqCount = reqQuality === "Master" ? 4 : 2;
         }
-        offers.push({ id: Date.now() + i, rewardBaseId: rewardCard.id, reqQuality: reqQuality, reqCount: reqCount, completed: false });
+        offers.push({ id: Date.now() + i, rewardBaseId: rewardCard.id, reqQuality, reqCount, completed: false });
     }
-    tradeMarket = { expires: Date.now() + (15 * 60 * 1000), offers: offers };
+    tradeMarket = { expires: Date.now() + (15 * 60 * 1000), offers };
     saveGame();
     if(document.getElementById("tab-trade") && !document.getElementById("tab-trade").classList.contains("hidden")) {
         renderTradeMarket();
@@ -758,19 +771,66 @@ function forceTradeRefresh() {
     showToast("Black Market refreshed!", "success");
 }
 
+function setTradeRoleFilter(role) {
+    tradeRoleFilter = role;
+    renderTradeMarket();
+}
+
 function renderTradeMarket() {
     const container = document.getElementById("trade-offers-container");
     if(!container) return;
     container.innerHTML = "";
     let db = getDB();
-    tradeMarket.offers.forEach(offer => {
+
+    // Transfer Window level 3+: role filter bar
+    const filterBar = document.getElementById("trade-filter-bar");
+    if (filterBar) {
+        if (skills.transfer >= 3) {
+            const roles = ['ALL', 'TOP', 'JNG', 'MID', 'ADC', 'SUP', 'COACH'];
+            const lv5Note = skills.transfer >= 5
+                ? `<span class="text-[10px] text-orange-400 font-bold ml-1">· Lv5: Force Refresh locks to role</span>` : '';
+            filterBar.innerHTML = `
+                <div class="flex items-center gap-2 flex-wrap py-3 border-b border-slate-700/50 mb-4">
+                    <span class="text-xs text-slate-400 font-black uppercase tracking-widest mr-1">Target Role</span>
+                    ${roles.map(r => {
+                        const active = (r === 'ALL' && !tradeRoleFilter) || r === tradeRoleFilter;
+                        return `<button onclick="setTradeRoleFilter(${r === 'ALL' ? 'null' : `'${r}'`})"
+                            class="text-xs font-black px-3 py-1.5 rounded-lg border cursor-pointer transition ${active ? 'bg-orange-600 border-orange-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-orange-600 hover:text-slate-200'}">${r}</button>`;
+                    }).join('')}
+                    ${lv5Note}
+                </div>`;
+            filterBar.classList.remove("hidden");
+        } else {
+            filterBar.classList.add("hidden");
+        }
+    }
+
+    // Apply role filter to displayed offers
+    let visibleOffers = tradeMarket.offers;
+    if (tradeRoleFilter) {
+        visibleOffers = tradeMarket.offers.filter(offer => {
+            const card = db.find(p => p.id === offer.rewardBaseId);
+            return card && card.role === tradeRoleFilter;
+        });
+    }
+
+    if (visibleOffers.length === 0) {
+        container.innerHTML = `<div class="col-span-3 text-center py-16 text-slate-500 text-sm">
+            No offers match the <strong class="text-slate-400">${tradeRoleFilter}</strong> filter in the current market.<br>
+            <button onclick="forceTradeRefresh()" class="mt-3 text-orange-400 underline cursor-pointer text-xs">Force Refresh (500 BE)</button>
+            ${skills.transfer >= 5 ? ' to lock offers to this role.' : '.'}
+        </div>`;
+        return;
+    }
+
+    visibleOffers.forEach(offer => {
         let rewardCardDef = db.find(p => p.id === offer.rewardBaseId);
         if(!rewardCardDef) return;
         let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId));
         let hasEnough = availableFodder.length >= offer.reqCount;
         
         const wrapper = document.createElement("div");
-        wrapper.className = `bg-slate-800/80 p-5 rounded-2xl border ${offer.completed ? 'border-emerald-900/50 opacity-50' : 'border-orange-900/40'} flex flex-col items-center shadow-lg relative overflow-hidden`;
+        wrapper.className = `bg-slate-800/80 p-5 rounded-2xl border ${offer.completed ? 'border-emerald-900/50 opacity-50' : 'border-orange-900/40'} flex flex-col items-center shadow-lg relative overflow-hidden w-56`;
         
         let cardObj = { ...rewardCardDef, uniqueId: "preview" };
         let visual = createCardElement(cardObj, false, null, null);
@@ -1064,9 +1124,10 @@ function renderSkillsUI() {
 
     const container = document.getElementById("skills-container"); if (!container) return;
     const skillDefs = [
-        { key: "scouting", name: "Scouting Network", desc: "Permanently boosts RNG values during pack openings, increasing the chance of pulling higher-tier drops.", color: "blue" },
-        { key: "negotiation", name: "Corporate Negotiation", desc: "Reduces the baseline markup penalty on loan inflations by 20 BE per level.", color: "amber" },
-        { key: "tactics", name: "Tactical Acumen", desc: "Grants a guaranteed flat power bonus (+3 per level) to your squad during the Tactical Draft phase.", color: "emerald" }
+        { key: "scouting",     name: "Scouting Network",      desc: "Permanently boosts RNG values during pack openings, increasing the chance of pulling higher-tier drops.",                                           color: "blue"   },
+        { key: "negotiation",  name: "Corporate Negotiation",  desc: "Reduces the baseline markup penalty on loan inflations by 20 BE per level.",                                                                         color: "amber"  },
+        { key: "tactics",      name: "Tactical Acumen",        desc: "Grants a guaranteed flat power bonus (+3 per level) to your squad during the Tactical Draft phase.",                                                 color: "emerald"},
+        { key: "transfer",     name: "Transfer Window",        desc: "Lv2: +4 trade offers. Lv4: +5 offers. Lv3: unlocks Role Filter in Exchange Hub. Lv5: Force Refresh locks the market to your chosen role.",         color: "orange" },
     ];
     container.innerHTML = "";
     skillDefs.forEach(def => {
@@ -1512,12 +1573,46 @@ const _SEASON_LOGOS = ["🦁","🐺","🦅","🐉","🦊","🐯","🦈","🦋","
 const _SEASON_STYLES = ["Aggressive","Methodical","Balanced","Defensive","Chaotic"];
 const _SEASON_REGIONS = ["LCK","LPL","LEC","LCS","LCP"];
 
+const _SEASON_STYLE_SKEWS = {
+    Aggressive: { mec:  5, tmf:  2, frm:  0, cmp: -2, map: -3, ldr: -2 },
+    Methodical: { mec: -2, tmf:  0, frm:  3, cmp:  4, map:  3, ldr:  2 },
+    Balanced:   { mec:  0, tmf:  0, frm:  0, cmp:  0, map:  0, ldr:  0 },
+    Defensive:  { mec: -4, tmf:  2, frm:  2, cmp:  1, map:  5, ldr:  4 },
+    Chaotic:    { mec:  6, tmf: -3, frm: -2, cmp: -4, map:  3, ldr:  0 },
+};
+
+const _SEASON_PLAYS = [
+    { id:'invade',    icon:'⚔️',  label:'Jungle Invade',   desc:'Force early skirmishes in the enemy jungle',      statKey:'mec', myRoles:['JNG']          },
+    { id:'pick',      icon:'🎯',  label:'Pick Comp',        desc:'Burst down an isolated target',                   statKey:'mec', myRoles:['JNG','MID']     },
+    { id:'teamfight', icon:'⚡',  label:'5v5 Teamfight',   desc:'Commit to a full all-in brawl',                   statKey:'tmf', myRoles:['TOP','MID','ADC','SUP'] },
+    { id:'splitpush', icon:'🏰',  label:'Split Push',       desc:'Apply 1v1 side-lane pressure',                   statKey:'frm', myRoles:['TOP']           },
+    { id:'poke',      icon:'🏹',  label:'Poke & Siege',     desc:'Whittle down before engaging',                    statKey:'frm', myRoles:['ADC','MID']     },
+    { id:'dragon',    icon:'🐉',  label:'Dragon Control',   desc:'Contest elemental drake spawns',                  statKey:'map', myRoles:['JNG','SUP']     },
+    { id:'baron',     icon:'🟣',  label:'Baron Siege',      desc:'Force Baron Nashor as a team objective',          statKey:'map', myRoles:['JNG','MID']     },
+    { id:'engage',    icon:'🛡️',  label:'Hard Engage',      desc:'Force a decisive initiation',                     statKey:'ldr', myRoles:['SUP','JNG']     },
+    { id:'vision',    icon:'👁️',  label:'Vision War',       desc:'Dominate warding and map control',                statKey:'map', myRoles:['SUP','JNG']     },
+    { id:'rotate',    icon:'🔄',  label:'Rotation',         desc:'Cross-map coordination to win a lane',            statKey:'cmp', myRoles:['MID','JNG']     },
+    { id:'cs',        icon:'💰',  label:'Farm Lead',        desc:'Outfarm the opponent for a gold advantage',       statKey:'frm', myRoles:['ADC','MID']     },
+    { id:'coach',     icon:'📋',  label:'Coaching Adjust',  desc:'Tactical in-game adjustment from the sideline',   statKey:'ldr', myRoles:['COACH']         },
+];
+
+function _smGenStats(avgRating, style) {
+    const skew = _SEASON_STYLE_SKEWS[style] || _SEASON_STYLE_SKEWS.Balanced;
+    const stats = {};
+    ['mec','tmf','frm','cmp','map','ldr'].forEach(s => {
+        stats[s] = Math.max(52, Math.min(99, avgRating + (skew[s] || 0) + Math.round((Math.random() * 10) - 5)));
+    });
+    return stats;
+}
+
 function generateSeasonOpponents() {
     const splitBonus = Math.min((seasonData.currentSplit - 1) * 2, 14);
     const used = new Set();
     seasonData.opponents = Array.from({ length: 10 }, (_, i) => {
         const base = 74 + splitBonus + Math.round(i * 1.8);
         const v = Math.round((Math.random() * 8) - 4);
+        const avgRating = Math.max(68, Math.min(94, base + v));
+        const style = _SEASON_STYLES[Math.floor(Math.random() * _SEASON_STYLES.length)];
         let name;
         do { name = _SEASON_TEAM_NAMES[Math.floor(Math.random() * _SEASON_TEAM_NAMES.length)]; }
         while (used.has(name) && used.size < _SEASON_TEAM_NAMES.length);
@@ -1525,9 +1620,10 @@ function generateSeasonOpponents() {
         return {
             name,
             logo: _SEASON_LOGOS[Math.floor(Math.random() * _SEASON_LOGOS.length)],
-            avgRating: Math.max(68, Math.min(94, base + v)),
+            avgRating,
             region: _SEASON_REGIONS[Math.floor(Math.random() * _SEASON_REGIONS.length)],
-            style: _SEASON_STYLES[Math.floor(Math.random() * _SEASON_STYLES.length)]
+            style,
+            stats: _smGenStats(avgRating, style),
         };
     });
     seasonData.matchResults = new Array(10).fill(null);
@@ -1547,34 +1643,122 @@ function closeSeasonMatchMode() {
     document.getElementById('tournament-lobby').classList.remove('hidden');
 }
 
-function resolveSeasonMatch(idx) {
-    if ((seasonData.matchResults || [])[idx] !== null && seasonData.matchResults[idx] !== undefined) return;
-    const myRoles = ['TOP','JNG','MID','ADC','SUP'];
-    const myCards = myRoles.map(r => squad[r]).filter(c => c);
-    if (myCards.length < 5) { showToast("Assign all 5 positions first.", "error"); return; }
-    const myAvg = myCards.reduce((s, c) => s + c.rating, 0) / myCards.length;
-    const coachBonus = squad.COACH ? 2 : 0;
-    const myScore = myAvg + coachBonus + (Math.random() * 20) - 10;
-    const opp = seasonData.opponents[idx];
-    const oppScore = opp.avgRating + (Math.random() * 20) - 10;
-    const win = myScore > oppScore;
-    seasonData.matchResults[idx] = win ? 'win' : 'loss';
-    if (win) seasonData.splitWins++; else seasonData.splitLosses++;
-    saveGame();
-    const played = seasonData.matchResults.filter(r => r !== null).length;
-    if (played >= seasonData.gamesPerSplit) checkSplitEnd();
-    renderSeasonMatchesUI();
-    showToast(win ? `Victory! Defeated ${opp.name}` : `Defeat. Lost to ${opp.name}`, win ? 'success' : 'error');
+function _smStatVal(play) {
+    const roles = play.myRoles;
+    if (roles.length === 1) {
+        const c = squad[roles[0]];
+        if (!c) return 70;
+        return roles[0] === 'COACH' ? (c.stats.ldr ?? c.rating) : (c.stats[play.statKey] ?? 70);
+    }
+    const vals = roles.map(r => squad[r]?.stats[play.statKey] ?? 70);
+    return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
 }
 
-function checkSplitEnd() {
+const _SM_COOLDOWN_MS = 60000;
+
+function startSeasonGame(idx) {
+    if (['TOP','JNG','MID','ADC','SUP'].some(r => !squad[r])) { showToast("Assign all 5 positions first.", "error"); return; }
+    if ((seasonData.matchResults || [])[idx] != null) return;
+    if ((seasonData.matchResults || []).some(r => r !== null)) {
+        const elapsed = Date.now() - (seasonData.lastMatchTs || 0);
+        if (elapsed < _SM_COOLDOWN_MS) {
+            const rem = Math.ceil((_SM_COOLDOWN_MS - elapsed) / 1000);
+            showToast(`Cooldown active — next match in ${rem}s`, 'error');
+            return;
+        }
+    }
+    const opp = seasonData.opponents[idx];
+    if (!opp.stats) opp.stats = _smGenStats(opp.avgRating, opp.style);
+    _smState = { oppIdx: idx, wins: 0, losses: 0, round: 1, maxRounds: 5, log: [], options: [], phase: 'pick' };
+    _smPickOptions();
+    renderSeasonMatchesUI();
+}
+
+function _smPickOptions() {
+    const available = _SEASON_PLAYS.filter(p => !(p.id === 'coach' && !squad.COACH));
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
+    const picked = [];
+    const usedKeys = new Set();
+    for (const p of shuffled) {
+        if (picked.length >= 3) break;
+        if (!usedKeys.has(p.statKey) || picked.length + (3 - usedKeys.size) < 1) {
+            picked.push(p);
+            usedKeys.add(p.statKey);
+        }
+    }
+    // Fallback: just fill to 3 if dedup left gaps
+    if (picked.length < 3) {
+        for (const p of shuffled) {
+            if (picked.length >= 3) break;
+            if (!picked.includes(p)) picked.push(p);
+        }
+    }
+    _smState.options = picked.slice(0, 3);
+}
+
+function makeSeasonPlay(playId) {
+    if (!_smState || _smState.phase !== 'pick') return;
+    const play = _SEASON_PLAYS.find(p => p.id === playId);
+    if (!play) return;
+
+    const opp = seasonData.opponents[_smState.oppIdx];
+    const myVal = _smStatVal(play);
+    const oppVal = opp.stats[play.statKey] ?? opp.avgRating;
+    const variance = Math.round((Math.random() * 16) - 8);
+    const net = (myVal - oppVal) + variance;
+    const roundWon = net > 0;
+
+    if (roundWon) _smState.wins++; else _smState.losses++;
+
+    const rolesLabel = play.myRoles.join('+');
+    const statLabel = play.statKey.toUpperCase();
+    const netStr = net >= 0 ? `+${net}` : `${net}`;
+    _smState.log.push({
+        round: _smState.round,
+        icon: play.icon,
+        label: play.label,
+        detail: `${rolesLabel} ${statLabel} ${myVal} vs ${oppVal} (${netStr})`,
+        won: roundWon,
+    });
+
+    const matchDone = _smState.wins >= 3 || _smState.losses >= 3;
+    if (matchDone) {
+        _smState.phase = 'done';
+        _finishSeasonGame();
+    } else {
+        _smState.round++;
+        _smPickOptions();
+    }
+    renderSeasonMatchesUI();
+}
+
+function _finishSeasonGame() {
+    const idx = _smState.oppIdx;
+    const win = _smState.wins >= 3;
+    seasonData.matchResults[idx] = win ? 'win' : 'loss';
+    if (win) seasonData.splitWins++; else seasonData.splitLosses++;
+    seasonData.lastMatchTs = Date.now();
+    const played = seasonData.matchResults.filter(r => r !== null).length;
+    if (played >= seasonData.gamesPerSplit) seasonData.splitComplete = true;
+    saveGame();
+}
+
+function _smBackToList() {
+    _smState = null;
+    renderSeasonMatchesUI();
+}
+
+function _smSplitTier(wins) {
+    if (wins >= 10) return { tier: "🏆 Flawless Split",     reward: 8000 };
+    if (wins >= 8)  return { tier: "🥇 Championship Split", reward: 5000 };
+    if (wins >= 6)  return { tier: "🥈 Playoff Split",      reward: 3000 };
+    if (wins >= 4)  return { tier: "🥉 Qualifying Split",   reward: 1500 };
+    return              { tier: "📋 Development Split",     reward: 500  };
+}
+
+function advanceToNextSplit() {
     const wins = seasonData.splitWins, losses = seasonData.splitLosses;
-    let tier, reward;
-    if (wins >= 10)     { tier = "🏆 Flawless Split";      reward = 8000; }
-    else if (wins >= 8) { tier = "🥇 Championship Split";  reward = 5000; }
-    else if (wins >= 6) { tier = "🥈 Playoff Split";       reward = 3000; }
-    else if (wins >= 4) { tier = "🥉 Qualifying Split";    reward = 1500; }
-    else                { tier = "📋 Development Split";   reward = 500;  }
+    const { tier, reward } = _smSplitTier(wins);
     blueEssence += reward;
     const completedSplit = seasonData.currentSplit;
     seasonData.trophyCase.unshift({ split: completedSplit, wins, losses, tier, reward, date: new Date().toLocaleDateString() });
@@ -1582,9 +1766,14 @@ function checkSplitEnd() {
     seasonData.currentSplit++;
     seasonData.splitWins = 0;
     seasonData.splitLosses = 0;
-    generateSeasonOpponents(); // pre-generate next split opponents
+    seasonData.splitComplete = false;
+    seasonData.lastMatchTs = 0;
+    generateSeasonOpponents();
     saveGame();
-    showToast(`Split ${completedSplit} Complete! ${tier} · +${reward} BE earned!`, 'success');
+    updateDisplays();
+    if (_smCdInterval) { clearInterval(_smCdInterval); _smCdInterval = null; }
+    showToast(`Split ${completedSplit} Complete! ${tier} · +${reward} BE`, 'success');
+    renderSeasonMatchesUI();
     const seasonTab = document.getElementById("tab-season");
     if (seasonTab && !seasonTab.classList.contains("hidden")) renderSeasonTab();
 }
@@ -1592,10 +1781,76 @@ function checkSplitEnd() {
 function renderSeasonMatchesUI() {
     const container = document.getElementById('season-matches-content');
     if (!container) return;
+    if (_smState) { _renderSeasonGame(container); return; }
+    _renderSeasonMatchList(container);
+}
+
+function _smStartCdTimer() {
+    if (_smCdInterval) clearInterval(_smCdInterval);
+    _smCdInterval = setInterval(() => {
+        const el = document.getElementById('sm-cd-timer');
+        if (!el) { clearInterval(_smCdInterval); _smCdInterval = null; return; }
+        const elapsed = Date.now() - (seasonData.lastMatchTs || 0);
+        const rem = Math.ceil((_SM_COOLDOWN_MS - elapsed) / 1000);
+        if (rem <= 0) {
+            clearInterval(_smCdInterval);
+            _smCdInterval = null;
+            renderSeasonMatchesUI();
+        } else {
+            el.textContent = rem + 's';
+        }
+    }, 1000);
+}
+
+function _renderSeasonMatchList(container) {
     const wins = seasonData.splitWins, losses = seasonData.splitLosses;
-    const played = (seasonData.matchResults || []).filter(r => r !== null).length;
+    const results = seasonData.matchResults || [];
+    const played = results.filter(r => r !== null).length;
     const total = seasonData.gamesPerSplit;
-    const progress = Math.min(100, Math.round((played / total) * 100));
+
+    // ── SPLIT COMPLETE SUMMARY ──────────────────────────────────────────────
+    if (seasonData.splitComplete) {
+        const { tier, reward } = _smSplitTier(wins);
+        const tierColor = wins >= 10 ? 'text-yellow-400' : wins >= 8 ? 'text-yellow-300' : wins >= 6 ? 'text-slate-200' : wins >= 4 ? 'text-orange-400' : 'text-slate-500';
+        const borderColor = wins >= 10 ? 'border-yellow-600/60' : wins >= 8 ? 'border-yellow-700/40' : wins >= 6 ? 'border-slate-500/40' : wins >= 4 ? 'border-orange-700/40' : 'border-slate-700';
+        const matchRows = (seasonData.opponents || []).map((opp, i) => {
+            const r = results[i];
+            const isWin = r === 'win';
+            const rowBg = isWin ? 'bg-emerald-950/25 border-emerald-800/30' : 'bg-red-950/25 border-red-800/30';
+            const badge = isWin
+                ? `<span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-900/60 text-emerald-300 border border-emerald-700">WIN</span>`
+                : `<span class="px-3 py-1 rounded-full text-xs font-black bg-red-900/60 text-red-300 border border-red-700">LOSS</span>`;
+            const ratingColor = opp.avgRating >= 90 ? 'text-red-400' : opp.avgRating >= 85 ? 'text-orange-400' : opp.avgRating >= 79 ? 'text-yellow-400' : 'text-slate-300';
+            return `<div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border ${rowBg} text-sm">
+                <span class="text-slate-600 font-mono text-xs w-4 shrink-0">${i + 1}</span>
+                <span class="text-lg shrink-0">${opp.logo}</span>
+                <div class="flex-1 min-w-0"><div class="font-bold text-slate-200 truncate">${opp.name}</div><div class="text-slate-500 text-xs">${opp.style}</div></div>
+                <div class="${ratingColor} font-black text-xs mr-2">${opp.avgRating}</div>
+                ${badge}
+            </div>`;
+        }).join('');
+
+        container.innerHTML = `<div class="space-y-4">
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950/40 rounded-2xl border ${borderColor} p-6 text-center shadow-xl">
+                <div class="text-5xl mb-3">${wins >= 10 ? '🏆' : wins >= 8 ? '🥇' : wins >= 6 ? '🥈' : wins >= 4 ? '🥉' : '📋'}</div>
+                <div class="text-xs text-slate-500 font-black uppercase tracking-widest mb-1">Split ${seasonData.currentSplit} Complete</div>
+                <div class="text-2xl font-black ${tierColor} mb-1">${tier}</div>
+                <div class="text-4xl font-black mb-1"><span class="text-emerald-400">${wins}</span><span class="text-slate-600 mx-3 text-2xl">–</span><span class="text-red-400">${losses}</span></div>
+                <div class="text-slate-400 text-sm mb-5">Reward: <span class="text-emerald-300 font-black">+${reward} BE</span> on next split start</div>
+                <button onclick="advanceToNextSplit()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-8 py-3 rounded-xl cursor-pointer transition text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(99,102,241,0.4)]">
+                    Claim Rewards &amp; Start Split ${seasonData.currentSplit + 1} →
+                </button>
+            </div>
+            <div class="space-y-1.5">${matchRows}</div>
+        </div>`;
+        return;
+    }
+
+    // ── NORMAL MATCH LIST ───────────────────────────────────────────────────
+    const elapsed = Date.now() - (seasonData.lastMatchTs || 0);
+    const onCooldown = results.some(r => r !== null) && elapsed < _SM_COOLDOWN_MS;
+    const cdRemaining = onCooldown ? Math.ceil((_SM_COOLDOWN_MS - elapsed) / 1000) : 0;
+
     let proj;
     if (wins >= 10)     proj = { label: "🏆 Flawless Split",     color: "text-yellow-400" };
     else if (wins >= 8) proj = { label: "🥇 Championship Split", color: "text-yellow-300" };
@@ -1603,8 +1858,17 @@ function renderSeasonMatchesUI() {
     else if (wins >= 4) proj = { label: "🥉 Qualifying Split",   color: "text-orange-400" };
     else                proj = { label: "📋 Development Split",  color: "text-slate-500" };
 
+    const cdBanner = onCooldown ? `
+        <div class="flex items-center gap-3 bg-orange-950/40 border border-orange-700/40 rounded-xl px-4 py-3 mb-3">
+            <span class="text-orange-400 text-lg shrink-0">⏱</span>
+            <div class="flex-1 text-sm">
+                <span class="text-orange-300 font-black">Match Cooldown</span>
+                <span class="text-slate-400 ml-2">— next match available in <span id="sm-cd-timer" class="text-orange-300 font-black">${cdRemaining}s</span></span>
+            </div>
+        </div>` : '';
+
     const matchesHTML = (seasonData.opponents || []).map((opp, i) => {
-        const result = (seasonData.matchResults || [])[i];
+        const result = results[i];
         const isPlayed = result != null;
         const isWin = result === 'win';
         const ratingColor = opp.avgRating >= 90 ? 'text-red-400' : opp.avgRating >= 85 ? 'text-orange-400' : opp.avgRating >= 79 ? 'text-yellow-400' : 'text-slate-300';
@@ -1614,7 +1878,9 @@ function renderSeasonMatchesUI() {
                      : `<span class="px-3 py-1 rounded-full text-xs font-black bg-red-900/60 text-red-300 border border-red-700 shrink-0">LOSS</span>`)
             : `<span class="px-2 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-500 border border-slate-600 shrink-0">vs</span>`;
         const playBtn = !isPlayed
-            ? `<button onclick="resolveSeasonMatch(${i})" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black px-5 py-2 rounded-lg cursor-pointer transition shadow-md uppercase tracking-wide shrink-0">Play</button>`
+            ? (onCooldown
+                ? `<span class="text-slate-600 text-xs font-black bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 shrink-0 uppercase">Locked</span>`
+                : `<button onclick="startSeasonGame(${i})" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black px-5 py-2 rounded-lg cursor-pointer transition shadow-md uppercase tracking-wide shrink-0">Play</button>`)
             : '';
         return `<div class="flex items-center gap-3 px-4 py-3 rounded-xl border ${rowBg} text-sm">
             <span class="text-slate-600 font-mono text-xs w-4 shrink-0">${i + 1}</span>
@@ -1628,6 +1894,7 @@ function renderSeasonMatchesUI() {
         </div>`;
     }).join('');
 
+    const progress = Math.min(100, Math.round((played / total) * 100));
     container.innerHTML = `
         <div class="bg-gradient-to-br from-indigo-900/30 to-slate-900 p-5 rounded-2xl border border-indigo-700/40 mb-4">
             <div class="flex flex-wrap justify-between items-center gap-3 mb-3">
@@ -1641,7 +1908,133 @@ function renderSeasonMatchesUI() {
             <div class="w-full bg-slate-700 rounded-full h-2 mb-2 overflow-hidden"><div class="bg-indigo-500 h-2 rounded-full" style="width:${progress}%"></div></div>
             <div class="text-xs text-center"><span class="text-slate-400">Projected: </span><span class="${proj.color} font-bold">${proj.label}</span></div>
         </div>
+        ${cdBanner}
         <div class="space-y-2">${matchesHTML}</div>`;
+
+    if (onCooldown) _smStartCdTimer();
+}
+
+function _renderSeasonGame(container) {
+    const st = _smState;
+    const opp = seasonData.opponents[st.oppIdx];
+
+    // Score pips
+    function pips(count, maxWins, colorClass) {
+        return Array.from({ length: maxWins }, (_, i) =>
+            `<span class="inline-block w-5 h-5 rounded-full border-2 ${i < count ? colorClass + ' border-transparent' : 'bg-slate-700 border-slate-600'}"></span>`
+        ).join('');
+    }
+
+    const myPips  = pips(st.wins,   3, 'bg-indigo-400');
+    const oppPips = pips(st.losses, 3, 'bg-red-500');
+
+    // My squad stat previews (mini stat row per role)
+    const roleRows = ['TOP','JNG','MID','ADC','SUP'].map(r => {
+        const c = squad[r];
+        if (!c) return '';
+        return `<div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-500 font-black w-8 uppercase">${r}</span>
+            <span class="text-slate-200 font-bold truncate flex-1">${c.name}</span>
+            <span class="font-mono text-slate-400">MEC <span class="text-cyan-400 font-black">${c.stats.mec}</span></span>
+            <span class="font-mono text-slate-400">TMF <span class="text-purple-400 font-black">${c.stats.tmf}</span></span>
+            <span class="font-mono text-slate-400">MAP <span class="text-emerald-400 font-black">${c.stats.map}</span></span>
+        </div>`;
+    }).join('');
+
+    const coachRow = squad.COACH
+        ? `<div class="flex items-center gap-2 text-xs border-t border-slate-700/50 pt-1 mt-1">
+            <span class="text-slate-500 font-black w-8 uppercase">HC</span>
+            <span class="text-slate-200 font-bold truncate flex-1">${squad.COACH.name}</span>
+            <span class="font-mono text-slate-400">LDR <span class="text-yellow-400 font-black">${squad.COACH.stats.ldr}</span></span>
+           </div>` : '';
+
+    // Play option cards
+    const playCards = st.phase === 'pick' ? st.options.map(play => {
+        const myVal = _smStatVal(play);
+        const oppVal = opp.stats[play.statKey] ?? opp.avgRating;
+        const edge = myVal - oppVal;
+        const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
+        const edgeStr = edge >= 0 ? `+${edge}` : `${edge}`;
+        const rolesLabel = play.myRoles.join('+');
+        return `<button onclick="makeSeasonPlay('${play.id}')" class="flex-1 min-w-[180px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 rounded-xl p-4 text-left cursor-pointer transition group">
+            <div class="text-2xl mb-1">${play.icon}</div>
+            <div class="font-black text-slate-100 text-sm mb-0.5 group-hover:text-indigo-300">${play.label}</div>
+            <div class="text-slate-500 text-[11px] mb-3 leading-tight">${play.desc}</div>
+            <div class="font-mono text-[11px] space-y-0.5 border-t border-slate-700 pt-2">
+                <div class="flex justify-between"><span class="text-slate-400">${rolesLabel} ${play.statKey.toUpperCase()}</span><span class="text-slate-200 font-black">${myVal}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Opp ${play.statKey.toUpperCase()}</span><span class="text-slate-400">${oppVal}</span></div>
+                <div class="flex justify-between border-t border-slate-700/50 pt-1 mt-1"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black">${edgeStr}</span></div>
+            </div>
+        </button>`;
+    }).join('') : '';
+
+    // Match log
+    const logHTML = st.log.length ? st.log.map(e =>
+        `<div class="flex items-start gap-2 text-xs font-mono ${e.won ? 'text-emerald-400' : 'text-red-400'}">
+            <span class="shrink-0">${e.won ? '✅' : '❌'}</span>
+            <span><span class="font-black">${e.icon} ${e.label}</span> — ${e.detail}</span>
+        </div>`
+    ).join('') : `<div class="text-slate-600 text-xs font-mono">No plays made yet.</div>`;
+
+    // Result banner
+    let resultBanner = '';
+    if (st.phase === 'done') {
+        const win = st.wins >= 3;
+        resultBanner = `<div class="rounded-2xl p-5 text-center border ${win ? 'bg-indigo-950/60 border-indigo-600' : 'bg-red-950/40 border-red-800'}">
+            <div class="text-4xl mb-2">${win ? '🏆' : '💀'}</div>
+            <div class="text-xl font-black ${win ? 'text-indigo-300' : 'text-red-400'}">${win ? `Victory!` : `Defeat.`}</div>
+            <div class="text-slate-400 text-sm mt-1">${win ? `Defeated ${opp.name} ${st.wins}–${st.losses}` : `Lost to ${opp.name} ${st.wins}–${st.losses}`}</div>
+            <button onclick="_smBackToList()" class="mt-4 bg-slate-700 hover:bg-slate-600 text-slate-200 px-6 py-2 rounded-xl font-bold cursor-pointer transition text-sm">Back to Matches</button>
+        </div>`;
+    }
+
+    container.innerHTML = `
+        <div class="space-y-4">
+            <!-- Header -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <button onclick="_smBackToList()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition uppercase">← Matches</button>
+                <span class="text-xl">${opp.logo}</span>
+                <div>
+                    <span class="font-black text-slate-100">${opp.name}</span>
+                    <span class="text-slate-500 text-xs ml-2">${opp.region} · ${opp.style} · Avg ${opp.avgRating}</span>
+                </div>
+                <span class="text-slate-500 text-xs ml-auto font-mono">Match ${st.oppIdx + 1} of 10</span>
+            </div>
+
+            <!-- Score -->
+            <div class="flex items-center justify-center gap-8 bg-slate-800/60 py-4 rounded-2xl border border-slate-700">
+                <div class="text-center">
+                    <div class="text-xs text-indigo-400 font-black uppercase tracking-wider mb-2">You</div>
+                    <div class="flex gap-1.5">${myPips}</div>
+                </div>
+                <div class="text-slate-600 font-black text-lg">vs</div>
+                <div class="text-center">
+                    <div class="text-xs text-red-400 font-black uppercase tracking-wider mb-2">${opp.name}</div>
+                    <div class="flex gap-1.5">${oppPips}</div>
+                </div>
+            </div>
+
+            ${st.phase === 'done' ? resultBanner : `
+            <!-- Round header -->
+            <div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest">
+                Round ${st.round} — Choose Your Play
+            </div>
+
+            <!-- Play options -->
+            <div class="flex flex-wrap gap-3">${playCards}</div>`}
+
+            <!-- Two-col layout: roster stats + match log -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-800/60 rounded-xl border border-slate-700 p-4">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Your Roster</div>
+                    <div class="space-y-1.5">${roleRows}${coachRow}</div>
+                </div>
+                <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4 font-mono">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Match Log</div>
+                    <div class="space-y-1.5">${logHTML}</div>
+                </div>
+            </div>
+        </div>`;
 }
 
 function renderSeasonTab() {

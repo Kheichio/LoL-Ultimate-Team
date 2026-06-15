@@ -315,7 +315,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.1</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.2</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -553,13 +553,20 @@
                         <h4 class="text-cyan-300 font-black mb-1">🎯 Draft Mode — 1,000 BE</h4>
                         <p class="text-slate-400 text-xs">Requires 15 club cards. <strong class="text-cyan-400">Ban phase</strong> (up to 5 each side) → <strong class="text-cyan-400">Role Assignment</strong> (assign cards to TOP/JNG/MID/ADC/SUP + optional COACH) → <strong class="text-cyan-400">3-round match</strong>. R1 &amp; R2: pick MEC/TMF/MAP focus. R3 Hybrid: pick tactical stat then fundamentals stat, average decides. CPU difficulty scales to your card pool rating. Win: 5,000 BE · Runner-up (1W): 1,500 BE · 0W: no payout.</p>
                     </div>
+                    <div class="bg-indigo-950/40 p-4 rounded-xl border border-indigo-700/50 sm:col-span-2 lg:col-span-3">
+                        <h4 class="text-indigo-300 font-black mb-1">🏆 Season Splits — Free Entry</h4>
+                        <p class="text-slate-400 text-xs mb-2">Accessed from <strong class="text-indigo-400">Play → Open Season</strong>. A split consists of 10 opponents generated at the start with <strong class="text-slate-300">scaling difficulty</strong> — Match 1 is the easiest, Match 10 is the hardest. You can play them in any order, one at a time; progress saves between sessions. Only Season Match results count toward your split record — standard tournaments do not.</p>
+                        <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">How a match works:</strong> Each match is <strong class="text-slate-300">Best of 5 rounds</strong>. Every round you choose one of three randomly offered plays — each play pits a specific set of your players' stats against the opponent's matching stat. The edge is shown upfront (e.g. <span class="text-emerald-400">+7</span> or <span class="text-red-400">−3</span>) with a random ±8 variance applied on resolution. First to 3 round wins takes the match.</p>
+                        <p class="text-slate-400 text-xs mb-1"><strong class="text-slate-300">Play types and the stats they use:</strong> Jungle Invade &amp; Pick Comp → JNG/MID <span class="text-cyan-400">MEC</span> · 5v5 Teamfight → team <span class="text-purple-400">TMF</span> · Dragon/Baron/Vision → JNG+SUP <span class="text-emerald-400">MAP</span> · Split Push / Farm Lead / Poke → TOP/ADC/MID <span class="text-yellow-400">FRM</span> · Hard Engage → SUP+JNG <span class="text-orange-400">LDR</span> · Rotation → MID+JNG <span class="text-blue-400">CMP</span> · Coaching Adjust → COACH <span class="text-yellow-400">LDR</span> (only available if a Coach is slotted).</p>
+                        <p class="text-slate-400 text-xs"><strong class="text-slate-300">Opponent styles skew their stats:</strong> Aggressive teams spike MEC, Defensive teams spike MAP/LDR, Chaotic teams have extreme MEC but weak CMP. Read the style label before picking plays. Split rewards on completion: 10W = 8,000 BE · 8–9W = 5,000 · 6–7W = 3,000 · 4–5W = 1,500 · 0–3W = 500. All completed splits are logged in the <strong class="text-indigo-400">Season tab</strong> trophy case.</p>
+                    </div>
                 </div>
                 <p class="text-xs text-slate-500 font-mono">Difficulty scales by +3 per round plus a random 0–3 variance, so later rounds of each mode push into the next tier bracket.</p>
             </div>
 
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-lg font-bold text-amber-400 mb-4">💼 Manager Skills</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                     <div class="bg-slate-900/50 p-4 rounded-xl border border-blue-900/40">
                         <h4 class="text-blue-400 font-black mb-1">🔭 Scouting Network</h4>
                         <p class="text-slate-400 text-xs">Each level adds +0.25% to every pack RNG roll. At level 5: +1.25% — a meaningful nudge without distorting rare drop rates.</p>
@@ -571,6 +578,10 @@
                     <div class="bg-slate-900/50 p-4 rounded-xl border border-emerald-900/40">
                         <h4 class="text-emerald-400 font-black mb-1">🎯 Tactical Acumen</h4>
                         <p class="text-slate-400 text-xs">Grants +3 guaranteed power per level in the Tactical Draft phase. At level 5: +15 flat power — equivalent to a full chemistry bonus.</p>
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-orange-900/40">
+                        <h4 class="text-orange-400 font-black mb-1">🔀 Transfer Window</h4>
+                        <p class="text-slate-400 text-xs">Expands the Exchange Hub market. <strong class="text-slate-300">Lv2:</strong> 4 offers per refresh. <strong class="text-slate-300">Lv3:</strong> Unlocks the Role Filter to target specific positions. <strong class="text-slate-300">Lv4:</strong> 5 offers. <strong class="text-slate-300">Lv5:</strong> Force Refresh locks the entire market to your chosen role.</p>
                     </div>
                 </div>
                 <p class="text-xs text-slate-500 mt-3">Earn XP by opening packs (+25 XP) and winning matches (+100 XP). Each level up grants 1 Skill Point. Skills cost escalating SP: level 1→1 SP, level 2→2 SP, etc.</p>
@@ -638,18 +649,19 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-indigo-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.1)</h3>
+                <h3 class="text-lg font-bold text-orange-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.2)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-indigo-400 font-bold">Season Matches</span> — A dedicated split-based competitive mode, separate from standard tournaments. Access it via the Play tab. 10 CPU opponents are generated per split with scaling difficulty. Play them one at a time — progress only counts here, preventing low-tier farming.</li>
-                    <li><span class="text-yellow-300 font-bold">Split Rewards</span> — Complete all 10 matches to close a split and earn BE based on your record: 10W = 8,000 BE · 8–9W = 5,000 · 6–7W = 3,000 · 4–5W = 1,500 · 0–3W = 500. All completed splits are logged in your Trophy Case on the Season tab.</li>
-                    <li><span class="text-cyan-400 font-bold">Card Comparison Tool</span> — In the Club tab, activate Compare Mode to select two cards side by side. Stats are color-coded: green for the winner, red for the loser in each category.</li>
-                    <li><span class="text-pink-400 font-bold">Animated Card Reveal</span> — Packs now open with a face-down reveal. Cards flip in one by one with a staggered animation. The confirm button is locked until the last card reveals.</li>
-                    <li><span class="text-slate-300 font-bold">Dark / Light Mode Toggle</span> — A toggle in the nav header switches between dark and light mode. Card art is preserved in light mode via double-inversion.</li>
-                    <li><span class="text-emerald-400 font-bold">New Legacy Cards</span> — Weibo Gaming 2023 Worlds Finalists added (6 cards, IDs 9408–9413): TheShy · Weiwei · Xiaohu · Light · Crisp · Daeny.</li>
+                    <li><span class="text-indigo-400 font-bold">Interactive Season Matches</span> — Season matches are now fully interactive. Each match is Best of 5 rounds. Every round, choose from 3 randomly offered plays — each pits specific player stats (MEC, TMF, MAP, FRM, LDR, CMP) against the opponent's matching stat. Your raw edge is shown upfront; a ±8 variance is applied on resolution. Pick smart, not just high.</li>
+                    <li><span class="text-cyan-400 font-bold">Opponent Styles</span> — Each CPU team has a playstyle (Aggressive, Methodical, Balanced, Defensive, Chaotic) that skews their individual stats. Aggressive teams spike MEC but lack MAP — exploit them with objective plays.</li>
+                    <li><span class="text-yellow-300 font-bold">Match Cooldown</span> — A 1-minute cooldown is enforced between season matches. A live countdown is shown in the match list. Prevents rapid-fire spamming through the split.</li>
+                    <li><span class="text-emerald-400 font-bold">Manual Split Advancement</span> — After all 10 matches are played, the split no longer auto-advances. A summary screen shows every match result and your final tier. Click <em>Claim Rewards &amp; Start Next Split</em> when you're ready.</li>
+                    <li><span class="text-pink-400 font-bold">MSI &amp; FirstStand Card Buffs</span> — All MSI and FirstStand legacy cards have been rebased. Each card now has stats clearly above their same-year regular counterpart, making special quality cards genuinely worth chasing over standard versions.</li>
+                    <li><span class="text-yellow-400 font-bold">MVP Ruler Buff</span> — Ruler (SSG 2017 Worlds MVP) updated to rating 99. CMP raised to 99, MAP to 97, LDR to 98 — reflecting his status as one of the most dominant ADC performances in Worlds history.</li>
+                    <li><span class="text-orange-400 font-bold">Transfer Window (New Skill)</span> — Fourth manager skill added. Lv2: 4 trade offers per refresh. Lv3: Role Filter unlocked in Exchange Hub — target a specific lane position. Lv4: 5 trade offers. Lv5: Force Refresh locks the entire market to your chosen role.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.9): New Region LCP · 2026 LCP Rosters · 2025 LCS Rosters</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.1): Season Matches · Card Comparison · Animated Pack Reveal · Dark/Light Mode · WBG 2023 Cards</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.9): New Region LCP · 2026 LCP Rosters · 2025 LCS Rosters</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.8): Year Chemistry Rework · Coach Quality Scaling · Elite Pedigree Bonus</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.7): Quality Auto-Assignment · MSI Cards ×18 (RNG 2022, JDG 2023, Gen.G 2024) · UI Premium Pass</p>
             </div>
 
         </section>
@@ -665,7 +677,8 @@
                     <button onclick="forceTradeRefresh()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded border border-slate-600 cursor-pointer transition">Force Reset (500 BE)</button>
                 </div>
             </div>
-            <div id="trade-offers-container" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
+            <div id="trade-filter-bar" class="hidden"></div>
+            <div id="trade-offers-container" class="flex flex-wrap gap-4 justify-center"></div>
         </section>
 
         <section id="tab-collection" class="tab-content hidden">
@@ -1349,7 +1362,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.1 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.2 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1357,17 +1370,18 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-indigo-400 font-bold">Season Matches</span> — New competitive mode in the Play tab. 10 CPU opponents per split with scaling difficulty. Play them one at a time — only Season Match results count toward split progress.</li>
-                <li><span class="text-yellow-300 font-bold">Split Rewards</span> — Close a split by finishing all 10 matches. Earn up to 8,000 BE for a 10-win run. All splits are recorded in your Trophy Case on the Season tab.</li>
-                <li><span class="text-cyan-400 font-bold">Card Comparison</span> — Compare Mode in the Club tab lets you pick two cards for a head-to-head stat breakdown.</li>
-                <li><span class="text-pink-400 font-bold">Animated Pack Reveal</span> — Cards in a pack now flip in one at a time from face-down. Confirm is locked until all cards reveal.</li>
-                <li><span class="text-slate-300 font-bold">Dark / Light Mode</span> — Toggle in the nav header. Card art stays dark-themed in both modes.</li>
-                <li><span class="text-emerald-400 font-bold">New Cards: WBG 2023</span> — Weibo Gaming Worlds Finalists added as Legacy Finalist cards: TheShy · Weiwei · Xiaohu · Light · Crisp · Daeny.</li>
+                <li><span class="text-indigo-400 font-bold">Interactive Season Matches</span> — Matches are now Best of 5 rounds. Each round you pick from 3 plays — your player stats vs opponent's. Edge is shown upfront; ±8 variance on resolution.</li>
+                <li><span class="text-cyan-400 font-bold">Opponent Styles</span> — CPU teams have playstyles (Aggressive, Methodical, Balanced, Defensive, Chaotic) that skew their stats. Exploit their weaknesses.</li>
+                <li><span class="text-yellow-300 font-bold">Match Cooldown</span> — 1-minute cooldown between season matches. Live countdown shown in the match list — no more rapid spamming.</li>
+                <li><span class="text-emerald-400 font-bold">Manual Split Advancement</span> — All 10 matches must be played before a split ends. A summary screen shows every result and your tier — claim rewards when you're ready.</li>
+                <li><span class="text-pink-400 font-bold">MSI &amp; FirstStand Buffs</span> — All special-quality legacy cards now clearly exceed their same-year regular counterparts. Special cards are actually special now.</li>
+                <li><span class="text-yellow-400 font-bold">MVP Ruler Buff</span> — SSG 2017 Ruler upgraded to 99 rating. MAP 97, LDR 98, CMP 99.</li>
+                <li><span class="text-orange-400 font-bold">Transfer Window Skill</span> — New manager skill. Lv2: 4 trade offers. Lv3: Role Filter in Exchange Hub. Lv4: 5 offers. Lv5: Force Refresh locks market to chosen role.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.1</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.2</button>
             </div>
         </div>
     </div>
