@@ -24,7 +24,7 @@ window.roleIconsLg = {
 };
 
 // --- Player nationality flags ---
-window.regionDefaultFlags = { LCK: "🇰🇷", LPL: "🇨🇳", LEC: "🇪🇺", LCS: "🇺🇸", Legacy: "🏆" };
+window.regionDefaultFlags = { LCK: "🇰🇷", LPL: "🇨🇳", LEC: "🇪🇺", LCS: "🇺🇸", LCP: "🌏", Legacy: "🏆" };
 window.playerNationalityOverrides = {
     // LPL — Korean imports
     "Rookie": "🇰🇷", "Tarzan": "🇰🇷", "MISSING": "🇰🇷", "Scout": "🇰🇷",
@@ -67,7 +67,12 @@ window.playerNationalityOverrides = {
     "Doublelift": "🇺🇸", "CoreJJ": "🇰🇷", "Faker": "🇰🇷",
     "Licorice": "🇺🇸", "Blaber": "🇺🇸", "Zven": "🇩🇰",
     // Other regions
-    "LazyFeel": "🇻🇳",
+    "LazyFeel": "🇻🇳", "SofM": "🇻🇳",
+    // LCP — Korean imports
+    "Pungyeon": "🇰🇷", "Citrus": "🇰🇷", "Keine": "🇰🇷", "Gaeng": "🇰🇷",
+    "Van1": "🇰🇷", "Aria": "🇰🇷", "Vsta": "🇰🇷",
+    // LCP — Japanese players
+    "RayFarky": "🇯🇵", "Momo": "🇯🇵", "Kakkun": "🇯🇵", "Evi": "🇯🇵", "Marble": "🇯🇵",
     // LCS 2026 imports & non-US natives
     "Photon": "🇰🇷", "IgNar": "🇰🇷", "FBI": "🇦🇺",
     "Morgan": "🇰🇷", "Josedeodo": "🇨🇴",
@@ -86,7 +91,7 @@ window.playerNationalityOverrides = {
     "Piglet": "🇰🇷", "PoohManDu": "🇰🇷",
 };
 
-window.regionLogos = { LCK: "🇰🇷 LCK", LPL: "🇨🇳 LPL", LEC: "🇪🇺 LEC", LCS: "🇺🇸 LCS", Champion: "👑 ICON" };
+window.regionLogos = { LCK: "🇰🇷 LCK", LPL: "🇨🇳 LPL", LEC: "🇪🇺 LEC", LCS: "🇺🇸 LCS", LCP: "🌏 LCP", Champion: "👑 ICON" };
 window.teamLineageBridges = { 
     "SKT": "T1", "SKT T1": "T1", "SSG": "Gen.G", "SSW": "Gen.G", "Samsung Galaxy": "Gen.G", 
     "FNC": "Fnatic", "ROX": "HLE", "DK": "Dplus KIA", "IG": "Invictus Gaming", "FPX": "FunPlus Phoenix", 
@@ -589,6 +594,70 @@ const baseDatabase = [
     { id: 1465, name: "Lyonz",      role: "SUP", team: "DSG", year: 2026, rating: 76, quality: "Silver",   region: "LCS", stats: { mec: 73, tmf: 77, frm: 77, cmp: 76, map: 78, ldr: 75 } },
 
     // ==========================================
+    // --- 2026 LCP ROSTERS ---
+    // ==========================================
+
+    // CTBC Flying Oyster (42.86% WR — 5th)
+    { id: 6001, name: "Rest",      role: "TOP", team: "CFO", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 82, frm: 83, cmp: 79, map: 80, ldr: 78 } },
+    { id: 6002, name: "Shad0w",    role: "JNG", team: "CFO", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 82, tmf: 83, frm: 82, cmp: 79, map: 83, ldr: 79 } },
+    { id: 6003, name: "Pungyeon",  role: "MID", team: "CFO", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 82, frm: 83, cmp: 80, map: 80, ldr: 79 } },
+    { id: 6004, name: "Doggo",     role: "ADC", team: "CFO", year: 2026, rating: 83, quality: "Gold",     region: "LCP", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 79, ldr: 77 } },
+    { id: 6005, name: "2274",      role: "SUP", team: "CFO", year: 2026, rating: 80, quality: "Gold",     region: "LCP", stats: { mec: 75, tmf: 81, frm: 80, cmp: 79, map: 82, ldr: 80 } },
+
+    // Deep Cross Gaming (58.33% WR — 2nd seed)
+    { id: 6011, name: "Flauren",   role: "TOP", team: "DCG", year: 2026, rating: 84, quality: "Gold",     region: "LCP", stats: { mec: 85, tmf: 83, frm: 85, cmp: 81, map: 82, ldr: 79 } },
+    { id: 6012, name: "POP9",      role: "JNG", team: "DCG", year: 2026, rating: 83, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 83, frm: 83, cmp: 80, map: 84, ldr: 80 } },
+    { id: 6013, name: "HongSuo",   role: "MID", team: "DCG", year: 2026, rating: 86, quality: "Platinum", region: "LCP", stats: { mec: 87, tmf: 85, frm: 87, cmp: 83, map: 83, ldr: 81 } },
+    { id: 6014, name: "Feng",      role: "ADC", team: "DCG", year: 2026, rating: 85, quality: "Platinum", region: "LCP", stats: { mec: 86, tmf: 84, frm: 86, cmp: 82, map: 81, ldr: 79 } },
+    { id: 6015, name: "ShiauC",    role: "SUP", team: "DCG", year: 2026, rating: 83, quality: "Gold",     region: "LCP", stats: { mec: 78, tmf: 84, frm: 83, cmp: 82, map: 85, ldr: 82 } },
+
+    // DetonatioN FocusMe (6.67% WR — 8th, last place)
+    { id: 6021, name: "RayFarky",  role: "TOP", team: "DFM", year: 2026, rating: 76, quality: "Silver",   region: "LCP", stats: { mec: 77, tmf: 75, frm: 77, cmp: 73, map: 74, ldr: 71 } },
+    { id: 6022, name: "Momo",      role: "TOP", team: "DFM", year: 2026, rating: 73, quality: "Silver",   region: "LCP", stats: { mec: 74, tmf: 72, frm: 74, cmp: 70, map: 71, ldr: 68 } },
+    { id: 6023, name: "Citrus",    role: "JNG", team: "DFM", year: 2026, rating: 72, quality: "Silver",   region: "LCP", stats: { mec: 73, tmf: 72, frm: 73, cmp: 70, map: 72, ldr: 68 } },
+    { id: 6024, name: "Keine",     role: "MID", team: "DFM", year: 2026, rating: 77, quality: "Silver",   region: "LCP", stats: { mec: 79, tmf: 76, frm: 80, cmp: 74, map: 74, ldr: 71 } },
+    { id: 6025, name: "Kakkun",    role: "ADC", team: "DFM", year: 2026, rating: 74, quality: "Silver",   region: "LCP", stats: { mec: 75, tmf: 73, frm: 75, cmp: 71, map: 72, ldr: 68 } },
+    { id: 6026, name: "Gaeng",     role: "SUP", team: "DFM", year: 2026, rating: 72, quality: "Silver",   region: "LCP", stats: { mec: 68, tmf: 73, frm: 72, cmp: 71, map: 74, ldr: 70 } },
+
+    // Fukuoka SoftBank HAWKS gaming (45.16% WR — 4th)
+    { id: 6031, name: "Evi",       role: "TOP", team: "SBH", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 82, frm: 82, cmp: 81, map: 79, ldr: 80 } },
+    { id: 6032, name: "Van1",      role: "JNG", team: "SBH", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 82, tmf: 83, frm: 82, cmp: 79, map: 83, ldr: 79 } },
+    { id: 6033, name: "Aria",      role: "MID", team: "SBH", year: 2026, rating: 83, quality: "Gold",     region: "LCP", stats: { mec: 84, tmf: 82, frm: 84, cmp: 81, map: 81, ldr: 79 } },
+    { id: 6034, name: "Marble",    role: "ADC", team: "SBH", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 79, ldr: 76 } },
+    { id: 6035, name: "Vsta",      role: "SUP", team: "SBH", year: 2026, rating: 83, quality: "Gold",     region: "LCP", stats: { mec: 78, tmf: 84, frm: 83, cmp: 82, map: 85, ldr: 83 } },
+
+    // GAM Esports (50% WR — 3rd seed)
+    { id: 6041, name: "Kiaya",     role: "TOP", team: "GAM", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 80, ldr: 77 } },
+    { id: 6042, name: "Draktharr", role: "JNG", team: "GAM", year: 2026, rating: 80, quality: "Gold",     region: "LCP", stats: { mec: 80, tmf: 80, frm: 80, cmp: 77, map: 81, ldr: 77 } },
+    { id: 6043, name: "Aress",     role: "MID", team: "GAM", year: 2026, rating: 83, quality: "Gold",     region: "LCP", stats: { mec: 84, tmf: 82, frm: 84, cmp: 80, map: 81, ldr: 79 } },
+    { id: 6044, name: "Artemis",   role: "ADC", team: "GAM", year: 2026, rating: 84, quality: "Gold",     region: "LCP", stats: { mec: 85, tmf: 83, frm: 85, cmp: 81, map: 80, ldr: 78 } },
+    { id: 6045, name: "Taki",      role: "SUP", team: "GAM", year: 2026, rating: 83, quality: "Gold",     region: "LCP", stats: { mec: 78, tmf: 84, frm: 83, cmp: 82, map: 85, ldr: 82 } },
+
+    // Ground Zero Gaming (48.48% WR — 6th)
+    { id: 6051, name: "1Jiang",    role: "TOP", team: "GZG", year: 2026, rating: 81, quality: "Gold",     region: "LCP", stats: { mec: 82, tmf: 81, frm: 83, cmp: 78, map: 80, ldr: 77 } },
+    { id: 6052, name: "Husha",     role: "JNG", team: "GZG", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 82, tmf: 82, frm: 82, cmp: 79, map: 83, ldr: 79 } },
+    { id: 6053, name: "JimieN",    role: "MID", team: "GZG", year: 2026, rating: 81, quality: "Gold",     region: "LCP", stats: { mec: 82, tmf: 81, frm: 82, cmp: 79, map: 80, ldr: 78 } },
+    { id: 6054, name: "Shunn",     role: "ADC", team: "GZG", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 79, ldr: 76 } },
+    { id: 6055, name: "Orca",      role: "SUP", team: "GZG", year: 2026, rating: 81, quality: "Gold",     region: "LCP", stats: { mec: 76, tmf: 82, frm: 81, cmp: 80, map: 83, ldr: 80 } },
+
+    // MVK Esports (44.44% WR — 7th)
+    { id: 6061, name: "Kratos",    role: "TOP", team: "MVK", year: 2026, rating: 79, quality: "Silver",   region: "LCP", stats: { mec: 80, tmf: 79, frm: 80, cmp: 76, map: 78, ldr: 74 } },
+    { id: 6062, name: "SofM",      role: "JNG", team: "MVK", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 83, frm: 82, cmp: 80, map: 84, ldr: 82 } },
+    { id: 6063, name: "Gury",      role: "JNG", team: "MVK", year: 2026, rating: 80, quality: "Gold",     region: "LCP", stats: { mec: 80, tmf: 80, frm: 80, cmp: 77, map: 81, ldr: 77 } },
+    { id: 6064, name: "Kati",      role: "MID", team: "MVK", year: 2026, rating: 81, quality: "Gold",     region: "LCP", stats: { mec: 82, tmf: 80, frm: 82, cmp: 78, map: 79, ldr: 76 } },
+    { id: 6065, name: "Seany",     role: "MID", team: "MVK", year: 2026, rating: 78, quality: "Silver",   region: "LCP", stats: { mec: 79, tmf: 77, frm: 79, cmp: 75, map: 76, ldr: 74 } },
+    { id: 6066, name: "Shogun",    role: "ADC", team: "MVK", year: 2026, rating: 82, quality: "Gold",     region: "LCP", stats: { mec: 83, tmf: 81, frm: 83, cmp: 79, map: 78, ldr: 75 } },
+    { id: 6067, name: "Elio",      role: "SUP", team: "MVK", year: 2026, rating: 78, quality: "Silver",   region: "LCP", stats: { mec: 73, tmf: 79, frm: 78, cmp: 77, map: 80, ldr: 77 } },
+
+    // Team Secret Whales (78.57% WR — Champions)
+    { id: 6071, name: "Pun",       role: "TOP", team: "TSW", year: 2026, rating: 85, quality: "Platinum", region: "LCP", stats: { mec: 86, tmf: 84, frm: 86, cmp: 82, map: 83, ldr: 82 } },
+    { id: 6072, name: "Hiro02",    role: "TOP", team: "TSW", year: 2026, rating: 77, quality: "Silver",   region: "LCP", stats: { mec: 78, tmf: 76, frm: 78, cmp: 74, map: 75, ldr: 72 } },
+    { id: 6073, name: "Hizto",     role: "JNG", team: "TSW", year: 2026, rating: 88, quality: "Platinum", region: "LCP", stats: { mec: 87, tmf: 88, frm: 86, cmp: 87, map: 91, ldr: 85 } },
+    { id: 6074, name: "Dire",      role: "MID", team: "TSW", year: 2026, rating: 88, quality: "Platinum", region: "LCP", stats: { mec: 89, tmf: 87, frm: 89, cmp: 86, map: 86, ldr: 84 } },
+    { id: 6075, name: "Eddie",     role: "ADC", team: "TSW", year: 2026, rating: 88, quality: "Platinum", region: "LCP", stats: { mec: 89, tmf: 87, frm: 89, cmp: 85, map: 82, ldr: 79 } },
+    { id: 6076, name: "Bie",       role: "SUP", team: "TSW", year: 2026, rating: 87, quality: "Platinum", region: "LCP", stats: { mec: 81, tmf: 88, frm: 88, cmp: 86, map: 90, ldr: 86 } },
+
+    // ==========================================
     // --- 2.5. 2025 LCK ROSTERS ---
     // ==========================================
     { id: 501, name: "Morgan",    role: "TOP", team: "BRO",   year: 2025, rating: 84, quality: "Gold",        region: "LCK", stats: { mec: 83, tmf: 88, frm: 85, cmp: 85, map: 84, ldr: 83 } },
@@ -726,6 +795,69 @@ const baseDatabase = [
     { id: 2248, name: "Czajek",    role: "MID", team: "VIT", year: 2025, rating: 79, quality: "Silver",   region: "LEC", stats: { mec: 81, tmf: 78, frm: 80, cmp: 77, map: 76, ldr: 74 } },
     { id: 2249, name: "Carzzy",    role: "ADC", team: "VIT", year: 2025, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 86, frm: 87, cmp: 88, map: 82, ldr: 84 } },
     { id: 2250, name: "Fleshy",    role: "SUP", team: "VIT", year: 2025, rating: 80, quality: "Gold",     region: "LEC", stats: { mec: 74, tmf: 80, frm: 81, cmp: 78, map: 83, ldr: 82 } },
+
+    // ==========================================
+    // --- 2025 LCS ROSTERS (LTA North Split 3) ---
+    // ==========================================
+
+    // 100 Thieves (53.8% WR — 3rd seed)
+    { id: 4501, name: "Sniper",    role: "TOP", team: "100T", year: 2025, rating: 77, quality: "Silver",   region: "LCS", stats: { mec: 79, tmf: 76, frm: 78, cmp: 73, map: 74, ldr: 71 } },
+    { id: 4502, name: "Dhokla",    role: "TOP", team: "100T", year: 2025, rating: 83, quality: "Gold",     region: "LCS", stats: { mec: 83, tmf: 83, frm: 83, cmp: 80, map: 82, ldr: 79 } },
+    { id: 4503, name: "River",     role: "JNG", team: "100T", year: 2025, rating: 82, quality: "Gold",     region: "LCS", stats: { mec: 82, tmf: 83, frm: 82, cmp: 79, map: 83, ldr: 78 } },
+    { id: 4504, name: "Quid",      role: "MID", team: "100T", year: 2025, rating: 84, quality: "Gold",     region: "LCS", stats: { mec: 85, tmf: 84, frm: 85, cmp: 81, map: 82, ldr: 79 } },
+    { id: 4505, name: "FBI",       role: "ADC", team: "100T", year: 2025, rating: 86, quality: "Platinum", region: "LCS", stats: { mec: 87, tmf: 85, frm: 87, cmp: 83, map: 82, ldr: 80 } },
+    { id: 4506, name: "Eyla",      role: "SUP", team: "100T", year: 2025, rating: 82, quality: "Gold",     region: "LCS", stats: { mec: 77, tmf: 83, frm: 83, cmp: 81, map: 84, ldr: 81 } },
+
+    // Cloud9 (61.9% WR — 2nd seed)
+    { id: 4511, name: "Thanatos",  role: "TOP", team: "C9",   year: 2025, rating: 85, quality: "Platinum", region: "LCS", stats: { mec: 86, tmf: 85, frm: 86, cmp: 82, map: 83, ldr: 80 } },
+    { id: 4512, name: "Blaber",    role: "JNG", team: "C9",   year: 2025, rating: 87, quality: "Platinum", region: "LCS", stats: { mec: 87, tmf: 87, frm: 87, cmp: 84, map: 89, ldr: 87 } },
+    { id: 4513, name: "Loki",      role: "MID", team: "C9",   year: 2025, rating: 88, quality: "Platinum", region: "LCS", stats: { mec: 89, tmf: 87, frm: 89, cmp: 85, map: 85, ldr: 83 } },
+    { id: 4514, name: "Zven",      role: "ADC", team: "C9",   year: 2025, rating: 88, quality: "Platinum", region: "LCS", stats: { mec: 89, tmf: 87, frm: 89, cmp: 87, map: 84, ldr: 85 } },
+    { id: 4515, name: "Vulcan",    role: "SUP", team: "C9",   year: 2025, rating: 86, quality: "Platinum", region: "LCS", stats: { mec: 80, tmf: 87, frm: 87, cmp: 85, map: 89, ldr: 87 } },
+
+    // Dignitas (18.2% WR — 8th, last place)
+    { id: 4521, name: "Photon",    role: "TOP", team: "DIG",  year: 2025, rating: 79, quality: "Silver",   region: "LCS", stats: { mec: 80, tmf: 78, frm: 80, cmp: 76, map: 77, ldr: 74 } },
+    { id: 4522, name: "Sheiden",   role: "JNG", team: "DIG",  year: 2025, rating: 77, quality: "Silver",   region: "LCS", stats: { mec: 78, tmf: 77, frm: 77, cmp: 74, map: 78, ldr: 72 } },
+    { id: 4523, name: "Keine",     role: "MID", team: "DIG",  year: 2025, rating: 78, quality: "Silver",   region: "LCS", stats: { mec: 80, tmf: 77, frm: 79, cmp: 75, map: 76, ldr: 73 } },
+    { id: 4524, name: "Tomo",      role: "ADC", team: "DIG",  year: 2025, rating: 79, quality: "Silver",   region: "LCS", stats: { mec: 80, tmf: 78, frm: 80, cmp: 75, map: 76, ldr: 72 } },
+    { id: 4525, name: "Isles",     role: "SUP", team: "DIG",  year: 2025, rating: 76, quality: "Silver",   region: "LCS", stats: { mec: 71, tmf: 77, frm: 77, cmp: 75, map: 78, ldr: 74 } },
+
+    // Disguised (47.1% WR — 5th)
+    { id: 4531, name: "Castle",    role: "TOP", team: "DSG",  year: 2025, rating: 81, quality: "Gold",     region: "LCS", stats: { mec: 82, tmf: 81, frm: 82, cmp: 78, map: 79, ldr: 76 } },
+    { id: 4532, name: "eXyu",      role: "JNG", team: "DSG",  year: 2025, rating: 79, quality: "Silver",   region: "LCS", stats: { mec: 80, tmf: 79, frm: 79, cmp: 76, map: 80, ldr: 75 } },
+    { id: 4533, name: "DARKWINGS", role: "MID", team: "DSG",  year: 2025, rating: 80, quality: "Gold",     region: "LCS", stats: { mec: 81, tmf: 79, frm: 81, cmp: 77, map: 79, ldr: 75 } },
+    { id: 4534, name: "Rahel",     role: "ADC", team: "DSG",  year: 2025, rating: 82, quality: "Gold",     region: "LCS", stats: { mec: 83, tmf: 81, frm: 84, cmp: 78, map: 77, ldr: 74 } },
+    { id: 4535, name: "huhi",      role: "SUP", team: "DSG",  year: 2025, rating: 82, quality: "Gold",     region: "LCS", stats: { mec: 78, tmf: 83, frm: 82, cmp: 82, map: 84, ldr: 83 } },
+
+    // FlyQuest (88.2% WR — Champions, Split MVP: Inspired)
+    { id: 4541, name: "Bwipo",     role: "TOP", team: "FLY",  year: 2025, rating: 88, quality: "Platinum", region: "LCS", stats: { mec: 88, tmf: 88, frm: 88, cmp: 87, map: 86, ldr: 88 } },
+    { id: 4542, name: "Gakgos",    role: "TOP", team: "FLY",  year: 2025, rating: 80, quality: "Gold",     region: "LCS", stats: { mec: 81, tmf: 80, frm: 81, cmp: 77, map: 78, ldr: 75 } },
+    { id: 4543, name: "Inspired",  role: "JNG", team: "FLY",  year: 2025, rating: 91, quality: "Diamond",  region: "LCS", stats: { mec: 90, tmf: 91, frm: 89, cmp: 90, map: 94, ldr: 88 } },
+    { id: 4544, name: "Quad",      role: "MID", team: "FLY",  year: 2025, rating: 89, quality: "Platinum", region: "LCS", stats: { mec: 90, tmf: 88, frm: 90, cmp: 86, map: 87, ldr: 84 } },
+    { id: 4545, name: "Massu",     role: "ADC", team: "FLY",  year: 2025, rating: 90, quality: "Diamond",  region: "LCS", stats: { mec: 91, tmf: 89, frm: 91, cmp: 87, map: 85, ldr: 82 } },
+    { id: 4546, name: "Busio",     role: "SUP", team: "FLY",  year: 2025, rating: 88, quality: "Platinum", region: "LCS", stats: { mec: 82, tmf: 89, frm: 89, cmp: 87, map: 91, ldr: 88 } },
+
+    // LYON (27.3% WR — 6th, South American squad)
+    { id: 4551, name: "Bejjaniii", role: "TOP", team: "LYON", year: 2025, rating: 76, quality: "Silver",   region: "LCS", stats: { mec: 77, tmf: 75, frm: 77, cmp: 73, map: 74, ldr: 71 } },
+    { id: 4552, name: "Srtty",     role: "TOP", team: "LYON", year: 2025, rating: 79, quality: "Silver",   region: "LCS", stats: { mec: 80, tmf: 78, frm: 80, cmp: 76, map: 77, ldr: 73 } },
+    { id: 4553, name: "Oddielan",  role: "JNG", team: "LYON", year: 2025, rating: 78, quality: "Silver",   region: "LCS", stats: { mec: 79, tmf: 78, frm: 78, cmp: 74, map: 79, ldr: 74 } },
+    { id: 4554, name: "Saint",     role: "MID", team: "LYON", year: 2025, rating: 79, quality: "Silver",   region: "LCS", stats: { mec: 80, tmf: 78, frm: 80, cmp: 77, map: 78, ldr: 74 } },
+    { id: 4555, name: "Hena",      role: "ADC", team: "LYON", year: 2025, rating: 80, quality: "Gold",     region: "LCS", stats: { mec: 81, tmf: 79, frm: 81, cmp: 77, map: 76, ldr: 73 } },
+    { id: 4556, name: "Lyonz",     role: "SUP", team: "LYON", year: 2025, rating: 77, quality: "Silver",   region: "LCS", stats: { mec: 72, tmf: 78, frm: 77, cmp: 76, map: 79, ldr: 75 } },
+
+    // Shopify Rebellion (50% WR — 4th)
+    { id: 4561, name: "Fudge",     role: "TOP", team: "SR",   year: 2025, rating: 83, quality: "Gold",     region: "LCS", stats: { mec: 84, tmf: 82, frm: 84, cmp: 82, map: 81, ldr: 80 } },
+    { id: 4562, name: "Contractz", role: "JNG", team: "SR",   year: 2025, rating: 82, quality: "Gold",     region: "LCS", stats: { mec: 82, tmf: 82, frm: 82, cmp: 80, map: 83, ldr: 80 } },
+    { id: 4563, name: "Palafox",   role: "MID", team: "SR",   year: 2025, rating: 82, quality: "Gold",     region: "LCS", stats: { mec: 83, tmf: 81, frm: 83, cmp: 80, map: 80, ldr: 78 } },
+    { id: 4564, name: "Bvoy",      role: "ADC", team: "SR",   year: 2025, rating: 85, quality: "Platinum", region: "LCS", stats: { mec: 86, tmf: 84, frm: 86, cmp: 82, map: 81, ldr: 79 } },
+    { id: 4565, name: "Ceos",      role: "SUP", team: "SR",   year: 2025, rating: 83, quality: "Gold",     region: "LCS", stats: { mec: 78, tmf: 84, frm: 83, cmp: 82, map: 85, ldr: 82 } },
+
+    // Team Liquid (23.1% WR — 7th)
+    { id: 4571, name: "Impact",    role: "TOP", team: "TL",   year: 2025, rating: 80, quality: "Gold",     region: "LCS", stats: { mec: 82, tmf: 80, frm: 81, cmp: 80, map: 79, ldr: 81 } },
+    { id: 4572, name: "Yuuji",     role: "JNG", team: "TL",   year: 2025, rating: 79, quality: "Silver",   region: "LCS", stats: { mec: 79, tmf: 79, frm: 79, cmp: 76, map: 80, ldr: 75 } },
+    { id: 4573, name: "APA",       role: "MID", team: "TL",   year: 2025, rating: 79, quality: "Silver",   region: "LCS", stats: { mec: 80, tmf: 78, frm: 80, cmp: 77, map: 78, ldr: 75 } },
+    { id: 4574, name: "Yeon",      role: "ADC", team: "TL",   year: 2025, rating: 81, quality: "Gold",     region: "LCS", stats: { mec: 82, tmf: 80, frm: 82, cmp: 78, map: 77, ldr: 74 } },
+    { id: 4575, name: "CoreJJ",    role: "SUP", team: "TL",   year: 2025, rating: 84, quality: "Gold",     region: "LCS", stats: { mec: 79, tmf: 85, frm: 88, cmp: 87, map: 90, ldr: 88 } },
 
     // ==========================================
     // --- 2. 2024 SEASON ROSTERS (PLAYERS & COACH) ---

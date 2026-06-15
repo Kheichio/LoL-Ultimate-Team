@@ -822,7 +822,7 @@ function _archiveNewCount(db, cat, region) {
             const lastSeen = archiveLastSeen[`regular_${region}`] || 0;
             return db.filter(c => c.region === region && !SPECIAL_Q.includes(c.quality) && collectionRegistry[c.id] && (collectionRegistry[c.id].acquiredAt || 0) > lastSeen).length;
         }
-        return ['LCK','LPL','LEC','LCS'].reduce((sum, r) => sum + _archiveNewCount(db, 'regular', r), 0);
+        return ['LCK','LPL','LEC','LCS','LCP'].reduce((sum, r) => sum + _archiveNewCount(db, 'regular', r), 0);
     }
     const lastSeen = archiveLastSeen[cat] || 0;
     return db.filter(c => c.quality === qualMap[cat] && collectionRegistry[c.id] && (collectionRegistry[c.id].acquiredAt || 0) > lastSeen).length;
@@ -858,8 +858,8 @@ function renderCollection() {
 
     // Region button styles
     if (currentArchiveCategory === 'regular') {
-        const regionLabels = { LCK: '🇰🇷 LCK', LPL: '🇨🇳 LPL', LEC: '🇪🇺 LEC', LCS: '🇺🇸 LCS' };
-        ['LCK', 'LPL', 'LEC', 'LCS'].forEach(r => {
+        const regionLabels = { LCK: '🇰🇷 LCK', LPL: '🇨🇳 LPL', LEC: '🇪🇺 LEC', LCS: '🇺🇸 LCS', LCP: '🌏 LCP' };
+        ['LCK', 'LPL', 'LEC', 'LCS', 'LCP'].forEach(r => {
             let btn = document.getElementById(`col-reg-${r}`); if (!btn) return;
             let hasClaimable = db.filter(c => c.region === r).some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
             btn.className = r === currentCollectionRegion

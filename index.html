@@ -214,6 +214,7 @@
                             <option value="LPL">LPL (China)</option>
                             <option value="LEC">LEC (Europe)</option>
                             <option value="LCS">LCS (North America)</option>
+                            <option value="LCP">LCP (Pacific)</option>
                         </select>
                     </div>
                     <div>
@@ -312,7 +313,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.8</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.9</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -635,15 +636,15 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.8)</h3>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.9)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-emerald-400 font-bold">Year Chemistry Rework</span> — Era synergy is now a smooth 5-step curve: 1 year = +5, 2 years = +4, 3 years = +3, 4 years = +2, 5 years = +1. Previously jumped from +3 straight to +1 at 3+ years.</li>
-                    <li><span class="text-blue-400 font-bold">Coach Quality Scaling</span> — Coach bonus now scales with coach rating: 98+ = +5 · 94–97 = +4 · 90–93 = +3 · 85–89 = +2 · ≤84 = +1. Flat +5 removed — quality of coach now matters.</li>
-                    <li><span class="text-pink-400 font-bold">Elite Pedigree Bonus</span> — 2–3 Legacy cards in your starting 5 grants +1 power; 4–5 grants +2. Rewards squads built around tournament-winning talent.</li>
+                    <li><span class="text-emerald-400 font-bold">New Region: LCP 🌏</span> — The Pacific region is now fully supported. LCP appears in the pack store, archive, collection browser, and player picker. Nationality flags added for Korean and Japanese imports across all LCP rosters.</li>
+                    <li><span class="text-blue-400 font-bold">2026 LCP Rosters</span> — 44 players added across 8 teams (IDs 6001–6076). Team Secret Whales claimed Split 1 (78.6% WR). Top cards: Hizto · Dire · Eddie (88 Plat), Bie (87 Plat), Pun (85 Plat). DFM finished last (6.7% WR, 72–77 Silver).</li>
+                    <li><span class="text-pink-400 font-bold">2025 LCS Rosters</span> — 44 players added across 8 teams (IDs 4501–4575). FlyQuest dominated LTA North Split 3 (88.2% WR). Top cards: Inspired (91 Diamond · Split MVP), Massu (90 Diamond), Loki · Zven (88 Plat). CoreJJ (84 Gold) leads a struggling Team Liquid (23.1% WR).</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.7): Quality Auto-Assignment · MSI Cards ×18 (RNG 2022, JDG 2023, Gen.G 2024) · UI Premium Pass</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.8): Year Chemistry Rework · Coach Quality Scaling · Elite Pedigree Bonus</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.7): Quality Auto-Assignment · MSI Cards ×18 (RNG 2022, JDG 2023, Gen.G 2024) · UI Premium Pass</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.6): Archive New Card Badges · Draft Log Relocated · Draft End Screen Fix</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.5): Worlds MVP ×9 (2011–2019) · BLG 2024 Finalist cards · FRM stat rework (136 cards) · Faker 2024 rebalance</p>
             </div>
 
         </section>
@@ -684,6 +685,7 @@
                 <button onclick="setCollectionRegion('LPL')" id="col-reg-LPL" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer relative">🇨🇳 LPL</button>
                 <button onclick="setCollectionRegion('LEC')" id="col-reg-LEC" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer relative">🇪🇺 LEC</button>
                 <button onclick="setCollectionRegion('LCS')" id="col-reg-LCS" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer relative">🇺🇸 LCS</button>
+                <button onclick="setCollectionRegion('LCP')" id="col-reg-LCP" class="flex-1 py-2 rounded-lg font-bold text-sm cursor-pointer relative">🌏 LCP</button>
             </div>
 
             <!-- Sort tabs -->
@@ -1256,6 +1258,7 @@
                     <button onclick="setPickerFilter('region','LPL',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">LPL 🇨🇳</button>
                     <button onclick="setPickerFilter('region','LEC',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">LEC 🇪🇺</button>
                     <button onclick="setPickerFilter('region','LCS',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">LCS 🇺🇸</button>
+                    <button onclick="setPickerFilter('region','LCP',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">LCP 🌏</button>
                     <button onclick="setPickerFilter('region','Legacy',this)" class="ppf-region text-[11px] font-black px-3 py-1 rounded-full border cursor-pointer transition">Legacy 🏆</button>
                 </div>
                 <!-- Year -->
@@ -1297,7 +1300,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.8 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.9 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1305,14 +1308,14 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-emerald-400 font-bold">Year Chemistry Rework</span> — Smooth 5-step curve: 1 era = +5, 2 = +4, 3 = +3, 4 = +2, 5 = +1. No more harsh cliff at 3+ years.</li>
-                <li><span class="text-blue-400 font-bold">Coach Quality Scaling</span> — Coach bonus now scales with coach rating (98+ = +5 down to ≤84 = +1). Better coaches make a real difference.</li>
-                <li><span class="text-pink-400 font-bold">Elite Pedigree</span> — 2–3 Legacy cards in your starting 5 = +1 power. 4–5 Legacy cards = +2. Reward for building around tournament-winning talent.</li>
+                <li><span class="text-emerald-400 font-bold">New Region: LCP 🌏</span> — Pacific region fully added to the pack store, archive, collection browser, and player picker. Nationality flags set for all Korean and Japanese imports across LCP rosters.</li>
+                <li><span class="text-blue-400 font-bold">2026 LCP Rosters</span> — 44 players across 8 teams. Team Secret Whales are the Split 1 champions. Top cards: Hizto · Dire · Eddie (88 Plat), Bie (87 Plat). DFM finished last at 6.7% WR.</li>
+                <li><span class="text-pink-400 font-bold">2025 LCS Rosters</span> — 44 players across 8 teams (LTA North Split 3). FlyQuest dominated at 88.2% WR. Top cards: Inspired (91 Diamond · Split MVP), Massu (90 Diamond), Loki · Zven (88 Plat).</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.8</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.9</button>
             </div>
         </div>
     </div>
