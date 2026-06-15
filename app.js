@@ -53,7 +53,7 @@ let trackStats = {
     losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0
 };
 
-let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [], lastMatchTs: 0, splitComplete: false };
+let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [], lastMatchTs: 0, splitComplete: false, splitMeta: null, slumpTeams: [] };
 let _smState = null; // active season match game state
 let _smCdInterval = null; // cooldown countdown interval
 let compareMode = false;
@@ -451,7 +451,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_2', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_3', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -559,6 +559,8 @@ window.onload = () => {
         if (!seasonData.matchResults) seasonData.matchResults = [];
         if (!seasonData.lastMatchTs) seasonData.lastMatchTs = 0;
         if (seasonData.splitComplete === undefined) seasonData.splitComplete = false;
+        if (seasonData.splitMeta === undefined) seasonData.splitMeta = null;
+        if (!seasonData.slumpTeams) seasonData.slumpTeams = [];
     }
     if (localStorage.getItem("lol_light_mode") === "1") {
         document.documentElement.classList.add("light-mode");
@@ -582,7 +584,7 @@ window.onload = () => {
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_4_2';
+    const patchKey = 'lol_patch_seen_v0_4_3';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1627,6 +1629,20 @@ function generateSeasonOpponents() {
         };
     });
     seasonData.matchResults = new Array(10).fill(null);
+
+    // Pick split meta role
+    const metaRoles = ['TOP','JNG','MID','ADC','SUP'];
+    seasonData.splitMeta = metaRoles[Math.floor(Math.random() * metaRoles.length)];
+
+    // Pick 2–10 real team slumps — debuffs apply to USER's player cards from those teams
+    const db = getDB();
+    const allTeams = db ? [...new Set(db.map(c => c.team))].filter(Boolean) : [];
+    const slumpCount = Math.min(2 + Math.floor(Math.random() * 9), allTeams.length);
+    const shuffledTeams = [...allTeams].sort(() => Math.random() - 0.5);
+    seasonData.slumpTeams = shuffledTeams.slice(0, slumpCount).map(team => ({
+        team,
+        debuff: -(5 + Math.floor(Math.random() * 6)),
+    }));
 }
 
 function startSeasonMatchMode() {
@@ -1643,18 +1659,37 @@ function closeSeasonMatchMode() {
     document.getElementById('tournament-lobby').classList.remove('hidden');
 }
 
+function _smSlumpDebuff(card) {
+    if (!card) return 0;
+    const s = (seasonData.slumpTeams || []).find(x => x.team === card.team);
+    return s ? s.debuff : 0;
+}
+
 function _smStatVal(play) {
-    const roles = play.myRoles;
-    if (roles.length === 1) {
-        const c = squad[roles[0]];
+    function playerStat(role) {
+        const c = squad[role];
         if (!c) return 70;
-        return roles[0] === 'COACH' ? (c.stats.ldr ?? c.rating) : (c.stats[play.statKey] ?? 70);
+        const raw = role === 'COACH' ? (c.stats.ldr ?? c.rating) : (c.stats[play.statKey] ?? 70);
+        return Math.max(50, raw + _smSlumpDebuff(c));
     }
-    const vals = roles.map(r => squad[r]?.stats[play.statKey] ?? 70);
-    return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+
+    const roles = play.myRoles;
+    let base;
+    if (roles.length === 1) {
+        base = playerStat(roles[0]);
+    } else {
+        const vals = roles.map(r => playerStat(r));
+        base = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    }
+    if (seasonData.splitMeta && play.myRoles.includes(seasonData.splitMeta)) base += _SM_META_BONUS;
+    return base;
 }
 
 const _SM_COOLDOWN_MS = 60000;
+const _SM_META_ICONS = { TOP: '🛡️', JNG: '🌿', MID: '⚡', ADC: '🏹', SUP: '💎' };
+const _SM_META_NAMES = { TOP: 'Top Lane Meta', JNG: 'Jungle Meta', MID: 'Mid Lane Meta', ADC: 'Bot Lane Meta', SUP: 'Support Meta' };
+const _SM_META_COLORS = { TOP: 'amber', JNG: 'emerald', MID: 'cyan', ADC: 'orange', SUP: 'violet' };
+const _SM_META_BONUS = 10;
 
 function startSeasonGame(idx) {
     if (['TOP','JNG','MID','ADC','SUP'].some(r => !squad[r])) { showToast("Assign all 5 positions first.", "error"); return; }
@@ -1713,11 +1748,12 @@ function makeSeasonPlay(playId) {
     const rolesLabel = play.myRoles.join('+');
     const statLabel = play.statKey.toUpperCase();
     const netStr = net >= 0 ? `+${net}` : `${net}`;
+    const metaBoosted = seasonData.splitMeta && play.myRoles.includes(seasonData.splitMeta);
     _smState.log.push({
         round: _smState.round,
         icon: play.icon,
         label: play.label,
-        detail: `${rolesLabel} ${statLabel} ${myVal} vs ${oppVal} (${netStr})`,
+        detail: `${rolesLabel} ${statLabel} ${myVal} vs ${oppVal} (${netStr})${metaBoosted ? ' ⚡' : ''}`,
         won: roundWon,
     });
 
@@ -1761,7 +1797,7 @@ function advanceToNextSplit() {
     const { tier, reward } = _smSplitTier(wins);
     blueEssence += reward;
     const completedSplit = seasonData.currentSplit;
-    seasonData.trophyCase.unshift({ split: completedSplit, wins, losses, tier, reward, date: new Date().toLocaleDateString() });
+    seasonData.trophyCase.unshift({ split: completedSplit, wins, losses, tier, reward, date: new Date().toLocaleDateString(), meta: seasonData.splitMeta });
     if (seasonData.trophyCase.length > 20) seasonData.trophyCase.pop();
     seasonData.currentSplit++;
     seasonData.splitWins = 0;
@@ -1802,11 +1838,75 @@ function _smStartCdTimer() {
     }, 1000);
 }
 
+function _smMetaSlumpPanels() {
+    const meta = seasonData.splitMeta;
+    const slumps = seasonData.slumpTeams || [];
+
+    // Meta panel
+    let metaHTML = '';
+    if (meta) {
+        const mc = _SM_META_COLORS[meta] || 'yellow';
+        const affectedPlays = _SEASON_PLAYS.filter(p => p.myRoles.includes(meta));
+        const playTags = affectedPlays.map(p => `<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700/60 rounded text-[11px] text-slate-300 font-mono">${p.icon} ${p.label}</span>`).join(' ');
+        metaHTML = `
+        <div class="bg-gradient-to-r from-${mc}-950/50 to-slate-900/80 border border-${mc}-700/40 rounded-xl p-4 flex gap-4 items-start">
+            <div class="text-4xl shrink-0 mt-0.5">${_SM_META_ICONS[meta]}</div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-0.5">
+                    <span class="text-[10px] font-black text-${mc}-500 uppercase tracking-widest">Split ${seasonData.currentSplit} Meta</span>
+                </div>
+                <div class="text-${mc}-300 font-black text-base">${_SM_META_NAMES[meta]}</div>
+                <div class="text-slate-400 text-xs mt-1"><span class="text-${mc}-400 font-black">${meta}</span> role plays receive <span class="text-${mc}-300 font-black">+${_SM_META_BONUS}</span> to all stat checks this split</div>
+                <div class="flex flex-wrap gap-1.5 mt-2">${playTags}</div>
+            </div>
+        </div>`;
+    }
+
+    // Slump panel
+    let slumpHTML = '';
+    if (slumps.length) {
+        // Find which active squad players are on slumped teams
+        const affectedRows = Object.entries(squad)
+            .filter(([, c]) => c && slumps.some(s => s.team === c.team))
+            .map(([role, c]) => {
+                const slump = slumps.find(s => s.team === c.team);
+                return `<div class="flex items-center gap-2 px-3 py-2 bg-red-900/30 border border-red-700/50 rounded-lg text-xs">
+                    <span class="text-slate-500 font-black w-8 uppercase shrink-0">${role}</span>
+                    <span class="text-slate-200 font-bold flex-1 truncate">${c.name}</span>
+                    <span class="text-slate-500 shrink-0">${c.team}</span>
+                    <span class="text-red-400 font-black font-mono shrink-0">${slump.debuff} stats</span>
+                </div>`;
+            }).join('');
+
+        const teamRows = slumps.map(s =>
+            `<div class="flex justify-between items-center py-1.5 border-b border-slate-700/30 text-xs">
+                <span class="text-slate-300 font-bold">${s.team}</span>
+                <span class="text-red-400 font-black font-mono">${s.debuff} to all stats</span>
+            </div>`
+        ).join('');
+
+        slumpHTML = `
+        <div class="bg-red-950/20 border border-red-800/30 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-red-400 text-base">📉</span>
+                <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">Team Slumps — ${slumps.length} real teams in rough form this split</span>
+            </div>
+            <div class="text-slate-500 text-xs mb-3 font-mono">Cards from these teams have reduced stats during Season Matches. Swap out affected players to avoid the penalty.</div>
+            <div class="mb-3 pb-3 border-b border-red-900/40">${teamRows}</div>
+            ${affectedRows ? `<div class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2">⚠️ Your Affected Players</div><div class="space-y-1.5">${affectedRows}</div>` : `<div class="text-xs text-emerald-500 font-mono">✓ None of your current squad players are on slumped teams.</div>`}
+        </div>`;
+    }
+
+    return metaHTML || slumpHTML ? `<div class="space-y-3 mb-4">${metaHTML}${slumpHTML}</div>` : '';
+}
+
 function _renderSeasonMatchList(container) {
     const wins = seasonData.splitWins, losses = seasonData.splitLosses;
     const results = seasonData.matchResults || [];
     const played = results.filter(r => r !== null).length;
     const total = seasonData.gamesPerSplit;
+    const metaSlumpHTML = _smMetaSlumpPanels();
+
 
     // ── SPLIT COMPLETE SUMMARY ──────────────────────────────────────────────
     if (seasonData.splitComplete) {
@@ -1831,6 +1931,7 @@ function _renderSeasonMatchList(container) {
         }).join('');
 
         container.innerHTML = `<div class="space-y-4">
+            ${metaSlumpHTML}
             <div class="bg-gradient-to-br from-slate-900 to-indigo-950/40 rounded-2xl border ${borderColor} p-6 text-center shadow-xl">
                 <div class="text-5xl mb-3">${wins >= 10 ? '🏆' : wins >= 8 ? '🥇' : wins >= 6 ? '🥈' : wins >= 4 ? '🥉' : '📋'}</div>
                 <div class="text-xs text-slate-500 font-black uppercase tracking-widest mb-1">Split ${seasonData.currentSplit} Complete</div>
@@ -1889,13 +1990,14 @@ function _renderSeasonMatchList(container) {
                 <div class="font-black text-slate-100 truncate">${opp.name}</div>
                 <div class="text-slate-500 text-xs">${opp.region} · ${opp.style}</div>
             </div>
-            <div class="text-right shrink-0 mr-1"><div class="${ratingColor} font-black">${opp.avgRating}</div><div class="text-slate-600 text-[10px]">avg</div></div>
+            <div class="shrink-0 text-right mr-1"><div class="${ratingColor} font-black">${opp.avgRating}</div><div class="text-slate-600 text-[10px]">avg</div></div>
             ${badge}${playBtn}
         </div>`;
     }).join('');
 
     const progress = Math.min(100, Math.round((played / total) * 100));
     container.innerHTML = `
+        ${metaSlumpHTML}
         <div class="bg-gradient-to-br from-indigo-900/30 to-slate-900 p-5 rounded-2xl border border-indigo-700/40 mb-4">
             <div class="flex flex-wrap justify-between items-center gap-3 mb-3">
                 <div><h3 class="text-lg font-black text-indigo-300 uppercase tracking-widest">Split ${seasonData.currentSplit}</h3>
@@ -1932,9 +2034,12 @@ function _renderSeasonGame(container) {
     const roleRows = ['TOP','JNG','MID','ADC','SUP'].map(r => {
         const c = squad[r];
         if (!c) return '';
+        const slump = _smSlumpDebuff(c);
+        const slumpBadge = slump < 0 ? `<span class="text-[10px] font-black text-red-400 bg-red-950/50 border border-red-800/40 px-1 py-0.5 rounded font-mono shrink-0">${slump}</span>` : '';
         return `<div class="flex items-center gap-2 text-xs">
-            <span class="text-slate-500 font-black w-8 uppercase">${r}</span>
-            <span class="text-slate-200 font-bold truncate flex-1">${c.name}</span>
+            <span class="text-slate-500 font-black w-8 uppercase shrink-0">${r}</span>
+            <span class="${slump < 0 ? 'text-red-300' : 'text-slate-200'} font-bold truncate flex-1">${c.name}</span>
+            ${slumpBadge}
             <span class="font-mono text-slate-400">MEC <span class="text-cyan-400 font-black">${c.stats.mec}</span></span>
             <span class="font-mono text-slate-400">TMF <span class="text-purple-400 font-black">${c.stats.tmf}</span></span>
             <span class="font-mono text-slate-400">MAP <span class="text-emerald-400 font-black">${c.stats.map}</span></span>
@@ -1950,18 +2055,29 @@ function _renderSeasonGame(container) {
 
     // Play option cards
     const playCards = st.phase === 'pick' ? st.options.map(play => {
+        const isMeta = seasonData.splitMeta && play.myRoles.includes(seasonData.splitMeta);
         const myVal = _smStatVal(play);
         const oppVal = opp.stats[play.statKey] ?? opp.avgRating;
         const edge = myVal - oppVal;
         const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
         const edgeStr = edge >= 0 ? `+${edge}` : `${edge}`;
         const rolesLabel = play.myRoles.join('+');
-        return `<button onclick="makeSeasonPlay('${play.id}')" class="flex-1 min-w-[180px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-500 rounded-xl p-4 text-left cursor-pointer transition group">
-            <div class="text-2xl mb-1">${play.icon}</div>
+        const metaC = isMeta ? _SM_META_COLORS[seasonData.splitMeta] || 'yellow' : null;
+        const cardBorder = isMeta ? `border-${metaC}-600/60 hover:border-${metaC}-400` : 'border-slate-600 hover:border-indigo-500';
+        const cardBg = isMeta ? `bg-${metaC}-950/30 hover:bg-${metaC}-950/50` : 'bg-slate-800 hover:bg-slate-700';
+        const metaBadge = isMeta ? `<span class="text-[10px] font-black text-${metaC}-400 bg-${metaC}-950/60 border border-${metaC}-700/50 px-1.5 py-0.5 rounded ml-1">⚡ META +${_SM_META_BONUS}</span>` : '';
+        const baseVal = isMeta ? myVal - _SM_META_BONUS : null;
+        const myValDisplay = isMeta
+            ? `<span class="text-slate-400 line-through text-[10px] mr-1">${baseVal}</span><span class="text-${metaC}-300 font-black">${myVal}</span>`
+            : `<span class="text-slate-200 font-black">${myVal}</span>`;
+        return `<button onclick="makeSeasonPlay('${play.id}')" class="flex-1 min-w-[180px] ${cardBg} border ${cardBorder} rounded-xl p-4 text-left cursor-pointer transition group">
+            <div class="flex items-start justify-between mb-1">
+                <span class="text-2xl">${play.icon}</span>${metaBadge}
+            </div>
             <div class="font-black text-slate-100 text-sm mb-0.5 group-hover:text-indigo-300">${play.label}</div>
             <div class="text-slate-500 text-[11px] mb-3 leading-tight">${play.desc}</div>
             <div class="font-mono text-[11px] space-y-0.5 border-t border-slate-700 pt-2">
-                <div class="flex justify-between"><span class="text-slate-400">${rolesLabel} ${play.statKey.toUpperCase()}</span><span class="text-slate-200 font-black">${myVal}</span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-400">${rolesLabel} ${play.statKey.toUpperCase()}</span>${myValDisplay}</div>
                 <div class="flex justify-between"><span class="text-slate-500">Opp ${play.statKey.toUpperCase()}</span><span class="text-slate-400">${oppVal}</span></div>
                 <div class="flex justify-between border-t border-slate-700/50 pt-1 mt-1"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black">${edgeStr}</span></div>
             </div>
@@ -1999,6 +2115,7 @@ function _renderSeasonGame(container) {
                     <span class="text-slate-500 text-xs ml-2">${opp.region} · ${opp.style} · Avg ${opp.avgRating}</span>
                 </div>
                 <span class="text-slate-500 text-xs ml-auto font-mono">Match ${st.oppIdx + 1} of 10</span>
+                ${seasonData.splitMeta ? `<span class="text-xs font-black px-2 py-1 rounded-lg bg-${_SM_META_COLORS[seasonData.splitMeta]}-950/60 border border-${_SM_META_COLORS[seasonData.splitMeta]}-700/40 text-${_SM_META_COLORS[seasonData.splitMeta]}-400">${_SM_META_ICONS[seasonData.splitMeta]} ${_SM_META_NAMES[seasonData.splitMeta]}</span>` : ''}
             </div>
 
             <!-- Score -->
@@ -2041,6 +2158,8 @@ function renderSeasonTab() {
     const tab = document.getElementById("tab-season"); if (!tab) return;
     const wins = seasonData.splitWins, losses = seasonData.splitLosses;
     const played = (seasonData.matchResults || []).filter(r => r !== null).length;
+    const meta = seasonData.splitMeta;
+    const slumps = seasonData.slumpTeams || [];
 
     const rewardTiers = [
         { label: "🏆 Flawless (10W)",      wins: 10, reward: 8000 },
@@ -2050,15 +2169,83 @@ function renderSeasonTab() {
         { label: "📋 Development (0–3W)",   wins: 0,  reward: 500  },
     ];
 
-    const trophyHTML = seasonData.trophyCase.length
-        ? seasonData.trophyCase.map(t => `
-            <div class="flex items-center justify-between bg-slate-700/60 p-3 rounded-xl border border-slate-600">
+    // Meta panel for Season tab
+    let metaPanel = '';
+    if (meta) {
+        const mc = _SM_META_COLORS[meta] || 'yellow';
+        const affectedPlays = _SEASON_PLAYS.filter(p => p.myRoles.includes(meta));
+        const playRows = affectedPlays.map(p =>
+            `<div class="flex items-center gap-2 py-1 border-b border-slate-700/30 text-xs"><span>${p.icon}</span><span class="text-slate-300 flex-1">${p.label}</span><span class="text-slate-500 font-mono uppercase text-[10px]">${p.statKey}</span><span class="text-${mc}-400 font-black font-mono">+${_SM_META_BONUS}</span></div>`
+        ).join('');
+        metaPanel = `<div class="bg-gradient-to-br from-${mc}-950/40 to-slate-900 border border-${mc}-700/40 rounded-xl overflow-hidden">
+            <div class="flex items-center gap-3 px-4 py-3 border-b border-${mc}-800/30">
+                <span class="text-2xl">${_SM_META_ICONS[meta]}</span>
                 <div>
-                    <div class="font-bold text-slate-200 text-sm">Split ${t.split} — ${t.tier}</div>
+                    <div class="text-[10px] font-black text-${mc}-500 uppercase tracking-widest">Split ${seasonData.currentSplit} Meta</div>
+                    <div class="text-${mc}-300 font-black text-sm">${_SM_META_NAMES[meta]}</div>
+                </div>
+                <span class="ml-auto text-xs font-black text-${mc}-400 bg-${mc}-950/60 border border-${mc}-700/40 px-2 py-1 rounded-lg">+${_SM_META_BONUS} to ${meta} plays</span>
+            </div>
+            <div class="px-4 py-3">
+                <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Boosted Plays</div>
+                ${playRows}
+            </div>
+        </div>`;
+    }
+
+    // Slump table for Season tab
+    let slumpPanel = '';
+    if (slumps.length) {
+        // Highlight active squad players on slumped teams
+        const affectedSquad = Object.entries(squad)
+            .filter(([, c]) => c && slumps.some(s => s.team === c.team))
+            .map(([role, c]) => {
+                const slump = slumps.find(s => s.team === c.team);
+                return `<div class="flex items-center gap-2 py-1.5 border-b border-red-900/30 text-xs">
+                    <span class="text-slate-500 font-black w-8 uppercase shrink-0">${role}</span>
+                    <span class="text-red-200 font-bold flex-1 truncate">${c.name}</span>
+                    <span class="text-slate-500 shrink-0">${c.team}</span>
+                    <span class="text-red-400 font-black font-mono shrink-0">${slump.debuff} stats</span>
+                </div>`;
+            }).join('');
+
+        const teamRows = slumps.map(s =>
+            `<div class="flex justify-between items-center py-1.5 border-b border-slate-700/30 text-xs">
+                <span class="text-slate-300 font-bold">${s.team}</span>
+                <span class="text-red-400 font-black font-mono">${s.debuff} to all stats</span>
+            </div>`
+        ).join('');
+
+        slumpPanel = `<div class="bg-red-950/20 border border-red-800/30 rounded-xl overflow-hidden">
+            <div class="flex items-center gap-2 px-4 py-3 border-b border-red-800/30">
+                <span class="text-red-400">📉</span>
+                <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">Team Slumps — ${slumps.length} real teams in rough form this split</span>
+            </div>
+            <div class="px-4 py-3 space-y-3">
+                <div>
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Slumped Teams</div>
+                    ${teamRows}
+                </div>
+                <div>
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Your Affected Players</div>
+                    ${affectedSquad || `<div class="text-xs text-emerald-500 font-mono py-1">✓ None of your current squad players are on slumped teams.</div>`}
+                </div>
+                <p class="text-[11px] text-slate-500 font-mono">Stat penalties apply during Season Matches only. Swap out affected players to avoid the debuff.</p>
+            </div>
+        </div>`;
+    }
+
+    const trophyHTML = seasonData.trophyCase.length
+        ? seasonData.trophyCase.map(t => {
+            const metaChip = t.meta ? `<span class="ml-1 text-[10px] font-mono text-slate-500">${_SM_META_ICONS[t.meta] || ''} ${t.meta}</span>` : '';
+            return `<div class="flex items-center justify-between bg-slate-700/60 p-3 rounded-xl border border-slate-600">
+                <div>
+                    <div class="font-bold text-slate-200 text-sm">Split ${t.split} — ${t.tier}${metaChip}</div>
                     <div class="text-slate-400 text-xs">${t.wins}W–${t.losses}L · ${t.date}</div>
                 </div>
                 <div class="text-emerald-400 font-black text-sm">+${t.reward} BE</div>
-            </div>`).join('')
+            </div>`;
+        }).join('')
         : `<div class="text-slate-500 text-center py-8 text-sm">No completed splits yet.<br>Play Season Matches in the <strong class="text-indigo-400">Play</strong> tab to get started.</div>`;
 
     tab.innerHTML = `<div class="space-y-5 pb-10 pt-2">
@@ -2074,6 +2261,9 @@ function renderSeasonTab() {
             </div>
             <button onclick="switchTab('tournament'); setTimeout(startSeasonMatchMode, 50);" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-5 py-2.5 rounded-xl text-sm cursor-pointer transition uppercase tracking-wide">Go to Matches →</button>
         </div>
+
+        ${metaPanel || slumpPanel ? `<div class="grid grid-cols-1 ${metaPanel && slumpPanel ? 'lg:grid-cols-2' : ''} gap-4">${metaPanel}${slumpPanel}</div>` : ''}
+
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Reward Tiers</h3>
             <div class="space-y-1">${rewardTiers.map(t => `<div class="flex justify-between text-xs py-1 border-b border-slate-700/50 text-slate-400"><span>${t.label}</span><span>+${t.reward} BE</span></div>`).join('')}</div>
