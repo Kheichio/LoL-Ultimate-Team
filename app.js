@@ -52,7 +52,7 @@ let trackStats = {
     losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0
 };
 
-let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [] };
+let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [] };
 let compareMode = false;
 let compareSlots = [];
 
@@ -448,7 +448,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_3_8', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_1', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -549,7 +549,11 @@ window.onload = () => {
     const savedTeamComplete = localStorage.getItem("lol_team_complete_v8");
     if (savedTeamComplete) teamCompletionRewards = JSON.parse(savedTeamComplete);
     const savedSeason = localStorage.getItem("lol_season_v1");
-    if (savedSeason) seasonData = JSON.parse(savedSeason);
+    if (savedSeason) {
+        seasonData = JSON.parse(savedSeason);
+        if (!seasonData.opponents) seasonData.opponents = [];
+        if (!seasonData.matchResults) seasonData.matchResults = [];
+    }
     if (localStorage.getItem("lol_light_mode") === "1") {
         document.documentElement.classList.add("light-mode");
         const dmBtn = document.getElementById("dark-mode-btn");
@@ -572,7 +576,7 @@ window.onload = () => {
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_3_8';
+    const patchKey = 'lol_patch_seen_v0_4_1';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1495,10 +1499,75 @@ function closeCompareModal() {
     renderClubGrid();
 }
 
-// --- Season System ---
+// --- Season Match System ---
+const _SEASON_TEAM_NAMES = [
+    "Cloud Serpents","Iron Wolves","Storm Eagles","Neon Dragons","Apex Titans",
+    "Void Hunters","Frost Giants","Shadow Blades","Golden Lions","Steel Falcons",
+    "Thunder Hawks","Crimson Tide","Arctic Fox","Phantom Kings","Solar Bears",
+    "Lunar Wolves","Fire Foxes","Ice Serpents","Jade Tigers","Dark Knights",
+    "Swift Ravens","Blood Hawks","Red Vipers","Blue Phoenix","Silver Sharks",
+    "Gold Panthers","Sky Wolves","Storm Riders","Emerald Guards","Onyx Blades"
+];
+const _SEASON_LOGOS = ["🦁","🐺","🦅","🐉","🦊","🐯","🦈","🦋","🐻","🦌","🐝","🦂","🐍","🦉","🦚","🦜","🦩","🦢","⚔️","🏮"];
+const _SEASON_STYLES = ["Aggressive","Methodical","Balanced","Defensive","Chaotic"];
+const _SEASON_REGIONS = ["LCK","LPL","LEC","LCS","LCP"];
+
+function generateSeasonOpponents() {
+    const splitBonus = Math.min((seasonData.currentSplit - 1) * 2, 14);
+    const used = new Set();
+    seasonData.opponents = Array.from({ length: 10 }, (_, i) => {
+        const base = 74 + splitBonus + Math.round(i * 1.8);
+        const v = Math.round((Math.random() * 8) - 4);
+        let name;
+        do { name = _SEASON_TEAM_NAMES[Math.floor(Math.random() * _SEASON_TEAM_NAMES.length)]; }
+        while (used.has(name) && used.size < _SEASON_TEAM_NAMES.length);
+        used.add(name);
+        return {
+            name,
+            logo: _SEASON_LOGOS[Math.floor(Math.random() * _SEASON_LOGOS.length)],
+            avgRating: Math.max(68, Math.min(94, base + v)),
+            region: _SEASON_REGIONS[Math.floor(Math.random() * _SEASON_REGIONS.length)],
+            style: _SEASON_STYLES[Math.floor(Math.random() * _SEASON_STYLES.length)]
+        };
+    });
+    seasonData.matchResults = new Array(10).fill(null);
+}
+
+function startSeasonMatchMode() {
+    if (!seasonData.opponents || seasonData.opponents.length === 0) generateSeasonOpponents();
+    document.getElementById('tournament-lobby').classList.add('hidden');
+    const el = document.getElementById('season-matches-screen');
+    if (el) el.classList.remove('hidden');
+    renderSeasonMatchesUI();
+}
+
+function closeSeasonMatchMode() {
+    const el = document.getElementById('season-matches-screen');
+    if (el) el.classList.add('hidden');
+    document.getElementById('tournament-lobby').classList.remove('hidden');
+}
+
+function resolveSeasonMatch(idx) {
+    if ((seasonData.matchResults || [])[idx] !== null && seasonData.matchResults[idx] !== undefined) return;
+    const myRoles = ['TOP','JNG','MID','ADC','SUP'];
+    const myCards = myRoles.map(r => squad[r]).filter(c => c);
+    if (myCards.length < 5) { showToast("Assign all 5 positions first.", "error"); return; }
+    const myAvg = myCards.reduce((s, c) => s + c.rating, 0) / myCards.length;
+    const coachBonus = squad.COACH ? 2 : 0;
+    const myScore = myAvg + coachBonus + (Math.random() * 20) - 10;
+    const opp = seasonData.opponents[idx];
+    const oppScore = opp.avgRating + (Math.random() * 20) - 10;
+    const win = myScore > oppScore;
+    seasonData.matchResults[idx] = win ? 'win' : 'loss';
+    if (win) seasonData.splitWins++; else seasonData.splitLosses++;
+    saveGame();
+    const played = seasonData.matchResults.filter(r => r !== null).length;
+    if (played >= seasonData.gamesPerSplit) checkSplitEnd();
+    renderSeasonMatchesUI();
+    showToast(win ? `Victory! Defeated ${opp.name}` : `Defeat. Lost to ${opp.name}`, win ? 'success' : 'error');
+}
+
 function checkSplitEnd() {
-    const total = seasonData.splitWins + seasonData.splitLosses;
-    if (total < seasonData.gamesPerSplit) return;
     const wins = seasonData.splitWins, losses = seasonData.splitLosses;
     let tier, reward;
     if (wins >= 10)     { tier = "🏆 Flawless Split";      reward = 8000; }
@@ -1513,31 +1582,79 @@ function checkSplitEnd() {
     seasonData.currentSplit++;
     seasonData.splitWins = 0;
     seasonData.splitLosses = 0;
+    generateSeasonOpponents(); // pre-generate next split opponents
     saveGame();
-    showToast(`Split ${completedSplit} Complete! ${tier} · +${reward} BE`, 'success');
+    showToast(`Split ${completedSplit} Complete! ${tier} · +${reward} BE earned!`, 'success');
     const seasonTab = document.getElementById("tab-season");
     if (seasonTab && !seasonTab.classList.contains("hidden")) renderSeasonTab();
 }
 
-function renderSeasonTab() {
-    const tab = document.getElementById("tab-season"); if (!tab) return;
-    const total = seasonData.splitWins + seasonData.splitLosses;
-    const progress = Math.min(100, Math.round((total / seasonData.gamesPerSplit) * 100));
+function renderSeasonMatchesUI() {
+    const container = document.getElementById('season-matches-content');
+    if (!container) return;
     const wins = seasonData.splitWins, losses = seasonData.splitLosses;
-    const remaining = seasonData.gamesPerSplit - total;
+    const played = (seasonData.matchResults || []).filter(r => r !== null).length;
+    const total = seasonData.gamesPerSplit;
+    const progress = Math.min(100, Math.round((played / total) * 100));
     let proj;
     if (wins >= 10)     proj = { label: "🏆 Flawless Split",     color: "text-yellow-400" };
     else if (wins >= 8) proj = { label: "🥇 Championship Split", color: "text-yellow-300" };
-    else if (wins >= 6) proj = { label: "🥈 Playoff Split",      color: "text-slate-300" };
+    else if (wins >= 6) proj = { label: "🥈 Playoff Split",      color: "text-slate-200" };
     else if (wins >= 4) proj = { label: "🥉 Qualifying Split",   color: "text-orange-400" };
     else                proj = { label: "📋 Development Split",  color: "text-slate-500" };
 
+    const matchesHTML = (seasonData.opponents || []).map((opp, i) => {
+        const result = (seasonData.matchResults || [])[i];
+        const isPlayed = result != null;
+        const isWin = result === 'win';
+        const ratingColor = opp.avgRating >= 90 ? 'text-red-400' : opp.avgRating >= 85 ? 'text-orange-400' : opp.avgRating >= 79 ? 'text-yellow-400' : 'text-slate-300';
+        const rowBg = isPlayed ? (isWin ? 'bg-emerald-950/25 border-emerald-800/30' : 'bg-red-950/25 border-red-800/30') : 'bg-slate-700/40 border-slate-600';
+        const badge = isPlayed
+            ? (isWin ? `<span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-900/60 text-emerald-300 border border-emerald-700 shrink-0">WIN</span>`
+                     : `<span class="px-3 py-1 rounded-full text-xs font-black bg-red-900/60 text-red-300 border border-red-700 shrink-0">LOSS</span>`)
+            : `<span class="px-2 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-500 border border-slate-600 shrink-0">vs</span>`;
+        const playBtn = !isPlayed
+            ? `<button onclick="resolveSeasonMatch(${i})" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black px-5 py-2 rounded-lg cursor-pointer transition shadow-md uppercase tracking-wide shrink-0">Play</button>`
+            : '';
+        return `<div class="flex items-center gap-3 px-4 py-3 rounded-xl border ${rowBg} text-sm">
+            <span class="text-slate-600 font-mono text-xs w-4 shrink-0">${i + 1}</span>
+            <span class="text-xl shrink-0">${opp.logo}</span>
+            <div class="flex-1 min-w-0">
+                <div class="font-black text-slate-100 truncate">${opp.name}</div>
+                <div class="text-slate-500 text-xs">${opp.region} · ${opp.style}</div>
+            </div>
+            <div class="text-right shrink-0 mr-1"><div class="${ratingColor} font-black">${opp.avgRating}</div><div class="text-slate-600 text-[10px]">avg</div></div>
+            ${badge}${playBtn}
+        </div>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="bg-gradient-to-br from-indigo-900/30 to-slate-900 p-5 rounded-2xl border border-indigo-700/40 mb-4">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-3">
+                <div><h3 class="text-lg font-black text-indigo-300 uppercase tracking-widest">Split ${seasonData.currentSplit}</h3>
+                    <div class="text-slate-400 text-xs mt-0.5">${played} / ${total} matches played</div></div>
+                <div class="flex gap-6">
+                    <div class="text-center"><div class="text-3xl font-black text-emerald-400">${wins}</div><div class="text-slate-500 text-[10px] uppercase font-bold mt-0.5">Wins</div></div>
+                    <div class="text-center"><div class="text-3xl font-black text-red-400">${losses}</div><div class="text-slate-500 text-[10px] uppercase font-bold mt-0.5">Losses</div></div>
+                </div>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2 mb-2 overflow-hidden"><div class="bg-indigo-500 h-2 rounded-full" style="width:${progress}%"></div></div>
+            <div class="text-xs text-center"><span class="text-slate-400">Projected: </span><span class="${proj.color} font-bold">${proj.label}</span></div>
+        </div>
+        <div class="space-y-2">${matchesHTML}</div>`;
+}
+
+function renderSeasonTab() {
+    const tab = document.getElementById("tab-season"); if (!tab) return;
+    const wins = seasonData.splitWins, losses = seasonData.splitLosses;
+    const played = (seasonData.matchResults || []).filter(r => r !== null).length;
+
     const rewardTiers = [
-        { label: "🏆 Flawless (10W)",     wins: 10, reward: 8000 },
-        { label: "🥇 Championship (8–9W)", wins: 8,  reward: 5000 },
-        { label: "🥈 Playoff (6–7W)",      wins: 6,  reward: 3000 },
-        { label: "🥉 Qualifying (4–5W)",   wins: 4,  reward: 1500 },
-        { label: "📋 Development (0–3W)",  wins: 0,  reward: 500  },
+        { label: "🏆 Flawless (10W)",      wins: 10, reward: 8000 },
+        { label: "🥇 Championship (8–9W)",  wins: 8,  reward: 5000 },
+        { label: "🥈 Playoff (6–7W)",       wins: 6,  reward: 3000 },
+        { label: "🥉 Qualifying (4–5W)",    wins: 4,  reward: 1500 },
+        { label: "📋 Development (0–3W)",   wins: 0,  reward: 500  },
     ];
 
     const trophyHTML = seasonData.trophyCase.length
@@ -1549,31 +1666,24 @@ function renderSeasonTab() {
                 </div>
                 <div class="text-emerald-400 font-black text-sm">+${t.reward} BE</div>
             </div>`).join('')
-        : `<div class="text-slate-500 text-center py-10 text-sm">No completed splits yet.<br>Play ${seasonData.gamesPerSplit} tournaments to end your first split.</div>`;
+        : `<div class="text-slate-500 text-center py-8 text-sm">No completed splits yet.<br>Play Season Matches in the <strong class="text-indigo-400">Play</strong> tab to get started.</div>`;
 
-    tab.innerHTML = `<div class="space-y-6 pb-10 pt-2">
-        <div class="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 p-6 rounded-2xl border border-blue-700/40 shadow-xl">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-black text-blue-300 uppercase tracking-widest">Split ${seasonData.currentSplit}</h2>
-                <span class="text-slate-400 text-sm font-bold">${total} / ${seasonData.gamesPerSplit} games</span>
+    tab.innerHTML = `<div class="space-y-5 pb-10 pt-2">
+        <div class="bg-gradient-to-br from-indigo-900/30 to-slate-900 p-5 rounded-2xl border border-indigo-700/40 shadow-xl flex flex-wrap gap-4 items-center justify-between">
+            <div>
+                <div class="text-xs text-indigo-400 font-black uppercase tracking-widest mb-1">Current Season</div>
+                <div class="text-2xl font-black text-indigo-200">Split ${seasonData.currentSplit}</div>
+                <div class="text-slate-400 text-sm mt-1">${played === 0 ? 'Not started' : `${played}/10 matches played`}</div>
             </div>
-            <div class="flex gap-8 items-center mb-5">
-                <div class="text-center"><div class="text-4xl font-black text-emerald-400">${wins}</div><div class="text-slate-400 text-xs font-bold uppercase mt-1">Wins</div></div>
-                <div class="text-center"><div class="text-4xl font-black text-red-400">${losses}</div><div class="text-slate-400 text-xs font-bold uppercase mt-1">Losses</div></div>
-                <div class="flex-1">
-                    <div class="flex justify-between text-xs text-slate-400 mb-1.5"><span>Progress</span><span>${remaining > 0 ? remaining + ' remaining' : 'Complete!'}</span></div>
-                    <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden"><div class="bg-blue-500 h-3 rounded-full" style="width:${progress}%;transition:width 0.5s ease"></div></div>
-                </div>
+            <div class="flex gap-6">
+                <div class="text-center"><div class="text-3xl font-black text-emerald-400">${wins}</div><div class="text-slate-500 text-xs uppercase font-bold mt-0.5">Wins</div></div>
+                <div class="text-center"><div class="text-3xl font-black text-red-400">${losses}</div><div class="text-slate-500 text-xs uppercase font-bold mt-0.5">Losses</div></div>
             </div>
-            <div class="border-t border-blue-800/40 pt-3 text-sm text-center">
-                <span class="text-slate-400">Projected: </span><span class="${proj.color} font-bold">${proj.label}</span>
-            </div>
+            <button onclick="switchTab('tournament'); setTimeout(startSeasonMatchMode, 50);" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-5 py-2.5 rounded-xl text-sm cursor-pointer transition uppercase tracking-wide">Go to Matches →</button>
         </div>
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
-            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Split Reward Tiers</h3>
-            <div class="space-y-1">
-                ${rewardTiers.map(t => `<div class="flex justify-between text-xs py-1 border-b border-slate-700/50 ${wins >= t.wins && total >= seasonData.gamesPerSplit ? 'text-emerald-400 font-bold' : 'text-slate-400'}"><span>${t.label}</span><span>+${t.reward} BE</span></div>`).join('')}
-            </div>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Reward Tiers</h3>
+            <div class="space-y-1">${rewardTiers.map(t => `<div class="flex justify-between text-xs py-1 border-b border-slate-700/50 text-slate-400"><span>${t.label}</span><span>+${t.reward} BE</span></div>`).join('')}</div>
         </div>
         <div>
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-700 pb-2">🏅 Trophy Case</h3>
@@ -2098,12 +2208,6 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
     } else {
         title.innerText = "Bracket Knockout"; title.className = "text-3xl font-bold mb-2 text-red-500";
         icon.innerText = "💀"; desc.innerText = reachedFinals ? `Knocked out in the Grand Finals stage. Consolidated runner-up payout of ${tourData.reward2} BE successfully cleared.` : `Roster path severed mid-bracket. Performance yields cancelled.`;
-    }
-    // Season split tracking: count regular tournament outcomes + GR completion, not mid-GR stage losses
-    if (!isGoldenRoad || isGRCompletion) {
-        if (isWin) seasonData.splitWins++;
-        else seasonData.splitLosses++;
-        checkSplitEnd();
     }
     isGoldenRoad = false;
 }

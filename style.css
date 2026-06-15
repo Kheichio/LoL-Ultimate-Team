@@ -414,7 +414,11 @@ header {
 html.light-mode {
     filter: invert(1) hue-rotate(180deg);
 }
-html.light-mode img {
+/* Re-invert cards so they always show in their original dark-mode styling */
+html.light-mode [class*="card-bg-"],
+html.light-mode .coach-card-style,
+html.light-mode .legacy-coach-card-style,
+html.light-mode .card-face-down {
     filter: invert(1) hue-rotate(180deg);
 }
 

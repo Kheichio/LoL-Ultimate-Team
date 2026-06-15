@@ -315,7 +315,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.9</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.1</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -638,15 +638,18 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.9)</h3>
+                <h3 class="text-lg font-bold text-indigo-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.1)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-emerald-400 font-bold">New Region: LCP 🌏</span> — The Pacific region is now fully supported. LCP appears in the pack store, archive, collection browser, and player picker. Nationality flags added for Korean and Japanese imports across all LCP rosters.</li>
-                    <li><span class="text-blue-400 font-bold">2026 LCP Rosters</span> — 44 players added across 8 teams (IDs 6001–6076). Team Secret Whales claimed Split 1 (78.6% WR). Top cards: Hizto · Dire · Eddie (88 Plat), Bie (87 Plat), Pun (85 Plat). DFM finished last (6.7% WR, 72–77 Silver).</li>
-                    <li><span class="text-pink-400 font-bold">2025 LCS Rosters</span> — 44 players added across 8 teams (IDs 4501–4575). FlyQuest dominated LTA North Split 3 (88.2% WR). Top cards: Inspired (91 Diamond · Split MVP), Massu (90 Diamond), Loki · Zven (88 Plat). CoreJJ (84 Gold) leads a struggling Team Liquid (23.1% WR).</li>
+                    <li><span class="text-indigo-400 font-bold">Season Matches</span> — A dedicated split-based competitive mode, separate from standard tournaments. Access it via the Play tab. 10 CPU opponents are generated per split with scaling difficulty. Play them one at a time — progress only counts here, preventing low-tier farming.</li>
+                    <li><span class="text-yellow-300 font-bold">Split Rewards</span> — Complete all 10 matches to close a split and earn BE based on your record: 10W = 8,000 BE · 8–9W = 5,000 · 6–7W = 3,000 · 4–5W = 1,500 · 0–3W = 500. All completed splits are logged in your Trophy Case on the Season tab.</li>
+                    <li><span class="text-cyan-400 font-bold">Card Comparison Tool</span> — In the Club tab, activate Compare Mode to select two cards side by side. Stats are color-coded: green for the winner, red for the loser in each category.</li>
+                    <li><span class="text-pink-400 font-bold">Animated Card Reveal</span> — Packs now open with a face-down reveal. Cards flip in one by one with a staggered animation. The confirm button is locked until the last card reveals.</li>
+                    <li><span class="text-slate-300 font-bold">Dark / Light Mode Toggle</span> — A toggle in the nav header switches between dark and light mode. Card art is preserved in light mode via double-inversion.</li>
+                    <li><span class="text-emerald-400 font-bold">New Legacy Cards</span> — Weibo Gaming 2023 Worlds Finalists added (6 cards, IDs 9408–9413): TheShy · Weiwei · Xiaohu · Light · Crisp · Daeny.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.8): Year Chemistry Rework · Coach Quality Scaling · Elite Pedigree Bonus</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.9): New Region LCP · 2026 LCP Rosters · 2025 LCS Rosters</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.8): Year Chemistry Rework · Coach Quality Scaling · Elite Pedigree Bonus</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.7): Quality Auto-Assignment · MSI Cards ×18 (RNG 2022, JDG 2023, Gen.G 2024) · UI Premium Pass</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.6): Archive New Card Badges · Draft Log Relocated · Draft End Screen Fix</p>
             </div>
 
         </section>
@@ -970,6 +973,28 @@
                     </div>
                     <button onclick="startDraftMode()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(6,182,212,0.5)]">Enter Draft</button>
                 </div>
+
+                <!-- SEASON MATCHES -->
+                <div class="mt-8 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-800 p-8 rounded-2xl border border-indigo-700/50 text-center shadow-2xl relative overflow-hidden">
+                    <div class="absolute -left-6 -top-6 opacity-10 text-[140px]">🏆</div>
+                    <h3 class="text-2xl font-black text-indigo-300 mb-1 drop-shadow-lg tracking-widest uppercase">Season Matches</h3>
+                    <p class="text-slate-300 text-sm max-w-2xl mx-auto mb-2">10 opponents per split. Play them one at a time — progress only counts here, not in standard tournaments.</p>
+                    <div class="flex justify-center items-center gap-6 mb-5 flex-wrap text-xs font-mono">
+                        <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-indigo-800/60 text-indigo-200">Free Entry</span>
+                        <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-emerald-800/60 text-emerald-300">10W: 8,000 BE</span>
+                        <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-yellow-800/60 text-yellow-300">Split Rewards on Completion</span>
+                    </div>
+                    <button onclick="startSeasonMatchMode()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.5)]">Open Season</button>
+                </div>
+            </div>
+
+            <!-- SEASON MATCHES SCREEN -->
+            <div id="season-matches-screen" class="hidden space-y-6">
+                <div class="flex items-center gap-4 mb-2">
+                    <button onclick="closeSeasonMatchMode()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wide">← Back to Lobby</button>
+                    <h3 class="text-xl font-black text-indigo-300 uppercase tracking-widest">Season Matches</h3>
+                </div>
+                <div id="season-matches-content"></div>
             </div>
 
             <!-- DRAFT MODE SCREENS -->
@@ -1324,7 +1349,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.9 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.1 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1332,14 +1357,17 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-emerald-400 font-bold">New Region: LCP 🌏</span> — Pacific region fully added to the pack store, archive, collection browser, and player picker. Nationality flags set for all Korean and Japanese imports across LCP rosters.</li>
-                <li><span class="text-blue-400 font-bold">2026 LCP Rosters</span> — 44 players across 8 teams. Team Secret Whales are the Split 1 champions. Top cards: Hizto · Dire · Eddie (88 Plat), Bie (87 Plat). DFM finished last at 6.7% WR.</li>
-                <li><span class="text-pink-400 font-bold">2025 LCS Rosters</span> — 44 players across 8 teams (LTA North Split 3). FlyQuest dominated at 88.2% WR. Top cards: Inspired (91 Diamond · Split MVP), Massu (90 Diamond), Loki · Zven (88 Plat).</li>
+                <li><span class="text-indigo-400 font-bold">Season Matches</span> — New competitive mode in the Play tab. 10 CPU opponents per split with scaling difficulty. Play them one at a time — only Season Match results count toward split progress.</li>
+                <li><span class="text-yellow-300 font-bold">Split Rewards</span> — Close a split by finishing all 10 matches. Earn up to 8,000 BE for a 10-win run. All splits are recorded in your Trophy Case on the Season tab.</li>
+                <li><span class="text-cyan-400 font-bold">Card Comparison</span> — Compare Mode in the Club tab lets you pick two cards for a head-to-head stat breakdown.</li>
+                <li><span class="text-pink-400 font-bold">Animated Pack Reveal</span> — Cards in a pack now flip in one at a time from face-down. Confirm is locked until all cards reveal.</li>
+                <li><span class="text-slate-300 font-bold">Dark / Light Mode</span> — Toggle in the nav header. Card art stays dark-themed in both modes.</li>
+                <li><span class="text-emerald-400 font-bold">New Cards: WBG 2023</span> — Weibo Gaming Worlds Finalists added as Legacy Finalist cards: TheShy · Weiwei · Xiaohu · Light · Crisp · Daeny.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.9</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.1</button>
             </div>
         </div>
     </div>
