@@ -1622,8 +1622,16 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
 
     const cleanName = card.name.replace(/[^a-zA-Z0-9]/g, '');
-    const wikiImg = `https://lol.fandom.com/wiki/Special:FilePath/${cleanName}Square.png`;
     const fallback = `https://ui-avatars.com/api/?name=${cleanName}&background=0f172a&color=cbd5e1&size=128&bold=true`;
+
+    const _WIKI_TEAM = { 'Gen.G': 'GEN', 'iG': 'IG' };
+    const wikiTeam = _WIKI_TEAM[card.team] || card.team;
+    const wikiName = card.name.replace(/ /g, '_');
+    const wikiBase = `https://lol.fandom.com/wiki/Special:FilePath/${wikiTeam}_${wikiName}_${card.year}`;
+    const imgSrc = card.image || `${wikiBase}_Split_2.png`;
+    const imgErr = card.image
+        ? `this.onerror=null;this.src='${fallback}'`
+        : `var b='${wikiBase}';if(this.src.indexOf('Split_2')>-1){this.src=b+'_Split_1.png'}else if(this.src.indexOf('Split_1')>-1){this.src=b+'_Summer.png'}else{this.onerror=null;this.src='${fallback}'}`;
 
     // Nationality flag: specific override first, then region default
     const flag = (window.playerNationalityOverrides && window.playerNationalityOverrides[card.name])
@@ -1645,7 +1653,7 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
             </div>
             <div class="flex items-center gap-3 w-full mt-2">
                 <div class="text-4xl font-black tracking-tighter drop-shadow-md ${textBase}"><span>${displayRating}</span></div>
-                <img src="${wikiImg}" onerror="this.onerror=null;this.src='${fallback}';" class="w-16 h-16 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
+                <img src="${imgSrc}" onerror="${imgErr}" class="w-16 h-16 rounded-full border-2 border-white/30 shadow mx-auto object-cover bg-slate-800">
             </div>
             <div class="font-black text-base truncate w-full mt-3 text-center drop-shadow-sm ${textBase}">${card.name}</div>
             <div class="text-xs font-bold truncate w-full mb-2 text-center ${textMuted}">${card.team} [${card.year}]</div>
