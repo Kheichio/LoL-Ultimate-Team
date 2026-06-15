@@ -38,7 +38,7 @@ let hasNewClubItems = false;
 let managerXP = 0;
 let managerLevel = 1;
 let skillPoints = 0;
-let skills = { scouting: 0, negotiation: 0, tactics: 0, transfer: 0 };
+let skills = { scouting: 0, negotiation: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0 };
 let tradeRoleFilter = null;
 
 // New Systems State
@@ -451,7 +451,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_3', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_4', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -540,8 +540,10 @@ window.onload = () => {
         managerXP = p.managerXP || 0; 
         managerLevel = p.managerLevel || 1; 
         skillPoints = p.skillPoints || 0; 
-        skills = p.skills || { scouting: 0, negotiation: 0, tactics: 0, transfer: 0 };
+        skills = p.skills || { scouting: 0, negotiation: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0 };
         if (skills.transfer === undefined) skills.transfer = 0;
+        if (skills.conditioning === undefined) skills.conditioning = 0;
+        if (skills.mentorship === undefined) skills.mentorship = 0;
     }
     
     const savedCol = localStorage.getItem("lol_collection_v7_pro");
@@ -584,7 +586,7 @@ window.onload = () => {
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_4_3';
+    const patchKey = 'lol_patch_seen_v0_4_4';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1105,7 +1107,9 @@ function claimCollectionRewards() {
 }
 
 function addXP(amount) {
-    managerXP += amount; let needed = managerLevel * 250; let leveledUp = false;
+    const xpMultipliers = [1, 1.25, 1.5, 1.75, 2, 2.5];
+    const boosted = Math.round(amount * (xpMultipliers[Math.min(skills.mentorship || 0, 5)]));
+    managerXP += boosted; let needed = managerLevel * 250; let leveledUp = false;
     while(managerXP >= needed) { managerXP -= needed; managerLevel++; skillPoints++; needed = managerLevel * 250; leveledUp = true; }
     if (leveledUp) showToast(`LEVEL UP! You are now Level ${managerLevel}. +1 Skill Point!`, "success");
     saveGame();
@@ -1129,7 +1133,9 @@ function renderSkillsUI() {
         { key: "scouting",     name: "Scouting Network",      desc: "Permanently boosts RNG values during pack openings, increasing the chance of pulling higher-tier drops.",                                           color: "blue"   },
         { key: "negotiation",  name: "Corporate Negotiation",  desc: "Reduces the baseline markup penalty on loan inflations by 20 BE per level.",                                                                         color: "amber"  },
         { key: "tactics",      name: "Tactical Acumen",        desc: "Grants a guaranteed flat power bonus (+3 per level) to your squad during the Tactical Draft phase.",                                                 color: "emerald"},
-        { key: "transfer",     name: "Transfer Window",        desc: "Lv2: +4 trade offers. Lv4: +5 offers. Lv3: unlocks Role Filter in Exchange Hub. Lv5: Force Refresh locks the market to your chosen role.",         color: "orange" },
+        { key: "transfer",      name: "Transfer Window",        desc: "Lv2: +4 trade offers. Lv4: +5 offers. Lv3: unlocks Role Filter in Exchange Hub. Lv5: Force Refresh locks the market to your chosen role.",         color: "orange" },
+        { key: "conditioning",  name: "Team Conditioning",      desc: "Lv1: 45s cooldown. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown between Season Matches — play them back to back.",                                   color: "rose"   },
+        { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: +25%. Lv2: +50%. Lv3: +75%. Lv4: ×2 (double XP). Lv5: ×2.5 — reach new manager levels and skill points far faster.",           color: "violet" },
     ];
     container.innerHTML = "";
     skillDefs.forEach(def => {
@@ -1686,6 +1692,11 @@ function _smStatVal(play) {
 }
 
 const _SM_COOLDOWN_MS = 60000;
+// Returns effective cooldown in ms, reduced by Conditioning skill level
+function _smCooldownMs() {
+    const steps = [60000, 45000, 30000, 20000, 10000, 0];
+    return steps[Math.min(skills.conditioning, 5)];
+}
 const _SM_META_ICONS = { TOP: '🛡️', JNG: '🌿', MID: '⚡', ADC: '🏹', SUP: '💎' };
 const _SM_META_NAMES = { TOP: 'Top Lane Meta', JNG: 'Jungle Meta', MID: 'Mid Lane Meta', ADC: 'Bot Lane Meta', SUP: 'Support Meta' };
 const _SM_META_COLORS = { TOP: 'amber', JNG: 'emerald', MID: 'cyan', ADC: 'orange', SUP: 'violet' };
@@ -1696,8 +1707,8 @@ function startSeasonGame(idx) {
     if ((seasonData.matchResults || [])[idx] != null) return;
     if ((seasonData.matchResults || []).some(r => r !== null)) {
         const elapsed = Date.now() - (seasonData.lastMatchTs || 0);
-        if (elapsed < _SM_COOLDOWN_MS) {
-            const rem = Math.ceil((_SM_COOLDOWN_MS - elapsed) / 1000);
+        if (elapsed < _smCooldownMs()) {
+            const rem = Math.ceil((_smCooldownMs() - elapsed) / 1000);
             showToast(`Cooldown active — next match in ${rem}s`, 'error');
             return;
         }
@@ -1827,7 +1838,7 @@ function _smStartCdTimer() {
         const el = document.getElementById('sm-cd-timer');
         if (!el) { clearInterval(_smCdInterval); _smCdInterval = null; return; }
         const elapsed = Date.now() - (seasonData.lastMatchTs || 0);
-        const rem = Math.ceil((_SM_COOLDOWN_MS - elapsed) / 1000);
+        const rem = Math.ceil((_smCooldownMs() - elapsed) / 1000);
         if (rem <= 0) {
             clearInterval(_smCdInterval);
             _smCdInterval = null;
@@ -1949,8 +1960,8 @@ function _renderSeasonMatchList(container) {
 
     // ── NORMAL MATCH LIST ───────────────────────────────────────────────────
     const elapsed = Date.now() - (seasonData.lastMatchTs || 0);
-    const onCooldown = results.some(r => r !== null) && elapsed < _SM_COOLDOWN_MS;
-    const cdRemaining = onCooldown ? Math.ceil((_SM_COOLDOWN_MS - elapsed) / 1000) : 0;
+    const onCooldown = results.some(r => r !== null) && elapsed < _smCooldownMs();
+    const cdRemaining = onCooldown ? Math.ceil((_smCooldownMs() - elapsed) / 1000) : 0;
 
     let proj;
     if (wins >= 10)     proj = { label: "🏆 Flawless Split",     color: "text-yellow-400" };
@@ -1959,12 +1970,15 @@ function _renderSeasonMatchList(container) {
     else if (wins >= 4) proj = { label: "🥉 Qualifying Split",   color: "text-orange-400" };
     else                proj = { label: "📋 Development Split",  color: "text-slate-500" };
 
+    const condLv = skills.conditioning || 0;
+    const condNote = condLv > 0 ? `<span class="text-rose-400 text-xs font-mono">🏃 Conditioning Lv${condLv} active</span>` : '';
     const cdBanner = onCooldown ? `
         <div class="flex items-center gap-3 bg-orange-950/40 border border-orange-700/40 rounded-xl px-4 py-3 mb-3">
             <span class="text-orange-400 text-lg shrink-0">⏱</span>
-            <div class="flex-1 text-sm">
+            <div class="flex-1 text-sm flex flex-wrap items-center gap-2">
                 <span class="text-orange-300 font-black">Match Cooldown</span>
-                <span class="text-slate-400 ml-2">— next match available in <span id="sm-cd-timer" class="text-orange-300 font-black">${cdRemaining}s</span></span>
+                <span class="text-slate-400">— next match in <span id="sm-cd-timer" class="text-orange-300 font-black">${cdRemaining}s</span></span>
+                ${condNote}
             </div>
         </div>` : '';
 

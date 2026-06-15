@@ -315,7 +315,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.3</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.4</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -566,7 +566,7 @@
 
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-lg font-bold text-amber-400 mb-4">💼 Manager Skills</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 text-sm">
                     <div class="bg-slate-900/50 p-4 rounded-xl border border-blue-900/40">
                         <h4 class="text-blue-400 font-black mb-1">🔭 Scouting Network</h4>
                         <p class="text-slate-400 text-xs">Each level adds +0.25% to every pack RNG roll. At level 5: +1.25% — a meaningful nudge without distorting rare drop rates.</p>
@@ -582,6 +582,14 @@
                     <div class="bg-slate-900/50 p-4 rounded-xl border border-orange-900/40">
                         <h4 class="text-orange-400 font-black mb-1">🔀 Transfer Window</h4>
                         <p class="text-slate-400 text-xs">Expands the Exchange Hub market. <strong class="text-slate-300">Lv2:</strong> 4 offers per refresh. <strong class="text-slate-300">Lv3:</strong> Unlocks the Role Filter to target specific positions. <strong class="text-slate-300">Lv4:</strong> 5 offers. <strong class="text-slate-300">Lv5:</strong> Force Refresh locks the entire market to your chosen role.</p>
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-rose-900/40">
+                        <h4 class="text-rose-400 font-black mb-1">🏃 Team Conditioning</h4>
+                        <p class="text-slate-400 text-xs">Reduces the cooldown between Season Matches. <strong class="text-slate-300">Lv1:</strong> 45s. <strong class="text-slate-300">Lv2:</strong> 30s. <strong class="text-slate-300">Lv3:</strong> 20s. <strong class="text-slate-300">Lv4:</strong> 10s. <strong class="text-slate-300">Lv5:</strong> No cooldown — play back to back.</p>
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-violet-900/40">
+                        <h4 class="text-violet-400 font-black mb-1">🎓 Mentorship Program</h4>
+                        <p class="text-slate-400 text-xs">Multiplies all manager XP gains from every source. <strong class="text-slate-300">Lv1:</strong> +25%. <strong class="text-slate-300">Lv2:</strong> +50%. <strong class="text-slate-300">Lv3:</strong> +75%. <strong class="text-slate-300">Lv4:</strong> ×2 (double XP). <strong class="text-slate-300">Lv5:</strong> ×2.5 — reach new levels and skill points significantly faster.</p>
                     </div>
                 </div>
                 <p class="text-xs text-slate-500 mt-3">Earn XP by opening packs (+25 XP) and winning matches (+100 XP). Each level up grants 1 Skill Point. Skills cost escalating SP: level 1→1 SP, level 2→2 SP, etc.</p>
@@ -649,16 +657,15 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-purple-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.3)</h3>
+                <h3 class="text-lg font-bold text-violet-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.4)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-yellow-300 font-bold">Split Meta System</span> — Every split now has a randomly assigned role meta: Top Lane, Jungle, Mid Lane, Bot Lane, or Support. Plays that involve the meta role receive a flat +10 bonus to all stat checks. The meta is displayed prominently in the Season Matches list and the Season tab before you commit to any match — adapt your squad accordingly.</li>
-                    <li><span class="text-red-400 font-bold">Team Slump System</span> — At the start of each split, 2 to 10 real teams are randomly placed into a slump, each receiving a −5 to −10 penalty to all player card stats during Season Matches. If any of your active squad players belong to a slumped team, their stats are reduced during resolution. A live "Your Affected Players" panel in both the Season Matches and Season tab shows exactly which roles are penalised and by how much. Swap them out to avoid the debuff.</li>
-                    <li><span class="text-indigo-400 font-bold">Meta + Slump Dashboard</span> — Both the Season Matches screen and the Season tab now show a dedicated conditions panel: the active meta role with every boosted play listed, and a slump table covering all affected teams and any of your current squad that are hit. The trophy case also records which meta was active for each completed split.</li>
-                    <li><span class="text-cyan-400 font-bold">In-Match Indicators</span> — During a live season match, play option cards highlight in the meta colour with a ⚡ META badge and show a strikethrough base stat alongside the boosted value. Slumped players appear in red in the Your Roster panel with their exact stat penalty shown as a badge.</li>
+                    <li><span class="text-rose-400 font-bold">Team Conditioning (New Skill)</span> — Fifth manager skill. Directly reduces the 60-second cooldown between Season Matches. Lv1: 45s · Lv2: 30s · Lv3: 20s · Lv4: 10s · Lv5: No cooldown at all — play every match back to back. A 🏃 badge appears on the cooldown banner when the skill is active to confirm it's working. Invest in this early to grind splits without waiting.</li>
+                    <li><span class="text-violet-400 font-bold">Mentorship Program (New Skill)</span> — Sixth manager skill. Applies a multiplier to all XP gains from every source — pack openings, tournament wins, and draft results. Lv1: ×1.25 · Lv2: ×1.5 · Lv3: ×1.75 · Lv4: ×2 (double XP) · Lv5: ×2.5. Reaches max efficiency fastest when paired with high-volume play modes. Stacks implicitly with any XP source added in future patches.</li>
+                    <li><span class="text-slate-300 font-bold">Skills Grid Expanded</span> — The Manager Skills screen and Guide now display all six skills in a responsive grid (up to 6 columns on wide screens). The skill point economy is unchanged — skills still cost escalating SP per level.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.2): Interactive Season Matches · Match Cooldown · Manual Split Advancement · MSI/FirstStand Buffs · MVP Ruler Buff · Transfer Window Skill</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.3): Split Meta System · Team Slump System · Conditions Dashboard · In-Match Indicators</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.2): Interactive Season Matches · Match Cooldown · Manual Split Advancement · MSI/FirstStand Buffs · MVP Ruler · Transfer Window</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.1): Season Matches · Card Comparison · Animated Pack Reveal · Dark/Light Mode · WBG 2023 Cards</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.9): New Region LCP · 2026 LCP Rosters · 2025 LCS Rosters</p>
             </div>
 
         </section>
@@ -1270,7 +1277,7 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5" id="skills-container"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5" id="skills-container"></div>
         </section>
 
     <!-- Player Picker Drawer — fixed full-width overlay, z-index above everything -->
@@ -1359,7 +1366,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.3 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.4 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1367,15 +1374,14 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-yellow-300 font-bold">Split Meta</span> — Each split has a role meta (Top/Jungle/Mid/ADC/Support). Plays involving the meta role get +10 to all stat checks. Shown clearly before you enter any match.</li>
-                <li><span class="text-red-400 font-bold">Team Slumps</span> — 2–10 real teams are randomly slumped each split with a −5 to −10 stat penalty. If your squad includes players from those teams, their stats drop during Season Matches. Check the Affected Players panel and swap them out.</li>
-                <li><span class="text-indigo-400 font-bold">Conditions Dashboard</span> — Season Matches and Season tab both show a dedicated split conditions panel: active meta with boosted plays listed, slump table with affected teams and your penalised roster spots. Trophy case records the meta for each past split.</li>
-                <li><span class="text-cyan-400 font-bold">In-Match Indicators</span> — Meta play cards highlight with a ⚡ badge and show strikethrough base stat → boosted value. Slumped players appear red in the Your Roster panel with their exact penalty.</li>
+                <li><span class="text-rose-400 font-bold">Team Conditioning (New Skill)</span> — Reduces the Season Match cooldown. Lv1: 45s · Lv2: 30s · Lv3: 20s · Lv4: 10s · Lv5: No cooldown — play matches back to back without waiting.</li>
+                <li><span class="text-violet-400 font-bold">Mentorship Program (New Skill)</span> — Multiplies all XP gains from every source. Lv1: ×1.25 · Lv2: ×1.5 · Lv3: ×1.75 · Lv4: ×2 · Lv5: ×2.5. Level up faster, earn skill points quicker.</li>
+                <li><span class="text-slate-300 font-bold">6 Manager Skills Total</span> — Skills screen updated to show all six in a full responsive grid. Skill point economy is unchanged.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.3</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.4</button>
             </div>
         </div>
     </div>
