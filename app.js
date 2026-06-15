@@ -53,7 +53,7 @@ let trackStats = {
     losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0
 };
 
-let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [], lastMatchTs: 0, splitComplete: false, splitMeta: null, slumpTeams: [] };
+let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [], lastMatchTs: 0, splitComplete: false, splitMeta: null, slumpTeams: [], eliteMode: false, eliteTeams: [] };
 let _smState = null; // active season match game state
 let _smCdInterval = null; // cooldown countdown interval
 let compareMode = false;
@@ -451,7 +451,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_4', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_5', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -563,6 +563,8 @@ window.onload = () => {
         if (seasonData.splitComplete === undefined) seasonData.splitComplete = false;
         if (seasonData.splitMeta === undefined) seasonData.splitMeta = null;
         if (!seasonData.slumpTeams) seasonData.slumpTeams = [];
+        if (seasonData.eliteMode === undefined) seasonData.eliteMode = false;
+        if (!seasonData.eliteTeams) seasonData.eliteTeams = [];
     }
     if (localStorage.getItem("lol_light_mode") === "1") {
         document.documentElement.classList.add("light-mode");
@@ -586,7 +588,7 @@ window.onload = () => {
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_4_4';
+    const patchKey = 'lol_patch_seen_v0_4_5';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1640,6 +1642,21 @@ function generateSeasonOpponents() {
     const metaRoles = ['TOP','JNG','MID','ADC','SUP'];
     seasonData.splitMeta = metaRoles[Math.floor(Math.random() * metaRoles.length)];
 
+    // Elite split — 20% chance, 1–6 teams boosted to 95–99 rated
+    seasonData.eliteMode = Math.random() < 0.20;
+    seasonData.eliteTeams = [];
+    if (seasonData.eliteMode) {
+        const eliteCount = 1 + Math.floor(Math.random() * 6);
+        const eliteIndices = Array.from({length: 10}, (_, i) => i).sort(() => Math.random() - 0.5).slice(0, eliteCount);
+        for (const i of eliteIndices) {
+            const r = 95 + Math.floor(Math.random() * 5); // 95–99
+            seasonData.opponents[i].avgRating = r;
+            seasonData.opponents[i].stats = _smGenStats(r, seasonData.opponents[i].style);
+            seasonData.opponents[i].isElite = true;
+            seasonData.eliteTeams.push(i);
+        }
+    }
+
     // Pick 2–10 real team slumps — debuffs apply to USER's player cards from those teams
     const db = getDB();
     const allTeams = db ? [...new Set(db.map(c => c.team))].filter(Boolean) : [];
@@ -1787,6 +1804,7 @@ function _finishSeasonGame() {
     seasonData.lastMatchTs = Date.now();
     const played = seasonData.matchResults.filter(r => r !== null).length;
     if (played >= seasonData.gamesPerSplit) seasonData.splitComplete = true;
+    addXP(win ? 75 : 25);
     saveGame();
 }
 
@@ -1808,7 +1826,7 @@ function advanceToNextSplit() {
     const { tier, reward } = _smSplitTier(wins);
     blueEssence += reward;
     const completedSplit = seasonData.currentSplit;
-    seasonData.trophyCase.unshift({ split: completedSplit, wins, losses, tier, reward, date: new Date().toLocaleDateString(), meta: seasonData.splitMeta });
+    seasonData.trophyCase.unshift({ split: completedSplit, wins, losses, tier, reward, date: new Date().toLocaleDateString(), meta: seasonData.splitMeta, elite: seasonData.eliteMode });
     if (seasonData.trophyCase.length > 20) seasonData.trophyCase.pop();
     seasonData.currentSplit++;
     seasonData.splitWins = 0;
@@ -1852,6 +1870,35 @@ function _smStartCdTimer() {
 function _smMetaSlumpPanels() {
     const meta = seasonData.splitMeta;
     const slumps = seasonData.slumpTeams || [];
+    const eliteTeams = seasonData.eliteTeams || [];
+
+    // Elite split panel
+    let eliteHTML = '';
+    if (seasonData.eliteMode && eliteTeams.length > 0) {
+        const eliteRows = eliteTeams.map(i => {
+            const opp = (seasonData.opponents || [])[i];
+            if (!opp) return '';
+            const r = (seasonData.matchResults || [])[i];
+            const resultBadge = r === 'win' ? `<span class="text-emerald-400 font-black text-xs ml-auto">W</span>` : r === 'loss' ? `<span class="text-red-300 font-black text-xs ml-auto">L</span>` : `<span class="text-slate-600 text-xs ml-auto">—</span>`;
+            return `<div class="flex items-center gap-2 text-xs py-1 border-b border-red-900/30">
+                <span class="text-base">${opp.logo}</span>
+                <span class="text-slate-200 font-bold flex-1 truncate">${opp.name}</span>
+                <span class="text-slate-500">${opp.style}</span>
+                <span class="text-red-400 font-black font-mono">${opp.avgRating}</span>
+                ${resultBadge}
+            </div>`;
+        }).join('');
+        eliteHTML = `
+        <div class="bg-gradient-to-r from-red-950/70 to-orange-950/40 border border-red-600/50 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-xl">🔥</span>
+                <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Elite Split — ${eliteTeams.length} world-class team${eliteTeams.length > 1 ? 's' : ''}</span>
+                <span class="ml-auto text-[10px] font-black text-orange-400 bg-orange-950/60 border border-orange-700/40 px-2 py-0.5 rounded font-mono">HARD</span>
+            </div>
+            <p class="text-slate-400 text-xs mb-3 font-mono">This split contains elite opponents rated 95–99. Expect brutal stat checks — field your strongest squad.</p>
+            <div class="space-y-0.5">${eliteRows}</div>
+        </div>`;
+    }
 
     // Meta panel
     let metaHTML = '';
@@ -1908,7 +1955,7 @@ function _smMetaSlumpPanels() {
         </div>`;
     }
 
-    return metaHTML || slumpHTML ? `<div class="space-y-3 mb-4">${metaHTML}${slumpHTML}</div>` : '';
+    return eliteHTML || metaHTML || slumpHTML ? `<div class="space-y-3 mb-4">${eliteHTML}${metaHTML}${slumpHTML}</div>` : '';
 }
 
 function _renderSeasonMatchList(container) {
@@ -1931,11 +1978,13 @@ function _renderSeasonMatchList(container) {
             const badge = isWin
                 ? `<span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-900/60 text-emerald-300 border border-emerald-700">WIN</span>`
                 : `<span class="px-3 py-1 rounded-full text-xs font-black bg-red-900/60 text-red-300 border border-red-700">LOSS</span>`;
-            const ratingColor = opp.avgRating >= 90 ? 'text-red-400' : opp.avgRating >= 85 ? 'text-orange-400' : opp.avgRating >= 79 ? 'text-yellow-400' : 'text-slate-300';
+            const ratingColor = opp.avgRating >= 95 ? 'text-orange-400' : opp.avgRating >= 90 ? 'text-red-400' : opp.avgRating >= 85 ? 'text-orange-400' : opp.avgRating >= 79 ? 'text-yellow-400' : 'text-slate-300';
+            const eliteBadge = opp.isElite ? `<span class="text-[10px] font-black text-orange-400 bg-orange-950/60 border border-orange-700/40 px-1.5 py-0.5 rounded shrink-0">🔥</span>` : '';
             return `<div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border ${rowBg} text-sm">
                 <span class="text-slate-600 font-mono text-xs w-4 shrink-0">${i + 1}</span>
                 <span class="text-lg shrink-0">${opp.logo}</span>
                 <div class="flex-1 min-w-0"><div class="font-bold text-slate-200 truncate">${opp.name}</div><div class="text-slate-500 text-xs">${opp.style}</div></div>
+                ${eliteBadge}
                 <div class="${ratingColor} font-black text-xs mr-2">${opp.avgRating}</div>
                 ${badge}
             </div>`;
@@ -1986,8 +2035,9 @@ function _renderSeasonMatchList(container) {
         const result = results[i];
         const isPlayed = result != null;
         const isWin = result === 'win';
-        const ratingColor = opp.avgRating >= 90 ? 'text-red-400' : opp.avgRating >= 85 ? 'text-orange-400' : opp.avgRating >= 79 ? 'text-yellow-400' : 'text-slate-300';
-        const rowBg = isPlayed ? (isWin ? 'bg-emerald-950/25 border-emerald-800/30' : 'bg-red-950/25 border-red-800/30') : 'bg-slate-700/40 border-slate-600';
+        const ratingColor = opp.avgRating >= 95 ? 'text-orange-400' : opp.avgRating >= 90 ? 'text-red-400' : opp.avgRating >= 85 ? 'text-orange-400' : opp.avgRating >= 79 ? 'text-yellow-400' : 'text-slate-300';
+        const eliteBadge = opp.isElite ? `<span class="text-[10px] font-black text-orange-400 bg-orange-950/60 border border-orange-700/40 px-1.5 py-0.5 rounded shrink-0">🔥</span>` : '';
+        const rowBg = isPlayed ? (isWin ? 'bg-emerald-950/25 border-emerald-800/30' : 'bg-red-950/25 border-red-800/30') : opp.isElite ? 'bg-orange-950/15 border-orange-800/30' : 'bg-slate-700/40 border-slate-600';
         const badge = isPlayed
             ? (isWin ? `<span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-900/60 text-emerald-300 border border-emerald-700 shrink-0">WIN</span>`
                      : `<span class="px-3 py-1 rounded-full text-xs font-black bg-red-900/60 text-red-300 border border-red-700 shrink-0">LOSS</span>`)
@@ -2005,7 +2055,7 @@ function _renderSeasonMatchList(container) {
                 <div class="text-slate-500 text-xs">${opp.region} · ${opp.style}</div>
             </div>
             <div class="shrink-0 text-right mr-1"><div class="${ratingColor} font-black">${opp.avgRating}</div><div class="text-slate-600 text-[10px]">avg</div></div>
-            ${badge}${playBtn}
+            ${eliteBadge}${badge}${playBtn}
         </div>`;
     }).join('');
 
@@ -2174,6 +2224,36 @@ function renderSeasonTab() {
     const played = (seasonData.matchResults || []).filter(r => r !== null).length;
     const meta = seasonData.splitMeta;
     const slumps = seasonData.slumpTeams || [];
+    const eliteTeams = seasonData.eliteTeams || [];
+
+    // Elite split panel for Season tab
+    let elitePanel = '';
+    if (seasonData.eliteMode && eliteTeams.length > 0) {
+        const eliteRows = eliteTeams.map(i => {
+            const opp = (seasonData.opponents || [])[i];
+            if (!opp) return '';
+            const r = (seasonData.matchResults || [])[i];
+            const resultBadge = r === 'win' ? `<span class="text-emerald-400 font-black text-xs ml-auto">W</span>` : r === 'loss' ? `<span class="text-red-300 font-black text-xs ml-auto">L</span>` : `<span class="text-slate-600 text-xs ml-auto">—</span>`;
+            return `<div class="flex items-center gap-2 py-1.5 border-b border-red-900/30 text-xs">
+                <span>${opp.logo}</span>
+                <span class="text-slate-200 font-bold flex-1 truncate">${opp.name}</span>
+                <span class="text-slate-500">${opp.style}</span>
+                <span class="text-orange-400 font-black font-mono">${opp.avgRating}</span>
+                ${resultBadge}
+            </div>`;
+        }).join('');
+        elitePanel = `<div class="bg-gradient-to-r from-red-950/70 to-orange-950/40 border border-red-600/50 rounded-xl overflow-hidden">
+            <div class="flex items-center gap-2 px-4 py-3 border-b border-red-800/40">
+                <span class="text-xl">🔥</span>
+                <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Elite Split — ${eliteTeams.length} world-class team${eliteTeams.length > 1 ? 's' : ''}</span>
+                <span class="ml-auto text-[10px] font-black text-orange-400 bg-orange-950/60 border border-orange-700/40 px-2 py-0.5 rounded font-mono">HARD</span>
+            </div>
+            <div class="px-4 py-3">
+                <p class="text-slate-400 text-xs mb-3 font-mono">This split contains elite opponents rated 95–99. Expect brutal stat checks.</p>
+                ${eliteRows}
+            </div>
+        </div>`;
+    }
 
     const rewardTiers = [
         { label: "🏆 Flawless (10W)",      wins: 10, reward: 8000 },
@@ -2252,9 +2332,10 @@ function renderSeasonTab() {
     const trophyHTML = seasonData.trophyCase.length
         ? seasonData.trophyCase.map(t => {
             const metaChip = t.meta ? `<span class="ml-1 text-[10px] font-mono text-slate-500">${_SM_META_ICONS[t.meta] || ''} ${t.meta}</span>` : '';
-            return `<div class="flex items-center justify-between bg-slate-700/60 p-3 rounded-xl border border-slate-600">
+            const eliteChip = t.elite ? `<span class="ml-1 text-[10px] font-black text-orange-400">🔥 ELITE</span>` : '';
+            return `<div class="flex items-center justify-between bg-slate-700/60 p-3 rounded-xl border ${t.elite ? 'border-orange-800/40' : 'border-slate-600'}">
                 <div>
-                    <div class="font-bold text-slate-200 text-sm">Split ${t.split} — ${t.tier}${metaChip}</div>
+                    <div class="font-bold text-slate-200 text-sm">Split ${t.split} — ${t.tier}${metaChip}${eliteChip}</div>
                     <div class="text-slate-400 text-xs">${t.wins}W–${t.losses}L · ${t.date}</div>
                 </div>
                 <div class="text-emerald-400 font-black text-sm">+${t.reward} BE</div>
@@ -2276,6 +2357,7 @@ function renderSeasonTab() {
             <button onclick="switchTab('tournament'); setTimeout(startSeasonMatchMode, 50);" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-5 py-2.5 rounded-xl text-sm cursor-pointer transition uppercase tracking-wide">Go to Matches →</button>
         </div>
 
+        ${elitePanel ? elitePanel : ''}
         ${metaPanel || slumpPanel ? `<div class="grid grid-cols-1 ${metaPanel && slumpPanel ? 'lg:grid-cols-2' : ''} gap-4">${metaPanel}${slumpPanel}</div>` : ''}
 
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
