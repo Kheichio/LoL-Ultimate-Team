@@ -1621,7 +1621,7 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     cardDiv.className = `${bgClass} rounded-xl w-52 flex flex-col items-center select-none relative transition-transform ${scaleClass} shadow-xl overflow-hidden`;
     if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
 
-    const initials = card.name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const initials = card.name.slice(0, 2).toUpperCase();
 
     // Nationality flag: specific override first, then region default
     const flag = (window.playerNationalityOverrides && window.playerNationalityOverrides[card.name])
