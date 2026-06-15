@@ -312,7 +312,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.7</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.3.8</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -470,12 +470,29 @@
                         </div>
                         <div class="bg-slate-900/50 p-3 rounded-lg space-y-1.5 text-xs font-mono">
                             <div class="text-slate-400 font-bold uppercase tracking-wider mb-1">Year Chemistry (max +5)</div>
-                            <div class="flex justify-between"><span>Same year</span><span class="text-emerald-400">+5</span></div>
-                            <div class="flex justify-between"><span>2 different years</span><span class="text-blue-400">+3</span></div>
-                            <div class="flex justify-between"><span>3+ years</span><span class="text-yellow-400">+1</span></div>
+                            <div class="flex justify-between"><span>All same year</span><span class="text-emerald-400">+5</span></div>
+                            <div class="flex justify-between"><span>2 different years</span><span class="text-blue-300">+4</span></div>
+                            <div class="flex justify-between"><span>3 different years</span><span class="text-blue-400">+3</span></div>
+                            <div class="flex justify-between"><span>4 different years</span><span class="text-yellow-400">+2</span></div>
+                            <div class="flex justify-between"><span>5 different years</span><span class="text-red-400">+1</span></div>
+                        </div>
+                        <div class="bg-slate-900/50 p-3 rounded-lg space-y-1.5 text-xs font-mono">
+                            <div class="text-slate-400 font-bold uppercase tracking-wider mb-1">Coach Tactics Yield (requires COACH slot)</div>
+                            <div class="flex justify-between"><span>Rating 98–100</span><span class="text-emerald-400">+5</span></div>
+                            <div class="flex justify-between"><span>Rating 94–97</span><span class="text-blue-300">+4</span></div>
+                            <div class="flex justify-between"><span>Rating 90–93</span><span class="text-blue-400">+3</span></div>
+                            <div class="flex justify-between"><span>Rating 85–89</span><span class="text-yellow-400">+2</span></div>
+                            <div class="flex justify-between"><span>Rating ≤84</span><span class="text-red-400">+1</span></div>
+                        </div>
+                        <div class="bg-slate-900/50 p-3 rounded-lg space-y-1.5 text-xs font-mono">
+                            <div class="text-slate-400 font-bold uppercase tracking-wider mb-1">Elite Pedigree (Legacy cards in starting 5)</div>
+                            <div class="flex justify-between"><span>0–1 Legacy cards</span><span class="text-slate-500">+0</span></div>
+                            <div class="flex justify-between"><span>2–3 Legacy cards</span><span class="text-pink-300">+1</span></div>
+                            <div class="flex justify-between"><span>4–5 Legacy cards</span><span class="text-pink-400">+2</span></div>
+                            <div class="text-slate-500 mt-1 border-t border-slate-700 pt-1">Counts: Champion · MVP · MSI · Finalist · First Stand</div>
                         </div>
                         <div class="bg-amber-950/30 p-3 rounded-lg border border-amber-800/40 text-xs">
-                            <span class="text-amber-300 font-black">🃏 WILDCARD RULE:</span> <span class="text-slate-300">Champion (Legacy) cards are universal wildcards. They contribute to any region/year chemistry as if they match your other players. Mix Legacy and modern cards without chemistry penalty.</span>
+                            <span class="text-amber-300 font-black">🃏 WILDCARD RULE:</span> <span class="text-slate-300">Champion, Finalist, MSI, and First Stand Legacy cards are universal wildcards — they contribute to any region/year chemistry as if they match your other players. Mix Legacy and modern cards without chemistry penalty.</span>
                         </div>
                     </div>
                 </div>
@@ -491,7 +508,7 @@
                             </div>
                             <div class="bg-slate-900/50 p-3 rounded-lg text-xs">
                                 <span class="text-emerald-400 font-bold block mb-1">Power Formula</span>
-                                <span class="font-mono">Total Power = Avg Rating + Region Chem + Year Chem + Training Bonus + Coach Bonus (+5 if coach slotted) + Tactical Modifier + Manager Tactics Skill</span>
+                                <span class="font-mono">Total Power = Avg Rating + Region Chem + Year Chem + Coach Bonus (scales with coach rating) + Elite Pedigree + Training Bonus + Tactical Modifier + Manager Tactics Skill</span>
                             </div>
                             <div class="bg-slate-900/50 p-3 rounded-lg text-xs">
                                 <span class="text-yellow-400 font-bold block mb-1">Match Resolution</span>
@@ -618,16 +635,15 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.7)</h3>
+                <h3 class="text-lg font-bold text-emerald-400 mb-3">📋 System Patch Notes (Alpha Patch 0.3.8)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-yellow-400 font-bold">Quality Auto-Assignment</span> — Card quality is now automatically derived from rating for all regular season cards. Brackets: Silver ≤79 · Gold 80–84 · Platinum 85–89 · Diamond 90–93 · Master 94–95 · Grandmaster 96–97 · Challenger 98–100. Legacy cards (Champion, MVP, MSI, Finalist, FirstStand) are unaffected.</li>
-                    <li><span class="text-teal-400 font-bold">MSI Cards ×18</span> — Three MSI winning rosters added: RNG 2022 (83.3% WR), JDG 2023 (80% WR), Gen.G 2024 (75% WR). Stats based on each team's MSI tournament performance.</li>
-                    <li><span class="text-cyan-400 font-bold">Draft Mode Log Relocated</span> — The match commentary log has been moved from below the screen into the centre column alongside the round panel and score display. No more scrolling down to read what happened in a round.</li>
-                    <li><span class="text-red-400 font-bold">Draft End Screen Fix</span> — Losing with 1 round win no longer incorrectly shows "Runner-Up" (which implied a prize). It now correctly shows "Draft Defeated" — consistent with the winner-takes-all format.</li>
+                    <li><span class="text-emerald-400 font-bold">Year Chemistry Rework</span> — Era synergy is now a smooth 5-step curve: 1 year = +5, 2 years = +4, 3 years = +3, 4 years = +2, 5 years = +1. Previously jumped from +3 straight to +1 at 3+ years.</li>
+                    <li><span class="text-blue-400 font-bold">Coach Quality Scaling</span> — Coach bonus now scales with coach rating: 98+ = +5 · 94–97 = +4 · 90–93 = +3 · 85–89 = +2 · ≤84 = +1. Flat +5 removed — quality of coach now matters.</li>
+                    <li><span class="text-pink-400 font-bold">Elite Pedigree Bonus</span> — 2–3 Legacy cards in your starting 5 grants +1 power; 4–5 grants +2. Rewards squads built around tournament-winning talent.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.6): Archive New Card Badges · Draft Log Relocated · Draft End Screen Fix</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.5): Worlds MVP ×9 (2011–2019) · BLG 2024 Finalist cards · FRM stat rework (136 cards) · Faker 2024 rebalance · Draft reward display fix</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.4): Draft UI Overhaul · Round 2 FRM stats · 1v1 Round 3 · Upgrade Tab · Welcome Tab · Tab Highlight · MVP Cards ×5</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.3.7): Quality Auto-Assignment · MSI Cards ×18 (RNG 2022, JDG 2023, Gen.G 2024) · UI Premium Pass</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.6): Archive New Card Badges · Draft Log Relocated · Draft End Screen Fix</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.3.5): Worlds MVP ×9 (2011–2019) · BLG 2024 Finalist cards · FRM stat rework (136 cards) · Faker 2024 rebalance</p>
             </div>
 
         </section>
@@ -845,6 +861,7 @@
                         <div class="flex justify-between py-2 border-b border-slate-700/50 px-1"><span>Regional Synergy:</span><span id="overview-chem-region" class="font-bold text-blue-300">0 / 5</span></div>
                         <div class="flex justify-between py-2 border-b border-slate-700/50 px-1"><span>Temporal Synergy:</span><span id="overview-chem-year" class="font-bold text-amber-300">0 / 5</span></div>
                         <div class="flex justify-between py-2 border-b border-slate-700/50 px-1"><span>Coach Tactics Yield:</span><span id="overview-coach-bonus" class="font-bold text-emerald-400">+0</span></div>
+                        <div class="flex justify-between py-2 border-b border-slate-700/50 px-1"><span>Elite Pedigree:</span><span id="overview-legacy-bonus" class="font-bold text-pink-400">+0</span></div>
                         <div class="flex justify-between py-2 border-b border-slate-700/50 px-1"><span>Bootcamp Facility Bonus:</span><span id="overview-training-bonus" class="font-bold text-orange-400">+0</span></div>
                         <div class="flex justify-between py-4 bg-slate-900/80 -mx-5 px-6 mt-4 border-t border-slate-700 text-sm font-black items-center shadow-inner rounded-b-2xl">
                             <span>COMBAT POWER:</span><span id="overview-chem-total" class="text-green-400 text-3xl font-mono">0</span>
@@ -1280,7 +1297,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.7 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.3.8 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1288,13 +1305,14 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-yellow-400 font-bold">Quality Auto-Assignment</span> — Card quality now derives automatically from rating for all regular season cards. Silver ≤79 · Gold 80–84 · Platinum 85–89 · Diamond 90–93 · Master 94–95 · Grandmaster 96–97 · Challenger 98–100. Legacy cards are unaffected.</li>
-                <li><span class="text-teal-400 font-bold">MSI Cards ×18</span> — RNG 2022, JDG 2023, and Gen.G 2024 MSI winning rosters added. Stats based on tournament performance data.</li>
+                <li><span class="text-emerald-400 font-bold">Year Chemistry Rework</span> — Smooth 5-step curve: 1 era = +5, 2 = +4, 3 = +3, 4 = +2, 5 = +1. No more harsh cliff at 3+ years.</li>
+                <li><span class="text-blue-400 font-bold">Coach Quality Scaling</span> — Coach bonus now scales with coach rating (98+ = +5 down to ≤84 = +1). Better coaches make a real difference.</li>
+                <li><span class="text-pink-400 font-bold">Elite Pedigree</span> — 2–3 Legacy cards in your starting 5 = +1 power. 4–5 Legacy cards = +2. Reward for building around tournament-winning talent.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.7</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.3.8</button>
             </div>
         </div>
     </div>

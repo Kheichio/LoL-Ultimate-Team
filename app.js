@@ -420,7 +420,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_3_7', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_3_8', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -537,7 +537,7 @@ window.onload = () => {
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
 
-    const patchKey = 'lol_patch_seen_v0_3_7';
+    const patchKey = 'lol_patch_seen_v0_3_8';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1543,8 +1543,24 @@ function computeChemistry() {
     document.getElementById("overview-avg-map").innerText = count > 0 ? Math.round(sums.map / count) : 0;
 
     let regionChem = 0; let yearChem = 0; let trainBonus = getTrainingBonus();
-    let coachBonus = squad["COACH"] ? 5 : 0; 
-    
+
+    // Coach bonus scales with coach rating
+    function getCoachBonus(coach) {
+        if (!coach) return 0;
+        const r = coach.rating;
+        if (r >= 98) return 5;
+        if (r >= 94) return 4;
+        if (r >= 90) return 3;
+        if (r >= 85) return 2;
+        return 1;
+    }
+    let coachBonus = getCoachBonus(squad["COACH"]);
+
+    // Legacy pedigree bonus: reward squads with tournament-winning cards
+    const ALL_LEGACY_Q = ["Champion", "MVP", "Finalist", "MSI", "FirstStand"];
+    let legacyInSquad = active.filter(c => ALL_LEGACY_Q.includes(c.quality)).length;
+    let legacyBonus = legacyInSquad >= 4 ? 2 : legacyInSquad >= 2 ? 1 : 0;
+
     if(count === 5) {
         // Legacy wildcards (Champion/Finalist/MSI/FirstStand) are excluded from region/year chemistry checks — they adapt to any lineup
         const LEGACY_QUALITIES = ["Champion", "Finalist", "MSI", "FirstStand"];
@@ -1552,23 +1568,20 @@ function computeChemistry() {
         let legacyCount = active.filter(c => LEGACY_QUALITIES.includes(c.quality)).length;
 
         if (legacyCount === 5) {
-            // All-Legacy team: full chemistry
             regionChem = 5; yearChem = 5;
         } else {
-            // Region chemistry: only check non-legacy cards; legacy cards count as "matching" any region
             let regs = nonLegacy.map(c => c.region);
             let uReg = new Set(regs).size;
             if(uReg <= 1) regionChem = 5; else if(uReg <= 2) regionChem = 3; else if(uReg <= 3) regionChem = 2; else regionChem = 1;
 
-            // Year chemistry: same — legacy wildcards bridge all eras
+            // Smooth year chemistry curve: every additional era costs one point
             let yrs = nonLegacy.map(c => c.year);
             let uY = new Set(yrs).size;
-            if(uY <= 1) yearChem = 5; else if(uY <= 2) yearChem = 3; else yearChem = 1;
+            if(uY <= 1) yearChem = 5; else if(uY <= 2) yearChem = 4; else if(uY <= 3) yearChem = 3; else if(uY <= 4) yearChem = 2; else yearChem = 1;
 
-            // Team lineage bonus: legacy cards count as part of any team lineage
             let nonLegTeams = nonLegacy.map(c => window.teamLineageBridges[c.team] || c.team);
             if(nonLegTeams.length === 0 || new Set(nonLegTeams).size === 1) regionChem += 2;
-            regionChem = Math.min(5, regionChem); // never exceed 5/5
+            regionChem = Math.min(5, regionChem);
         }
     }
 
@@ -1576,8 +1589,9 @@ function computeChemistry() {
     document.getElementById("overview-chem-year").innerText = `${yearChem} / 5`;
     document.getElementById("overview-training-bonus").innerText = `+${trainBonus}`;
     document.getElementById("overview-coach-bonus").innerText = `+${coachBonus}`;
-    
-    let totalPower = avgRating + regionChem + yearChem + trainBonus + coachBonus;
+    document.getElementById("overview-legacy-bonus").innerText = `+${legacyBonus}`;
+
+    let totalPower = avgRating + regionChem + yearChem + trainBonus + coachBonus + legacyBonus;
     document.getElementById("overview-chem-total").innerText = totalPower;
     return { totalPower, avgStats: { mec: count>0?sums.mec/count:0, tmf: count>0?sums.tmf/count:0, map: count>0?sums.map/count:0 } };
 }
