@@ -624,15 +624,20 @@ function updateBadges() {
     if (hasClaimableQuest && questsBadge) questsBadge.classList.remove("hidden");
     else if(questsBadge) questsBadge.classList.add("hidden");
 
-    let hasClaimableCollection = false;
-    let db = getDB();
-    if(db) {
-        let dbRegionFilt = db.filter(c => c.region === currentCollectionRegion);
-        hasClaimableCollection = dbRegionFilt.some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
+    const archiveDb = getDB();
+    if (collBadge && archiveDb) {
+        const totalUnseen = ['regular','firststand','msi','finalists','champion','mvp']
+            .reduce((sum, cat) => sum + _archiveNewCount(archiveDb, cat, null), 0);
+        if (totalUnseen > 0) {
+            collBadge.classList.remove('hidden');
+            const countEl = document.getElementById('badge-collection-count');
+            if (countEl) countEl.innerText = totalUnseen > 99 ? '99+' : totalUnseen;
+        } else {
+            collBadge.classList.add('hidden');
+        }
+    } else if (collBadge) {
+        collBadge.classList.add('hidden');
     }
-    
-    if (hasClaimableCollection && collBadge) collBadge.classList.remove("hidden");
-    else if(collBadge) collBadge.classList.add("hidden");
 }
 
 function secretMoneyCheat() {
