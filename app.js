@@ -1149,7 +1149,7 @@ function renderSkillsUI() {
             ? `<button disabled class="w-full bg-slate-800 text-slate-500 py-1.5 rounded-lg font-bold text-xs cursor-not-allowed">MAX LEVEL</button>`
             : `<button onclick="upgradeSkill('${def.key}')" class="w-full ${canUpgrade ? `bg-${def.color}-600 hover:bg-${def.color}-500 text-white cursor-pointer shadow` : `bg-slate-700 text-slate-400 cursor-not-allowed`} py-1.5 rounded-lg font-bold transition text-xs" ${!canUpgrade ? 'disabled' : ''}>UPGRADE (${cost} SP)</button>`;
 
-        container.innerHTML += `<div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex flex-col justify-between"><div><h3 class="text-sm font-black text-${def.color}-400 mb-1">${def.name}</h3><p class="text-[11px] text-slate-400 mb-3 h-10">${def.desc}</p><div class="flex gap-1.5 mb-3 justify-center">${dotsHTML}</div></div>${btnHTML}</div>`;
+        container.innerHTML += `<div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex flex-col justify-between"><div><h3 class="text-sm font-black text-${def.color}-400 mb-1">${def.name}</h3><p class="text-[11px] text-slate-400 mb-3 leading-relaxed">${def.desc}</p><div class="flex gap-1.5 mb-3 justify-center">${dotsHTML}</div></div>${btnHTML}</div>`;
     });
 }
 
