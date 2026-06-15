@@ -1181,6 +1181,14 @@ const baseDatabase = [
     { id: 9406, name: "BigWei",   role: "COACH", team: "BLG", year: 2024, rating: 89, quality: "Finalist", region: "Legacy", stats: { mec: 22, tmf: 88, frm: 88, cmp: 88, map: 90, ldr: 92 } },
     { id: 9407, name: "Easyhoon", role: "COACH", team: "BLG", year: 2024, rating: 83, quality: "Finalist", region: "Legacy", stats: { mec: 35, tmf: 82, frm: 82, cmp: 83, map: 83, ldr: 84 } },
 
+    // Weibo Gaming 2023 — Worlds Finalists (57.9% WR, 19G — lost to T1 in Grand Finals)
+    { id: 9408, name: "TheShy",  role: "TOP",   team: "WBG", year: 2023, rating: 91, quality: "Finalist", region: "Legacy", stats: { mec: 97, tmf: 88, frm: 87, cmp: 88, map: 84, ldr: 87 } },
+    { id: 9409, name: "Weiwei",  role: "JNG",   team: "WBG", year: 2023, rating: 88, quality: "Finalist", region: "Legacy", stats: { mec: 87, tmf: 90, frm: 88, cmp: 86, map: 89, ldr: 85 } },
+    { id: 9410, name: "Xiaohu",  role: "MID",   team: "WBG", year: 2023, rating: 90, quality: "Finalist", region: "Legacy", stats: { mec: 90, tmf: 90, frm: 90, cmp: 91, map: 88, ldr: 90 } },
+    { id: 9411, name: "Light",   role: "ADC",   team: "WBG", year: 2023, rating: 93, quality: "Finalist", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 93, cmp: 91, map: 88, ldr: 88 } },
+    { id: 9412, name: "Crisp",   role: "SUP",   team: "WBG", year: 2023, rating: 89, quality: "Finalist", region: "Legacy", stats: { mec: 83, tmf: 91, frm: 89, cmp: 88, map: 91, ldr: 88 } },
+    { id: 9413, name: "Daeny",   role: "COACH", team: "WBG", year: 2023, rating: 87, quality: "Finalist", region: "Legacy", stats: { mec: 22, tmf: 86, frm: 87, cmp: 86, map: 87, ldr: 88 } },
+
     // ==========================================
     // --- 7. MVP / NOTEWORTHY VETERANS ---
     // ==========================================

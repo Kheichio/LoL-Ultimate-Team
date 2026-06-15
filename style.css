@@ -409,3 +409,44 @@ header {
 .nav-btn:hover {
     background: rgba(71, 85, 105, 0.8) !important;
 }
+
+/* ======= LIGHT MODE ======= */
+html.light-mode {
+    filter: invert(1) hue-rotate(180deg);
+}
+html.light-mode img {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* ======= CARD REVEAL ANIMATION ======= */
+.card-face-down {
+    width: 148px;
+    height: 210px;
+    background: linear-gradient(135deg, #0a1628 0%, #0f2d5c 50%, #0a1628 100%);
+    border-radius: 12px;
+    border: 3px solid #1e40af;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 22px rgba(30, 64, 175, 0.45), inset 0 0 20px rgba(30, 64, 175, 0.15);
+    animation: card-back-pulse 1.4s ease-in-out infinite;
+    cursor: pointer;
+}
+.card-face-down span {
+    font-size: 3.5rem;
+    color: rgba(96, 165, 250, 0.45);
+    user-select: none;
+}
+@keyframes card-back-pulse {
+    0%, 100% { box-shadow: 0 0 22px rgba(30, 64, 175, 0.45); }
+    50% { box-shadow: 0 0 38px rgba(59, 130, 246, 0.65), 0 0 65px rgba(59, 130, 246, 0.18); }
+}
+.card-reveal-anim {
+    opacity: 0;
+    transform: scale(0.55) rotateY(90deg);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.card-reveal-anim.card-revealed {
+    opacity: 1;
+    transform: scale(1) rotateY(0deg);
+}

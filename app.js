@@ -52,6 +52,10 @@ let trackStats = {
     losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0
 };
 
+let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [] };
+let compareMode = false;
+let compareSlots = [];
+
 let quests = [
     // One-time milestones
     { id: 'q1', desc: 'Open 5 Card Packs', target: 5, type: 'packs', reward: 800, claimed: false },
@@ -158,18 +162,42 @@ function showPulls(cards, title) {
     const area = document.getElementById("pack-opening-area");
     const container = document.getElementById("pulled-cards");
     const titleEl = document.getElementById("pack-opening-title");
-    
-    if(!area || !container || !titleEl) return;
-    
+    const confirmBtn = document.getElementById("pack-confirm-btn");
+
+    if (!area || !container || !titleEl) return;
+
     titleEl.innerText = title || "Pack Opened!";
     container.innerHTML = "";
-    
-    cards.forEach(card => {
-        container.appendChild(createCardElement(card, false, null, null));
-    });
-    
+    if (confirmBtn) confirmBtn.classList.add("hidden");
+
     area.classList.remove("hidden");
     area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Lay down face-down placeholders first
+    const wrappers = cards.map(() => {
+        const wrap = document.createElement("div");
+        const placeholder = document.createElement("div");
+        placeholder.className = "card-face-down";
+        placeholder.innerHTML = `<span>?</span>`;
+        wrap.appendChild(placeholder);
+        container.appendChild(wrap);
+        return wrap;
+    });
+
+    // Reveal cards one at a time with staggered delays
+    cards.forEach((card, i) => {
+        setTimeout(() => {
+            const cardEl = createCardElement(card, false, null, null);
+            cardEl.classList.add("card-reveal-anim");
+            wrappers[i].innerHTML = "";
+            wrappers[i].appendChild(cardEl);
+            // Double-rAF ensures the initial CSS state is painted before transition fires
+            requestAnimationFrame(() => requestAnimationFrame(() => cardEl.classList.add("card-revealed")));
+            if (i === cards.length - 1 && confirmBtn) {
+                setTimeout(() => confirmBtn.classList.remove("hidden"), 500);
+            }
+        }, 300 + i * 550);
+    });
 }
 
 function rollTier(type) {
@@ -520,6 +548,13 @@ window.onload = () => {
     if (savedTrade) tradeMarket = JSON.parse(savedTrade);
     const savedTeamComplete = localStorage.getItem("lol_team_complete_v8");
     if (savedTeamComplete) teamCompletionRewards = JSON.parse(savedTeamComplete);
+    const savedSeason = localStorage.getItem("lol_season_v1");
+    if (savedSeason) seasonData = JSON.parse(savedSeason);
+    if (localStorage.getItem("lol_light_mode") === "1") {
+        document.documentElement.classList.add("light-mode");
+        const dmBtn = document.getElementById("dark-mode-btn");
+        if (dmBtn) dmBtn.textContent = "🌙";
+    }
 
     if(!trackStats.soldCount) trackStats.soldCount = 0;
     if(!trackStats.soldBE) trackStats.soldBE = 0;
@@ -585,6 +620,7 @@ function saveGame() {
     localStorage.setItem("lol_archive_seen_v1", JSON.stringify(archiveLastSeen));
     localStorage.setItem("lol_trade_v7_pro", JSON.stringify(tradeMarket));
     localStorage.setItem("lol_team_complete_v8", JSON.stringify(teamCompletionRewards));
+    localStorage.setItem("lol_season_v1", JSON.stringify(seasonData));
     updateDisplays();
 }
 
@@ -1348,18 +1384,32 @@ function renderClubGrid() {
     const grid = document.getElementById("club-grid"); if(!grid) return; grid.innerHTML = "";
     let q = document.getElementById("club-search-input").value.toLowerCase();
     let filtered = club.filter(c => c.name.toLowerCase().includes(q));
-    
+
     filtered.forEach((card) => {
         let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1.5 transform transition hover:-translate-y-1";
-        wrap.appendChild(createCardElement(card, true, null, null));
-        let btn = document.createElement("button"); let price = getSellValue(card.quality);
-        if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) {
-            btn.className = "text-xs bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg w-full font-bold cursor-not-allowed shadow-md"; btn.innerText = "In Squad"; btn.disabled = true;
+        const cardEl = createCardElement(card, true, null, null);
+        const isSelected = compareMode && compareSlots.some(c => c.uniqueId === card.uniqueId);
+        if (isSelected) { cardEl.style.outline = "3px solid #a855f7"; cardEl.style.outlineOffset = "2px"; }
+        wrap.appendChild(cardEl);
+
+        if (compareMode) {
+            let btn = document.createElement("button");
+            btn.className = `text-xs px-3 py-1.5 rounded-lg w-full font-bold shadow-md transition ${isSelected ? 'bg-purple-800 text-purple-300 cursor-not-allowed' : 'bg-purple-900/60 text-purple-300 hover:bg-purple-700 cursor-pointer'}`;
+            btn.innerText = isSelected ? "✓ Selected" : "⇄ Select";
+            if (!isSelected) btn.onclick = () => addToCompare(card);
+            else btn.disabled = true;
+            wrap.appendChild(btn);
         } else {
-            btn.className = "text-xs bg-red-950/60 text-red-300 px-3 py-1.5 rounded-lg w-full font-bold cursor-pointer transition hover:bg-red-900 shadow-md"; btn.innerHTML = `Sell (+${price})`;
-            btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(card.quality)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+1; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
+            let btn = document.createElement("button"); let price = getSellValue(card.quality);
+            if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) {
+                btn.className = "text-xs bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg w-full font-bold cursor-not-allowed shadow-md"; btn.innerText = "In Squad"; btn.disabled = true;
+            } else {
+                btn.className = "text-xs bg-red-950/60 text-red-300 px-3 py-1.5 rounded-lg w-full font-bold cursor-pointer transition hover:bg-red-900 shadow-md"; btn.innerHTML = `Sell (+${price})`;
+                btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(card.quality)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+1; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
+            }
+            wrap.appendChild(btn);
         }
-        wrap.appendChild(btn); grid.appendChild(wrap);
+        grid.appendChild(wrap);
     });
 }
 
@@ -1367,6 +1417,176 @@ function sortClub(by) {
     if (by === 'rating') club.sort((a,b) => b.rating - a.rating);
     if (by === 'region') club.sort((a,b) => a.region.localeCompare(b.region));
     renderClubGrid();
+}
+
+// --- Card Compare ---
+function toggleCompareMode() {
+    compareMode = !compareMode;
+    compareSlots = [];
+    const btn = document.getElementById("compare-toggle-btn");
+    if (btn) {
+        if (compareMode) {
+            btn.classList.replace("bg-slate-700", "bg-purple-700");
+            btn.classList.replace("text-purple-300", "text-white");
+            btn.innerText = "✕ Exit Compare";
+        } else {
+            btn.classList.replace("bg-purple-700", "bg-slate-700");
+            btn.classList.replace("text-white", "text-purple-300");
+            btn.innerText = "⇄ Compare";
+        }
+    }
+    showToast(compareMode ? "Select two cards to compare." : "Compare mode off.", "info");
+    renderClubGrid();
+}
+
+function addToCompare(card) {
+    if (compareSlots.some(c => c.uniqueId === card.uniqueId)) { showToast("Card already selected.", "info"); return; }
+    if (compareSlots.length >= 2) { showToast("Already comparing 2 cards. Exit and re-enter compare mode to reset.", "info"); return; }
+    compareSlots.push(card);
+    if (compareSlots.length === 2) showCompareModal(compareSlots[0], compareSlots[1]);
+    else showToast("Card 1 selected — pick a second card.", "info");
+    renderClubGrid();
+}
+
+function showCompareModal(a, b) {
+    const modal = document.getElementById("compare-modal"); if (!modal) return;
+    const statLabels = { mec: "Mechanics", tmf: "Teamfight", frm: "Fundamentals", cmp: "Composure", map: "Map Awareness", ldr: "Leadership" };
+    const qColors = { Silver: "#94a3b8", Gold: "#fbbf24", Platinum: "#34d399", Diamond: "#60a5fa", Master: "#c084fc", Grandmaster: "#f87171", Challenger: "#fde68a", Champion: "#f59e0b", MVP: "#f472b6", Finalist: "#94a3b8", MSI: "#2dd4bf", FirstStand: "#fb923c" };
+
+    const miniCard = card => {
+        const qc = qColors[card.quality] || "#94a3b8";
+        return `<div class="flex flex-col items-center gap-1 p-3 bg-slate-700 rounded-xl border border-slate-600">
+            <div class="font-black text-base" style="color:${qc}">${card.name}</div>
+            <div class="text-slate-400 text-xs">${card.role} · ${card.team} · ${card.year}</div>
+            <div class="text-xs font-bold" style="color:${qc}">${card.quality}</div>
+            <div class="text-white font-black text-3xl">${card.rating}</div>
+        </div>`;
+    };
+
+    const statsRows = Object.entries(statLabels).map(([key, label]) => {
+        const va = a.stats[key] || 0, vb = b.stats[key] || 0;
+        const aClass = va > vb ? 'text-emerald-400' : va < vb ? 'text-red-400' : 'text-slate-300';
+        const bClass = vb > va ? 'text-emerald-400' : vb < va ? 'text-red-400' : 'text-slate-300';
+        return `<div class="grid grid-cols-3 gap-2 items-center py-2 border-b border-slate-700 text-sm">
+            <div class="text-right font-black ${aClass}">${va}</div>
+            <div class="text-center text-slate-500 text-[11px] uppercase tracking-wider">${label}</div>
+            <div class="text-left font-black ${bClass}">${vb}</div>
+        </div>`;
+    }).join('');
+
+    const ratingAClass = a.rating > b.rating ? 'text-emerald-400' : a.rating < b.rating ? 'text-red-400' : 'text-slate-300';
+    const ratingBClass = b.rating > a.rating ? 'text-emerald-400' : b.rating < a.rating ? 'text-red-400' : 'text-slate-300';
+
+    modal.querySelector("#compare-content").innerHTML = `
+        <div class="grid grid-cols-3 gap-3 mb-4 items-center">${miniCard(a)}<div class="text-center text-slate-500 font-black text-xl">VS</div>${miniCard(b)}</div>
+        <div class="mb-1 grid grid-cols-3 text-[11px] font-black uppercase tracking-wider text-slate-500 px-1"><div class="text-right">${a.name}</div><div></div><div>${b.name}</div></div>
+        ${statsRows}
+        <div class="grid grid-cols-3 gap-2 items-center pt-2 text-sm">
+            <div class="text-right font-black ${ratingAClass}">${a.rating}</div>
+            <div class="text-center text-slate-500 text-[11px] uppercase tracking-wider">Overall</div>
+            <div class="text-left font-black ${ratingBClass}">${b.rating}</div>
+        </div>`;
+    modal.classList.remove("hidden");
+}
+
+function closeCompareModal() {
+    const modal = document.getElementById("compare-modal"); if (modal) modal.classList.add("hidden");
+    compareSlots = [];
+    renderClubGrid();
+}
+
+// --- Season System ---
+function checkSplitEnd() {
+    const total = seasonData.splitWins + seasonData.splitLosses;
+    if (total < seasonData.gamesPerSplit) return;
+    const wins = seasonData.splitWins, losses = seasonData.splitLosses;
+    let tier, reward;
+    if (wins >= 10)     { tier = "🏆 Flawless Split";      reward = 8000; }
+    else if (wins >= 8) { tier = "🥇 Championship Split";  reward = 5000; }
+    else if (wins >= 6) { tier = "🥈 Playoff Split";       reward = 3000; }
+    else if (wins >= 4) { tier = "🥉 Qualifying Split";    reward = 1500; }
+    else                { tier = "📋 Development Split";   reward = 500;  }
+    blueEssence += reward;
+    const completedSplit = seasonData.currentSplit;
+    seasonData.trophyCase.unshift({ split: completedSplit, wins, losses, tier, reward, date: new Date().toLocaleDateString() });
+    if (seasonData.trophyCase.length > 20) seasonData.trophyCase.pop();
+    seasonData.currentSplit++;
+    seasonData.splitWins = 0;
+    seasonData.splitLosses = 0;
+    saveGame();
+    showToast(`Split ${completedSplit} Complete! ${tier} · +${reward} BE`, 'success');
+    const seasonTab = document.getElementById("tab-season");
+    if (seasonTab && !seasonTab.classList.contains("hidden")) renderSeasonTab();
+}
+
+function renderSeasonTab() {
+    const tab = document.getElementById("tab-season"); if (!tab) return;
+    const total = seasonData.splitWins + seasonData.splitLosses;
+    const progress = Math.min(100, Math.round((total / seasonData.gamesPerSplit) * 100));
+    const wins = seasonData.splitWins, losses = seasonData.splitLosses;
+    const remaining = seasonData.gamesPerSplit - total;
+    let proj;
+    if (wins >= 10)     proj = { label: "🏆 Flawless Split",     color: "text-yellow-400" };
+    else if (wins >= 8) proj = { label: "🥇 Championship Split", color: "text-yellow-300" };
+    else if (wins >= 6) proj = { label: "🥈 Playoff Split",      color: "text-slate-300" };
+    else if (wins >= 4) proj = { label: "🥉 Qualifying Split",   color: "text-orange-400" };
+    else                proj = { label: "📋 Development Split",  color: "text-slate-500" };
+
+    const rewardTiers = [
+        { label: "🏆 Flawless (10W)",     wins: 10, reward: 8000 },
+        { label: "🥇 Championship (8–9W)", wins: 8,  reward: 5000 },
+        { label: "🥈 Playoff (6–7W)",      wins: 6,  reward: 3000 },
+        { label: "🥉 Qualifying (4–5W)",   wins: 4,  reward: 1500 },
+        { label: "📋 Development (0–3W)",  wins: 0,  reward: 500  },
+    ];
+
+    const trophyHTML = seasonData.trophyCase.length
+        ? seasonData.trophyCase.map(t => `
+            <div class="flex items-center justify-between bg-slate-700/60 p-3 rounded-xl border border-slate-600">
+                <div>
+                    <div class="font-bold text-slate-200 text-sm">Split ${t.split} — ${t.tier}</div>
+                    <div class="text-slate-400 text-xs">${t.wins}W–${t.losses}L · ${t.date}</div>
+                </div>
+                <div class="text-emerald-400 font-black text-sm">+${t.reward} BE</div>
+            </div>`).join('')
+        : `<div class="text-slate-500 text-center py-10 text-sm">No completed splits yet.<br>Play ${seasonData.gamesPerSplit} tournaments to end your first split.</div>`;
+
+    tab.innerHTML = `<div class="space-y-6 pb-10 pt-2">
+        <div class="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 p-6 rounded-2xl border border-blue-700/40 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-black text-blue-300 uppercase tracking-widest">Split ${seasonData.currentSplit}</h2>
+                <span class="text-slate-400 text-sm font-bold">${total} / ${seasonData.gamesPerSplit} games</span>
+            </div>
+            <div class="flex gap-8 items-center mb-5">
+                <div class="text-center"><div class="text-4xl font-black text-emerald-400">${wins}</div><div class="text-slate-400 text-xs font-bold uppercase mt-1">Wins</div></div>
+                <div class="text-center"><div class="text-4xl font-black text-red-400">${losses}</div><div class="text-slate-400 text-xs font-bold uppercase mt-1">Losses</div></div>
+                <div class="flex-1">
+                    <div class="flex justify-between text-xs text-slate-400 mb-1.5"><span>Progress</span><span>${remaining > 0 ? remaining + ' remaining' : 'Complete!'}</span></div>
+                    <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden"><div class="bg-blue-500 h-3 rounded-full" style="width:${progress}%;transition:width 0.5s ease"></div></div>
+                </div>
+            </div>
+            <div class="border-t border-blue-800/40 pt-3 text-sm text-center">
+                <span class="text-slate-400">Projected: </span><span class="${proj.color} font-bold">${proj.label}</span>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Split Reward Tiers</h3>
+            <div class="space-y-1">
+                ${rewardTiers.map(t => `<div class="flex justify-between text-xs py-1 border-b border-slate-700/50 ${wins >= t.wins && total >= seasonData.gamesPerSplit ? 'text-emerald-400 font-bold' : 'text-slate-400'}"><span>${t.label}</span><span>+${t.reward} BE</span></div>`).join('')}
+            </div>
+        </div>
+        <div>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-700 pb-2">🏅 Trophy Case</h3>
+            <div class="space-y-2">${trophyHTML}</div>
+        </div>
+    </div>`;
+}
+
+function toggleDarkMode() {
+    const isLight = document.documentElement.classList.toggle("light-mode");
+    localStorage.setItem("lol_light_mode", isLight ? "1" : "0");
+    const btn = document.getElementById("dark-mode-btn");
+    if (btn) btn.textContent = isLight ? "🌙" : "☀️";
 }
 
 // --- Player Picker Drawer ---
@@ -1878,6 +2098,12 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
     } else {
         title.innerText = "Bracket Knockout"; title.className = "text-3xl font-bold mb-2 text-red-500";
         icon.innerText = "💀"; desc.innerText = reachedFinals ? `Knocked out in the Grand Finals stage. Consolidated runner-up payout of ${tourData.reward2} BE successfully cleared.` : `Roster path severed mid-bracket. Performance yields cancelled.`;
+    }
+    // Season split tracking: count regular tournament outcomes + GR completion, not mid-GR stage losses
+    if (!isGoldenRoad || isGRCompletion) {
+        if (isWin) seasonData.splitWins++;
+        else seasonData.splitLosses++;
+        checkSplitEnd();
     }
     isGoldenRoad = false;
 }

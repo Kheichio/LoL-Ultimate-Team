@@ -52,6 +52,7 @@
                 </span>
             </button>
             <button onclick="switchTab('guide')" data-tab="guide" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-cyan-400 whitespace-nowrap text-sm">Guide</button>
+            <button onclick="switchTab('season'); renderSeasonTab();" data-tab="season" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-blue-300 whitespace-nowrap text-sm">Season</button>
             <button onclick="switchTab('welcome')" data-tab="welcome" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-green-400 whitespace-nowrap text-sm">Welcome</button>
 
             <div class="mx-4 text-center flex flex-col items-center">
@@ -80,6 +81,7 @@
                   <span id="badge-skills-count">0</span>
                 </span>
             </button>
+            <button id="dark-mode-btn" onclick="toggleDarkMode()" class="nav-btn bg-slate-700 px-3 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-slate-300 whitespace-nowrap text-sm" title="Toggle light/dark mode">☀️</button>
         </div>
 
         <div class="flex-shrink-0">
@@ -235,7 +237,7 @@
                 <h3 id="pack-opening-title" class="text-2xl font-black mb-6 text-center text-blue-400 tracking-widest uppercase">Pack Opened!</h3>
                 <div id="pulled-cards" class="flex flex-wrap gap-4 justify-center items-center min-h-[300px]"></div>
                 <div class="mt-8 text-center">
-                    <button onclick="document.getElementById('pack-opening-area').classList.add('hidden')" class="bg-blue-600 hover:bg-blue-500 px-8 py-3 rounded-lg font-bold text-sm transition cursor-pointer shadow-lg uppercase tracking-wider text-white">Confirm Allocation</button>
+                    <button id="pack-confirm-btn" onclick="document.getElementById('pack-opening-area').classList.add('hidden')" class="bg-blue-600 hover:bg-blue-500 px-8 py-3 rounded-lg font-bold text-sm transition cursor-pointer shadow-lg uppercase tracking-wider text-white">Confirm Allocation</button>
                 </div>
             </div>
         </section>
@@ -780,6 +782,7 @@
                 <div class="flex gap-2">
                     <button onclick="sortClub('rating')" class="bg-slate-700 text-slate-300 px-4 py-1.5 rounded hover:bg-slate-600 text-xs font-bold cursor-pointer">Sort: Rating</button>
                     <button onclick="sortClub('region')" class="bg-slate-700 text-slate-300 px-4 py-1.5 rounded hover:bg-slate-600 text-xs font-bold cursor-pointer">Sort: Region</button>
+                    <button id="compare-toggle-btn" onclick="toggleCompareMode()" class="bg-slate-700 text-purple-300 px-4 py-1.5 rounded hover:bg-purple-800 text-xs font-bold cursor-pointer border border-purple-800/40 transition">⇄ Compare</button>
                 </div>
             </div>
             
@@ -1291,7 +1294,28 @@
         </div>
     </div>
 
+        <!-- SEASON TAB -->
+        <section id="tab-season" class="tab-content hidden max-w-2xl mx-auto px-2">
+            <!-- populated by renderSeasonTab() -->
+        </section>
+
     </main>
+
+    <!-- Compare Modal -->
+    <div id="compare-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 rounded-2xl border border-purple-500 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-xl font-black text-purple-400 tracking-wider uppercase">⇄ Card Comparison</h3>
+                    <button onclick="closeCompareModal()" class="text-slate-400 hover:text-white text-2xl font-bold cursor-pointer leading-none">✕</button>
+                </div>
+                <div id="compare-content"></div>
+                <div class="mt-6 text-center">
+                    <button onclick="closeCompareModal()" class="bg-purple-600 hover:bg-purple-500 text-white px-8 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm uppercase tracking-wide">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Patch Notes / Welcome Modal -->
     <div id="patch-modal" class="fixed inset-0 z-[200] bg-black/85 backdrop-blur-sm flex items-center justify-center hidden">
