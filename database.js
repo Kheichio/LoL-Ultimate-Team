@@ -319,11 +319,11 @@ const baseDatabase = [
     { id: 8090, name: "Teacherma", role: "COACH", team: "WE",  year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 20, tmf: 83, frm: 84, cmp: 83, map: 85, ldr: 84 } },
 
     // --- 2026 LCK ROSTERS ---
-    { id: 1101, name: "Doran", role: "TOP", team: "T1", year: 2026, rating: 91, quality: "Diamond", region: "LCK", image: "pictures/T1_Doran_2026_LCK_Cup.webp", stats: { mec: 92, tmf: 89, frm: 91, cmp: 86, map: 85, ldr: 88 } },
-    { id: 1102, name: "Oner", role: "JNG", team: "T1", year: 2026, rating: 93, quality: "Master", region: "LCK", image: "pictures/T1_Oner_2026_LCK_Cup.webp", stats: { mec: 95, tmf: 92, frm: 90, cmp: 91, map: 92, ldr: 89 } },
-    { id: 1103, name: "Faker", role: "MID", team: "T1", year: 2026, rating: 97, quality: "Challenger", region: "LCK", image: "pictures/T1_Faker_2026_LCK_Cup.webp", stats: { mec: 92, tmf: 98, frm: 92, cmp: 99, map: 99, ldr: 99 } },
-    { id: 1104, name: "Peyz", role: "ADC", team: "T1", year: 2026, rating: 96, quality: "Grandmaster", region: "LCK", image: "pictures/T1_Peyz_2026_LCK_Cup.webp", stats: { mec: 98, tmf: 96, frm: 96, cmp: 91, map: 87, ldr: 86 } },
-    { id: 1105, name: "Keria", role: "SUP", team: "T1", year: 2026, rating: 94, quality: "Master", region: "LCK", image: "pictures/T1_Keria_2026_LCK_Cup.webp", stats: { mec: 84, tmf: 94, frm: 95, cmp: 96, map: 97, ldr: 92 } },
+    { id: 1101, name: "Doran", role: "TOP", team: "T1", year: 2026, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 92, tmf: 89, frm: 91, cmp: 86, map: 85, ldr: 88 } },
+    { id: 1102, name: "Oner", role: "JNG", team: "T1", year: 2026, rating: 93, quality: "Master", region: "LCK", stats: { mec: 95, tmf: 92, frm: 90, cmp: 91, map: 92, ldr: 89 } },
+    { id: 1103, name: "Faker", role: "MID", team: "T1", year: 2026, rating: 97, quality: "Challenger", region: "LCK", stats: { mec: 92, tmf: 98, frm: 92, cmp: 99, map: 99, ldr: 99 } },
+    { id: 1104, name: "Peyz", role: "ADC", team: "T1", year: 2026, rating: 96, quality: "Grandmaster", region: "LCK", stats: { mec: 98, tmf: 96, frm: 96, cmp: 91, map: 87, ldr: 86 } },
+    { id: 1105, name: "Keria", role: "SUP", team: "T1", year: 2026, rating: 94, quality: "Master", region: "LCK", stats: { mec: 84, tmf: 94, frm: 95, cmp: 96, map: 97, ldr: 92 } },
 
     { id: 1111, name: "Kiin", role: "TOP", team: "Gen.G", year: 2026, rating: 95, quality: "Grandmaster", region: "LCK", stats: { mec: 93, tmf: 96, frm: 96, cmp: 94, map: 89, ldr: 91 } },
     { id: 1112, name: "Canyon", role: "JNG", team: "Gen.G", year: 2026, rating: 97, quality: "Challenger", region: "LCK", stats: { mec: 97, tmf: 96, frm: 98, cmp: 95, map: 98, ldr: 92 } },
