@@ -1562,8 +1562,8 @@ function computeChemistry() {
     let legacyBonus = legacyInSquad >= 4 ? 2 : legacyInSquad >= 2 ? 1 : 0;
 
     if(count === 5) {
-        // Legacy wildcards (Champion/Finalist/MSI/FirstStand) are excluded from region/year chemistry checks — they adapt to any lineup
-        const LEGACY_QUALITIES = ["Champion", "Finalist", "MSI", "FirstStand"];
+        // Legacy wildcards (Champion/MVP/Finalist/MSI/FirstStand) are excluded from region/year chemistry checks — they adapt to any lineup
+        const LEGACY_QUALITIES = ["Champion", "MVP", "Finalist", "MSI", "FirstStand"];
         let nonLegacy = active.filter(c => !LEGACY_QUALITIES.includes(c.quality));
         let legacyCount = active.filter(c => LEGACY_QUALITIES.includes(c.quality)).length;
 
