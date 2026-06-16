@@ -1751,8 +1751,11 @@ function generateSeasonOpponents() {
     });
     seasonData.matchResults = new Array(10).fill(null);
 
-    // Elite split — 20% chance, 1–6 teams boosted to 95–99 rated
-    seasonData.eliteMode = Math.random() < 0.20;
+    // Elite split — 20% chance through split 4, then rises 2%/split from split 5 onward (capped at 70%), 1–6 teams boosted to 95–99 rated
+    const eliteChance = seasonData.currentSplit > 4
+        ? Math.min(0.70, 0.30 + (seasonData.currentSplit - 5) * 0.02)
+        : 0.20;
+    seasonData.eliteMode = Math.random() < eliteChance;
     seasonData.eliteTeams = [];
     if (seasonData.eliteMode) {
         const eliteCount = 1 + Math.floor(Math.random() * 6);
