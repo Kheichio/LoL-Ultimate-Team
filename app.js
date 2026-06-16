@@ -431,7 +431,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_0', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_1', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -597,7 +597,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_0';
+    const patchKey = 'lol_patch_seen_v0_5_1';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1704,11 +1704,11 @@ const _SEASON_PLAYS = [
     { id:'coach',     icon:'📋',  label:'Coaching Adjust',  desc:'Tactical in-game adjustment from the sideline',   statKey:'ldr', myRoles:['COACH']         },
 ];
 
-function _smGenStats(avgRating, style) {
+function _smGenStats(avgRating, style, statCap = 99) {
     const skew = _SEASON_STYLE_SKEWS[style] || _SEASON_STYLE_SKEWS.Balanced;
     const stats = {};
     ['mec','tmf','frm','cmp','map','ldr'].forEach(s => {
-        stats[s] = Math.max(52, Math.min(99, avgRating + (skew[s] || 0) + Math.round((Math.random() * 10) - 5)));
+        stats[s] = Math.max(52, Math.min(statCap, avgRating + (skew[s] || 0) + Math.round((Math.random() * 10) - 5)));
     });
     return stats;
 }
@@ -1724,10 +1724,10 @@ function _smGenRoster() {
     return roster;
 }
 
-function _smGenRosterStats(avgRating, style) {
+function _smGenRosterStats(avgRating, style, statCap = 99) {
     const roles = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
     const rosterStats = {};
-    roles.forEach(role => { rosterStats[role] = _smGenStats(avgRating, style); });
+    roles.forEach(role => { rosterStats[role] = _smGenStats(avgRating, style, statCap); });
     return rosterStats;
 }
 
@@ -1756,7 +1756,7 @@ function generateSeasonOpponents() {
     });
     seasonData.matchResults = new Array(10).fill(null);
 
-    // Elite split — 20% chance through split 4, then rises 2%/split from split 5 onward (capped at 70%), 1–6 teams boosted to 95–99 rated
+    // Elite split — 20% chance through split 4, then rises 2%/split from split 5 onward (capped at 70%), 1–6 teams boosted to 95–110 rated (ultimate difficulty)
     const eliteChance = seasonData.currentSplit > 4
         ? Math.min(0.70, 0.30 + (seasonData.currentSplit - 5) * 0.02)
         : 0.20;
@@ -1766,16 +1766,29 @@ function generateSeasonOpponents() {
         const eliteCount = 1 + Math.floor(Math.random() * 6);
         const eliteIndices = Array.from({length: 10}, (_, i) => i).sort(() => Math.random() - 0.5).slice(0, eliteCount);
         for (const i of eliteIndices) {
-            const r = 95 + Math.floor(Math.random() * 5); // 95–99
+            const r = 95 + Math.floor(Math.random() * 16); // 95–110
             seasonData.opponents[i].avgRating = r;
-            seasonData.opponents[i].stats = _smGenStats(r, seasonData.opponents[i].style);
-            seasonData.opponents[i].rosterStats = _smGenRosterStats(r, seasonData.opponents[i].style);
+            seasonData.opponents[i].stats = _smGenStats(r, seasonData.opponents[i].style, 110);
+            seasonData.opponents[i].rosterStats = _smGenRosterStats(r, seasonData.opponents[i].style, 110);
             seasonData.opponents[i].isElite = true;
             seasonData.eliteTeams.push(i);
         }
     }
 
-    // Pick 5–10 real team metas — random +2 to +10 buff to a specific stat, applies to USER's player cards from those teams
+    _smRollMetaSlump();
+    seasonData.metaPlaysUsedThisSplit = 0;
+
+    // Simulated league records for the standings chart — higher rating skews toward more wins
+    seasonData.opponents.forEach(opp => {
+        const simWins = Math.max(0, Math.min(10, Math.round((opp.avgRating - 65) / 3.5) + Math.round((Math.random() * 4) - 2)));
+        opp.simWins = Math.max(0, Math.min(10, simWins));
+        opp.simLosses = 10 - opp.simWins;
+    });
+}
+
+// Pick 5–10 real team metas (+2 to +10 buff to a specific stat) and 5–15 real team slumps (-8 to -15 to all stats),
+// applied to the USER's player cards from those teams. Re-rollable mid-split (see _finishSeasonGame) to keep splits fresh.
+function _smRollMetaSlump() {
     const db = getDB();
     const allTeams = db ? [...new Set(db.map(c => c.team))].filter(Boolean) : [];
     const statKeys = ['mec','tmf','frm','cmp','map','ldr'];
@@ -1786,9 +1799,7 @@ function generateSeasonOpponents() {
         statKey: statKeys[Math.floor(Math.random() * statKeys.length)],
         buff: 2 + Math.floor(Math.random() * 9), // +2 to +10
     }));
-    seasonData.metaPlaysUsedThisSplit = 0;
 
-    // Pick 5–15 real team slumps — debuffs apply to USER's player cards from those teams (excludes meta teams)
     const metaTeamNames = new Set(seasonData.metaTeams.map(m => m.team));
     const slumpPool = allTeams.filter(t => !metaTeamNames.has(t));
     const slumpCount = Math.min(5 + Math.floor(Math.random() * 11), slumpPool.length);
@@ -1797,13 +1808,6 @@ function generateSeasonOpponents() {
         team,
         debuff: -(8 + Math.floor(Math.random() * 8)),
     }));
-
-    // Simulated league records for the standings chart — higher rating skews toward more wins
-    seasonData.opponents.forEach(opp => {
-        const simWins = Math.max(0, Math.min(10, Math.round((opp.avgRating - 65) / 3.5) + Math.round((Math.random() * 4) - 2)));
-        opp.simWins = Math.max(0, Math.min(10, simWins));
-        opp.simLosses = 10 - opp.simWins;
-    });
 }
 
 function startSeasonMatchMode() {
@@ -1956,6 +1960,13 @@ function _finishSeasonGame() {
     if (played >= seasonData.gamesPerSplit) seasonData.splitComplete = true;
     trackStats.seasonMatchesPlayed = (trackStats.seasonMatchesPlayed || 0) + 1;
     addXP(win ? 75 : 25);
+
+    // Mid-split shake-up: team metas and slumps reroll once after the 5th match, keeping the back half of the split fresh
+    if (played === 5) {
+        _smRollMetaSlump();
+        showToast("⚡ Mid-split shake-up! Team metas and slumps have changed.", "info");
+    }
+
     saveGame();
 }
 
