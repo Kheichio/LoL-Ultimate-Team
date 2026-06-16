@@ -38,7 +38,7 @@ let hasNewClubItems = false;
 let managerXP = 0;
 let managerLevel = 1;
 let skillPoints = 0;
-let skills = { scouting: 0, negotiation: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0 };
+let skills = { scouting: 0, negotiation: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0, bootcamp: 0 };
 let tradeRoleFilter = null;
 
 // New Systems State
@@ -46,52 +46,60 @@ let collectionRegistry = {};
 let archiveLastSeen = {};
 let tradeMarket = { expires: 0, offers: [] };
 let teamCompletionRewards = {};
+let unlocks = { firstStand: false, msi: false, worlds: false, draftMode: false };
 
 let trackStats = {
     packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {},
     cafeWins: 0, regionalSplitWon: 0, firstStandWon: 0, msiWon: 0, worldsWon: 0,
-    losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0
+    losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0,
+    splitsCompleted: 0, undefeatedSplits: 0, splitsWithDebuffedWin: 0, splitsWithoutMeta: 0, eliteSplitsCompleted: 0
 };
 
-let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [], lastMatchTs: 0, splitComplete: false, splitMeta: null, slumpTeams: [], eliteMode: false, eliteTeams: [] };
+let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [], lastMatchTs: 0, splitComplete: false, metaTeams: [], metaPlaysUsedThisSplit: 0, slumpTeams: [], eliteMode: false, eliteTeams: [] };
 let _smState = null; // active season match game state
 let _smCdInterval = null; // cooldown countdown interval
 let compareMode = false;
 let compareSlots = [];
 
 let quests = [
-    // One-time milestones
-    { id: 'q1', desc: 'Open 5 Card Packs', target: 5, type: 'packs', reward: 800, claimed: false },
-    { id: 'q5', desc: 'Open 25 Card Packs', target: 25, type: 'packs', reward: 2500, claimed: false },
-    { id: 'q2', desc: 'Liquidate 10 Players', target: 10, type: 'soldCount', reward: 500, claimed: false },
-    { id: 'q6', desc: 'Liquidate 50 Players', target: 50, type: 'soldCount', reward: 2000, claimed: false },
-    { id: 'q3', desc: 'Win 2 Tournaments', target: 2, type: 'tournamentsWon', reward: 1200, claimed: false },
-    { id: 'q7', desc: 'Win 10 Tournaments', target: 10, type: 'tournamentsWon', reward: 5000, claimed: false },
-    { id: 'q4', desc: 'Complete the Golden Road', target: 1, type: 'goldenRoads', reward: 5000, claimed: false },
-    { id: 'q8', desc: 'Complete 3 Golden Roads', target: 3, type: 'goldenRoads', reward: 15000, claimed: false },
-    { id: 'q9', desc: 'Win a Regional Split', target: 1, type: 'regionalSplitWon', reward: 3000, claimed: false },
-    { id: 'q10', desc: 'Win First Stand', target: 1, type: 'firstStandWon', reward: 2000, claimed: false },
-    { id: 'q11', desc: 'Win MSI', target: 1, type: 'msiWon', reward: 4000, claimed: false },
-    { id: 'q12', desc: 'Win the World Championship', target: 1, type: 'worldsWon', reward: 8000, claimed: false },
+    // One-time milestones (rewards nerfed ~20% in 0.4.6 to slow progression)
+    { id: 'q1', desc: 'Open 5 Card Packs', target: 5, type: 'packs', reward: 650, claimed: false },
+    { id: 'q5', desc: 'Open 25 Card Packs', target: 25, type: 'packs', reward: 2000, claimed: false },
+    { id: 'q2', desc: 'Liquidate 10 Players', target: 10, type: 'soldCount', reward: 400, claimed: false },
+    { id: 'q6', desc: 'Liquidate 50 Players', target: 50, type: 'soldCount', reward: 1600, claimed: false },
+    { id: 'q3', desc: 'Win 2 Tournaments', target: 2, type: 'tournamentsWon', reward: 1000, claimed: false },
+    { id: 'q7', desc: 'Win 10 Tournaments', target: 10, type: 'tournamentsWon', reward: 4000, claimed: false },
+    { id: 'q4', desc: 'Complete the Golden Road', target: 1, type: 'goldenRoads', reward: 4000, claimed: false },
+    { id: 'q8', desc: 'Complete 3 Golden Roads', target: 3, type: 'goldenRoads', reward: 12000, claimed: false },
+    { id: 'q9', desc: 'Win a Regional Split', target: 1, type: 'regionalSplitWon', reward: 2500, claimed: false },
+    { id: 'q10', desc: 'Win First Stand', target: 1, type: 'firstStandWon', reward: 1600, claimed: false },
+    { id: 'q11', desc: 'Win MSI', target: 1, type: 'msiWon', reward: 3200, claimed: false },
+    { id: 'q12', desc: 'Win the World Championship', target: 1, type: 'worldsWon', reward: 6500, claimed: false },
     // Repeatable contracts (unique objectives, infinite, lower reward, baseline resets on each claim)
-    { id: 'rq1', desc: 'Pull a Challenger card', target: 1, type: 'challengerPulled', reward: 400, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
-    { id: 'rq2', desc: 'Open 3 Champion Packs', target: 3, type: 'champPacksOpened', reward: 500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
-    { id: 'rq3', desc: 'Liquidate 5 Grandmaster+ cards', target: 5, type: 'gmSoldCount', reward: 350, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq1', desc: 'Pull a Challenger card', target: 1, type: 'challengerPulled', reward: 320, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq2', desc: 'Open 3 Champion Packs', target: 3, type: 'champPacksOpened', reward: 400, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq3', desc: 'Liquidate 5 Grandmaster+ cards', target: 5, type: 'gmSoldCount', reward: 280, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     // Timed challenges (must accept first; repeatable after claiming or expiry)
-    { id: 'tq1', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1500, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq2', desc: 'Open 10 Card Packs', target: 10, type: 'packs', reward: 1000, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq3', desc: 'Liquidate 15 Players', target: 15, type: 'soldCount', reward: 800, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq1', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1200, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq2', desc: 'Open 10 Card Packs', target: 10, type: 'packs', reward: 800, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq3', desc: 'Liquidate 15 Players', target: 15, type: 'soldCount', reward: 650, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
     // New milestone quests (0.3.2)
-    { id: 'q13', desc: 'Win a Draft Mode', target: 1, type: 'draftModesWon', reward: 3000, claimed: false },
-    { id: 'q14', desc: 'Win 5 Draft Modes', target: 5, type: 'draftModesWon', reward: 10000, claimed: false },
-    { id: 'q15', desc: 'Win 5 Gaming Cafe Tournaments', target: 5, type: 'cafeWins', reward: 2000, claimed: false },
-    { id: 'q16', desc: 'Perform your first card Upgrade', target: 1, type: 'upgradesPerformed', reward: 1000, claimed: false },
-    { id: 'q17', desc: 'Perform 10 card Upgrades', target: 10, type: 'upgradesPerformed', reward: 5000, claimed: false },
+    { id: 'q13', desc: 'Win a Draft Mode', target: 1, type: 'draftModesWon', reward: 2500, claimed: false },
+    { id: 'q14', desc: 'Win 5 Draft Modes', target: 5, type: 'draftModesWon', reward: 8000, claimed: false },
+    { id: 'q15', desc: 'Win 5 Gaming Cafe Tournaments', target: 5, type: 'cafeWins', reward: 1600, claimed: false },
+    { id: 'q16', desc: 'Perform your first card Upgrade', target: 1, type: 'upgradesPerformed', reward: 800, claimed: false },
+    { id: 'q17', desc: 'Perform 10 card Upgrades', target: 10, type: 'upgradesPerformed', reward: 4000, claimed: false },
     // New repeatable quests (0.3.2)
-    { id: 'rq5', desc: 'Perform 3 card Upgrades', target: 3, type: 'upgradesPerformed', reward: 1500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq5', desc: 'Perform 3 card Upgrades', target: 3, type: 'upgradesPerformed', reward: 1200, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     // New timed quests (0.3.2)
-    { id: 'tq4', desc: 'Win 5 Draft Modes', target: 5, type: 'draftModesWon', reward: 4000, timed: true, timerMins: 30, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq5', desc: 'Perform 3 Upgrades', target: 3, type: 'upgradesPerformed', reward: 2500, timed: true, timerMins: 15, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 }
+    { id: 'tq4', desc: 'Win 5 Draft Modes', target: 5, type: 'draftModesWon', reward: 3200, timed: true, timerMins: 30, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    { id: 'tq5', desc: 'Perform 3 Upgrades', target: 3, type: 'upgradesPerformed', reward: 2000, timed: true, timerMins: 15, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
+    // Season Split quests (0.4.6)
+    { id: 'q18', desc: 'Win a Season Split Undefeated (10-0)', target: 1, type: 'undefeatedSplits', reward: 3000, claimed: false },
+    { id: 'q19', desc: 'Win a Split With 2 Slumped Players in your Squad', target: 1, type: 'splitsWithDebuffedWin', reward: 2500, claimed: false },
+    { id: 'q20', desc: 'Win a Split Without Ever Using a Meta Play', target: 1, type: 'splitsWithoutMeta', reward: 2500, claimed: false },
+    { id: 'q21', desc: 'Complete an Elite Split', target: 1, type: 'eliteSplitsCompleted', reward: 3500, claimed: false },
+    { id: 'q22', desc: 'Complete 5 Season Splits', target: 5, type: 'splitsCompleted', reward: 4000, claimed: false }
 ];
 
 let isGoldenRoad = false;
@@ -451,7 +459,7 @@ function claimQuest(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_5', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_6', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -540,10 +548,11 @@ window.onload = () => {
         managerXP = p.managerXP || 0; 
         managerLevel = p.managerLevel || 1; 
         skillPoints = p.skillPoints || 0; 
-        skills = p.skills || { scouting: 0, negotiation: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0 };
+        skills = p.skills || { scouting: 0, negotiation: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0, bootcamp: 0 };
         if (skills.transfer === undefined) skills.transfer = 0;
         if (skills.conditioning === undefined) skills.conditioning = 0;
         if (skills.mentorship === undefined) skills.mentorship = 0;
+        if (skills.bootcamp === undefined) skills.bootcamp = 0;
     }
     
     const savedCol = localStorage.getItem("lol_collection_v7_pro");
@@ -561,7 +570,8 @@ window.onload = () => {
         if (!seasonData.matchResults) seasonData.matchResults = [];
         if (!seasonData.lastMatchTs) seasonData.lastMatchTs = 0;
         if (seasonData.splitComplete === undefined) seasonData.splitComplete = false;
-        if (seasonData.splitMeta === undefined) seasonData.splitMeta = null;
+        if (!seasonData.metaTeams) seasonData.metaTeams = [];
+        if (seasonData.metaPlaysUsedThisSplit === undefined) seasonData.metaPlaysUsedThisSplit = 0;
         if (!seasonData.slumpTeams) seasonData.slumpTeams = [];
         if (seasonData.eliteMode === undefined) seasonData.eliteMode = false;
         if (!seasonData.eliteTeams) seasonData.eliteTeams = [];
@@ -587,8 +597,26 @@ window.onload = () => {
     if(!trackStats.draftModesPlayed) trackStats.draftModesPlayed = 0;
     if(!trackStats.draftModesWon) trackStats.draftModesWon = 0;
     if(!trackStats.upgradesPerformed) trackStats.upgradesPerformed = 0;
+    if(!trackStats.splitsCompleted) trackStats.splitsCompleted = 0;
+    if(!trackStats.undefeatedSplits) trackStats.undefeatedSplits = 0;
+    if(!trackStats.splitsWithDebuffedWin) trackStats.splitsWithDebuffedWin = 0;
+    if(!trackStats.splitsWithoutMeta) trackStats.splitsWithoutMeta = 0;
+    if(!trackStats.eliteSplitsCompleted) trackStats.eliteSplitsCompleted = 0;
 
-    const patchKey = 'lol_patch_seen_v0_4_5';
+    const savedUnlocks = localStorage.getItem("lol_unlocks_v1");
+    if (savedUnlocks) unlocks = JSON.parse(savedUnlocks);
+    if (unlocks.firstStand === undefined) unlocks.firstStand = false;
+    if (unlocks.msi === undefined) unlocks.msi = false;
+    if (unlocks.worlds === undefined) unlocks.worlds = false;
+    if (unlocks.draftMode === undefined) unlocks.draftMode = false;
+    // Grandfather in players who already met the criteria before this patch
+    if (trackStats.firstStandWon >= 1 || seasonData.trophyCase.some(t => t.wins >= 6)) unlocks.firstStand = true;
+    if (trackStats.msiWon >= 1) unlocks.msi = true;
+    if (trackStats.worldsWon >= 1) unlocks.worlds = true;
+    if (trackStats.worldsWon >= 1) unlocks.draftMode = true;
+    updateTournamentLocks();
+
+    const patchKey = 'lol_patch_seen_v0_4_6';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -599,7 +627,16 @@ window.onload = () => {
         const saved = JSON.parse(savedQuests);
         const savedMap = {};
         saved.forEach(q => { savedMap[q.id] = q; });
-        quests = quests.map(q => savedMap[q.id] ? { ...q, ...savedMap[q.id] } : q);
+        // Only carry over player progress fields — reward/desc/target always come from the current
+        // definition above, so balance changes (like reward nerfs) apply to existing saves too.
+        const progressFields = ['claimed', 'accepted', 'acceptedAt', 'baselineAtAccept', 'baselineAtReset', 'timesCompleted'];
+        quests = quests.map(q => {
+            const s = savedMap[q.id];
+            if (!s) return q;
+            const merged = { ...q };
+            progressFields.forEach(f => { if (f in s) merged[f] = s[f]; });
+            return merged;
+        });
     } else {
         // Migrate claimed state from v7 if it exists
         const oldSaved = localStorage.getItem("lol_quests_v7_pro");
@@ -637,6 +674,7 @@ function saveGame() {
     localStorage.setItem("lol_trade_v7_pro", JSON.stringify(tradeMarket));
     localStorage.setItem("lol_team_complete_v8", JSON.stringify(teamCompletionRewards));
     localStorage.setItem("lol_season_v1", JSON.stringify(seasonData));
+    localStorage.setItem("lol_unlocks_v1", JSON.stringify(unlocks));
     updateDisplays();
 }
 
@@ -1117,8 +1155,14 @@ function addXP(amount) {
     saveGame();
 }
 
+const _SKILL_DOUBLE_COST = new Set(['bootcamp']);
+function _skillCost(skillName, currentLvl) {
+    const base = currentLvl + 1;
+    return _SKILL_DOUBLE_COST.has(skillName) ? base * 2 : base;
+}
+
 function upgradeSkill(skillName) {
-    let currentLvl = skills[skillName]; let cost = currentLvl + 1;
+    let currentLvl = skills[skillName]; let cost = _skillCost(skillName, currentLvl);
     if (skillPoints >= cost && currentLvl < 5) { skillPoints -= cost; skills[skillName]++; saveGame(); renderSkillsUI(); updateBadges(); }
 }
 
@@ -1138,10 +1182,11 @@ function renderSkillsUI() {
         { key: "transfer",      name: "Transfer Window",        desc: "Lv2: +4 trade offers. Lv4: +5 offers. Lv3: unlocks Role Filter in Exchange Hub. Lv5: Force Refresh locks the market to your chosen role.",         color: "orange" },
         { key: "conditioning",  name: "Team Conditioning",      desc: "Lv1: 45s cooldown. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown between Season Matches — play them back to back.",                                   color: "rose"   },
         { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: +25%. Lv2: +50%. Lv3: +75%. Lv4: ×2 (double XP). Lv5: ×2.5 — reach new manager levels and skill points far faster.",           color: "violet" },
+        { key: "bootcamp",      name: "Bootcamp Director",      desc: "Costs double SP per level. Increases the Bootcamp power bonus by +2 per level — from +5 base up to +15 at level 5.",                                       color: "lime"   },
     ];
     container.innerHTML = "";
     skillDefs.forEach(def => {
-        let currentLvl = skills[def.key]; let maxed = currentLvl >= 5; let cost = currentLvl + 1; let canUpgrade = skillPoints >= cost && !maxed;
+        let currentLvl = skills[def.key]; let maxed = currentLvl >= 5; let cost = _skillCost(def.key, currentLvl); let canUpgrade = skillPoints >= cost && !maxed;
         let dotsHTML = "";
         for(let i=1; i<=5; i++) {
             let active = i <= currentLvl ? `bg-${def.color}-400 border-${def.color}-500 shadow-[0_0_8px_theme(colors.${def.color}.400)]` : "bg-slate-800 border-slate-700";
@@ -1155,67 +1200,100 @@ function renderSkillsUI() {
     });
 }
 
-function executeTeamTraining(tier) {
+function executeTeamTraining() {
     if (Date.now() < trainingActiveUntil) { showToast("A bootcamp session is already active!", "info"); return; }
-    const costs = [0, 50, 250, 500];
-    const names = ['', 'Basic', 'Medium', 'Hard'];
-    if (blueEssence < costs[tier]) { showToast("Insufficient assets.", "error"); return; }
-    blueEssence -= costs[tier];
-    trainingTier = tier;
+    if (blueEssence < 50) { showToast("Insufficient assets.", "error"); return; }
+    blueEssence -= 50;
+    trainingTier = 1;
     trainingActiveUntil = Date.now() + 60000;
     localStorage.setItem("lol_training_expiry", trainingActiveUntil);
     localStorage.setItem("lol_training_tier", trainingTier);
     saveGame(); startTrainingVisualCountdown();
-    showToast(`${names[tier]} Bootcamp started! +${getTrainingBonus()} Power for 60s.`, "success");
+    showToast(`Bootcamp started! +${getTrainingBonus()} Power for 60s.`, "success");
 }
 
 function checkAndRecoverTrainingTimer() {
     const savedExpiry = localStorage.getItem("lol_training_expiry");
-    const savedTier = localStorage.getItem("lol_training_tier");
     if (savedExpiry) {
         trainingActiveUntil = parseInt(savedExpiry, 10);
-        trainingTier = savedTier ? parseInt(savedTier, 10) : 1;
+        trainingTier = 1;
         if (trainingActiveUntil > Date.now()) startTrainingVisualCountdown();
     }
 }
 
 function startTrainingVisualCountdown() {
     if(trainingTimerInterval) clearInterval(trainingTimerInterval);
-    const tierNames = ['', 'Basic', 'Medium', 'Hard'];
-    const tierBonuses = [0, 5, 10, 15];
     const display = document.getElementById("training-timer-display");
     if(!display) return;
-    const disableBootcampBtns = (disabled) => {
-        [1,2,3].forEach(t => {
-            const btn = document.getElementById(`btn-bootcamp-${t}`);
-            if (!btn) return;
-            btn.disabled = disabled;
-            if (disabled) { btn.classList.replace("bg-orange-500","bg-slate-700"); btn.classList.add("cursor-not-allowed","opacity-60"); }
-            else { btn.classList.replace("bg-slate-700","bg-orange-500"); btn.classList.remove("cursor-not-allowed","opacity-60"); }
-        });
+    const disableBootcampBtn = (disabled) => {
+        const btn = document.getElementById("btn-bootcamp-1");
+        if (!btn) return;
+        btn.disabled = disabled;
+        if (disabled) { btn.classList.replace("bg-orange-500","bg-slate-700"); btn.classList.add("cursor-not-allowed","opacity-60"); }
+        else { btn.classList.replace("bg-slate-700","bg-orange-500"); btn.classList.remove("cursor-not-allowed","opacity-60"); }
     };
-    disableBootcampBtns(true);
+    disableBootcampBtn(true);
     trainingTimerInterval = setInterval(() => {
         let remaining = Math.round((trainingActiveUntil - Date.now()) / 1000);
         if (remaining <= 0) {
             clearInterval(trainingTimerInterval);
             display.innerText = "Facility Idle"; display.className = "font-mono font-bold text-slate-500 text-sm";
-            disableBootcampBtns(false); computeChemistry();
+            disableBootcampBtn(false); computeChemistry();
         } else {
-            display.innerText = `${tierNames[trainingTier]} Bootcamp: ${remaining}s (+${tierBonuses[trainingTier]} Power active)`;
+            display.innerText = `Bootcamp: ${remaining}s (+${getTrainingBonus()} Power active)`;
             display.className = "font-mono font-bold text-orange-400 animate-pulse text-sm";
             computeChemistry();
         }
     }, 1000);
 }
 
-function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? ([0,5,10,15][trainingTier] || 0) : 0; }
+function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? (5 + (skills.bootcamp || 0) * 2) : 0; }
 function getLoanPremium() { let basePremium = 150 - (skills.negotiation * 20); return activeLoans * Math.max(0, basePremium); }
 function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); showToast("Credit allocated!", "success"); }
 function payLoan() {
     if (blueEssence < 500) { showToast("Insufficient liquidity.", "error"); return; }
     if (activeLoans <= 0) { showToast("No active debt.", "error"); return; }
     activeLoans--; blueEssence -= 500; saveGame(); showToast("Loan amortized!", "success");
+}
+
+function checkProgressionUnlocks() {
+    const splitsCompleted = trackStats.splitsCompleted || 0;
+    let changed = false;
+    if (!unlocks.firstStand && seasonData.trophyCase.some(t => t.wins >= 6)) {
+        unlocks.firstStand = true; changed = true;
+        showToast("🔓 First Stand unlocked!", "success");
+    }
+    if (!unlocks.msi && (trackStats.firstStandWon || 0) >= 1 && splitsCompleted >= 2) {
+        unlocks.msi = true; changed = true;
+        showToast("🔓 MSI unlocked!", "success");
+    }
+    if (!unlocks.worlds && (trackStats.msiWon || 0) >= 1 && splitsCompleted >= 3) {
+        unlocks.worlds = true; changed = true;
+        showToast("🔓 Worlds unlocked!", "success");
+    }
+    if (!unlocks.draftMode && (trackStats.worldsWon || 0) >= 1) {
+        unlocks.draftMode = true; changed = true;
+        showToast("🔓 Draft Mode unlocked!", "success");
+    }
+    updateTournamentLocks();
+    if (changed) saveGame();
+}
+
+function updateTournamentLocks() {
+    function applyLock(lockId, btnId, isUnlocked) {
+        const lockEl = document.getElementById(lockId);
+        const btnEl = document.getElementById(btnId);
+        if (lockEl) lockEl.classList.toggle("hidden", isUnlocked);
+        if (btnEl) {
+            btnEl.disabled = !isUnlocked;
+            btnEl.classList.toggle("opacity-50", !isUnlocked);
+            btnEl.classList.toggle("cursor-not-allowed", !isUnlocked);
+        }
+    }
+    applyLock("lock-firststand", "btn-firststand", unlocks.firstStand);
+    applyLock("lock-msi", "btn-msi", unlocks.msi);
+    applyLock("lock-worlds", "btn-worlds", unlocks.worlds);
+    applyLock("lock-draftmode", "btn-draftmode", unlocks.draftMode);
 }
 
 function checkSquadReady() {
@@ -1227,7 +1305,10 @@ function checkSquadReady() {
 }
 
 function startTournament(name, cost, r1, r2, baseDiff, rounds) {
-    if (!checkSquadReady()) return; 
+    if (name === 'First Stand' && !unlocks.firstStand) { showToast("Complete a Playoff-tier (6+ win) Season Split to unlock First Stand.", "error"); return; }
+    if (name === 'MSI' && !unlocks.msi) { showToast("Win First Stand and complete 2 Season Splits to unlock MSI.", "error"); return; }
+    if (name === 'Worlds' && !unlocks.worlds) { showToast("Win MSI and complete 3 Season Splits to unlock Worlds.", "error"); return; }
+    if (!checkSquadReady()) return;
     if (blueEssence < cost) { showToast("Insufficient BE reserves.", "error"); return; }
     if(simIntervalId) clearTimeout(simIntervalId); 
     
@@ -1313,6 +1394,9 @@ function updateDisplays() {
     });
     const starterBtn = document.getElementById("starter-pack-container");
     if (hasBoughtStarter) starterBtn.classList.add("hidden"); else starterBtn.classList.remove("hidden");
+    const bootcampBonusEl = document.getElementById("bootcamp-bonus-display");
+    if (bootcampBonusEl) bootcampBonusEl.innerText = 5 + (skills.bootcamp || 0) * 2;
+    updateTournamentLocks();
     updateBadges(); updateClubStatsUI(); renderClubGrid(); renderSquadView(); renderQuests(); renderUpgradeLab();
     if(currentCollectionRegion) renderCollection();
 }
@@ -1638,10 +1722,6 @@ function generateSeasonOpponents() {
     });
     seasonData.matchResults = new Array(10).fill(null);
 
-    // Pick split meta role
-    const metaRoles = ['TOP','JNG','MID','ADC','SUP'];
-    seasonData.splitMeta = metaRoles[Math.floor(Math.random() * metaRoles.length)];
-
     // Elite split — 20% chance, 1–6 teams boosted to 95–99 rated
     seasonData.eliteMode = Math.random() < 0.20;
     seasonData.eliteTeams = [];
@@ -1657,15 +1737,35 @@ function generateSeasonOpponents() {
         }
     }
 
-    // Pick 2–10 real team slumps — debuffs apply to USER's player cards from those teams
+    // Pick 5–10 real team metas — random +2 to +10 buff to a specific stat, applies to USER's player cards from those teams
     const db = getDB();
     const allTeams = db ? [...new Set(db.map(c => c.team))].filter(Boolean) : [];
-    const slumpCount = Math.min(2 + Math.floor(Math.random() * 9), allTeams.length);
-    const shuffledTeams = [...allTeams].sort(() => Math.random() - 0.5);
+    const statKeys = ['mec','tmf','frm','cmp','map','ldr'];
+    const shuffledForMeta = [...allTeams].sort(() => Math.random() - 0.5);
+    const metaCount = Math.min(5 + Math.floor(Math.random() * 6), allTeams.length); // 5–10
+    seasonData.metaTeams = shuffledForMeta.slice(0, metaCount).map(team => ({
+        team,
+        statKey: statKeys[Math.floor(Math.random() * statKeys.length)],
+        buff: 2 + Math.floor(Math.random() * 9), // +2 to +10
+    }));
+    seasonData.metaPlaysUsedThisSplit = 0;
+
+    // Pick 2–10 real team slumps — debuffs apply to USER's player cards from those teams (excludes meta teams)
+    const metaTeamNames = new Set(seasonData.metaTeams.map(m => m.team));
+    const slumpPool = allTeams.filter(t => !metaTeamNames.has(t));
+    const slumpCount = Math.min(2 + Math.floor(Math.random() * 9), slumpPool.length);
+    const shuffledTeams = [...slumpPool].sort(() => Math.random() - 0.5);
     seasonData.slumpTeams = shuffledTeams.slice(0, slumpCount).map(team => ({
         team,
         debuff: -(5 + Math.floor(Math.random() * 6)),
     }));
+
+    // Simulated league records for the standings chart — higher rating skews toward more wins
+    seasonData.opponents.forEach(opp => {
+        const simWins = Math.max(0, Math.min(10, Math.round((opp.avgRating - 65) / 3.5) + Math.round((Math.random() * 4) - 2)));
+        opp.simWins = Math.max(0, Math.min(10, simWins));
+        opp.simLosses = 10 - opp.simWins;
+    });
 }
 
 function startSeasonMatchMode() {
@@ -1688,24 +1788,28 @@ function _smSlumpDebuff(card) {
     return s ? s.debuff : 0;
 }
 
+function _smMetaBuff(card, statKey) {
+    if (!card) return 0;
+    const m = (seasonData.metaTeams || []).find(x => x.team === card.team && x.statKey === statKey);
+    return m ? m.buff : 0;
+}
+
+function _smPlayHasMetaBuff(play) {
+    return play.myRoles.some(r => _smMetaBuff(squad[r], play.statKey) > 0);
+}
+
 function _smStatVal(play) {
     function playerStat(role) {
         const c = squad[role];
         if (!c) return 70;
         const raw = role === 'COACH' ? (c.stats.ldr ?? c.rating) : (c.stats[play.statKey] ?? 70);
-        return Math.max(50, raw + _smSlumpDebuff(c));
+        return Math.max(50, raw + _smSlumpDebuff(c) + _smMetaBuff(c, play.statKey));
     }
 
     const roles = play.myRoles;
-    let base;
-    if (roles.length === 1) {
-        base = playerStat(roles[0]);
-    } else {
-        const vals = roles.map(r => playerStat(r));
-        base = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-    }
-    if (seasonData.splitMeta && play.myRoles.includes(seasonData.splitMeta)) base += _SM_META_BONUS;
-    return base;
+    if (roles.length === 1) return playerStat(roles[0]);
+    const vals = roles.map(r => playerStat(r));
+    return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
 }
 
 const _SM_COOLDOWN_MS = 60000;
@@ -1714,11 +1818,6 @@ function _smCooldownMs() {
     const steps = [60000, 45000, 30000, 20000, 10000, 0];
     return steps[Math.min(skills.conditioning, 5)];
 }
-const _SM_META_ICONS = { TOP: '🛡️', JNG: '🌿', MID: '⚡', ADC: '🏹', SUP: '💎' };
-const _SM_META_NAMES = { TOP: 'Top Lane Meta', JNG: 'Jungle Meta', MID: 'Mid Lane Meta', ADC: 'Bot Lane Meta', SUP: 'Support Meta' };
-const _SM_META_COLORS = { TOP: 'amber', JNG: 'emerald', MID: 'cyan', ADC: 'orange', SUP: 'violet' };
-const _SM_META_BONUS = 10;
-
 function startSeasonGame(idx) {
     if (['TOP','JNG','MID','ADC','SUP'].some(r => !squad[r])) { showToast("Assign all 5 positions first.", "error"); return; }
     if ((seasonData.matchResults || [])[idx] != null) return;
@@ -1776,7 +1875,8 @@ function makeSeasonPlay(playId) {
     const rolesLabel = play.myRoles.join('+');
     const statLabel = play.statKey.toUpperCase();
     const netStr = net >= 0 ? `+${net}` : `${net}`;
-    const metaBoosted = seasonData.splitMeta && play.myRoles.includes(seasonData.splitMeta);
+    const metaBoosted = _smPlayHasMetaBuff(play);
+    if (metaBoosted) seasonData.metaPlaysUsedThisSplit = (seasonData.metaPlaysUsedThisSplit || 0) + 1;
     _smState.log.push({
         round: _smState.round,
         icon: play.icon,
@@ -1826,14 +1926,26 @@ function advanceToNextSplit() {
     const { tier, reward } = _smSplitTier(wins);
     blueEssence += reward;
     const completedSplit = seasonData.currentSplit;
-    seasonData.trophyCase.unshift({ split: completedSplit, wins, losses, tier, reward, date: new Date().toLocaleDateString(), meta: seasonData.splitMeta, elite: seasonData.eliteMode });
+    seasonData.trophyCase.unshift({ split: completedSplit, wins, losses, tier, reward, date: new Date().toLocaleDateString(), metaTeamCount: (seasonData.metaTeams || []).length, elite: seasonData.eliteMode });
     if (seasonData.trophyCase.length > 20) seasonData.trophyCase.pop();
+
+    // Quest tracking for split-related achievements (computed before next split's data is generated)
+    trackStats.splitsCompleted = (trackStats.splitsCompleted || 0) + 1;
+    if (wins === 10 && losses === 0) trackStats.undefeatedSplits = (trackStats.undefeatedSplits || 0) + 1;
+    if (wins >= 6) {
+        const debuffedCount = Object.values(squad).filter(c => c && _smSlumpDebuff(c) < 0).length;
+        if (debuffedCount >= 2) trackStats.splitsWithDebuffedWin = (trackStats.splitsWithDebuffedWin || 0) + 1;
+        if ((seasonData.metaPlaysUsedThisSplit || 0) === 0) trackStats.splitsWithoutMeta = (trackStats.splitsWithoutMeta || 0) + 1;
+    }
+    if (seasonData.eliteMode) trackStats.eliteSplitsCompleted = (trackStats.eliteSplitsCompleted || 0) + 1;
+
     seasonData.currentSplit++;
     seasonData.splitWins = 0;
     seasonData.splitLosses = 0;
     seasonData.splitComplete = false;
     seasonData.lastMatchTs = 0;
     generateSeasonOpponents();
+    checkProgressionUnlocks();
     saveGame();
     updateDisplays();
     if (_smCdInterval) { clearInterval(_smCdInterval); _smCdInterval = null; }
@@ -1868,7 +1980,7 @@ function _smStartCdTimer() {
 }
 
 function _smMetaSlumpPanels() {
-    const meta = seasonData.splitMeta;
+    const metas = seasonData.metaTeams || [];
     const slumps = seasonData.slumpTeams || [];
     const eliteTeams = seasonData.eliteTeams || [];
 
@@ -1900,23 +2012,36 @@ function _smMetaSlumpPanels() {
         </div>`;
     }
 
-    // Meta panel
+    // Meta panel — team-based buffs, mirrors the slump panel
     let metaHTML = '';
-    if (meta) {
-        const mc = _SM_META_COLORS[meta] || 'yellow';
-        const affectedPlays = _SEASON_PLAYS.filter(p => p.myRoles.includes(meta));
-        const playTags = affectedPlays.map(p => `<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700/60 rounded text-[11px] text-slate-300 font-mono">${p.icon} ${p.label}</span>`).join(' ');
+    if (metas.length) {
+        const buffedSquad = Object.entries(squad)
+            .filter(([, c]) => c && metas.some(m => m.team === c.team))
+            .flatMap(([role, c]) => metas.filter(m => m.team === c.team).map(m =>
+                `<div class="flex items-center gap-2 px-3 py-2 bg-emerald-900/30 border border-emerald-700/50 rounded-lg text-xs">
+                    <span class="text-slate-500 font-black w-8 uppercase shrink-0">${role}</span>
+                    <span class="text-slate-200 font-bold flex-1 truncate">${c.name}</span>
+                    <span class="text-slate-500 shrink-0">${c.team}</span>
+                    <span class="text-emerald-400 font-black font-mono shrink-0">+${m.buff} ${m.statKey.toUpperCase()}</span>
+                </div>`
+            )).join('');
+
+        const teamRows = metas.map(m =>
+            `<div class="flex justify-between items-center py-1.5 border-b border-slate-700/30 text-xs">
+                <span class="text-slate-300 font-bold">${m.team}</span>
+                <span class="text-emerald-400 font-black font-mono">+${m.buff} ${m.statKey.toUpperCase()}</span>
+            </div>`
+        ).join('');
+
         metaHTML = `
-        <div class="bg-gradient-to-r from-${mc}-950/50 to-slate-900/80 border border-${mc}-700/40 rounded-xl p-4 flex gap-4 items-start">
-            <div class="text-4xl shrink-0 mt-0.5">${_SM_META_ICONS[meta]}</div>
-            <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-0.5">
-                    <span class="text-[10px] font-black text-${mc}-500 uppercase tracking-widest">Split ${seasonData.currentSplit} Meta</span>
-                </div>
-                <div class="text-${mc}-300 font-black text-base">${_SM_META_NAMES[meta]}</div>
-                <div class="text-slate-400 text-xs mt-1"><span class="text-${mc}-400 font-black">${meta}</span> role plays receive <span class="text-${mc}-300 font-black">+${_SM_META_BONUS}</span> to all stat checks this split</div>
-                <div class="flex flex-wrap gap-1.5 mt-2">${playTags}</div>
+        <div class="bg-emerald-950/20 border border-emerald-800/30 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-emerald-400 text-base">⚡</span>
+                <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Team Metas — ${metas.length} teams in hot form this split</span>
             </div>
+            <div class="text-slate-500 text-xs mb-3 font-mono">Cards from these teams get a boosted stat during Season Matches. Field them to capitalize.</div>
+            <div class="mb-3 pb-3 border-b border-emerald-900/40">${teamRows}</div>
+            ${buffedSquad ? `<div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">⚡ Your Buffed Players</div><div class="space-y-1.5">${buffedSquad}</div>` : `<div class="text-xs text-slate-500 font-mono">None of your current squad players are on meta teams.</div>`}
         </div>`;
     }
 
@@ -2119,20 +2244,21 @@ function _renderSeasonGame(container) {
 
     // Play option cards
     const playCards = st.phase === 'pick' ? st.options.map(play => {
-        const isMeta = seasonData.splitMeta && play.myRoles.includes(seasonData.splitMeta);
+        const roleBuffs = play.myRoles.map(r => _smMetaBuff(squad[r], play.statKey));
+        const metaBuffTotal = play.myRoles.length === 1 ? roleBuffs[0] : Math.round(roleBuffs.reduce((a,b)=>a+b,0) / roleBuffs.length);
+        const isMeta = metaBuffTotal > 0;
         const myVal = _smStatVal(play);
         const oppVal = opp.stats[play.statKey] ?? opp.avgRating;
         const edge = myVal - oppVal;
         const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
         const edgeStr = edge >= 0 ? `+${edge}` : `${edge}`;
         const rolesLabel = play.myRoles.join('+');
-        const metaC = isMeta ? _SM_META_COLORS[seasonData.splitMeta] || 'yellow' : null;
-        const cardBorder = isMeta ? `border-${metaC}-600/60 hover:border-${metaC}-400` : 'border-slate-600 hover:border-indigo-500';
-        const cardBg = isMeta ? `bg-${metaC}-950/30 hover:bg-${metaC}-950/50` : 'bg-slate-800 hover:bg-slate-700';
-        const metaBadge = isMeta ? `<span class="text-[10px] font-black text-${metaC}-400 bg-${metaC}-950/60 border border-${metaC}-700/50 px-1.5 py-0.5 rounded ml-1">⚡ META +${_SM_META_BONUS}</span>` : '';
-        const baseVal = isMeta ? myVal - _SM_META_BONUS : null;
+        const cardBorder = isMeta ? `border-emerald-600/60 hover:border-emerald-400` : 'border-slate-600 hover:border-indigo-500';
+        const cardBg = isMeta ? `bg-emerald-950/30 hover:bg-emerald-950/50` : 'bg-slate-800 hover:bg-slate-700';
+        const metaBadge = isMeta ? `<span class="text-[10px] font-black text-emerald-400 bg-emerald-950/60 border border-emerald-700/50 px-1.5 py-0.5 rounded ml-1">⚡ META +${metaBuffTotal}</span>` : '';
+        const baseVal = isMeta ? myVal - metaBuffTotal : null;
         const myValDisplay = isMeta
-            ? `<span class="text-slate-400 line-through text-[10px] mr-1">${baseVal}</span><span class="text-${metaC}-300 font-black">${myVal}</span>`
+            ? `<span class="text-slate-400 line-through text-[10px] mr-1">${baseVal}</span><span class="text-emerald-300 font-black">${myVal}</span>`
             : `<span class="text-slate-200 font-black">${myVal}</span>`;
         return `<button onclick="makeSeasonPlay('${play.id}')" class="flex-1 min-w-[180px] ${cardBg} border ${cardBorder} rounded-xl p-4 text-left cursor-pointer transition group">
             <div class="flex items-start justify-between mb-1">
@@ -2179,7 +2305,7 @@ function _renderSeasonGame(container) {
                     <span class="text-slate-500 text-xs ml-2">${opp.region} · ${opp.style} · Avg ${opp.avgRating}</span>
                 </div>
                 <span class="text-slate-500 text-xs ml-auto font-mono">Match ${st.oppIdx + 1} of 10</span>
-                ${seasonData.splitMeta ? `<span class="text-xs font-black px-2 py-1 rounded-lg bg-${_SM_META_COLORS[seasonData.splitMeta]}-950/60 border border-${_SM_META_COLORS[seasonData.splitMeta]}-700/40 text-${_SM_META_COLORS[seasonData.splitMeta]}-400">${_SM_META_ICONS[seasonData.splitMeta]} ${_SM_META_NAMES[seasonData.splitMeta]}</span>` : ''}
+                ${(seasonData.metaTeams || []).length ? `<span class="text-xs font-black px-2 py-1 rounded-lg bg-emerald-950/60 border border-emerald-700/40 text-emerald-400">⚡ ${seasonData.metaTeams.length} Team Metas</span>` : ''}
             </div>
 
             <!-- Score -->
@@ -2222,9 +2348,39 @@ function renderSeasonTab() {
     const tab = document.getElementById("tab-season"); if (!tab) return;
     const wins = seasonData.splitWins, losses = seasonData.splitLosses;
     const played = (seasonData.matchResults || []).filter(r => r !== null).length;
-    const meta = seasonData.splitMeta;
+    const metas = seasonData.metaTeams || [];
     const slumps = seasonData.slumpTeams || [];
     const eliteTeams = seasonData.eliteTeams || [];
+
+    // Split standings chart — ranks the user's team against simulated CPU records
+    const standingsRows = (seasonData.opponents || []).map(opp => ({
+        name: opp.name, logo: opp.logo, wins: opp.simWins ?? 0, losses: opp.simLosses ?? 0, isUser: false, isElite: !!opp.isElite,
+    }));
+    standingsRows.push({ name: teamIdentity.name || 'Your Team', logo: teamIdentity.logo || '🛡️', wins, losses, isUser: true, isElite: false });
+    standingsRows.sort((a, b) => b.wins - a.wins || a.losses - b.losses || (a.isUser ? -1 : 1));
+    const userRank = standingsRows.findIndex(r => r.isUser) + 1;
+    const standingsHTML = standingsRows.map((r, i) => {
+        const rank = i + 1;
+        const rankColor = rank === 1 ? 'text-yellow-400' : rank <= 3 ? 'text-slate-200' : 'text-slate-500';
+        const rowBg = r.isUser ? 'bg-indigo-900/40 border-indigo-600/60' : 'bg-slate-800/40 border-slate-700/40';
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+        return `<div class="flex items-center gap-3 px-3 py-2 rounded-lg border ${rowBg} text-sm">
+            <span class="${rankColor} font-black w-6 text-center">${rank}</span>
+            <span class="text-lg shrink-0">${r.logo}</span>
+            <span class="${r.isUser ? 'text-indigo-200' : 'text-slate-300'} font-bold flex-1 truncate">${r.name}${r.isUser ? ' (You)' : ''}</span>
+            ${r.isElite ? '<span class="text-[10px]">🔥</span>' : ''}
+            <span class="font-mono text-xs"><span class="text-emerald-400 font-black">${r.wins}W</span> <span class="text-red-400 font-black">${r.losses}L</span></span>
+            <span class="w-5 text-center">${medal}</span>
+        </div>`;
+    }).join('');
+    const standingsPanel = `<div class="bg-slate-900/60 rounded-xl border border-slate-700 overflow-hidden">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-700">
+            <span class="text-lg">📊</span>
+            <span class="text-xs font-black text-slate-300 uppercase tracking-widest">Split Standings</span>
+            <span class="ml-auto text-xs font-mono text-slate-500">You are ranked <span class="text-indigo-300 font-black">#${userRank}</span> of ${standingsRows.length}</span>
+        </div>
+        <div class="p-3 space-y-1.5">${standingsHTML}</div>
+    </div>`;
 
     // Elite split panel for Season tab
     let elitePanel = '';
@@ -2263,26 +2419,41 @@ function renderSeasonTab() {
         { label: "📋 Development (0–3W)",   wins: 0,  reward: 500  },
     ];
 
-    // Meta panel for Season tab
+    // Meta panel for Season tab — team-based, mirrors slump panel
     let metaPanel = '';
-    if (meta) {
-        const mc = _SM_META_COLORS[meta] || 'yellow';
-        const affectedPlays = _SEASON_PLAYS.filter(p => p.myRoles.includes(meta));
-        const playRows = affectedPlays.map(p =>
-            `<div class="flex items-center gap-2 py-1 border-b border-slate-700/30 text-xs"><span>${p.icon}</span><span class="text-slate-300 flex-1">${p.label}</span><span class="text-slate-500 font-mono uppercase text-[10px]">${p.statKey}</span><span class="text-${mc}-400 font-black font-mono">+${_SM_META_BONUS}</span></div>`
+    if (metas.length) {
+        const buffedSquad = Object.entries(squad)
+            .filter(([, c]) => c && metas.some(m => m.team === c.team))
+            .flatMap(([role, c]) => metas.filter(m => m.team === c.team).map(m =>
+                `<div class="flex items-center gap-3 py-1.5 border-b border-emerald-900/30 text-xs">
+                    <span class="text-slate-500 font-black w-8 uppercase shrink-0">${role}</span>
+                    <span class="text-emerald-200 font-bold flex-1 truncate">${c.name}</span>
+                    <span class="text-slate-500 shrink-0">${c.team}</span>
+                    <span class="text-emerald-400 font-black font-mono shrink-0">+${m.buff} ${m.statKey.toUpperCase()}</span>
+                </div>`
+            )).join('');
+
+        const teamRows = metas.map(m =>
+            `<div class="flex justify-between items-center py-1.5 border-b border-slate-700/30 text-xs">
+                <span class="text-slate-300 font-bold">${m.team}</span>
+                <span class="text-emerald-400 font-black font-mono">+${m.buff} ${m.statKey.toUpperCase()}</span>
+            </div>`
         ).join('');
-        metaPanel = `<div class="bg-gradient-to-br from-${mc}-950/40 to-slate-900 border border-${mc}-700/40 rounded-xl overflow-hidden">
-            <div class="flex items-center gap-3 px-4 py-3 border-b border-${mc}-800/30">
-                <span class="text-2xl">${_SM_META_ICONS[meta]}</span>
-                <div>
-                    <div class="text-[10px] font-black text-${mc}-500 uppercase tracking-widest">Split ${seasonData.currentSplit} Meta</div>
-                    <div class="text-${mc}-300 font-black text-sm">${_SM_META_NAMES[meta]}</div>
-                </div>
-                <span class="ml-auto text-xs font-black text-${mc}-400 bg-${mc}-950/60 border border-${mc}-700/40 px-2 py-1 rounded-lg">+${_SM_META_BONUS} to ${meta} plays</span>
+
+        metaPanel = `<div class="bg-emerald-950/20 border border-emerald-800/30 rounded-xl overflow-hidden">
+            <div class="flex items-center gap-2 px-4 py-3 border-b border-emerald-800/30">
+                <span class="text-emerald-400">⚡</span>
+                <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Team Metas — ${metas.length} teams in hot form this split</span>
             </div>
-            <div class="px-4 py-3">
-                <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Boosted Plays</div>
-                ${playRows}
+            <div class="px-4 py-3 space-y-3">
+                <div>
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Meta Teams</div>
+                    ${teamRows}
+                </div>
+                <div>
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Your Buffed Players</div>
+                    ${buffedSquad || `<div class="text-xs text-slate-500 font-mono py-1">None of your current squad players are on meta teams.</div>`}
+                </div>
             </div>
         </div>`;
     }
@@ -2331,7 +2502,7 @@ function renderSeasonTab() {
 
     const trophyHTML = seasonData.trophyCase.length
         ? seasonData.trophyCase.map(t => {
-            const metaChip = t.meta ? `<span class="ml-1 text-[10px] font-mono text-slate-500">${_SM_META_ICONS[t.meta] || ''} ${t.meta}</span>` : '';
+            const metaChip = t.metaTeamCount ? `<span class="ml-1 text-[10px] font-mono text-emerald-500">⚡ ${t.metaTeamCount} metas</span>` : '';
             const eliteChip = t.elite ? `<span class="ml-1 text-[10px] font-black text-orange-400">🔥 ELITE</span>` : '';
             return `<div class="flex items-center justify-between bg-slate-700/60 p-3 rounded-xl border ${t.elite ? 'border-orange-800/40' : 'border-slate-600'}">
                 <div>
@@ -2357,6 +2528,7 @@ function renderSeasonTab() {
             <button onclick="switchTab('tournament'); setTimeout(startSeasonMatchMode, 50);" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-5 py-2.5 rounded-xl text-sm cursor-pointer transition uppercase tracking-wide">Go to Matches →</button>
         </div>
 
+        ${standingsPanel}
         ${elitePanel ? elitePanel : ''}
         ${metaPanel || slumpPanel ? `<div class="grid grid-cols-1 ${metaPanel && slumpPanel ? 'lg:grid-cols-2' : ''} gap-4">${metaPanel}${slumpPanel}</div>` : ''}
 
@@ -2847,6 +3019,7 @@ function handleTournamentWin() {
     else if (stageName === 'First Stand') trackStats.firstStandWon = (trackStats.firstStandWon || 0) + 1;
     else if (stageName === 'MSI Arena' || stageName === 'MSI') trackStats.msiWon = (trackStats.msiWon || 0) + 1;
     else if (stageName === 'World Championship' || stageName === 'Worlds') trackStats.worldsWon = (trackStats.worldsWon || 0) + 1;
+    checkProgressionUnlocks();
 
     // Notify any newly claimable milestone quests
     quests.filter(q => !q.repeatable && !q.timed && !q.claimed).forEach(q => {
@@ -2973,6 +3146,7 @@ function draftTeamAvgRating(team) {
 }
 
 function startDraftMode() {
+    if (!unlocks.draftMode) { showToast("Win the World Championship to unlock Draft Mode.", "error"); return; }
     if (club.length < 15) {
         showToast(`Draft Mode requires at least 15 cards in your club. You have ${club.length}.`, 'error');
         return;

@@ -306,7 +306,7 @@ const baseDatabase = [
     { id: 5155, name: "Vampire",    role: "SUP", team: "WE",  year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 76, tmf: 83, frm: 83, cmp: 82, map: 84, ldr: 83 } },
 
     // --- 2025 LPL COACHES (Head Coaches only) ---
-    { id: 8075, name: "Tabe",      role: "COACH", team: "AL",  year: 2025, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 23, tmf: 84, frm: 86, cmp: 84, map: 87, ldr: 87 } },
+    { id: 8075, name: "Tabe",      role: "COACH", team: "AL",  year: 2025, rating: 91, quality: "Diamond", region: "LPL", stats: { mec: 25, tmf: 90, frm: 91, cmp: 90, map: 92, ldr: 93 } },
     { id: 8076, name: "Maokai",    role: "COACH", team: "BLG", year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 22, tmf: 86, frm: 87, cmp: 86, map: 88, ldr: 89 } },
     { id: 8077, name: "Mni",       role: "COACH", team: "EDG", year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 20, tmf: 83, frm: 84, cmp: 83, map: 85, ldr: 84 } },
     { id: 8078, name: "QingSi",    role: "COACH", team: "FPX", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 18, tmf: 81, frm: 82, cmp: 81, map: 83, ldr: 82 } },
