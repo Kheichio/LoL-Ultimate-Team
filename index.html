@@ -69,7 +69,13 @@
                 </span>
             </button>
             <button onclick="switchTab('season'); renderSeasonTab();" data-tab="season" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-blue-300 whitespace-nowrap text-sm">Season</button>
-            <button onclick="switchTab('upgrade')" data-tab="upgrade" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-400 whitespace-nowrap text-sm">Upgrade</button>
+            <button onclick="switchTab('upgrade')" data-tab="upgrade" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-400 whitespace-nowrap text-sm relative">
+                Upgrade
+                <span id="badge-upgrade" class="absolute -top-1.5 -right-1.5 flex h-3 w-3 hidden">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                </span>
+            </button>
             <button onclick="switchTab('skills'); renderSkillsUI();" data-tab="skills" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-emerald-400 whitespace-nowrap text-sm relative">
                 Skills
                 <span id="badge-skills" class="absolute -top-2 -right-2 hidden bg-emerald-500 text-slate-900 text-[10px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow border border-slate-900 z-10">
@@ -325,7 +331,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.9</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.0</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -703,20 +709,16 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.9)</h3>
+                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.0)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-cyan-400 font-bold">Season Match Enemy Roster Stats</span> — The opponent roster panel in Season Matches now shows each player's MEC/TMF/MAP stats, just like your own roster — visible at all times, not just during play selection. Text across the whole Season Match screen (stat numbers, play cards, match log, panel headers) was also enlarged for readability.</li>
-                    <li><span class="text-yellow-400 font-bold">Golden Road Locked Behind Worlds</span> — The Golden Road gauntlet now requires having won the World Championship at least once. Existing saves that already have a Worlds win are grandfathered in automatically.</li>
-                    <li><span class="text-orange-400 font-bold">Transfer Window Lv1 Ability</span> — The Transfer Window skill's first level finally does something: each trade offer now has a 25% chance to spawn a "Transfer Window Discount," knocking ~25% off the required asset count (shown with a strikethrough price and badge).</li>
-                    <li><span class="text-red-400 font-bold">Trade Requirements Buffed</span> — Asset costs raised across every reward tier (e.g. Master/Platinum 5→7, Challenger/Diamond 7→10, MVP-tier/Master 4→6) so trades are a real commitment again, even with the new discount chance.</li>
-                    <li><span class="text-red-400 font-bold">Season Split Lock-In Warning</span> — Before your very first match of a new Season Split, a confirmation popup now warns you that your lineup will lock until you finish or advance the split, so you don't get caught out.</li>
-                    <li><span class="text-amber-400 font-bold">BLG 2026 Roster Buffed</span> — Knight, Xun, Viper, ON, and head coach Daeny all received rating and stat increases reflecting the team's dominant real-world form. Knight now sits at a 99 rating, joining the game's most elite tier alongside cards like Faker and Chovy.</li>
-                    <li><span class="text-cyan-400 font-bold">Draft Mode Legacy Flex Exemption</span> — Legacy-tier cards (Champion/MVP/Finalist/MSI/FirstStand) no longer take the −10 off-role penalty in Draft Mode. They flex into any role at full value, marked with a new cyan "FLEX ✓" badge instead of the usual amber penalty badge.</li>
+                    <li><span class="text-emerald-400 font-bold">Bench Substitutions in Season Splits</span> — The bench is finally useful. While your squad is locked for a Season Split, clicking any slot opens a Substitution screen showing eligible swaps — you can sub a benched player into a starting role (or send a starter to the bench) as the one allowed lineup change. Pulling a brand-new card in from the Club is still blocked until the split ends or advances.</li>
+                    <li><span class="text-orange-400 font-bold">Rising Elite Split Odds</span> — Elite Split chance now climbs the deeper you go: 20% through Split 4, then +2% per split from Split 5 onward, capping at 70%, so the late game stays unpredictable instead of flatlining.</li>
+                    <li><span class="text-red-400 font-bold">Bootcamp Locked During Matches</span> — The Scrimmage Center can no longer be triggered while a Season Match, Tournament/Golden Road run, or Draft Mode session is in progress, closing a loophole where tabbing away mid-match could squeeze in an extra Power boost.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.8): Classic Years 2015 LCK &amp; LPL Spring · Roster Coverage Chart · Slumps Intensified · Achievements · Quests Overhaul · Earlier Draft Mode · Elite Pack Rebalance · Cheaper Upgrades · Nav Bar Reorder · Opponent Team Comps · Mid-Season Squad Lock</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.9): Season Match Enemy Roster Stats · Golden Road Locked Behind Worlds · Transfer Window Lv1 Ability · Trade Requirements Buffed · Season Split Lock-In Warning · BLG 2026 Roster Buffed · Draft Mode Legacy Flex Exemption</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.8): Classic Years 2015 LCK &amp; LPL Spring · Roster Coverage Chart · Slumps Intensified · Achievements · Quests Overhaul · Earlier Draft Mode · Elite Pack Rebalance · Cheaper Upgrades · Nav Bar Reorder · Opponent Team Comps · Mid-Season Squad Lock</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.7): Slumps Intensified · Achievements · Quests Overhaul · Earlier Draft Mode · Elite Pack Rebalance · Cheaper Upgrades · Nav Bar Reorder · Opponent Team Comps · Mid-Season Squad Lock</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.6): Team-Based Meta Rework · Bootcamp Director Skill · Tournament Progression Gating · Season Split Quests · Quest Reward Rebalance · Tabe Buff · Split Standings Chart</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.5): Season Match XP Rewards · Elite Splits · Elite Trophy Indicators</p>
             </div>
 
         </section>
@@ -863,7 +865,7 @@
         <section id="tab-squad" class="tab-content hidden">
             <div id="squad-lock-banner" class="hidden bg-red-950/40 border border-red-700/50 rounded-xl p-3 mb-4 flex gap-2 items-start text-xs text-red-300">
                 <span class="text-lg shrink-0">🔒</span>
-                <span>Your squad is locked for this Season Split — you've already played a match, so swapping players is disabled until you finish or advance the split. This lock only applies because of Season Matches in progress.</span>
+                <span>Your squad is locked for this Season Split — you've already played a match, so pulling in new cards from the Club is disabled until you finish or advance the split. You can still <strong class="text-indigo-300">substitute benched players in for starters</strong> (and vice versa) — click any slot to see eligible swaps. This lock only applies because of Season Matches in progress.</span>
             </div>
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-5 flex flex-wrap gap-4 items-center justify-between shadow-sm">
                 <div class="flex items-center gap-3 flex-wrap">
@@ -1412,6 +1414,17 @@
         </div>
     </div>
 
+    <div id="bench-swap-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-black text-indigo-300 uppercase tracking-wide">🔄 Season Split Substitution</h3>
+                <button onclick="closeBenchSwap()" class="text-slate-400 hover:text-white text-2xl font-bold cursor-pointer leading-none">✕</button>
+            </div>
+            <p class="text-xs text-slate-400 mb-4">Your squad is locked for this Season Split — the only change you can make is substituting a benched player in for <strong id="bench-swap-from-name" class="text-indigo-300">this slot</strong>. Pick who swaps in.</p>
+            <div id="bench-swap-options" class="flex flex-wrap gap-4 justify-center"></div>
+        </div>
+    </div>
+
     <!-- Patch Notes / Welcome Modal -->
     <div id="patch-modal" class="fixed inset-0 z-[200] bg-black/85 backdrop-blur-sm flex items-center justify-center hidden">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl p-7 max-w-lg w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -1419,7 +1432,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.9 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.0 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1427,18 +1440,14 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-cyan-400 font-bold">Season Match Enemy Stats</span> — Opponent roster now shows MEC/TMF/MAP per player at all times, and the whole match screen's text is bigger and easier to read.</li>
-                <li><span class="text-yellow-400 font-bold">Golden Road Locked Behind Worlds</span> — Now requires a World Championship win to unlock.</li>
-                <li><span class="text-orange-400 font-bold">Transfer Window Lv1 Ability</span> — 25% chance per trade offer for a ~25% discount on the asset cost.</li>
-                <li><span class="text-red-400 font-bold">Trade Requirements Buffed</span> — Asset costs raised across every reward tier.</li>
-                <li><span class="text-red-400 font-bold">Season Split Lock-In Warning</span> — A popup now warns you before your first match of a split that your lineup is about to lock.</li>
-                <li><span class="text-amber-400 font-bold">BLG 2026 Roster Buffed</span> — Knight, Xun, Viper, ON, and coach Daeny all got rating/stat boosts — Knight now sits at 99.</li>
-                <li><span class="text-cyan-400 font-bold">Draft Mode Legacy Flex Exemption</span> — Legacy-tier cards no longer take the −10 off-role penalty in Draft Mode.</li>
+                <li><span class="text-emerald-400 font-bold">Bench Substitutions in Season Splits</span> — Even while your squad is locked, you can now sub benched players in for starters (and back) — click any slot to see eligible swaps.</li>
+                <li><span class="text-orange-400 font-bold">Rising Elite Split Odds</span> — Elite Split chance climbs +2% per split after Split 4 (up to 70%), keeping the late game unpredictable.</li>
+                <li><span class="text-red-400 font-bold">Bootcamp Locked During Matches</span> — The Scrimmage Center can't be triggered while a Season Match, Tournament, or Draft Mode session is in progress.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.9</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.0</button>
             </div>
         </div>
     </div>

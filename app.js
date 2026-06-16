@@ -431,7 +431,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_9', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_0', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -597,7 +597,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_4_9';
+    const patchKey = 'lol_patch_seen_v0_5_0';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -671,9 +671,13 @@ function updateBadges() {
     const skillsBadge = document.getElementById("badge-skills");
     const questsBadge = document.getElementById("badge-quests");
     const collBadge = document.getElementById("badge-collection");
-    
+    const upgradeBadge = document.getElementById("badge-upgrade");
+
     if (hasNewClubItems && clubBadge) clubBadge.classList.remove("hidden");
     else if(clubBadge) clubBadge.classList.add("hidden");
+
+    if (hasAvailableUpgrade() && upgradeBadge) upgradeBadge.classList.remove("hidden");
+    else if (upgradeBadge) upgradeBadge.classList.add("hidden");
 
     // Skills badge: show with count of unspent skill points
     if (skillPoints > 0 && skillsBadge) {
@@ -1203,6 +1207,7 @@ function renderSkillsUI() {
 }
 
 function executeTeamTraining() {
+    if (_smState || tourActive || draftModeActive) { showToast("Bootcamp cannot be activated while a match is in progress.", "error"); return; }
     if (Date.now() < trainingActiveUntil) { showToast("A bootcamp session is already active!", "info"); return; }
     if (blueEssence < 50) { showToast("Insufficient assets.", "error"); return; }
     blueEssence -= 50;
@@ -2630,10 +2635,94 @@ function _isSquadLockedForSeason() {
 
 function selectSlot(role) {
     if (_isSquadLockedForSeason()) {
-        showToast("Squad is locked for this Season Split — finish or advance the split to make changes.", "error");
+        openBenchSwap(role);
         return;
     }
     openPlayerPicker(role);
+}
+
+// While a Season Split is locked, the only roster change allowed is substituting a benched player
+// in for a starter (or vice versa) — no brand-new cards can be pulled in from the Club.
+let _benchSwapRole = null;
+const _LEGACY_WILDCARD_Q = ["Champion", "MVP", "Finalist", "MSI", "FirstStand"];
+
+function _benchSwapEligible(card, targetSlot) {
+    if (!card) return false;
+    if (targetSlot === 'COACH') return card.role === 'COACH';
+    if (card.role === 'COACH') return false;
+    return card.role === targetSlot || _LEGACY_WILDCARD_Q.includes(card.quality);
+}
+
+function openBenchSwap(role) {
+    const isBenchSlot = role.startsWith('SUB');
+    const sourceCard = squad[role];
+    let validSwaps; // [{ slot, card }] — card may be null when promoting into an empty starter slot
+
+    if (isBenchSlot) {
+        if (!sourceCard) { showToast("This bench slot is empty.", "error"); return; }
+        validSwaps = ['TOP','JNG','MID','ADC','SUP','COACH']
+            .filter(slot => _benchSwapEligible(sourceCard, slot))
+            .map(slot => ({ slot, card: squad[slot] }));
+    } else {
+        validSwaps = ['SUB1','SUB2','SUB3']
+            .filter(slot => squad[slot] && _benchSwapEligible(squad[slot], role))
+            .map(slot => ({ slot, card: squad[slot] }));
+    }
+
+    if (validSwaps.length === 0) {
+        showToast(isBenchSlot
+            ? "No eligible starting slot to substitute this benched player into."
+            : "No eligible benched player can sub into this role.", "error");
+        return;
+    }
+
+    _benchSwapRole = role;
+    const fromLabel = document.getElementById('bench-swap-from-name');
+    if (fromLabel) fromLabel.textContent = sourceCard ? sourceCard.name : role;
+
+    const optionsEl = document.getElementById('bench-swap-options');
+    if (optionsEl) {
+        optionsEl.innerHTML = '';
+        validSwaps.forEach(({ slot, card }) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex flex-col items-center gap-2 cursor-pointer group';
+            if (card) {
+                wrapper.appendChild(createCardElement(card, true));
+            } else {
+                const empty = document.createElement('div');
+                empty.className = 'w-52 min-h-[288px] bg-slate-900 border border-dashed border-slate-700 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-sm';
+                empty.textContent = 'Empty';
+                wrapper.appendChild(empty);
+            }
+            const label = document.createElement('div');
+            label.className = 'text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-indigo-300';
+            label.textContent = slot;
+            wrapper.appendChild(label);
+            wrapper.onclick = () => performBenchSwap(slot);
+            optionsEl.appendChild(wrapper);
+        });
+    }
+
+    const modal = document.getElementById('bench-swap-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function performBenchSwap(targetSlot) {
+    const role = _benchSwapRole;
+    if (!role) return;
+    const temp = squad[role];
+    squad[role] = squad[targetSlot];
+    squad[targetSlot] = temp;
+    closeBenchSwap();
+    saveGame();
+    renderSquadView();
+    showToast("Substitution made!", "success");
+}
+
+function closeBenchSwap() {
+    const modal = document.getElementById('bench-swap-modal');
+    if (modal) modal.classList.add('hidden');
+    _benchSwapRole = null;
 }
 
 function openPlayerPicker(role) {
@@ -3692,6 +3781,19 @@ const UPGRADE_COSTS = { Silver: 50, Gold: 100, Platinum: 150, Diamond: 200, Mast
 const UPGRADE_RATING_RANGES = { Gold: [80,84], Platinum: [85,89], Diamond: [90,93], Master: [94,95], Grandmaster: [96,97], Challenger: [98,100] };
 // Master->Grandmaster and Grandmaster->Challenger only need 5 cards — those tiers are already rare.
 const UPGRADE_CARD_COUNTS = { Silver: 10, Gold: 10, Platinum: 10, Diamond: 10, Master: 5, Grandmaster: 5 };
+
+function hasAvailableUpgrade() {
+    const activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
+    const ROLES = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
+    return UPGRADE_TIER_ORDER.slice(0, -1).some(fromTier => {
+        const cost = UPGRADE_COSTS[fromTier];
+        const needed = UPGRADE_CARD_COUNTS[fromTier];
+        return ROLES.some(role => {
+            const count = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId)).length;
+            return count >= needed && blueEssence >= cost;
+        });
+    });
+}
 
 function upgradeCards(role, fromTier) {
     const fromIdx = UPGRADE_TIER_ORDER.indexOf(fromTier);
