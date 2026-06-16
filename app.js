@@ -1697,6 +1697,13 @@ function _smGenRoster() {
     return roster;
 }
 
+function _smGenRosterStats(avgRating, style) {
+    const roles = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
+    const rosterStats = {};
+    roles.forEach(role => { rosterStats[role] = _smGenStats(avgRating, style); });
+    return rosterStats;
+}
+
 function generateSeasonOpponents() {
     const splitBonus = Math.min((seasonData.currentSplit - 1) * 2, 14);
     const used = new Set();
@@ -1717,6 +1724,7 @@ function generateSeasonOpponents() {
             style,
             stats: _smGenStats(avgRating, style),
             roster: _smGenRoster(),
+            rosterStats: _smGenRosterStats(avgRating, style),
         };
     });
     seasonData.matchResults = new Array(10).fill(null);
@@ -1731,6 +1739,7 @@ function generateSeasonOpponents() {
             const r = 95 + Math.floor(Math.random() * 5); // 95–99
             seasonData.opponents[i].avgRating = r;
             seasonData.opponents[i].stats = _smGenStats(r, seasonData.opponents[i].style);
+            seasonData.opponents[i].rosterStats = _smGenRosterStats(r, seasonData.opponents[i].style);
             seasonData.opponents[i].isElite = true;
             seasonData.eliteTeams.push(i);
         }
@@ -2212,6 +2221,7 @@ function _renderSeasonGame(container) {
     const st = _smState;
     const opp = seasonData.opponents[st.oppIdx];
     if (!opp.roster) opp.roster = _smGenRoster();
+    if (!opp.rosterStats) opp.rosterStats = _smGenRosterStats(opp.avgRating, opp.style);
 
     // Score pips
     function pips(count, maxWins, colorClass) {
@@ -2228,31 +2238,35 @@ function _renderSeasonGame(container) {
         const c = squad[r];
         if (!c) return '';
         const slump = _smSlumpDebuff(c);
-        const slumpBadge = slump < 0 ? `<span class="text-[10px] font-black text-red-400 bg-red-950/50 border border-red-800/40 px-1 py-0.5 rounded font-mono shrink-0">${slump}</span>` : '';
-        return `<div class="flex items-center gap-2 text-xs">
+        const slumpBadge = slump < 0 ? `<span class="text-xs font-black text-red-400 bg-red-950/50 border border-red-800/40 px-1 py-0.5 rounded font-mono shrink-0">${slump}</span>` : '';
+        return `<div class="flex items-center gap-2 text-sm">
             <span class="text-slate-500 font-black w-8 uppercase shrink-0">${r}</span>
             <span class="${slump < 0 ? 'text-red-300' : 'text-slate-200'} font-bold truncate flex-1">${c.name}</span>
             ${slumpBadge}
-            <span class="font-mono text-slate-400">MEC <span class="text-cyan-400 font-black">${c.stats.mec}</span></span>
-            <span class="font-mono text-slate-400">TMF <span class="text-purple-400 font-black">${c.stats.tmf}</span></span>
-            <span class="font-mono text-slate-400">MAP <span class="text-emerald-400 font-black">${c.stats.map}</span></span>
+            <span class="font-mono text-slate-400">MEC <span class="text-cyan-400 font-black text-base">${c.stats.mec}</span></span>
+            <span class="font-mono text-slate-400">TMF <span class="text-purple-400 font-black text-base">${c.stats.tmf}</span></span>
+            <span class="font-mono text-slate-400">MAP <span class="text-emerald-400 font-black text-base">${c.stats.map}</span></span>
         </div>`;
     }).join('');
 
     const coachRow = squad.COACH
-        ? `<div class="flex items-center gap-2 text-xs border-t border-slate-700/50 pt-1 mt-1">
+        ? `<div class="flex items-center gap-2 text-sm border-t border-slate-700/50 pt-1 mt-1">
             <span class="text-slate-500 font-black w-8 uppercase">HC</span>
             <span class="text-slate-200 font-bold truncate flex-1">${squad.COACH.name}</span>
-            <span class="font-mono text-slate-400">LDR <span class="text-yellow-400 font-black">${squad.COACH.stats.ldr}</span></span>
+            <span class="font-mono text-slate-400">LDR <span class="text-yellow-400 font-black text-base">${squad.COACH.stats.ldr}</span></span>
            </div>` : '';
 
-    // Opponent's generated team comp
-    const oppRosterRows = ['TOP','JNG','MID','ADC','SUP'].map(r =>
-        `<div class="flex items-center gap-2 text-xs">
+    // Opponent's generated team comp — now shows per-role stats just like the user's own roster
+    const oppRosterRows = ['TOP','JNG','MID','ADC','SUP'].map(r => {
+        const rs = opp.rosterStats[r];
+        return `<div class="flex items-center gap-2 text-sm">
             <span class="text-slate-500 font-black w-8 uppercase shrink-0">${r}</span>
             <span class="text-slate-200 font-bold truncate flex-1">${opp.roster[r]}</span>
-        </div>`
-    ).join('');
+            <span class="font-mono text-slate-400">MEC <span class="text-cyan-400 font-black text-base">${rs.mec}</span></span>
+            <span class="font-mono text-slate-400">TMF <span class="text-purple-400 font-black text-base">${rs.tmf}</span></span>
+            <span class="font-mono text-slate-400">MAP <span class="text-emerald-400 font-black text-base">${rs.map}</span></span>
+        </div>`;
+    }).join('');
 
     // Play option cards
     const playCards = st.phase === 'pick' ? st.options.map(play => {
@@ -2270,29 +2284,29 @@ function _renderSeasonGame(container) {
         const metaBadge = isMeta ? `<span class="text-[10px] font-black text-emerald-400 bg-emerald-950/60 border border-emerald-700/50 px-1.5 py-0.5 rounded ml-1">⚡ META +${metaBuffTotal}</span>` : '';
         const baseVal = isMeta ? myVal - metaBuffTotal : null;
         const myValDisplay = isMeta
-            ? `<span class="text-slate-400 line-through text-[10px] mr-1">${baseVal}</span><span class="text-emerald-300 font-black">${myVal}</span>`
-            : `<span class="text-slate-200 font-black">${myVal}</span>`;
+            ? `<span class="text-slate-400 line-through text-xs mr-1">${baseVal}</span><span class="text-emerald-300 font-black text-base">${myVal}</span>`
+            : `<span class="text-slate-200 font-black text-base">${myVal}</span>`;
         return `<button onclick="makeSeasonPlay('${play.id}')" class="flex-1 min-w-[180px] ${cardBg} border ${cardBorder} rounded-xl p-4 text-left cursor-pointer transition group">
             <div class="flex items-start justify-between mb-1">
                 <span class="text-2xl">${play.icon}</span>${metaBadge}
             </div>
             <div class="font-black text-slate-100 text-sm mb-0.5 group-hover:text-indigo-300">${play.label}</div>
-            <div class="text-slate-500 text-[11px] mb-3 leading-tight">${play.desc}</div>
-            <div class="font-mono text-[11px] space-y-0.5 border-t border-slate-700 pt-2">
+            <div class="text-slate-500 text-xs mb-3 leading-tight">${play.desc}</div>
+            <div class="font-mono text-sm space-y-1 border-t border-slate-700 pt-2">
                 <div class="flex justify-between items-center"><span class="text-slate-400">${rolesLabel} ${play.statKey.toUpperCase()}</span>${myValDisplay}</div>
-                <div class="flex justify-between"><span class="text-slate-500">Opp ${play.statKey.toUpperCase()}</span><span class="text-slate-400">${oppVal}</span></div>
-                <div class="flex justify-between border-t border-slate-700/50 pt-1 mt-1"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black">${edgeStr}</span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-500">Opp ${play.statKey.toUpperCase()}</span><span class="text-slate-300 font-bold text-base">${oppVal}</span></div>
+                <div class="flex justify-between items-center border-t border-slate-700/50 pt-1 mt-1"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black text-base">${edgeStr}</span></div>
             </div>
         </button>`;
     }).join('') : '';
 
     // Match log
     const logHTML = st.log.length ? st.log.map(e =>
-        `<div class="flex items-start gap-2 text-xs font-mono ${e.won ? 'text-emerald-400' : 'text-red-400'}">
+        `<div class="flex items-start gap-2 text-sm font-mono ${e.won ? 'text-emerald-400' : 'text-red-400'}">
             <span class="shrink-0">${e.won ? '✅' : '❌'}</span>
             <span><span class="font-black">${e.icon} ${e.label}</span> — ${e.detail}</span>
         </div>`
-    ).join('') : `<div class="text-slate-600 text-xs font-mono">No plays made yet.</div>`;
+    ).join('') : `<div class="text-slate-600 text-sm font-mono">No plays made yet.</div>`;
 
     // Result banner
     let resultBanner = '';
@@ -2314,7 +2328,7 @@ function _renderSeasonGame(container) {
                 <span class="text-xl">${opp.logo}</span>
                 <div>
                     <span class="font-black text-slate-100">${opp.name}</span>
-                    <span class="text-slate-500 text-xs ml-2">${opp.region} · ${opp.style} · Avg ${opp.avgRating}</span>
+                    <span class="text-slate-500 text-sm ml-2">${opp.region} · ${opp.style} · Avg <span class="font-bold text-slate-300">${opp.avgRating}</span></span>
                 </div>
                 <span class="text-slate-500 text-xs ml-auto font-mono">Match ${st.oppIdx + 1} of 10</span>
                 ${(seasonData.metaTeams || []).length ? `<span class="text-xs font-black px-2 py-1 rounded-lg bg-emerald-950/60 border border-emerald-700/40 text-emerald-400">⚡ ${seasonData.metaTeams.length} Team Metas</span>` : ''}
@@ -2345,16 +2359,16 @@ function _renderSeasonGame(container) {
             <!-- Three-col layout: your roster + opponent comp + match log -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-slate-800/60 rounded-xl border border-slate-700 p-4">
-                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Your Roster</div>
-                    <div class="space-y-1.5">${roleRows}${coachRow}</div>
+                    <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">Your Roster</div>
+                    <div class="space-y-2">${roleRows}${coachRow}</div>
                 </div>
                 <div class="bg-slate-800/60 rounded-xl border border-red-900/40 p-4">
-                    <div class="text-[10px] font-black uppercase tracking-widest text-red-400 mb-3">${opp.name} Roster</div>
-                    <div class="space-y-1.5">${oppRosterRows}</div>
+                    <div class="text-xs font-black uppercase tracking-widest text-red-400 mb-3">${opp.name} Roster</div>
+                    <div class="space-y-2">${oppRosterRows}</div>
                 </div>
                 <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4 font-mono">
-                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Match Log</div>
-                    <div class="space-y-1.5">${logHTML}</div>
+                    <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">Match Log</div>
+                    <div class="space-y-2">${logHTML}</div>
                 </div>
             </div>
         </div>`;
