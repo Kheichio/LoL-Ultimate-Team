@@ -1206,7 +1206,7 @@ const baseDatabase = [
     // Scout — Worlds 2021 MVP (EDG)
     { id: 9505, name: "Scout", role: "MID", team: "EDG", year: 2021, rating: 97, quality: "MVP", region: "Legacy", stats: { mec: 98, tmf: 97, frm: 98, cmp: 96, map: 97, ldr: 96 } },
     // Canyon — Worlds 2020 MVP (DAMWON Gaming)
-    { id: 9506, name: "Canyon", role: "JNG", team: "DAMWON", year: 2020, rating: 99, quality: "MVP", region: "Legacy", stats: { mec: 100, tmf: 99, frm: 100, cmp: 98, map: 100, ldr: 97 } },
+    { id: 9506, name: "Canyon", role: "JNG", team: "DK", year: 2020, rating: 99, quality: "MVP", region: "Legacy", stats: { mec: 100, tmf: 99, frm: 100, cmp: 98, map: 100, ldr: 97 } },
     // Tian — Worlds 2019 MVP (FPX)
     { id: 9507, name: "Tian", role: "JNG", team: "FPX", year: 2019, rating: 97, quality: "MVP", region: "Legacy", stats: { mec: 98, tmf: 97, frm: 96, cmp: 96, map: 98, ldr: 93 } },
     // Ning — Worlds 2018 MVP (iG)
