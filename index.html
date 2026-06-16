@@ -38,7 +38,6 @@
             <div class="bg-slate-900 px-4 py-2 rounded-full border border-slate-700 text-sm font-mono font-bold text-blue-400 flex items-center gap-2 shadow-inner">
                 <span onclick="secretMoneyCheat()" class="cursor-pointer hover:scale-125 transition duration-200 text-lg" title="Dev Cheat: Add 10,000 BE">💎</span>
                 <span><span id="be-display">1000</span> BE</span>
-                <span onclick="secretSkillPointCheat()" class="cursor-pointer hover:scale-125 transition duration-200 text-lg" title="Dev Cheat: Add 10 Skill Points">🧪</span>
             </div>
         </div>
 
@@ -1300,9 +1299,10 @@
                         <span class="text-xs font-mono text-slate-500"><span id="ui-manager-xp">0</span> / <span id="ui-manager-xp-needed">250</span> XP</span>
                     </div>
                 </div>
-                <div class="bg-slate-950/80 px-8 py-5 rounded-2xl border border-slate-800 text-center shadow-inner">
+                <div class="bg-slate-950/80 px-8 py-5 rounded-2xl border border-slate-800 text-center shadow-inner relative">
                     <span class="text-xs font-black uppercase text-slate-500 tracking-wider block mb-2">Available SP</span>
                     <span id="ui-skill-points" class="text-4xl font-mono font-black text-emerald-400">0</span>
+                    <span onclick="secretSkillPointCheat()" class="absolute top-2 right-2 cursor-pointer hover:scale-125 transition duration-200 text-lg" title="Dev Cheat: Add 10 Skill Points">🧪</span>
                 </div>
             </div>
             

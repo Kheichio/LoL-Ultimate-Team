@@ -2080,7 +2080,10 @@ function _smMetaSlumpPanels() {
         </div>`;
     }
 
-    return eliteHTML || metaHTML || slumpHTML ? `<div class="space-y-3 mb-4">${eliteHTML}${metaHTML}${slumpHTML}</div>` : '';
+    const metaSlumpRow = metaHTML || slumpHTML
+        ? `<div class="grid grid-cols-1 ${metaHTML && slumpHTML ? 'lg:grid-cols-2' : ''} gap-4">${metaHTML}${slumpHTML}</div>`
+        : '';
+    return eliteHTML || metaSlumpRow ? `<div class="space-y-3 mb-4">${eliteHTML}${metaSlumpRow}</div>` : '';
 }
 
 function _renderSeasonMatchList(container) {
@@ -2541,14 +2544,15 @@ function renderSeasonTab() {
             <button onclick="switchTab('tournament'); setTimeout(startSeasonMatchMode, 50);" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-5 py-2.5 rounded-xl text-sm cursor-pointer transition uppercase tracking-wide">Go to Matches →</button>
         </div>
 
-        ${standingsPanel}
-        ${elitePanel ? elitePanel : ''}
-        ${metaPanel || slumpPanel ? `<div class="grid grid-cols-1 ${metaPanel && slumpPanel ? 'lg:grid-cols-2' : ''} gap-4">${metaPanel}${slumpPanel}</div>` : ''}
-
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Reward Tiers</h3>
             <div class="space-y-1">${rewardTiers.map(t => `<div class="flex justify-between text-xs py-1 border-b border-slate-700/50 text-slate-400"><span>${t.label}</span><span>+${t.reward} BE</span></div>`).join('')}</div>
         </div>
+
+        ${standingsPanel}
+        ${elitePanel ? elitePanel : ''}
+        ${metaPanel || slumpPanel ? `<div class="grid grid-cols-1 ${metaPanel && slumpPanel ? 'lg:grid-cols-2' : ''} gap-4">${metaPanel}${slumpPanel}</div>` : ''}
+
         <div>
             <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-700 pb-2">🏅 Trophy Case</h3>
             <div class="space-y-2">${trophyHTML}</div>
