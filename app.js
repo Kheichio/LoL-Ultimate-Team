@@ -79,10 +79,6 @@ let quests = [
     { id: 'rq1', desc: 'Pull a Challenger card', target: 1, type: 'challengerPulled', reward: 320, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     { id: 'rq2', desc: 'Open 3 Champion Packs', target: 3, type: 'champPacksOpened', reward: 400, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     { id: 'rq3', desc: 'Liquidate 5 Grandmaster+ cards', target: 5, type: 'gmSoldCount', reward: 280, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
-    // Timed challenges (must accept first; repeatable after claiming or expiry)
-    { id: 'tq1', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1200, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq2', desc: 'Open 10 Card Packs', target: 10, type: 'packs', reward: 800, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq3', desc: 'Liquidate 15 Players', target: 15, type: 'soldCount', reward: 650, timed: true, timerMins: 5, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
     // New milestone quests (0.3.2)
     { id: 'q13', desc: 'Win a Draft Mode', target: 1, type: 'draftModesWon', reward: 2500, claimed: false },
     { id: 'q14', desc: 'Win 5 Draft Modes', target: 5, type: 'draftModesWon', reward: 8000, claimed: false },
@@ -91,15 +87,34 @@ let quests = [
     { id: 'q17', desc: 'Perform 10 card Upgrades', target: 10, type: 'upgradesPerformed', reward: 4000, claimed: false },
     // New repeatable quests (0.3.2)
     { id: 'rq5', desc: 'Perform 3 card Upgrades', target: 3, type: 'upgradesPerformed', reward: 1200, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
-    // New timed quests (0.3.2)
-    { id: 'tq4', desc: 'Win 5 Draft Modes', target: 5, type: 'draftModesWon', reward: 3200, timed: true, timerMins: 30, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
-    { id: 'tq5', desc: 'Perform 3 Upgrades', target: 3, type: 'upgradesPerformed', reward: 2000, timed: true, timerMins: 15, accepted: false, acceptedAt: 0, baselineAtAccept: 0, timesCompleted: 0 },
     // Season Split quests (0.4.6)
     { id: 'q18', desc: 'Win a Season Split Undefeated (10-0)', target: 1, type: 'undefeatedSplits', reward: 3000, claimed: false },
     { id: 'q19', desc: 'Win a Split With 2 Slumped Players in your Squad', target: 1, type: 'splitsWithDebuffedWin', reward: 2500, claimed: false },
     { id: 'q20', desc: 'Win a Split Without Ever Using a Meta Play', target: 1, type: 'splitsWithoutMeta', reward: 2500, claimed: false },
     { id: 'q21', desc: 'Complete an Elite Split', target: 1, type: 'eliteSplitsCompleted', reward: 3500, claimed: false },
-    { id: 'q22', desc: 'Complete 5 Season Splits', target: 5, type: 'splitsCompleted', reward: 4000, claimed: false }
+    { id: 'q22', desc: 'Complete 5 Season Splits', target: 5, type: 'splitsCompleted', reward: 4000, claimed: false },
+    // Pack-opening milestone quests (0.4.7)
+    { id: 'q23', desc: 'Open 10 Standard Packs', target: 10, type: 'standardPacksOpened', reward: 1000, claimed: false },
+    { id: 'q24', desc: 'Open 10 Elite Packs', target: 10, type: 'elitePacksOpened', reward: 1000, claimed: false },
+    { id: 'q25', desc: 'Open 10 Supreme Packs', target: 10, type: 'supremePacksOpened', reward: 1000, claimed: false },
+    { id: 'q26', desc: 'Open 10 First Stand Packs', target: 10, type: 'firstStandPacksOpened', reward: 1000, claimed: false },
+    { id: 'q27', desc: 'Open 10 MSI Packs', target: 10, type: 'msiPacksOpened', reward: 1000, claimed: false },
+    { id: 'q28', desc: 'Open 10 Champion Packs', target: 10, type: 'champPacksOpened', reward: 1000, claimed: false },
+    { id: 'q29', desc: 'Open 10 MVP Packs', target: 10, type: 'mvpPacksOpened', reward: 1000, claimed: false },
+    // Season Match repeatable (0.4.7)
+    { id: 'rq6', desc: 'Play 5 Season Matches', target: 5, type: 'seasonMatchesPlayed', reward: 600, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 }
+];
+
+// Achievements — live state checks (squad rating, archive progress) rather than tracked counters. Replaces Timed Challenges.
+let achievements = [
+    { id: 'a1', desc: 'Field a Squad Averaging 80+ Rating (Raw)', type: 'squadAvg', target: 80, reward: 1500, claimed: false },
+    { id: 'a2', desc: 'Field a Squad Averaging 90+ Rating (Raw)', type: 'squadAvg', target: 90, reward: 3000, claimed: false },
+    { id: 'a3', desc: 'Field a Squad Averaging 95+ Rating (Raw)', type: 'squadAvg', target: 95, reward: 5000, claimed: false },
+    { id: 'a4', desc: 'Field a Squad Averaging 99+ Rating (Raw)', type: 'squadAvg', target: 99, reward: 10000, claimed: false },
+    { id: 'a5', desc: 'Archive 50 Unique Cards', type: 'archiveCount', target: 50, reward: 1500, claimed: false },
+    { id: 'a6', desc: 'Archive 150 Unique Cards', type: 'archiveCount', target: 150, reward: 3500, claimed: false },
+    { id: 'a7', desc: 'Archive 300 Unique Cards', type: 'archiveCount', target: 300, reward: 7000, claimed: false },
+    { id: 'a8', desc: 'Complete a Full Region Archive', type: 'fullRegionArchive', target: 1, reward: 6000, claimed: false }
 ];
 
 let isGoldenRoad = false;
@@ -139,7 +154,6 @@ let draftMatchLosses = 0;
 let draftHybridScore1 = null;
 let draft1v1Cards = { my: null, cpu: null };
 let marketTimerInterval = null;
-let timedQuestInterval = null;
 let activeSlot = "TOP";
 
 function switchTab(tabId) {
@@ -223,10 +237,11 @@ function rollTier(type) {
     }
 
     if (type === 'Elite') {
-        // Silver still most common base, Gold common, Platinum uncommon, Diamond rare. NO Master.
-        if (rng > 96) return 'Diamond';
-        if (rng > 80) return 'Platinum';
-        if (rng > 45) return 'Gold';
+        // Rebalanced 0.4.7: Gold is now the most common outcome, with a real shot at Diamond/Master.
+        if (rng > 99) return 'Master';
+        if (rng > 91) return 'Diamond';
+        if (rng > 66) return 'Platinum';
+        if (rng > 26) return 'Gold';
         return 'Silver';
     }
 
@@ -288,137 +303,69 @@ function populateLiveArenaVisualizer() {
     document.getElementById("tour-my-power").style.color = teamColor;
 }
 
-function formatTimeRemaining(ms) {
-    if (ms <= 0) return "EXPIRED";
-    const s = Math.floor(ms / 1000) % 60;
-    const m = Math.floor(ms / 60000) % 60;
-    const h = Math.floor(ms / 3600000);
-    if (h > 0) return `${h}h ${m}m ${s}s`;
-    return `${m}m ${s}s`;
-}
-
-function checkTimedQuests() {
-    let anyChanged = false;
-    quests.forEach(q => {
-        if (q.timed && q.accepted) {
-            const timerMs = (q.timerMins || (q.timerHours || 0) * 60) * 60000;
-            if (Date.now() > q.acceptedAt + timerMs) {
-                q.accepted = false;
-                q.acceptedAt = 0;
-                q.baselineAtAccept = 0;
-                anyChanged = true;
-            }
-        }
-    });
-    return anyChanged;
-}
-
-function acceptTimedQuest(id) {
-    const q = quests.find(x => x.id === id);
-    if (!q || !q.timed || q.accepted) return;
-    q.accepted = true;
-    q.acceptedAt = Date.now();
-    q.baselineAtAccept = trackStats[q.type] || 0;
-    saveGame();
-    renderQuests();
-    showToast(`Timed quest accepted — ${q.timerMins || ((q.timerHours || 0) * 60)}m to complete!`, "info");
-}
-
-function startTimedQuestTimer() {
-    if (timedQuestInterval) clearInterval(timedQuestInterval);
-    timedQuestInterval = setInterval(() => {
-        if (checkTimedQuests()) {
-            showToast("A timed quest expired!", "error");
-            saveGame();
-            updateBadges();
-        }
-        const questsTab = document.getElementById("tab-quests");
-        if (questsTab && !questsTab.classList.contains("hidden")) renderQuests();
-    }, 1000);
-}
 
 function renderQuests() {
     const container = document.getElementById("quests-container");
     if (!container) return;
 
-    const milestones = quests.filter(q => !q.repeatable && !q.timed);
+    const milestones = quests.filter(q => !q.repeatable);
     const repeatables = quests.filter(q => q.repeatable);
-    const timedList = quests.filter(q => q.timed);
 
-    function bar(pct, color) {
-        return `<div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-700 mt-2">
-            <div class="${color} h-full transition-all duration-500" style="width:${pct}%"></div></div>`;
-    }
-
-    function questCard(content, border = 'border-slate-700') {
-        return `<div class="bg-slate-800/70 p-4 rounded-xl border ${border} shadow-md">${content}</div>`;
+    // Compact single-line row layout — fits far more quests on screen than the old card grid
+    function questRow(desc, progress, target, reward, claimed, questId, color, extraLabel, claimFn) {
+        claimFn = claimFn || 'claimQuest';
+        const isDone = progress >= target;
+        const pct = Math.min(100, (progress / target) * 100);
+        let btn;
+        if (claimed) {
+            btn = `<button disabled class="shrink-0 bg-slate-700 text-slate-500 px-2.5 py-1.5 rounded-md font-bold cursor-not-allowed text-[10px] whitespace-nowrap">Claimed</button>`;
+        } else if (isDone) {
+            btn = `<button onclick="${claimFn}('${questId}')" class="shrink-0 bg-${color}-500 hover:bg-${color}-400 text-slate-900 px-2.5 py-1.5 rounded-md font-black cursor-pointer transition text-[10px] whitespace-nowrap uppercase">Claim ${reward}</button>`;
+        } else {
+            btn = `<span class="shrink-0 text-slate-500 font-mono text-[10px] w-14 text-right">${progress}/${target}</span>`;
+        }
+        const rowBorder = claimed ? 'border-slate-800 bg-slate-900/40 opacity-50' : isDone ? `border-${color}-700/50 bg-${color}-950/20` : 'border-slate-700 bg-slate-800/60';
+        return `<div class="flex items-center gap-2.5 px-3 py-2 rounded-lg border ${rowBorder}">
+            <div class="flex-1 min-w-0">
+                <div class="text-slate-200 text-xs font-bold truncate">${desc}${extraLabel || ''}</div>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-700/50 mt-1"><div class="bg-${color}-500 h-full transition-all" style="width:${pct}%"></div></div>
+            </div>
+            ${btn}
+        </div>`;
     }
 
     const milestoneHTML = milestones.map(q => {
         const progress = trackStats[q.type] || 0;
-        const isDone = progress >= q.target;
-        const pct = Math.min(100, (progress / q.target) * 100);
-        const btn = q.claimed
-            ? `<button disabled class="w-full mt-2 bg-slate-700 text-slate-500 px-3 py-1.5 rounded-lg font-bold cursor-not-allowed text-xs">Claimed</button>`
-            : isDone
-                ? `<button onclick="claimQuest('${q.id}')" class="w-full mt-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-3 py-1.5 rounded-lg font-black shadow-[0_0_8px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider text-xs">Claim ${q.reward} BE</button>`
-                : `<button disabled class="w-full mt-2 bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg font-bold cursor-not-allowed text-xs">${progress} / ${q.target}</button>`;
-        return questCard(`<h4 class="font-bold text-slate-200 text-sm">${q.desc}</h4>${bar(pct, 'bg-yellow-500')}${btn}`);
+        return questRow(q.desc, progress, q.target, q.reward, q.claimed, q.id, 'yellow');
     }).join("");
 
     const repeatableHTML = repeatables.map(q => {
         const progress = Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0));
-        const isDone = progress >= q.target;
-        const pct = Math.min(100, (progress / q.target) * 100);
-        const badge = q.timesCompleted > 0 ? ` <span class="text-[10px] text-cyan-500 font-bold">×${q.timesCompleted}</span>` : "";
-        const btn = isDone
-            ? `<button onclick="claimQuest('${q.id}')" class="w-full mt-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-3 py-1.5 rounded-lg font-black shadow-[0_0_8px_rgba(6,182,212,0.5)] cursor-pointer transition uppercase tracking-wider text-xs">Claim ${q.reward} BE</button>`
-            : `<button disabled class="w-full mt-2 bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg font-bold cursor-not-allowed text-xs">${progress} / ${q.target}</button>`;
-        return questCard(`<h4 class="font-bold text-cyan-200 text-sm">${q.desc}${badge}</h4><p class="text-[10px] text-slate-500 mt-0.5">Repeatable · ${q.reward} BE</p>${bar(pct, 'bg-cyan-500')}${btn}`, 'border-cyan-900/40');
+        const badge = q.timesCompleted > 0 ? ` <span class="text-cyan-500">×${q.timesCompleted}</span>` : '';
+        return questRow(q.desc, progress, q.target, q.reward, false, q.id, 'cyan', badge);
     }).join("");
 
-    const timedHTML = timedList.map(q => {
-        const now = Date.now();
-        const timerMs = (q.timerMins || (q.timerHours || 0) * 60) * 60000;
-        const msLeft = q.accepted ? (q.acceptedAt + timerMs) - now : 0;
-        const expired = q.accepted && msLeft <= 0;
-        const progress = q.accepted ? Math.max(0, (trackStats[q.type] || 0) - q.baselineAtAccept) : 0;
-        const isDone = progress >= q.target;
-        const pct = Math.min(100, (progress / q.target) * 100);
-
-        let btn, timerBadge = "";
-        if (!q.accepted) {
-            btn = `<button onclick="acceptTimedQuest('${q.id}')" class="w-full mt-2 bg-orange-600 hover:bg-orange-500 text-white px-3 py-1.5 rounded-lg font-black cursor-pointer transition uppercase tracking-wider text-xs">Accept</button>`;
-        } else if (isDone) {
-            btn = `<button onclick="claimQuest('${q.id}')" class="w-full mt-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-3 py-1.5 rounded-lg font-black shadow-[0_0_8px_rgba(234,179,8,0.5)] cursor-pointer transition uppercase tracking-wider text-xs">Claim ${q.reward} BE</button>`;
-            timerBadge = `<span class="text-[10px] text-emerald-400 font-bold ml-1">DONE!</span>`;
-        } else {
-            btn = `<button disabled class="w-full mt-2 bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg font-bold cursor-not-allowed text-xs">${progress} / ${q.target}</button>`;
-            timerBadge = `<span class="text-[10px] font-mono font-bold ml-1 ${expired ? 'text-red-400' : 'text-orange-300'}">${formatTimeRemaining(msLeft)}</span>`;
-        }
-        const borderColor = !q.accepted ? 'border-slate-700' : isDone ? 'border-emerald-700/60' : expired ? 'border-red-800/50' : 'border-orange-800/40';
-        const barColor = isDone ? 'bg-emerald-500' : expired ? 'bg-red-700' : 'bg-orange-500';
-        const completedBadge = q.timesCompleted > 0 ? ` <span class="text-[10px] text-orange-500 font-bold">×${q.timesCompleted}</span>` : "";
-        const progressBar = q.accepted ? bar(pct, barColor) : `<div class="w-full bg-slate-900 h-2 rounded-full border border-slate-700 mt-2"><div class="bg-slate-700 h-full" style="width:100%"></div></div>`;
-        return questCard(`<div class="flex items-center flex-wrap gap-1"><h4 class="font-bold text-orange-200 text-sm">${q.desc}${completedBadge}</h4>${timerBadge}</div><p class="text-[10px] text-slate-500 mt-0.5">${q.timerMins || ((q.timerHours || 0) * 60)}m · ${q.reward} BE · Repeatable</p>${progressBar}${btn}`, borderColor);
+    const achievementHTML = achievements.map(a => {
+        const progress = _achievementProgress(a);
+        return questRow(a.desc, progress, a.target, a.reward, a.claimed, a.id, 'violet', '', 'claimAchievement');
     }).join("");
 
     container.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-            <div>
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-5 items-start">
+            <div class="xl:col-span-1">
                 <h3 class="text-xs font-black text-cyan-400 uppercase tracking-widest mb-1 flex items-center gap-2">🔄 Repeatable Contracts</h3>
                 <p class="text-[10px] text-slate-500 mb-3">Infinite · progress resets after each claim</p>
-                <div class="space-y-3">${repeatableHTML}</div>
+                <div class="space-y-1.5">${repeatableHTML}</div>
             </div>
-            <div>
-                <h3 class="text-xs font-black text-yellow-400 uppercase tracking-widest mb-1">🏆 Milestone Achievements</h3>
+            <div class="xl:col-span-2">
+                <h3 class="text-xs font-black text-yellow-400 uppercase tracking-widest mb-1">🏆 Milestone Quests</h3>
                 <p class="text-[10px] text-slate-500 mb-3">One-time · claimed forever once complete</p>
-                <div class="space-y-3">${milestoneHTML}</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5">${milestoneHTML}</div>
             </div>
-            <div>
-                <h3 class="text-xs font-black text-orange-400 uppercase tracking-widest mb-1">⏱ Timed Challenges</h3>
-                <p class="text-[10px] text-slate-500 mb-3">Accept to start · complete before time runs out</p>
-                <div class="space-y-3">${timedHTML}</div>
+            <div class="xl:col-span-1">
+                <h3 class="text-xs font-black text-violet-400 uppercase tracking-widest mb-1">🎖️ Achievements</h3>
+                <p class="text-[10px] text-slate-500 mb-3">Squad rating &amp; archive milestones</p>
+                <div class="space-y-1.5">${achievementHTML}</div>
             </div>
         </div>`;
 }
@@ -428,10 +375,7 @@ function claimQuest(id) {
     if (!q) return;
 
     let progress;
-    if (q.timed) {
-        if (!q.accepted) return;
-        progress = Math.max(0, (trackStats[q.type] || 0) - q.baselineAtAccept);
-    } else if (q.repeatable) {
+    if (q.repeatable) {
         progress = Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0));
     } else {
         if (q.claimed) return;
@@ -445,11 +389,6 @@ function claimQuest(id) {
     if (q.repeatable) {
         q.baselineAtReset = trackStats[q.type] || 0;
         q.timesCompleted = (q.timesCompleted || 0) + 1;
-    } else if (q.timed) {
-        q.accepted = false;
-        q.acceptedAt = 0;
-        q.baselineAtAccept = 0;
-        q.timesCompleted = (q.timesCompleted || 0) + 1;
     } else {
         q.claimed = true;
     }
@@ -458,8 +397,41 @@ function claimQuest(id) {
     renderQuests();
 }
 
+function _squadAvgRating() {
+    const roles = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
+    const cards = roles.map(r => squad[r]).filter(Boolean);
+    if (cards.length < 5) return 0;
+    return cards.reduce((sum, c) => sum + c.rating, 0) / cards.length;
+}
+
+function _hasFullRegionArchive() {
+    const db = getDB(); if (!db) return false;
+    return ['LCK', 'LPL', 'LEC', 'LCS', 'LCP'].some(region => {
+        const regionCards = db.filter(c => c.region === region && !_SPECIAL_QUALITIES.has(c.quality));
+        return regionCards.length > 0 && regionCards.every(c => collectionRegistry[c.id]);
+    });
+}
+
+function _achievementProgress(a) {
+    if (a.type === 'squadAvg') return Math.min(a.target, Math.round(_squadAvgRating()));
+    if (a.type === 'archiveCount') return Math.min(a.target, Object.keys(collectionRegistry).length);
+    if (a.type === 'fullRegionArchive') return _hasFullRegionArchive() ? 1 : 0;
+    return 0;
+}
+
+function claimAchievement(id) {
+    const a = achievements.find(x => x.id === id);
+    if (!a || a.claimed) return;
+    if (_achievementProgress(a) < a.target) return;
+    blueEssence += a.reward;
+    a.claimed = true;
+    showToast(`Achievement unlocked! +${a.reward} BE`, "success");
+    saveGame();
+    renderQuests();
+}
+
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_6', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_7', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -602,6 +574,13 @@ window.onload = () => {
     if(!trackStats.splitsWithDebuffedWin) trackStats.splitsWithDebuffedWin = 0;
     if(!trackStats.splitsWithoutMeta) trackStats.splitsWithoutMeta = 0;
     if(!trackStats.eliteSplitsCompleted) trackStats.eliteSplitsCompleted = 0;
+    if(!trackStats.standardPacksOpened) trackStats.standardPacksOpened = 0;
+    if(!trackStats.elitePacksOpened) trackStats.elitePacksOpened = 0;
+    if(!trackStats.supremePacksOpened) trackStats.supremePacksOpened = 0;
+    if(!trackStats.firstStandPacksOpened) trackStats.firstStandPacksOpened = 0;
+    if(!trackStats.msiPacksOpened) trackStats.msiPacksOpened = 0;
+    if(!trackStats.mvpPacksOpened) trackStats.mvpPacksOpened = 0;
+    if(!trackStats.seasonMatchesPlayed) trackStats.seasonMatchesPlayed = 0;
 
     const savedUnlocks = localStorage.getItem("lol_unlocks_v1");
     if (savedUnlocks) unlocks = JSON.parse(savedUnlocks);
@@ -613,10 +592,10 @@ window.onload = () => {
     if (trackStats.firstStandWon >= 1 || seasonData.trophyCase.some(t => t.wins >= 6)) unlocks.firstStand = true;
     if (trackStats.msiWon >= 1) unlocks.msi = true;
     if (trackStats.worldsWon >= 1) unlocks.worlds = true;
-    if (trackStats.worldsWon >= 1) unlocks.draftMode = true;
+    if (trackStats.worldsWon >= 1 || (trackStats.regionalSplitWon >= 1 && seasonData.trophyCase.some(t => t.wins >= 6))) unlocks.draftMode = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_4_6';
+    const patchKey = 'lol_patch_seen_v0_4_7';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -647,14 +626,20 @@ window.onload = () => {
             quests = quests.map(q => (oldMap[q.id] && oldMap[q.id].claimed) ? { ...q, claimed: true } : q);
         }
     }
-    if (checkTimedQuests()) saveGame();
+
+    const savedAchievements = localStorage.getItem("lol_achievements_v1");
+    if (savedAchievements) {
+        const savedA = JSON.parse(savedAchievements);
+        const savedAMap = {};
+        savedA.forEach(a => { savedAMap[a.id] = a; });
+        achievements = achievements.map(a => savedAMap[a.id] ? { ...a, claimed: savedAMap[a.id].claimed } : a);
+    }
 
     populateDropdownFilters();
     recalculateRegionalPrice();
     updateDisplays();
     checkAndRecoverTrainingTimer();
     startTradeMarketTimer();
-    startTimedQuestTimer();
     switchTab('welcome');
 };
 
@@ -667,6 +652,7 @@ function saveGame() {
     localStorage.setItem("lol_identity_v7_pro", JSON.stringify(teamIdentity));
     localStorage.setItem("lol_stats_v7_pro", JSON.stringify(trackStats));
     localStorage.setItem("lol_quests_v8_pro", JSON.stringify(quests));
+    localStorage.setItem("lol_achievements_v1", JSON.stringify(achievements));
     localStorage.setItem("lol_prog_v7_pro", JSON.stringify({managerXP, managerLevel, skillPoints, skills}));
     localStorage.setItem("lol_new_items_v7_pro", hasNewClubItems);
     localStorage.setItem("lol_collection_v7_pro", JSON.stringify(collectionRegistry));
@@ -699,18 +685,11 @@ function updateBadges() {
     }
 
     let hasClaimableQuest = quests.some(q => {
-        if (q.timed) {
-            if (!q.accepted) return false;
-            const progress = Math.max(0, (trackStats[q.type] || 0) - q.baselineAtAccept);
-            const timerMs = (q.timerMins || (q.timerHours || 0) * 60) * 60000;
-            const expired = Date.now() > q.acceptedAt + timerMs;
-            return progress >= q.target && !expired;
-        }
         if (q.repeatable) {
             return Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0)) >= q.target;
         }
         return (trackStats[q.type] || 0) >= q.target && !q.claimed;
-    });
+    }) || achievements.some(a => !a.claimed && _achievementProgress(a) >= a.target);
     if (hasClaimableQuest && questsBadge) questsBadge.classList.remove("hidden");
     else if(questsBadge) questsBadge.classList.add("hidden");
 
@@ -1271,7 +1250,7 @@ function checkProgressionUnlocks() {
         unlocks.worlds = true; changed = true;
         showToast("🔓 Worlds unlocked!", "success");
     }
-    if (!unlocks.draftMode && (trackStats.worldsWon || 0) >= 1) {
+    if (!unlocks.draftMode && (trackStats.regionalSplitWon || 0) >= 1 && seasonData.trophyCase.some(t => t.wins >= 6)) {
         unlocks.draftMode = true; changed = true;
         showToast("🔓 Draft Mode unlocked!", "success");
     }
@@ -1417,9 +1396,10 @@ function buyPack(baseCost, type) {
     let db = getDB(); if(!db) return;
     let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
+    const _packTypeKey = { Standard: 'standardPacksOpened', Elite: 'elitePacksOpened', Supreme: 'supremePacksOpened', FirstStand: 'firstStandPacksOpened', MSI: 'msiPacksOpened', Champion: 'champPacksOpened', MVP: 'mvpPacksOpened' }[type];
+    if (_packTypeKey) trackStats[_packTypeKey] = (trackStats[_packTypeKey] || 0) + 1;
     if (type === 'Champion') {
         // 0.1% Champion · 0.5% each Finalist/MSI/FirstStand · 1.5% GM · 5% Master · ~25% Diamond · ~30% Plat · ~22% Gold · ~15% Silver
-        trackStats.champPacksOpened = (trackStats.champPacksOpened || 0) + 1;
         for (let i = 0; i < 5; i++) {
             let rng = (Math.random() * 100) + (skills.scouting * 0.25);
             let pool;
@@ -1699,6 +1679,17 @@ function _smGenStats(avgRating, style) {
     return stats;
 }
 
+function _smGenRoster() {
+    const db = getDB();
+    const roles = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
+    const roster = {};
+    roles.forEach(role => {
+        const pool = db ? db.filter(c => c.role === role) : [];
+        roster[role] = pool.length ? pool[Math.floor(Math.random() * pool.length)].name : '???';
+    });
+    return roster;
+}
+
 function generateSeasonOpponents() {
     const splitBonus = Math.min((seasonData.currentSplit - 1) * 2, 14);
     const used = new Set();
@@ -1718,6 +1709,7 @@ function generateSeasonOpponents() {
             region: _SEASON_REGIONS[Math.floor(Math.random() * _SEASON_REGIONS.length)],
             style,
             stats: _smGenStats(avgRating, style),
+            roster: _smGenRoster(),
         };
     });
     seasonData.matchResults = new Array(10).fill(null);
@@ -1750,14 +1742,14 @@ function generateSeasonOpponents() {
     }));
     seasonData.metaPlaysUsedThisSplit = 0;
 
-    // Pick 2–10 real team slumps — debuffs apply to USER's player cards from those teams (excludes meta teams)
+    // Pick 5–15 real team slumps — debuffs apply to USER's player cards from those teams (excludes meta teams)
     const metaTeamNames = new Set(seasonData.metaTeams.map(m => m.team));
     const slumpPool = allTeams.filter(t => !metaTeamNames.has(t));
-    const slumpCount = Math.min(2 + Math.floor(Math.random() * 9), slumpPool.length);
+    const slumpCount = Math.min(5 + Math.floor(Math.random() * 11), slumpPool.length);
     const shuffledTeams = [...slumpPool].sort(() => Math.random() - 0.5);
     seasonData.slumpTeams = shuffledTeams.slice(0, slumpCount).map(team => ({
         team,
-        debuff: -(5 + Math.floor(Math.random() * 6)),
+        debuff: -(8 + Math.floor(Math.random() * 8)),
     }));
 
     // Simulated league records for the standings chart — higher rating skews toward more wins
@@ -1904,6 +1896,7 @@ function _finishSeasonGame() {
     seasonData.lastMatchTs = Date.now();
     const played = seasonData.matchResults.filter(r => r !== null).length;
     if (played >= seasonData.gamesPerSplit) seasonData.splitComplete = true;
+    trackStats.seasonMatchesPlayed = (trackStats.seasonMatchesPlayed || 0) + 1;
     addXP(win ? 75 : 25);
     saveGame();
 }
@@ -2208,6 +2201,7 @@ function _renderSeasonMatchList(container) {
 function _renderSeasonGame(container) {
     const st = _smState;
     const opp = seasonData.opponents[st.oppIdx];
+    if (!opp.roster) opp.roster = _smGenRoster();
 
     // Score pips
     function pips(count, maxWins, colorClass) {
@@ -2241,6 +2235,14 @@ function _renderSeasonGame(container) {
             <span class="text-slate-200 font-bold truncate flex-1">${squad.COACH.name}</span>
             <span class="font-mono text-slate-400">LDR <span class="text-yellow-400 font-black">${squad.COACH.stats.ldr}</span></span>
            </div>` : '';
+
+    // Opponent's generated team comp
+    const oppRosterRows = ['TOP','JNG','MID','ADC','SUP'].map(r =>
+        `<div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-500 font-black w-8 uppercase shrink-0">${r}</span>
+            <span class="text-slate-200 font-bold truncate flex-1">${opp.roster[r]}</span>
+        </div>`
+    ).join('');
 
     // Play option cards
     const playCards = st.phase === 'pick' ? st.options.map(play => {
@@ -2330,11 +2332,15 @@ function _renderSeasonGame(container) {
             <!-- Play options -->
             <div class="flex flex-wrap gap-3">${playCards}</div>`}
 
-            <!-- Two-col layout: roster stats + match log -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Three-col layout: your roster + opponent comp + match log -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-slate-800/60 rounded-xl border border-slate-700 p-4">
                     <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Your Roster</div>
                     <div class="space-y-1.5">${roleRows}${coachRow}</div>
+                </div>
+                <div class="bg-slate-800/60 rounded-xl border border-red-900/40 p-4">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-red-400 mb-3">${opp.name} Roster</div>
+                    <div class="space-y-1.5">${oppRosterRows}</div>
                 </div>
                 <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4 font-mono">
                     <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Match Log</div>
@@ -2556,7 +2562,17 @@ let _pickerFilters = { region: 'ALL', sort: 'rating' };
 function populateDropdownFilters() { /* replaced by openPlayerPicker */ }
 function renderFilteredPicker() { /* replaced by renderPickerCards */ }
 
-function selectSlot(role) { openPlayerPicker(role); }
+function _isSquadLockedForSeason() {
+    return (seasonData.matchResults || []).some(r => r !== null);
+}
+
+function selectSlot(role) {
+    if (_isSquadLockedForSeason()) {
+        showToast("Squad is locked for this Season Split — finish or advance the split to make changes.", "error");
+        return;
+    }
+    openPlayerPicker(role);
+}
 
 function openPlayerPicker(role) {
     activeSlot = role;
@@ -2680,6 +2696,8 @@ function renderPickerCards() {
 }
 
 function renderSquadView() {
+    const lockBanner = document.getElementById("squad-lock-banner");
+    if (lockBanner) lockBanner.classList.toggle("hidden", !_isSquadLockedForSeason());
     const slots = ["COACH", "TOP", "JNG", "MID", "ADC", "SUP", "SUB1", "SUB2", "SUB3"];
     slots.forEach(role => {
         const slot = document.getElementById(`squad-${role}`); if(!slot) return; slot.innerHTML = "";
@@ -2693,7 +2711,13 @@ function renderSquadView() {
     computeChemistry();
 }
 
-function clearSquad() { squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null }; saveGame(); }
+function clearSquad() {
+    if (_isSquadLockedForSeason()) {
+        showToast("Squad is locked for this Season Split — finish or advance the split to make changes.", "error");
+        return;
+    }
+    squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null }; saveGame();
+}
 
 function getTierFromRating(rating) {
     if (rating >= 98) return "Challenger";
@@ -3022,7 +3046,7 @@ function handleTournamentWin() {
     checkProgressionUnlocks();
 
     // Notify any newly claimable milestone quests
-    quests.filter(q => !q.repeatable && !q.timed && !q.claimed).forEach(q => {
+    quests.filter(q => !q.repeatable && !q.claimed).forEach(q => {
         if ((trackStats[q.type] || 0) >= q.target) {
             showToast(`Quest Ready: "${q.desc}" — Claim ${q.reward} BE in Quests!`, 'success');
         }
@@ -3146,7 +3170,7 @@ function draftTeamAvgRating(team) {
 }
 
 function startDraftMode() {
-    if (!unlocks.draftMode) { showToast("Win the World Championship to unlock Draft Mode.", "error"); return; }
+    if (!unlocks.draftMode) { showToast("Win a Regional Split and complete a Playoff-tier Season Split to unlock Draft Mode.", "error"); return; }
     if (club.length < 15) {
         showToast(`Draft Mode requires at least 15 cards in your club. You have ${club.length}.`, 'error');
         return;
@@ -3599,6 +3623,8 @@ function endDraftMode() {
 const UPGRADE_TIER_ORDER = ['Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
 const UPGRADE_COSTS = { Silver: 50, Gold: 100, Platinum: 150, Diamond: 200, Master: 250, Grandmaster: 300 };
 const UPGRADE_RATING_RANGES = { Gold: [80,84], Platinum: [85,89], Diamond: [90,93], Master: [94,95], Grandmaster: [96,97], Challenger: [98,100] };
+// Master->Grandmaster and Grandmaster->Challenger only need 5 cards — those tiers are already rare.
+const UPGRADE_CARD_COUNTS = { Silver: 10, Gold: 10, Platinum: 10, Diamond: 10, Master: 5, Grandmaster: 5 };
 
 function upgradeCards(role, fromTier) {
     const fromIdx = UPGRADE_TIER_ORDER.indexOf(fromTier);
@@ -3607,19 +3633,20 @@ function upgradeCards(role, fromTier) {
     }
     const toTier = UPGRADE_TIER_ORDER[fromIdx + 1];
     const cost = UPGRADE_COSTS[fromTier];
+    const needed = UPGRADE_CARD_COUNTS[fromTier];
     const activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
     const eligible = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId));
-    if (eligible.length < 10) {
-        showToast(`Need 10 ${fromTier} ${role} cards. You have ${eligible.length}.`, 'error'); return;
+    if (eligible.length < needed) {
+        showToast(`Need ${needed} ${fromTier} ${role} cards. You have ${eligible.length}.`, 'error'); return;
     }
     if (blueEssence < cost) {
         showToast(`Need ${cost} BE for this upgrade.`, 'error'); return;
     }
     showConfirm(
         `Upgrade ${fromTier} → ${toTier}?`,
-        `Sacrifice 10 ${fromTier} ${role} cards + ${cost} BE to forge 1 ${toTier} ${role} card.`,
+        `Sacrifice ${needed} ${fromTier} ${role} cards + ${cost} BE to forge 1 ${toTier} ${role} card.`,
         () => {
-            const toRemove = [...eligible].sort((a, b) => b.rating - a.rating).slice(0, 10);
+            const toRemove = [...eligible].sort((a, b) => b.rating - a.rating).slice(0, needed);
             club = club.filter(c => !toRemove.some(r => r.uniqueId === c.uniqueId));
             blueEssence -= cost;
             const base = toRemove[0];
@@ -3662,14 +3689,15 @@ function renderUpgradeLab() {
     TIERS.forEach(fromTier => {
         const toTier = UPGRADE_TIER_ORDER[UPGRADE_TIER_ORDER.indexOf(fromTier) + 1];
         const cost = UPGRADE_COSTS[fromTier];
+        const needed = UPGRADE_CARD_COUNTS[fromTier];
         ROLES.forEach(role => {
             const count = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId)).length;
             if (count === 0) return;
             hasAny = true;
-            const canUpgrade = count >= 10 && blueEssence >= cost;
-            const notEnoughCards = count < 10;
-            const notEnoughBE = count >= 10 && blueEssence < cost;
-            const btnLabel = canUpgrade ? 'Upgrade ⚡' : notEnoughCards ? `Need ${10 - count} more` : `Need ${cost - blueEssence} BE`;
+            const canUpgrade = count >= needed && blueEssence >= cost;
+            const notEnoughCards = count < needed;
+            const notEnoughBE = count >= needed && blueEssence < cost;
+            const btnLabel = canUpgrade ? 'Upgrade ⚡' : notEnoughCards ? `Need ${needed - count} more` : `Need ${cost - blueEssence} BE`;
             const row = document.createElement('div');
             row.className = `flex items-center justify-between gap-4 p-5 rounded-2xl border transition ${canUpgrade ? 'border-green-700/60 bg-green-950/20 shadow-lg shadow-green-950/20' : 'border-slate-700/50 bg-slate-900/30'}`;
             row.innerHTML = `
@@ -3686,7 +3714,7 @@ function renderUpgradeLab() {
                 </div>
                 <div class="flex items-center gap-6 flex-wrap justify-end">
                     <div class="text-center min-w-[56px]">
-                        <div class="text-3xl font-black font-mono ${count >= 10 ? 'text-green-400' : 'text-slate-400'}">${count}<span class="text-slate-600 text-xl">/10</span></div>
+                        <div class="text-3xl font-black font-mono ${count >= needed ? 'text-green-400' : 'text-slate-400'}">${count}<span class="text-slate-600 text-xl">/${needed}</span></div>
                         <div class="text-[10px] text-slate-500 uppercase font-bold">cards</div>
                     </div>
                     <div class="text-center min-w-[60px]">

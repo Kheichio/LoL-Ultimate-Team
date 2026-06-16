@@ -405,6 +405,8 @@ header {
 .nav-btn {
     border-radius: 8px !important;
     letter-spacing: 0.01em;
+    min-width: 92px;
+    text-align: center;
 }
 .nav-btn:hover {
     background: rgba(71, 85, 105, 0.8) !important;

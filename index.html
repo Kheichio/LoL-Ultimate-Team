@@ -42,8 +42,9 @@
         </div>
 
         <div class="flex items-center justify-center flex-wrap gap-2 flex-grow">
-            <button onclick="switchTab('store')" data-tab="store" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Store</button>
-            <button onclick="switchTab('trade'); renderTradeMarket();" data-tab="trade" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-orange-400 whitespace-nowrap text-sm">Trade</button>
+            <button id="dark-mode-btn" onclick="toggleDarkMode()" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-slate-300 whitespace-nowrap text-sm" title="Toggle light/dark mode">☀️</button>
+            <button onclick="switchTab('welcome')" data-tab="welcome" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-green-400 whitespace-nowrap text-sm">Welcome</button>
+            <button onclick="switchTab('guide')" data-tab="guide" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-cyan-400 whitespace-nowrap text-sm">Guide</button>
             <button onclick="switchTab('quests'); renderQuests();" data-tab="quests" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-400 whitespace-nowrap text-sm relative">
                 Quests
                 <span id="badge-quests" class="absolute -top-1.5 -right-1.5 flex h-3 w-3 hidden">
@@ -51,21 +52,15 @@
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                 </span>
             </button>
-            <button onclick="switchTab('guide')" data-tab="guide" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-cyan-400 whitespace-nowrap text-sm">Guide</button>
-            <button onclick="switchTab('season'); renderSeasonTab();" data-tab="season" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-blue-300 whitespace-nowrap text-sm">Season</button>
-            <button onclick="switchTab('welcome')" data-tab="welcome" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-green-400 whitespace-nowrap text-sm">Welcome</button>
+            <button onclick="switchTab('trade'); renderTradeMarket();" data-tab="trade" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-orange-400 whitespace-nowrap text-sm">Trade</button>
+            <button onclick="switchTab('store')" data-tab="store" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Store</button>
 
             <div class="mx-4 text-center flex flex-col items-center">
                 <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black px-10 py-2.5 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] transform hover:scale-105 transition text-sm tracking-widest uppercase cursor-pointer border border-blue-400">PLAY</button>
                 <div id="debt-warning" class="text-[10px] font-mono font-bold text-red-400 mt-1 hidden animate-pulse">Debt: <span id="debt-display">0</span> BE</div>
             </div>
 
-            <button onclick="switchTab('collection'); renderCollection();" data-tab="collection" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-200 whitespace-nowrap text-sm relative">
-                Archive
-                <span id="badge-collection" class="absolute -top-2 -right-2 hidden bg-red-500 text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow border border-slate-900 z-10">
-                  <span id="badge-collection-count">0</span>
-                </span>
-            </button>
+            <button onclick="switchTab('squad')" data-tab="squad" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Squad</button>
             <button onclick="switchTab('club')" data-tab="club" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm relative">
                 Club
                 <span id="badge-club" class="absolute -top-1.5 -right-1.5 flex h-3 w-3 hidden">
@@ -73,7 +68,7 @@
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                 </span>
             </button>
-            <button onclick="switchTab('squad')" data-tab="squad" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Squad</button>
+            <button onclick="switchTab('season'); renderSeasonTab();" data-tab="season" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-blue-300 whitespace-nowrap text-sm">Season</button>
             <button onclick="switchTab('upgrade')" data-tab="upgrade" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-400 whitespace-nowrap text-sm">Upgrade</button>
             <button onclick="switchTab('skills'); renderSkillsUI();" data-tab="skills" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-emerald-400 whitespace-nowrap text-sm relative">
                 Skills
@@ -81,7 +76,12 @@
                   <span id="badge-skills-count">0</span>
                 </span>
             </button>
-            <button id="dark-mode-btn" onclick="toggleDarkMode()" class="nav-btn bg-slate-700 px-3 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-slate-300 whitespace-nowrap text-sm" title="Toggle light/dark mode">☀️</button>
+            <button onclick="switchTab('collection'); renderCollection();" data-tab="collection" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-yellow-200 whitespace-nowrap text-sm relative">
+                Archive
+                <span id="badge-collection" class="absolute -top-2 -right-2 hidden bg-red-500 text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow border border-slate-900 z-10">
+                  <span id="badge-collection-count">0</span>
+                </span>
+            </button>
         </div>
 
         <div class="flex-shrink-0">
@@ -248,7 +248,7 @@
             <div class="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 p-8 rounded-3xl border border-blue-700/40 shadow-xl text-center">
                 <div class="text-6xl mb-4">🎮</div>
                 <h1 class="text-4xl font-black text-blue-300 uppercase tracking-widest mb-3">LoL Ultimate Team</h1>
-                <p class="text-slate-300 text-base leading-relaxed max-w-xl mx-auto">Build your dream League of Legends roster. Open card packs, sign the best pros, and compete in tournaments — from the local Gaming Cafe all the way to the World Championship.</p>
+                <p class="text-slate-300 text-base leading-relaxed max-w-xl mx-auto">Build your dream League of Legends roster. Open card packs, sign the best pros, grind Season Split matches, and compete in tournaments — from the local Gaming Cafe all the way to the World Championship.</p>
             </div>
 
             <h2 class="text-lg font-black text-slate-300 uppercase tracking-widest border-b border-slate-700 pb-2">Getting Started — Your First Steps</h2>
@@ -284,21 +284,31 @@
             </div>
 
             <!-- Step 4 -->
-            <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-purple-700/30 shadow items-start">
-                <div class="bg-purple-600 text-white font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">4</div>
+            <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-indigo-700/30 shadow items-start">
+                <div class="bg-indigo-600 text-white font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">4</div>
                 <div>
-                    <h3 class="font-black text-purple-400 text-lg mb-1">Open Packs &amp; Upgrade Your Roster</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-3">Spend your BE in the <strong class="text-white">Store</strong> on card packs to pull new players. Silver packs are cheapest; higher packs yield rarer cards. Better-rated cards win more matches and unlock bigger tournaments. You can also use the <strong class="text-yellow-400">Upgrade Lab</strong> — combine 10 cards of the same role and tier to forge a higher-tier card.</p>
-                    <button onclick="switchTab('store')" class="bg-purple-700 hover:bg-purple-600 text-white px-5 py-2 rounded-lg font-bold cursor-pointer transition text-sm">Open Store →</button>
+                    <h3 class="font-black text-indigo-300 text-lg mb-1">Play Season Split Matches</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-3">Open the <strong class="text-white">Season</strong> tab — this is your main long-term loop. Each split has 10 generated opponents; every match is Best of 5 rounds where you pick stat-based plays against them. Watch for <strong class="text-emerald-400">team metas</strong> (stat buffs) and <strong class="text-red-400">team slumps</strong> (stat penalties) affecting real teams your cards belong to. <strong class="text-amber-300">Heads up:</strong> once you play your first match in a split, your squad locks until the split ends — pick your lineup carefully. Splits reward BE, manager XP, and unlock further tournament tiers.</p>
+                    <button onclick="switchTab('season')" class="bg-indigo-700 hover:bg-indigo-600 text-white px-5 py-2 rounded-lg font-bold cursor-pointer transition text-sm">Go to Season →</button>
                 </div>
             </div>
 
             <!-- Step 5 -->
+            <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-purple-700/30 shadow items-start">
+                <div class="bg-purple-600 text-white font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">5</div>
+                <div>
+                    <h3 class="font-black text-purple-400 text-lg mb-1">Open Packs &amp; Upgrade Your Roster</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-3">Spend your BE in the <strong class="text-white">Store</strong> on card packs to pull new players. Standard packs are cheapest; higher packs yield rarer cards. Better-rated cards win more matches and unlock bigger tournaments. You can also use the <strong class="text-yellow-400">Upgrade Lab</strong> — combine cards of the same role and tier to forge a higher-tier card (10 cards for most tiers, just 5 for Master→Grandmaster and Grandmaster→Challenger).</p>
+                    <button onclick="switchTab('store')" class="bg-purple-700 hover:bg-purple-600 text-white px-5 py-2 rounded-lg font-bold cursor-pointer transition text-sm">Open Store →</button>
+                </div>
+            </div>
+
+            <!-- Step 6 -->
             <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-cyan-700/30 shadow items-start">
-                <div class="bg-cyan-500 text-slate-900 font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">5</div>
+                <div class="bg-cyan-500 text-slate-900 font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">6</div>
                 <div>
                     <h3 class="font-black text-cyan-400 text-lg mb-1">Climb the Tournament Ladder</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">As your squad improves, unlock bigger stages: <strong class="text-white">Regional Splits → First Stand → MSI → World Championship</strong>. Take on the <strong class="text-amber-300">Golden Road</strong> gauntlet to conquer all stages in a single run for maximum rewards. Draft Mode is a unique format where you build a team from a fresh card pool and go head-to-head.</p>
+                    <p class="text-slate-400 text-sm leading-relaxed">Gaming Cafe and Regional Split are open from the start. <strong class="text-white">First Stand</strong> unlocks once you complete a Playoff-tier (6+ win) Season Split. <strong class="text-white">MSI</strong> unlocks after winning First Stand and completing 2 total splits. <strong class="text-white">Worlds</strong> unlocks after winning MSI and completing 3 total splits. <strong class="text-cyan-300">Draft Mode</strong> unlocks early — just win 1 Regional Split and hit Playoff tier once. Take on the <strong class="text-amber-300">Golden Road</strong> gauntlet to conquer all standard tournament stages in a single run for maximum rewards.</p>
                 </div>
             </div>
 
@@ -306,16 +316,16 @@
             <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-700/50">
                 <h3 class="font-black text-slate-300 mb-3 uppercase tracking-wider text-sm">Quick Tips</h3>
                 <ul class="text-slate-400 text-sm space-y-2.5 list-disc pl-5">
-                    <li>Check <strong class="text-yellow-400">Quests</strong> often — they award large chunks of BE for milestones you're already hitting.</li>
+                    <li>Check <strong class="text-yellow-400">Quests</strong> often — they award large chunks of BE for milestones you're already hitting, plus live <strong class="text-violet-400">Achievements</strong> for squad rating and Archive progress.</li>
                     <li>The <strong class="text-orange-400">Trade Market</strong> refreshes every 15 min with high-tier cards you can acquire using fodder cards.</li>
-                    <li>Your <strong class="text-blue-400">Squad</strong> cards are protected from selling and trades — only Club cards can be liquidated.</li>
-                    <li>Manage your <strong class="text-slate-300">Skills</strong> tree to unlock scouting bonuses, negotiation discounts, and tactical edges.</li>
+                    <li>Your <strong class="text-blue-400">Squad</strong> cards are protected from selling and trades — only Club cards can be liquidated. Remember: it locks once you start a Season Split.</li>
+                    <li>Manage your <strong class="text-slate-300">Skills</strong> tree to unlock scouting bonuses, negotiation discounts, tactical edges, cheaper Bootcamp cooldowns, and faster XP.</li>
                 </ul>
             </div>
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.6</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.7</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -374,12 +384,13 @@
                     </div>
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-purple-700/30">
                         <h4 class="font-black text-purple-400 mb-2 uppercase tracking-wider text-xs">Elite — 1,000 BE</h4>
-                        <p class="text-slate-400 text-xs mb-2">5 cards · MAX: Diamond</p>
+                        <p class="text-slate-400 text-xs mb-2">5 cards · MAX: Master</p>
                         <div class="space-y-1 text-xs font-mono">
-                            <div class="flex justify-between"><span class="text-slate-400">Silver</span><span class="text-slate-200">~35%</span></div>
-                            <div class="flex justify-between"><span class="text-amber-400">Gold</span><span class="text-slate-200">~35%</span></div>
-                            <div class="flex justify-between"><span class="text-emerald-400">Platinum</span><span class="text-slate-200">~16%</span></div>
-                            <div class="flex justify-between"><span class="text-blue-400">Diamond</span><span class="text-slate-200">~4%</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Silver</span><span class="text-slate-200">~26%</span></div>
+                            <div class="flex justify-between"><span class="text-amber-400">Gold</span><span class="text-slate-200">~40%</span></div>
+                            <div class="flex justify-between"><span class="text-emerald-400">Platinum</span><span class="text-slate-200">~25%</span></div>
+                            <div class="flex justify-between"><span class="text-blue-400">Diamond</span><span class="text-slate-200">~8%</span></div>
+                            <div class="flex justify-between"><span class="text-red-400">Master</span><span class="text-slate-200">~1%</span></div>
                         </div>
                     </div>
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-red-700/30">
@@ -551,20 +562,20 @@
                     </div>
                     <div class="bg-cyan-950/40 p-4 rounded-xl border border-cyan-700/50">
                         <h4 class="text-cyan-300 font-black mb-1">🎯 Draft Mode — 1,000 BE</h4>
-                        <p class="text-slate-400 text-xs mb-2"><strong class="text-red-400">🔒 Unlocks after winning the World Championship tournament.</strong> Requires 15 club cards. <strong class="text-cyan-400">Ban phase</strong> (up to 5 each side) → <strong class="text-cyan-400">Role Assignment</strong> (assign cards to TOP/JNG/MID/ADC/SUP + optional COACH) → <strong class="text-cyan-400">3-round match</strong>. R1 &amp; R2: pick MEC/TMF/MAP focus. R3 Hybrid: pick tactical stat then fundamentals stat, average decides. CPU difficulty scales to your card pool rating. Win: 5,000 BE · Runner-up (1W): 1,500 BE · 0W: no payout.</p>
+                        <p class="text-slate-400 text-xs mb-2"><strong class="text-red-400">🔒 Unlocks after winning 1 Regional Split and completing a Playoff-tier Season Split.</strong> Requires 15 club cards. <strong class="text-cyan-400">Ban phase</strong> (up to 5 each side) → <strong class="text-cyan-400">Role Assignment</strong> (assign cards to TOP/JNG/MID/ADC/SUP + optional COACH) → <strong class="text-cyan-400">3-round match</strong>. R1 &amp; R2: pick MEC/TMF/MAP focus. R3 Hybrid: pick tactical stat then fundamentals stat, average decides. CPU difficulty scales to your card pool rating. Win: 5,000 BE · Runner-up (1W): 1,500 BE · 0W: no payout.</p>
                     </div>
                     <div class="bg-indigo-950/40 p-4 rounded-xl border border-indigo-700/50 sm:col-span-2 lg:col-span-3">
                         <h4 class="text-indigo-300 font-black mb-1">🏆 Season Splits — Free Entry</h4>
                         <p class="text-slate-400 text-xs mb-2">Accessed from <strong class="text-indigo-400">Play → Open Season</strong>. A split consists of 10 opponents generated at the start with <strong class="text-slate-300">scaling difficulty</strong> — Match 1 is the easiest, Match 10 is the hardest. You can play them in any order, one at a time; progress saves between sessions. Only Season Match results count toward your split record — standard tournaments do not. Winning or losing a match awards manager XP (+75 / +25, multiplied by Mentorship).</p>
                         <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">How a match works:</strong> Each match is <strong class="text-slate-300">Best of 5 rounds</strong>. Every round you choose one of three randomly offered plays — each play pits a specific set of your players' stats against the opponent's matching stat. The edge is shown upfront (e.g. <span class="text-emerald-400">+7</span> or <span class="text-red-400">−3</span>) with a random ±8 variance applied on resolution. First to 3 round wins takes the match.</p>
-                        <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">Team Metas &amp; Slumps:</strong> Each split, 5–10 real teams get a random <span class="text-emerald-400">+2 to +10 buff</span> to one specific stat — if you have a card from that team, plays using that stat get boosted. Separately, 2–10 other real teams are in a <span class="text-red-400">slump</span>, taking a flat <span class="text-red-400">−5 to −10</span> penalty across all stats. Both are shown on the Season Matches screen and the Season tab, including exactly which of your current squad members are affected.</p>
+                        <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">Team Metas &amp; Slumps:</strong> Each split, 5–10 real teams get a random <span class="text-emerald-400">+2 to +10 buff</span> to one specific stat — if you have a card from that team, plays using that stat get boosted. Separately, 5–15 other real teams are in a <span class="text-red-400">slump</span>, taking a flat <span class="text-red-400">−8 to −15</span> penalty across all stats. Both are shown on the Season Matches screen and the Season tab, including exactly which of your current squad members are affected.</p>
                         <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">Elite Splits:</strong> 20% of splits are designated Elite — 1 to 6 CPU opponents are upgraded to a 95–99 rating with fully regenerated stats. Flagged with 🔥 wherever they appear.</p>
                         <p class="text-slate-400 text-xs"><strong class="text-slate-300">Opponent styles skew their stats:</strong> Aggressive teams spike MEC, Defensive teams spike MAP/LDR, Chaotic teams have extreme MEC but weak CMP. Split rewards on completion: 10W = 8,000 BE · 8–9W = 5,000 · 6–7W = 3,000 · 4–5W = 1,500 · 0–3W = 500. All completed splits are logged in the <strong class="text-indigo-400">Season tab</strong> trophy case, alongside a live <strong class="text-indigo-400">Split Standings</strong> chart ranking your team against simulated CPU records.</p>
                     </div>
                 </div>
                 <div class="bg-red-950/30 border border-red-700/40 rounded-xl p-4 mt-3 text-xs">
                     <h4 class="text-red-400 font-black mb-1">🔒 Tournament Progression</h4>
-                    <p class="text-slate-400">Gaming Cafe and Regional Split are always open. <strong class="text-slate-300">First Stand</strong> unlocks after completing a Season Split at Playoff tier or better (6+ wins). <strong class="text-slate-300">MSI</strong> unlocks after winning First Stand and completing 2 total Season Splits. <strong class="text-slate-300">Worlds</strong> unlocks after winning MSI and completing 3 total Season Splits. <strong class="text-slate-300">Draft Mode</strong> unlocks after winning the World Championship.</p>
+                    <p class="text-slate-400">Gaming Cafe and Regional Split are always open. <strong class="text-slate-300">First Stand</strong> unlocks after completing a Season Split at Playoff tier or better (6+ wins). <strong class="text-slate-300">MSI</strong> unlocks after winning First Stand and completing 2 total Season Splits. <strong class="text-slate-300">Worlds</strong> unlocks after winning MSI and completing 3 total Season Splits. <strong class="text-slate-300">Draft Mode</strong> unlocks after winning 1 Regional Split and completing a Playoff-tier (6+ win) Season Split — kept early so you don't have to wait until Worlds to try it.</p>
                 </div>
                 <p class="text-xs text-slate-500 font-mono">Difficulty scales by +3 per round plus a random 0–3 variance, so later rounds of each mode push into the next tier bracket.</p>
             </div>
@@ -611,26 +622,26 @@
                 </div>
                 <div class="bg-slate-800 p-6 rounded-2xl border border-yellow-800/30 shadow-lg">
                     <h3 class="text-lg font-bold text-yellow-400 mb-3">⚗️ Upgrade Lab</h3>
-                    <p class="text-sm text-slate-300 leading-relaxed mb-3">Found in the Club tab. Sacrifice 10 unassigned cards of the <strong class="text-yellow-300">same role + same tier</strong> to forge 1 card of the next tier. Cannot upgrade past Challenger.</p>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-3">Found in the Club tab. Sacrifice unassigned cards of the <strong class="text-yellow-300">same role + same tier</strong> to forge 1 card of the next tier — 10 cards for most tiers, but only <strong class="text-yellow-300">5 cards</strong> for Master→Grandmaster and Grandmaster→Challenger since those tiers are already rare. Cannot upgrade past Challenger.</p>
                     <div class="space-y-1 text-xs font-mono">
                         <div class="flex justify-between bg-slate-900/60 px-3 py-1 rounded"><span>10× Silver (role)</span><span class="text-amber-400">→ Gold · 50 BE</span></div>
                         <div class="flex justify-between bg-slate-900/60 px-3 py-1 rounded"><span>10× Gold (role)</span><span class="text-emerald-400">→ Platinum · 100 BE</span></div>
                         <div class="flex justify-between bg-slate-900/60 px-3 py-1 rounded"><span>10× Platinum (role)</span><span class="text-blue-400">→ Diamond · 150 BE</span></div>
                         <div class="flex justify-between bg-slate-900/60 px-3 py-1 rounded"><span>10× Diamond (role)</span><span class="text-purple-400">→ Master · 200 BE</span></div>
-                        <div class="flex justify-between bg-slate-900/60 px-3 py-1 rounded"><span>10× Master (role)</span><span class="text-red-400">→ Grandmaster · 250 BE</span></div>
-                        <div class="flex justify-between bg-slate-900/60 px-3 py-1 rounded"><span>10× Grandmaster (role)</span><span class="text-yellow-300">→ Challenger · 300 BE</span></div>
+                        <div class="flex justify-between bg-slate-900/60 px-3 py-1 rounded"><span>5× Master (role)</span><span class="text-red-400">→ Grandmaster · 250 BE</span></div>
+                        <div class="flex justify-between bg-slate-900/60 px-3 py-1 rounded"><span>5× Grandmaster (role)</span><span class="text-yellow-300">→ Challenger · 300 BE</span></div>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
-                    <h3 class="text-lg font-bold text-yellow-400 mb-3">📋 Quests & Challenges</h3>
-                    <p class="text-sm text-slate-300 leading-relaxed mb-3">Three types of quest run simultaneously. Complete all types to maximise BE income.</p>
+                    <h3 class="text-lg font-bold text-yellow-400 mb-3">📋 Quests &amp; Achievements</h3>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-3">Three categories run simultaneously in the Quests tab. Complete all types to maximise BE income.</p>
                     <div class="space-y-2 text-xs font-mono">
-                        <div class="bg-yellow-950/30 p-2 rounded-lg border border-yellow-800/40"><span class="text-yellow-400 font-bold">Milestones</span> — One-time only. Includes stage-specific goals like winning MSI or Worlds.</div>
-                        <div class="bg-cyan-950/30 p-2 rounded-lg border border-cyan-800/40"><span class="text-cyan-400 font-bold">Repeatable Contracts</span> — Infinite. Pull Challenger cards, open Champion packs, liquidate GM+ cards, win Draft Modes.</div>
-                        <div class="bg-orange-950/30 p-2 rounded-lg border border-orange-800/40"><span class="text-orange-400 font-bold">Timed Challenges</span> — Accept to start a countdown. Complete the goal before expiry. Repeatable.</div>
+                        <div class="bg-yellow-950/30 p-2 rounded-lg border border-yellow-800/40"><span class="text-yellow-400 font-bold">Milestone Quests</span> — One-time only. Includes stage-specific goals, pack-opening counts, and Season Split objectives.</div>
+                        <div class="bg-cyan-950/30 p-2 rounded-lg border border-cyan-800/40"><span class="text-cyan-400 font-bold">Repeatable Contracts</span> — Infinite. Pull Challenger cards, open Champion packs, liquidate GM+ cards, play Season Matches.</div>
+                        <div class="bg-violet-950/30 p-2 rounded-lg border border-violet-800/40"><span class="text-violet-400 font-bold">Achievements</span> — Live checks rather than tracked counters: field a squad averaging 80/90/95/99+ raw rating, or hit Archive collection milestones. Re-evaluate automatically as your squad and collection change.</div>
                     </div>
                 </div>
                 <div class="bg-slate-800 p-6 rounded-2xl border border-cyan-900/30 shadow-lg">
@@ -666,17 +677,21 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-lime-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.6)</h3>
+                <h3 class="text-lg font-bold text-violet-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.7)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-emerald-400 font-bold">Team-Based Meta Rework</span> — The Split Meta system no longer buffs a single role. Instead, 5–10 real teams are randomly assigned a +2 to +10 buff to one specific stat each split. Cards from those teams get the boost during Season Matches. Shown in full on the Season Matches screen and Season tab, including a live "Your Buffed Players" breakdown — mirrors the Team Slump system exactly.</li>
-                    <li><span class="text-lime-400 font-bold">Bootcamp Director (New Skill)</span> — Bootcamp has been simplified to a single 50 BE / +5 Power tier (Medium and Hard tiers removed). The new Bootcamp Director skill costs <strong>double Skill Points</strong> per level but raises the bonus by +2 per level, up to +15 at level 5 — restoring the old Hard-tier value through investment instead of BE.</li>
-                    <li><span class="text-red-400 font-bold">Tournament Progression Gating</span> — First Stand now requires completing a Playoff-tier (6+ win) Season Split. MSI requires winning First Stand and completing 2 total Splits. Worlds requires winning MSI and completing 3 total Splits. Draft Mode requires winning the World Championship. Locked tournament cards show a 🔒 badge with the unlock condition. Players who already meet these milestones are grandfathered in automatically.</li>
-                    <li><span class="text-cyan-400 font-bold">Season Split Quests</span> — 5 new quests: win a split undefeated (10-0), win a split with 2 slumped squad players, win a split without ever using a meta play, complete an Elite Split, and complete 5 Season Splits total.</li>
-                    <li><span class="text-slate-300 font-bold">Quest Reward Rebalance</span> — All existing quest rewards reduced by roughly 20% to slow overall progression pacing. Applies retroactively to unclaimed quests on existing saves.</li>
-                    <li><span class="text-yellow-400 font-bold">Tabe Buff</span> — AL 2025 Tabe (Coach) upgraded from 85 to 91 rating, Platinum → Diamond quality, with proportional increases across TMF/FRM/CMP/MAP/LDR.</li>
-                    <li><span class="text-indigo-400 font-bold">Split Standings Chart</span> — The Season tab now shows a live standings table ranking your team against simulated win-loss records for all 10 CPU opponents, re-sorted as your record changes — see exactly where you sit in the table.</li>
+                    <li><span class="text-red-400 font-bold">Slumps Intensified</span> — Team Slumps now hit 5–15 real teams per split (up from 2–10) with a −8 to −15 stat penalty (up from −5 to −10) — slumped cards hurt noticeably more, so check the Slump panel before locking in your lineup.</li>
+                    <li><span class="text-violet-400 font-bold">Achievements (New)</span> — Replaces Timed Challenges in the Quests tab. Live, re-evaluating checks rather than tracked counters: field a squad averaging 80/90/95/99+ raw rating (before chemistry or Bootcamp modifiers), or hit Archive milestones — 50/150/300 unique cards collected, or complete a full region's regular-card archive.</li>
+                    <li><span class="text-cyan-400 font-bold">Quests Overhaul</span> — Timed Challenges removed entirely. Added a new "Play 5 Season Matches" repeatable contract and 7 new milestone quests for opening 10 packs of each type (Standard, Elite, Supreme, First Stand, MSI, Champion, MVP — 1,000 BE each). The Quests tab itself was redesigned with compact single-line rows across a 4-column layout so far more quests fit on screen without scrolling.</li>
+                    <li><span class="text-emerald-400 font-bold">Draft Mode Unlocks Earlier</span> — No longer gated behind winning Worlds. Now unlocks after winning just 1 Regional Split and completing one Playoff-tier (6+ win) Season Split, so you don't have to wait until end-game to try it.</li>
+                    <li><span class="text-orange-400 font-bold">Elite Pack Rebalanced</span> — Drop curve reworked: Gold is now the most common result (~40%), Platinum and Diamond odds raised, and a small Master chance (~1%) added. Previously capped at Diamond with Silver as the most common outcome.</li>
+                    <li><span class="text-yellow-400 font-bold">Cheaper Top-Tier Upgrades</span> — Master→Grandmaster and Grandmaster→Challenger now cost 5 cards instead of 10, reflecting how rare those tiers already are. Lower tiers are unchanged.</li>
+                    <li><span class="text-blue-400 font-bold">Nav Bar Reordered</span> — New order: Dark Mode, Welcome, Guide, Quests, Trade, Store, <strong>PLAY</strong>, Squad, Club, Season, Upgrade, Skills, Archive. Every button is now a uniform size, with PLAY centered exactly between two groups of six.</li>
+                    <li><span class="text-pink-400 font-bold">Opponent Team Comps</span> — Season Match opponents now generate a full 5-role roster pulled from real players. Shown in a dedicated panel during the live match so you can see who you're actually facing.</li>
+                    <li><span class="text-red-400 font-bold">Mid-Season Squad Lock</span> — Once you play your first match of a Season Split, your squad locks for the rest of that split — no more swapping lineups mid-season. A banner explains the lock on the Squad tab; it lifts automatically when you advance to the next split. Tournaments and Draft Mode are unaffected.</li>
+                    <li><span class="text-slate-300 font-bold">Welcome Flow Updated</span> — Added a dedicated Season Split Matches step and refreshed the tournament-ladder step to reflect the new unlock chain and early Draft Mode access.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.5): Season Match XP Rewards · Elite Splits · Elite Trophy Indicators</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.6): Team-Based Meta Rework · Bootcamp Director Skill · Tournament Progression Gating · Season Split Quests · Quest Reward Rebalance · Tabe Buff · Split Standings Chart</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.5): Season Match XP Rewards · Elite Splits · Elite Trophy Indicators</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.4): Team Conditioning Skill · Mentorship Program Skill · 6-Skill Grid Layout</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.3): Split Meta System · Team Slump System · Conditions Dashboard · In-Match Indicators</p>
             </div>
@@ -823,6 +838,10 @@
         </section>
 
         <section id="tab-squad" class="tab-content hidden">
+            <div id="squad-lock-banner" class="hidden bg-red-950/40 border border-red-700/50 rounded-xl p-3 mb-4 flex gap-2 items-start text-xs text-red-300">
+                <span class="text-lg shrink-0">🔒</span>
+                <span>Your squad is locked for this Season Split — you've already played a match, so swapping players is disabled until you finish or advance the split. This lock only applies because of Season Matches in progress.</span>
+            </div>
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-5 flex flex-wrap gap-4 items-center justify-between shadow-sm">
                 <div class="flex items-center gap-3 flex-wrap">
                     <input type="text" id="custom-team-name" oninput="updateTeamCustomization()" value="My Team" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-200 font-bold text-base focus:border-blue-500/50 focus:outline-none w-40">
@@ -996,7 +1015,7 @@
                         <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-emerald-800/60 text-emerald-300">Win: 2,500 BE</span>
                         <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-red-800/60 text-red-400">Loss: No Payout</span>
                     </div>
-                    <div id="lock-draftmode" class="hidden text-xs font-black text-red-400 bg-red-950/60 border border-red-700/40 px-3 py-2 rounded-lg mb-3 inline-block">🔒 Win the World Championship to unlock Draft Mode</div>
+                    <div id="lock-draftmode" class="hidden text-xs font-black text-red-400 bg-red-950/60 border border-red-700/40 px-3 py-2 rounded-lg mb-3 inline-block">🔒 Win a Regional Split + a Playoff-tier Season Split to unlock</div>
                     <button id="btn-draftmode" onclick="startDraftMode()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(6,182,212,0.5)]">Enter Draft</button>
                 </div>
 
@@ -1217,8 +1236,8 @@
         </section>
 
         <section id="tab-quests" class="tab-content hidden max-w-6xl mx-auto">
-            <h2 class="text-3xl font-black mb-2 text-slate-100 tracking-wide">Quests & Challenges</h2>
-            <p class="text-slate-400 text-sm mb-6">Earn BE through milestone achievements, repeatable contracts, and timed challenges.</p>
+            <h2 class="text-3xl font-black mb-2 text-slate-100 tracking-wide">Quests</h2>
+            <p class="text-slate-400 text-sm mb-6">Earn BE through one-time milestone quests and infinite repeatable contracts.</p>
             <div id="quests-container"></div>
         </section>
 
@@ -1375,7 +1394,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.6 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.7 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1383,18 +1402,20 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-emerald-400 font-bold">Team-Based Meta Rework</span> — Meta now buffs 5–10 real teams with a +2 to +10 boost to one stat each, instead of a single role. Mirrors the Slump system exactly.</li>
-                <li><span class="text-lime-400 font-bold">Bootcamp Director (New Skill)</span> — Bootcamp simplified to one tier. New skill costs double SP but raises the bonus +2/level, up to +15 at Lv5.</li>
-                <li><span class="text-red-400 font-bold">Tournament Progression</span> — First Stand, MSI, Worlds, and Draft Mode now unlock sequentially through Season Split performance and tournament wins. See the Guide for exact requirements.</li>
-                <li><span class="text-cyan-400 font-bold">Season Split Quests</span> — 5 new quests for undefeated splits, slump-affected wins, meta-free wins, Elite Splits, and split count milestones.</li>
-                <li><span class="text-slate-300 font-bold">Quest Rewards Nerfed</span> — All quest BE rewards reduced ~20% to slow progression pacing.</li>
-                <li><span class="text-yellow-400 font-bold">Tabe Buff</span> — AL 2025 Tabe upgraded to 91 rating, Diamond quality.</li>
-                <li><span class="text-indigo-400 font-bold">Split Standings Chart</span> — Season tab now ranks your team live against simulated CPU records.</li>
+                <li><span class="text-red-400 font-bold">Slumps Intensified</span> — Now hit 5–15 teams (up from 2–10) at −8 to −15 per stat (up from −5 to −10).</li>
+                <li><span class="text-violet-400 font-bold">Achievements (New)</span> — Replaces Timed Challenges. Field a squad averaging 80/90/95/99+ raw rating, or hit Archive collection milestones.</li>
+                <li><span class="text-cyan-400 font-bold">Quests Overhaul</span> — Timed Challenges removed. New Season Match repeatable + 7 pack-opening quests (1,000 BE each). Quests tab redesigned for higher density.</li>
+                <li><span class="text-emerald-400 font-bold">Draft Mode Unlocks Earlier</span> — Now just 1 Regional Split win + 1 Playoff-tier Season Split, instead of winning Worlds.</li>
+                <li><span class="text-orange-400 font-bold">Elite Pack Rebalanced</span> — Gold is now the most common drop, Plat/Diamond odds raised, small Master chance added.</li>
+                <li><span class="text-yellow-400 font-bold">Cheaper Top-Tier Upgrades</span> — Master→Grandmaster and Grandmaster→Challenger now cost 5 cards instead of 10.</li>
+                <li><span class="text-blue-400 font-bold">Nav Bar Reordered</span> — Uniform button sizes, PLAY centered between two groups of six.</li>
+                <li><span class="text-pink-400 font-bold">Opponent Team Comps</span> — Season Match opponents now show a generated 5-role roster during live matches.</li>
+                <li><span class="text-red-400 font-bold">Mid-Season Squad Lock</span> — Squad locks after your first match of a split until you advance to the next one.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.6</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.7</button>
             </div>
         </div>
     </div>
