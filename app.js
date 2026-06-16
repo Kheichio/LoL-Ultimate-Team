@@ -1178,12 +1178,12 @@ function renderSkillsUI() {
 
     const container = document.getElementById("skills-container"); if (!container) return;
     const skillDefs = [
-        { key: "scouting",     name: "Scouting Network",      desc: "Permanently boosts RNG values during pack openings, increasing the chance of pulling higher-tier drops.",                                           color: "blue"   },
-        { key: "negotiation",  name: "Corporate Negotiation",  desc: "Reduces the baseline markup penalty on loan inflations by 20 BE per level.",                                                                         color: "amber"  },
-        { key: "tactics",      name: "Tactical Acumen",        desc: "Grants a guaranteed flat power bonus (+3 per level) to your squad during the Tactical Draft phase.",                                                 color: "emerald"},
-        { key: "transfer",      name: "Transfer Window",        desc: "Lv1: 25% chance per offer to land a Transfer Window Discount (~25% off asset cost). Lv2: +4 trade offers. Lv4: +5 offers. Lv3: unlocks Role Filter in Exchange Hub. Lv5: Force Refresh locks the market to your chosen role.",         color: "orange" },
-        { key: "conditioning",  name: "Team Conditioning",      desc: "Lv1: 45s cooldown. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown between Season Matches — play them back to back.",                                   color: "rose"   },
-        { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: +25%. Lv2: +50%. Lv3: +75%. Lv4: ×2 (double XP). Lv5: ×2.5 — reach new manager levels and skill points far faster.",           color: "violet" },
+        { key: "scouting",     name: "Scouting Network",      desc: "Adds +0.25% to the drop-tier RNG roll per level (max +1.25 at level 5) on every pack you open — Standard, Elite, Supreme, and the milestone-quality packs — improving your odds of pulling higher-tier cards.",                       color: "blue"   },
+        { key: "negotiation",  name: "Corporate Negotiation",  desc: "Reduces the BE inflation penalty charged per active loan by 20 BE per level — from a 150 BE base down to 50 BE at level 5.",                                                                          color: "amber"  },
+        { key: "tactics",      name: "Tactical Acumen",        desc: "Grants a guaranteed +3 flat power bonus per level (max +15 at level 5) to your squad during the Tactical Draft phase of tournament matches.",                                                          color: "emerald"},
+        { key: "transfer",      name: "Transfer Window",        desc: "Lv1: 25% chance per trade offer to land a Transfer Window Discount (~25% off asset cost). Lv2: +4 trade offers. Lv3: unlocks Role Filter in Exchange Hub. Lv4: +5 offers. Lv5: Force Refresh locks the market to your chosen role.",  color: "orange" },
+        { key: "conditioning",  name: "Team Conditioning",      desc: "Reduces the cooldown between Season Matches (60s base). Lv1: 45s. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown — play matches back to back.",                                                       color: "rose"   },
+        { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: ×1.25 (+25%). Lv2: ×1.5 (+50%). Lv3: ×1.75 (+75%). Lv4: ×2. Lv5: ×2.5 — reach new manager levels and skill points far faster.",                                           color: "violet" },
         { key: "bootcamp",      name: "Bootcamp Director",      desc: "Costs double SP per level. Increases the Bootcamp power bonus by +2 per level — from +5 base up to +15 at level 5.",                                       color: "lime"   },
     ];
     container.innerHTML = "";
