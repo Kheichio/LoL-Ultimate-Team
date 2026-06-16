@@ -431,7 +431,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_8', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_9', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -588,14 +588,16 @@ window.onload = () => {
     if (unlocks.msi === undefined) unlocks.msi = false;
     if (unlocks.worlds === undefined) unlocks.worlds = false;
     if (unlocks.draftMode === undefined) unlocks.draftMode = false;
+    if (unlocks.goldenRoad === undefined) unlocks.goldenRoad = false;
     // Grandfather in players who already met the criteria before this patch
     if (trackStats.firstStandWon >= 1 || seasonData.trophyCase.some(t => t.wins >= 6)) unlocks.firstStand = true;
     if (trackStats.msiWon >= 1) unlocks.msi = true;
     if (trackStats.worldsWon >= 1) unlocks.worlds = true;
     if (trackStats.worldsWon >= 1 || (trackStats.regionalSplitWon >= 1 && seasonData.trophyCase.some(t => t.wins >= 6))) unlocks.draftMode = true;
+    if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_4_8';
+    const patchKey = 'lol_patch_seen_v0_4_9';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -771,21 +773,29 @@ function generateTradeOffers() {
         let rewardCard = drawPool[cIdx];
         drawPool.splice(cIdx, 1);
         let reqQuality = "Platinum";
-        let reqCount = 3;
+        let reqCount = 4;
         if (rewardCard.quality === "Master") {
             reqQuality = Math.random() > 0.5 ? "Platinum" : "Diamond";
-            reqCount = reqQuality === "Platinum" ? 5 : 2;
+            reqCount = reqQuality === "Platinum" ? 7 : 3;
         } else if (rewardCard.quality === "Grandmaster") {
             reqQuality = Math.random() > 0.5 ? "Diamond" : "Master";
-            reqCount = reqQuality === "Diamond" ? 4 : 2;
+            reqCount = reqQuality === "Diamond" ? 6 : 3;
         } else if (rewardCard.quality === "Challenger") {
             reqQuality = Math.random() > 0.5 ? "Diamond" : "Master";
-            reqCount = reqQuality === "Diamond" ? 7 : 3;
+            reqCount = reqQuality === "Diamond" ? 10 : 4;
         } else if (["MVP", "Champion", "Finalist", "MSI", "FirstStand"].includes(rewardCard.quality)) {
             reqQuality = Math.random() > 0.5 ? "Master" : "Grandmaster";
-            reqCount = reqQuality === "Master" ? 4 : 2;
+            reqCount = reqQuality === "Master" ? 6 : 3;
         }
-        offers.push({ id: Date.now() + i, rewardBaseId: rewardCard.id, reqQuality, reqCount, completed: false });
+
+        // Transfer Window Lv1: 25% chance per offer to land a discount, knocking ~25% off the asking price
+        const originalReqCount = reqCount;
+        let discounted = false;
+        if (skills.transfer >= 1 && Math.random() < 0.25) {
+            reqCount = Math.max(1, reqCount - Math.max(1, Math.round(reqCount * 0.25)));
+            discounted = reqCount < originalReqCount;
+        }
+        offers.push({ id: Date.now() + i, rewardBaseId: rewardCard.id, reqQuality, reqCount, originalReqCount, discounted, completed: false });
     }
     tradeMarket = { expires: Date.now() + (15 * 60 * 1000), offers };
     saveGame();
@@ -872,10 +882,16 @@ function renderTradeMarket() {
             reqBlock.innerHTML = `<span class="text-emerald-400 font-black tracking-widest uppercase">Acquired</span>`;
         } else {
             let colorClass = hasEnough ? 'text-emerald-400' : 'text-red-400';
+            const countDisplay = offer.discounted
+                ? `<span class="text-slate-500 line-through mr-1">${offer.originalReqCount}</span><span class="text-emerald-400">${offer.reqCount}</span>`
+                : `${offer.reqCount}`;
+            const discountBadge = offer.discounted
+                ? `<p class="text-[10px] font-black text-emerald-400 mt-1">🏷️ Transfer Window Discount!</p>` : '';
             reqBlock.innerHTML = `
                 <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Cost / Exchange</p>
                 <p class="font-mono text-sm font-bold text-slate-300">Requires <span class="text-${offer.reqQuality === 'Diamond' ? 'blue' : 'emerald'}-400">${offer.reqQuality}</span> assets</p>
-                <p class="text-xs mt-1 ${colorClass} font-bold">Have: ${availableFodder.length} / ${offer.reqCount}</p>
+                <p class="text-xs mt-1 ${colorClass} font-bold">Have: ${availableFodder.length} / ${countDisplay}</p>
+                ${discountBadge}
             `;
             let btn = document.createElement("button");
             btn.className = `mt-3 w-full py-2.5 rounded-lg font-black uppercase tracking-wider transition text-xs ${hasEnough ? 'bg-orange-600 hover:bg-orange-500 text-white cursor-pointer shadow-[0_0_10px_rgba(234,88,12,0.4)]' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`;
@@ -1165,7 +1181,7 @@ function renderSkillsUI() {
         { key: "scouting",     name: "Scouting Network",      desc: "Permanently boosts RNG values during pack openings, increasing the chance of pulling higher-tier drops.",                                           color: "blue"   },
         { key: "negotiation",  name: "Corporate Negotiation",  desc: "Reduces the baseline markup penalty on loan inflations by 20 BE per level.",                                                                         color: "amber"  },
         { key: "tactics",      name: "Tactical Acumen",        desc: "Grants a guaranteed flat power bonus (+3 per level) to your squad during the Tactical Draft phase.",                                                 color: "emerald"},
-        { key: "transfer",      name: "Transfer Window",        desc: "Lv2: +4 trade offers. Lv4: +5 offers. Lv3: unlocks Role Filter in Exchange Hub. Lv5: Force Refresh locks the market to your chosen role.",         color: "orange" },
+        { key: "transfer",      name: "Transfer Window",        desc: "Lv1: 25% chance per offer to land a Transfer Window Discount (~25% off asset cost). Lv2: +4 trade offers. Lv4: +5 offers. Lv3: unlocks Role Filter in Exchange Hub. Lv5: Force Refresh locks the market to your chosen role.",         color: "orange" },
         { key: "conditioning",  name: "Team Conditioning",      desc: "Lv1: 45s cooldown. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown between Season Matches — play them back to back.",                                   color: "rose"   },
         { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: +25%. Lv2: +50%. Lv3: +75%. Lv4: ×2 (double XP). Lv5: ×2.5 — reach new manager levels and skill points far faster.",           color: "violet" },
         { key: "bootcamp",      name: "Bootcamp Director",      desc: "Costs double SP per level. Increases the Bootcamp power bonus by +2 per level — from +5 base up to +15 at level 5.",                                       color: "lime"   },
@@ -1261,6 +1277,10 @@ function checkProgressionUnlocks() {
         unlocks.draftMode = true; changed = true;
         showToast("🔓 Draft Mode unlocked!", "success");
     }
+    if (!unlocks.goldenRoad && (trackStats.worldsWon || 0) >= 1) {
+        unlocks.goldenRoad = true; changed = true;
+        showToast("🔓 The Golden Road unlocked!", "success");
+    }
     updateTournamentLocks();
     if (changed) saveGame();
 }
@@ -1280,6 +1300,7 @@ function updateTournamentLocks() {
     applyLock("lock-msi", "btn-msi", unlocks.msi);
     applyLock("lock-worlds", "btn-worlds", unlocks.worlds);
     applyLock("lock-draftmode", "btn-draftmode", unlocks.draftMode);
+    applyLock("lock-goldenroad", "btn-goldenroad", unlocks.goldenRoad);
 }
 
 function checkSquadReady() {
@@ -1308,7 +1329,8 @@ function startTournament(name, cost, r1, r2, baseDiff, rounds) {
 }
 
 function startGoldenRoad() {
-    if (!checkSquadReady()) return; 
+    if (!unlocks.goldenRoad) { showToast("Win the World Championship to unlock the Golden Road.", "error"); return; }
+    if (!checkSquadReady()) return;
     if (blueEssence < 1000) { showToast("Insufficient assets for Golden Road.", "error"); return; }
     if(simIntervalId) clearTimeout(simIntervalId); 
     
@@ -1837,6 +1859,18 @@ function startSeasonGame(idx) {
             return;
         }
     }
+    if (!_isSquadLockedForSeason()) {
+        showConfirm(
+            "Lock In Your Squad?",
+            "This is your first match of the Season Split. Your starting lineup will be locked — no swaps allowed — until you finish or advance this split. Proceed?",
+            () => _smLaunchGame(idx)
+        );
+        return;
+    }
+    _smLaunchGame(idx);
+}
+
+function _smLaunchGame(idx) {
     const opp = seasonData.opponents[idx];
     if (!opp.stats) opp.stats = _smGenStats(opp.avgRating, opp.style);
     _smState = { oppIdx: idx, wins: 0, losses: 0, round: 1, maxRounds: 5, log: [], options: [], phase: 'pick' };
@@ -3173,12 +3207,12 @@ function purgeUnderTier(keepTier) {
 
 // ─── DRAFT MODE ────────────────────────────────────────────────────────────────
 
-// Stat avg helper — handles role-keyed object, applies -10 flex penalty
+// Stat avg helper — handles role-keyed object, applies -10 flex penalty (Legacy cards are exempt — true flex players)
 function draftAvgStat(team, stat) {
     const entries = Object.entries(team).filter(([, c]) => c);
     if (!entries.length) return 0;
     const total = entries.reduce((sum, [slot, card]) => {
-        const natural = card.role === slot || (card.role === 'COACH' && slot === 'COACH');
+        const natural = card.role === slot || (card.role === 'COACH' && slot === 'COACH') || card.region === 'Legacy';
         return sum + Math.max(0, (card.stats[stat] || 0) + (natural ? 0 : -10));
     }, 0);
     return Math.round(total / entries.length);
@@ -3188,7 +3222,7 @@ function draftTeamAvgRating(team) {
     const entries = Object.entries(team).filter(([, c]) => c);
     if (!entries.length) return 0;
     const total = entries.reduce((sum, [slot, card]) => {
-        const natural = card.role === slot || (card.role === 'COACH' && slot === 'COACH');
+        const natural = card.role === slot || (card.role === 'COACH' && slot === 'COACH') || card.region === 'Legacy';
         return sum + Math.max(0, card.rating + (natural ? 0 : -10));
     }, 0);
     return Math.round(total / entries.length);
@@ -3365,8 +3399,10 @@ function updateDraftPickUI() {
             role === 'COACH' ? 'bg-slate-800/50 border-slate-600/40 opacity-70' : 'bg-slate-800 border-slate-600 hover:border-blue-500'
         }`;
         if (card) {
-            const natural = card.role === role || (card.role === 'COACH' && role === 'COACH');
-            slot.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-green-300' : 'text-emerald-400'}">${role}</span><span class="text-[10px] text-slate-200 truncate max-w-[65px] mt-0.5">${card.name}</span>${!natural ? '<span class="text-[9px] text-amber-400 font-bold">FLEX -10</span>' : ''}`;
+            const offRole = card.role !== role && !(card.role === 'COACH' && role === 'COACH');
+            const isLegacy = card.region === 'Legacy';
+            const flexBadge = offRole ? (isLegacy ? '<span class="text-[9px] text-cyan-400 font-bold">FLEX ✓</span>' : '<span class="text-[9px] text-amber-400 font-bold">FLEX -10</span>') : '';
+            slot.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-green-300' : 'text-emerald-400'}">${role}</span><span class="text-[10px] text-slate-200 truncate max-w-[65px] mt-0.5">${card.name}</span>${flexBadge}`;
         } else {
             slot.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-green-300' : role === 'COACH' ? 'text-slate-500' : 'text-slate-400'}">${role}</span><span class="text-[10px] ${role === 'COACH' ? 'text-slate-600' : 'text-slate-600'} mt-0.5">${role === 'COACH' ? 'Optional' : 'Empty'}</span>`;
         }
@@ -3422,11 +3458,14 @@ function showDraftCombat() {
     ['TOP','JNG','MID','ADC','SUP','COACH'].forEach(role => {
         const card = draftPickRoles[role];
         if (!card) return;
-        const natural = card.role === role || (card.role === 'COACH' && role === 'COACH');
+        const offRole = card.role !== role && !(card.role === 'COACH' && role === 'COACH');
+        const isLegacy = card.region === 'Legacy';
+        const badgeClass = !offRole ? 'bg-slate-900/80 text-slate-400' : isLegacy ? 'bg-cyan-900/90 text-cyan-300' : 'bg-amber-900/90 text-amber-300';
+        const badgeText = !offRole ? '' : isLegacy ? ' FLEX✓' : ' FLEX';
         const wrapper = document.createElement('div');
         wrapper.className = 'relative flex-shrink-0';
         wrapper.appendChild(createCardElement(card, false, null, null));
-        wrapper.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 ${natural ? 'bg-slate-900/80 text-slate-400' : 'bg-amber-900/90 text-amber-300'} text-[9px] font-black px-1.5 py-0.5 rounded-tl-xl rounded-br-xl z-30">${role}${natural ? '' : ' FLEX'}</div>`);
+        wrapper.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 ${badgeClass} text-[9px] font-black px-1.5 py-0.5 rounded-tl-xl rounded-br-xl z-30">${role}${badgeText}</div>`);
         myTeamEl.appendChild(wrapper);
     });
 

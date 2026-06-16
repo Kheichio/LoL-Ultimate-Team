@@ -129,7 +129,7 @@ const baseDatabase = [
     { id: 8009, name: "SSONG", role: "COACH", team: "BRO", year: 2026, rating: 83, quality: "Gold", region: "LCK", stats: { mec: 28, tmf: 83, frm: 84, cmp: 82, map: 84, ldr: 85 } },
     { id: 8010, name: "oDin", role: "COACH", team: "DNS", year: 2026, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 24, tmf: 86, frm: 87, cmp: 85, map: 88, ldr: 87 } },
     { id: 8011, name: "Helper", role: "COACH", team: "AL", year: 2026, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 24, tmf: 86, frm: 87, cmp: 85, map: 88, ldr: 89 } },
-    { id: 8012, name: "Daeny", role: "COACH", team: "BLG", year: 2026, rating: 96, quality: "Master", region: "LPL", stats: { mec: 32, tmf: 96, frm: 97, cmp: 95, map: 98, ldr: 97 } },
+    { id: 8012, name: "Daeny", role: "COACH", team: "BLG", year: 2026, rating: 97, quality: "Grandmaster", region: "LPL", stats: { mec: 32, tmf: 97, frm: 98, cmp: 96, map: 99, ldr: 98 } },
     { id: 8013, name: "Mafa", role: "COACH", team: "iG", year: 2026, rating: 90, quality: "Platinum", region: "LPL", stats: { mec: 24, tmf: 89, frm: 91, cmp: 91, map: 92, ldr: 92 } },
     { id: 8014, name: "Tabe", role: "COACH", team: "JDG", year: 2026, rating: 92, quality: "Diamond", region: "LPL", stats: { mec: 22, tmf: 91, frm: 93, cmp: 93, map: 94, ldr: 94 } },
     { id: 8015, name: "Poppy", role: "COACH", team: "TES", year: 2026, rating: 88, quality: "Gold", region: "LPL", stats: { mec: 23, tmf: 86, frm: 88, cmp: 87, map: 89, ldr: 89 } },
@@ -390,10 +390,10 @@ const baseDatabase = [
 
     // --- 2026 LPL ROSTERS ---
     { id: 1201, name: "Bin", role: "TOP", team: "BLG", year: 2026, rating: 98, quality: "Challenger", region: "LPL", stats: { mec: 99, tmf: 97, frm: 97, cmp: 96, map: 91, ldr: 90 } },
-    { id: 1202, name: "Xun", role: "JNG", team: "BLG", year: 2026, rating: 89, quality: "Diamond", region: "LPL", stats: { mec: 89, tmf: 88, frm: 90, cmp: 87, map: 88, ldr: 86 } },
-    { id: 1203, name: "Knight", role: "MID", team: "BLG", year: 2026, rating: 98, quality: "Challenger", region: "LPL", stats: { mec: 99, tmf: 98, frm: 97, cmp: 96, map: 95, ldr: 92 } },
-    { id: 1204, name: "Viper", role: "ADC", team: "BLG", year: 2026, rating: 96, quality: "Grandmaster", region: "LPL", stats: { mec: 98, tmf: 96, frm: 97, cmp: 95, map: 90, ldr: 88 } },
-    { id: 1205, name: "ON", role: "SUP", team: "BLG", year: 2026, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 85, tmf: 88, frm: 89, cmp: 89, map: 90, ldr: 88 } },
+    { id: 1202, name: "Xun", role: "JNG", team: "BLG", year: 2026, rating: 92, quality: "Diamond", region: "LPL", stats: { mec: 92, tmf: 91, frm: 93, cmp: 90, map: 91, ldr: 89 } },
+    { id: 1203, name: "Knight", role: "MID", team: "BLG", year: 2026, rating: 99, quality: "Challenger", region: "LPL", stats: { mec: 100, tmf: 99, frm: 98, cmp: 97, map: 96, ldr: 93 } },
+    { id: 1204, name: "Viper", role: "ADC", team: "BLG", year: 2026, rating: 98, quality: "Challenger", region: "LPL", stats: { mec: 100, tmf: 98, frm: 99, cmp: 97, map: 92, ldr: 90 } },
+    { id: 1205, name: "ON", role: "SUP", team: "BLG", year: 2026, rating: 93, quality: "Diamond", region: "LPL", stats: { mec: 88, tmf: 91, frm: 92, cmp: 92, map: 93, ldr: 91 } },
 
     { id: 3086, name: "Xiaoxu", role: "TOP", team: "JDG", year: 2026, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 89, tmf: 85, frm: 87, cmp: 82, map: 83, ldr: 81 } },
     { id: 3087, name: "JunJia", role: "JNG", team: "JDG", year: 2026, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 86, tmf: 88, frm: 85, cmp: 87, map: 89, ldr: 85 } },
