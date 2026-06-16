@@ -715,6 +715,13 @@ function secretMoneyCheat() {
     showToast("Cheat Activated: +10,000 BE!", "success");
 }
 
+function secretSkillPointCheat() {
+    skillPoints += 10;
+    saveGame();
+    renderSkillsUI();
+    showToast("Cheat Activated: +10 Skill Points!", "success");
+}
+
 function processNewCards(cards) {
     cards.forEach(c => {
         if (!collectionRegistry[c.id]) {
