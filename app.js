@@ -120,6 +120,9 @@ let achievements = [
 let isGoldenRoad = false;
 let grStageIndex = 0;
 let grAccruedEssence = 0;
+let grLastRunTs = 0;
+let _grCdInterval = null;
+const GR_COOLDOWN_MS = 30 * 60 * 1000;
 const grStages = [
     { name: "Regional Split 1", diff: 75, rounds: 3, r1: 300, r2: 50 },
     { name: "First Stand", diff: 81, rounds: 3, r1: 500, r2: 100 },
@@ -535,6 +538,8 @@ window.onload = () => {
     if (savedTrade) tradeMarket = JSON.parse(savedTrade);
     const savedTeamComplete = localStorage.getItem("lol_team_complete_v8");
     if (savedTeamComplete) teamCompletionRewards = JSON.parse(savedTeamComplete);
+    const savedGrTs = localStorage.getItem("lol_gr_last_run_ts");
+    if (savedGrTs) grLastRunTs = parseInt(savedGrTs, 10);
     const savedSeason = localStorage.getItem("lol_season_v1");
     if (savedSeason) {
         seasonData = JSON.parse(savedSeason);
@@ -641,6 +646,7 @@ window.onload = () => {
     recalculateRegionalPrice();
     updateDisplays();
     checkAndRecoverTrainingTimer();
+    _grStartCdTimer();
     startTradeMarketTimer();
     switchTab('welcome');
 };
@@ -1306,6 +1312,7 @@ function updateTournamentLocks() {
     applyLock("lock-worlds", "btn-worlds", unlocks.worlds);
     applyLock("lock-draftmode", "btn-draftmode", unlocks.draftMode);
     applyLock("lock-goldenroad", "btn-goldenroad", unlocks.goldenRoad);
+    _grRenderCooldown(); // re-assert cooldown-disabled state in case it was just overwritten above
 }
 
 function checkSquadReady() {
@@ -1333,18 +1340,51 @@ function startTournament(name, cost, r1, r2, baseDiff, rounds) {
     saveGame(); transitionToArena(name);
 }
 
+// Golden Road run cooldown — 30 min between runs (not per-stage), persisted so reloading can't bypass it
+function _grCooldownRemainingMs() { return Math.max(0, GR_COOLDOWN_MS - (Date.now() - grLastRunTs)); }
+
+function _grRenderCooldown() {
+    const banner = document.getElementById('gr-cooldown-banner');
+    const btn = document.getElementById('btn-goldenroad');
+    const rem = _grCooldownRemainingMs();
+    if (rem > 0) {
+        if (banner) banner.classList.remove('hidden');
+        if (btn) { btn.disabled = true; btn.classList.add('opacity-50', 'cursor-not-allowed'); }
+        const timerEl = document.getElementById('gr-cd-timer');
+        if (timerEl) {
+            const m = Math.floor(rem / 60000), s = Math.floor((rem % 60000) / 1000);
+            timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+        }
+    } else {
+        if (banner) banner.classList.add('hidden');
+        if (btn && unlocks.goldenRoad) { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+        if (_grCdInterval) { clearInterval(_grCdInterval); _grCdInterval = null; }
+    }
+}
+
+function _grStartCdTimer() {
+    if (_grCdInterval) clearInterval(_grCdInterval);
+    _grRenderCooldown();
+    if (_grCooldownRemainingMs() > 0) _grCdInterval = setInterval(_grRenderCooldown, 1000);
+}
+
 function startGoldenRoad() {
     if (!unlocks.goldenRoad) { showToast("Win the World Championship to unlock the Golden Road.", "error"); return; }
+    if (_grCooldownRemainingMs() > 0) {
+        const m = Math.ceil(_grCooldownRemainingMs() / 60000);
+        showToast(`Golden Road is cooling down — try again in ${m} min.`, "error");
+        return;
+    }
     if (!checkSquadReady()) return;
     if (blueEssence < 1000) { showToast("Insufficient assets for Golden Road.", "error"); return; }
-    if(simIntervalId) clearTimeout(simIntervalId); 
-    
+    if(simIntervalId) clearTimeout(simIntervalId);
+
     blueEssence -= 1000; isGoldenRoad = true; tourActive = true; grStageIndex = 0; grAccruedEssence = 0; tacticalBonus = 0; tourRound = 0;
     let stageInfo = grStages[grStageIndex];
     tourData = { name: stageInfo.name, reward1: stageInfo.r1, reward2: stageInfo.r2, maxRounds: stageInfo.rounds };
     generateRealPlayerEnemies(stageInfo.diff, stageInfo.rounds);
-    
-    document.getElementById("gr-badge").classList.remove("hidden"); 
+
+    document.getElementById("gr-badge").classList.remove("hidden");
     document.getElementById("gr-accrued-display").classList.remove("hidden");
     document.getElementById("gr-accrued-val").innerText = grAccruedEssence;
     saveGame(); transitionToArena("Golden Road: " + stageInfo.name);
@@ -3246,6 +3286,11 @@ function endTournament(isWin, isGRCompletion = false, reachedFinals = false) {
     } else {
         title.innerText = "Bracket Knockout"; title.className = "text-3xl font-bold mb-2 text-red-500";
         icon.innerText = "💀"; desc.innerText = reachedFinals ? `Knocked out in the Grand Finals stage. Consolidated runner-up payout of ${tourData.reward2} BE successfully cleared.` : `Roster path severed mid-bracket. Performance yields cancelled.`;
+    }
+    if (isGoldenRoad) {
+        grLastRunTs = Date.now();
+        localStorage.setItem("lol_gr_last_run_ts", grLastRunTs);
+        _grStartCdTimer();
     }
     isGoldenRoad = false;
 }
