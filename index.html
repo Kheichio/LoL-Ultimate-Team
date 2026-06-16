@@ -325,11 +325,37 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.7</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.4.8</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
                 <p class="text-sm text-slate-400 leading-relaxed">Build a professional LoL esports roster by opening card packs, assembling squads with strong chemistry, and competing in PvE tournaments to earn Blue Essence (BE). Reinvest BE into better packs, trade fodder cards for premium players, and climb the Manager Levels to unlock powerful bonuses.</p>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
+                <h3 class="text-lg font-bold text-cyan-300 mb-2">🗺️ Roster Coverage by Region &amp; Year</h3>
+                <p class="text-xs text-slate-500 mb-4">Shows how many teams have a full regular-season roster (TOP/JNG/MID/ADC/SUP) for each region/year. Numbers are <span class="text-emerald-400 font-bold">teams with complete rosters / total teams added</span>. Legacy tournament-winning cards (Champion, MVP, Finalist, MSI, First Stand) span many additional years (2011–2026) but live outside this regular-season grid.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs font-mono text-center border-collapse">
+                        <thead>
+                            <tr class="text-slate-400 uppercase tracking-widest">
+                                <th class="text-left py-2 px-3">Region</th>
+                                <th class="py-2 px-3">2015</th>
+                                <th class="py-2 px-3">2024</th>
+                                <th class="py-2 px-3">2025</th>
+                                <th class="py-2 px-3">2026</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇰🇷 LCK</td><td class="py-2 px-3 text-emerald-400 font-bold">8/8</td><td class="py-2 px-3 text-emerald-400 font-bold">7/7</td><td class="py-2 px-3 text-emerald-400 font-bold">10/10</td><td class="py-2 px-3 text-emerald-400 font-bold">10/10</td></tr>
+                            <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇨🇳 LPL</td><td class="py-2 px-3 text-emerald-400 font-bold">12/12</td><td class="py-2 px-3 text-emerald-400 font-bold">5/5</td><td class="py-2 px-3 text-emerald-400 font-bold">16/16</td><td class="py-2 px-3 text-emerald-400 font-bold">14/14</td></tr>
+                            <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇪🇺 LEC</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-emerald-400 font-bold">5/5</td><td class="py-2 px-3 text-emerald-400 font-bold">10/10</td><td class="py-2 px-3 text-emerald-400 font-bold">12/12</td></tr>
+                            <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇺🇸 LCS</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-emerald-400 font-bold">6/6</td><td class="py-2 px-3 text-emerald-400 font-bold">8/8</td><td class="py-2 px-3 text-emerald-400 font-bold">8/8</td></tr>
+                            <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🌏 LCP</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-emerald-400 font-bold">8/8</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-slate-500 mt-3">2015 LCK Spring includes 8 head coaches. 2015 LPL Spring includes players from <strong class="text-slate-300">both halves</strong> of the season where teams rotated lineups (e.g. EDG's Mouse → Meiko split at Support).</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -677,8 +703,10 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-violet-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.7)</h3>
+                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.4.8)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
+                    <li><span class="text-amber-400 font-bold">Classic Years: 2015 LCK &amp; LPL Spring</span> — Added complete 2015 Spring Season rosters for all 8 LCK teams (CJ Entus, GE Tigers, Incredible Miracle, Jin Air Green Wings, KT, NaJin e-mFire, Samsung Galaxy, SK Telecom T1) including head coaches, and all 12 LPL teams (EDG, Energy Pacemaker, Gamtee, Invictus Gaming, LGD Gaming, Oh My God, Snake Esports, Star Horn Royal Club, Team King, Team WE, Masters 3, Vici Gaming) — 123 new cards total. LPL rosters include players from both halves of the season where teams rotated lineups (e.g. EDG's Mouse → Meiko Support split). Every player rating was derived from real 2015 regular-season statistics (KDA, win rate, kill participation) rather than estimated by hand. New team acronyms (CJ, GET, IM, JAG, NJ, EP, GT, King, M3, Snake, SHRC, VG) were added to the team lineage system so the Archive groups them correctly.</li>
+                    <li><span class="text-cyan-400 font-bold">Roster Coverage Chart</span> — The Guide now has a table showing exactly how many teams have a complete roster for every region and year currently in the game, so you can see what's covered at a glance.</li>
                     <li><span class="text-red-400 font-bold">Slumps Intensified</span> — Team Slumps now hit 5–15 real teams per split (up from 2–10) with a −8 to −15 stat penalty (up from −5 to −10) — slumped cards hurt noticeably more, so check the Slump panel before locking in your lineup.</li>
                     <li><span class="text-violet-400 font-bold">Achievements (New)</span> — Replaces Timed Challenges in the Quests tab. Live, re-evaluating checks rather than tracked counters: field a squad averaging 80/90/95/99+ raw rating (before chemistry or Bootcamp modifiers), or hit Archive milestones — 50/150/300 unique cards collected, or complete a full region's regular-card archive.</li>
                     <li><span class="text-cyan-400 font-bold">Quests Overhaul</span> — Timed Challenges removed entirely. Added a new "Play 5 Season Matches" repeatable contract and 7 new milestone quests for opening 10 packs of each type (Standard, Elite, Supreme, First Stand, MSI, Champion, MVP — 1,000 BE each). The Quests tab itself was redesigned with compact single-line rows across a 4-column layout so far more quests fit on screen without scrolling.</li>
@@ -690,15 +718,15 @@
                     <li><span class="text-red-400 font-bold">Mid-Season Squad Lock</span> — Once you play your first match of a Season Split, your squad locks for the rest of that split — no more swapping lineups mid-season. A banner explains the lock on the Squad tab; it lifts automatically when you advance to the next split. Tournaments and Draft Mode are unaffected.</li>
                     <li><span class="text-slate-300 font-bold">Welcome Flow Updated</span> — Added a dedicated Season Split Matches step and refreshed the tournament-ladder step to reflect the new unlock chain and early Draft Mode access.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.6): Team-Based Meta Rework · Bootcamp Director Skill · Tournament Progression Gating · Season Split Quests · Quest Reward Rebalance · Tabe Buff · Split Standings Chart</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.4.7): Slumps Intensified · Achievements · Quests Overhaul · Earlier Draft Mode · Elite Pack Rebalance · Cheaper Upgrades · Nav Bar Reorder · Opponent Team Comps · Mid-Season Squad Lock</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.6): Team-Based Meta Rework · Bootcamp Director Skill · Tournament Progression Gating · Season Split Quests · Quest Reward Rebalance · Tabe Buff · Split Standings Chart</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.5): Season Match XP Rewards · Elite Splits · Elite Trophy Indicators</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.4): Team Conditioning Skill · Mentorship Program Skill · 6-Skill Grid Layout</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.3): Split Meta System · Team Slump System · Conditions Dashboard · In-Match Indicators</p>
             </div>
 
         </section>
 
-        <section id="tab-trade" class="tab-content hidden max-w-5xl mx-auto">
+        <section id="tab-trade" class="tab-content hidden max-w-7xl mx-auto">
             <div class="flex justify-between items-center mb-5 border-b border-slate-700/50 pb-3">
                 <div>
                     <h2 class="text-2xl font-black text-orange-400 uppercase tracking-wider">Exchange Hub</h2>
@@ -1395,7 +1423,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.7 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.4.8 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1403,20 +1431,18 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
+                <li><span class="text-amber-400 font-bold">Classic Years: 2015 LCK &amp; LPL Spring</span> — 123 new cards covering all 8 LCK teams (with head coaches) and all 12 LPL teams from the legendary 2015 Spring Season. Ratings derived from real match statistics, not estimates.</li>
+                <li><span class="text-cyan-400 font-bold">Roster Coverage Chart</span> — New Guide table shows exactly which regions/years have complete rosters at a glance.</li>
                 <li><span class="text-red-400 font-bold">Slumps Intensified</span> — Now hit 5–15 teams (up from 2–10) at −8 to −15 per stat (up from −5 to −10).</li>
                 <li><span class="text-violet-400 font-bold">Achievements (New)</span> — Replaces Timed Challenges. Field a squad averaging 80/90/95/99+ raw rating, or hit Archive collection milestones.</li>
-                <li><span class="text-cyan-400 font-bold">Quests Overhaul</span> — Timed Challenges removed. New Season Match repeatable + 7 pack-opening quests (1,000 BE each). Quests tab redesigned for higher density.</li>
                 <li><span class="text-emerald-400 font-bold">Draft Mode Unlocks Earlier</span> — Now just 1 Regional Split win + 1 Playoff-tier Season Split, instead of winning Worlds.</li>
-                <li><span class="text-orange-400 font-bold">Elite Pack Rebalanced</span> — Gold is now the most common drop, Plat/Diamond odds raised, small Master chance added.</li>
-                <li><span class="text-yellow-400 font-bold">Cheaper Top-Tier Upgrades</span> — Master→Grandmaster and Grandmaster→Challenger now cost 5 cards instead of 10.</li>
-                <li><span class="text-blue-400 font-bold">Nav Bar Reordered</span> — Uniform button sizes, PLAY centered between two groups of six.</li>
                 <li><span class="text-pink-400 font-bold">Opponent Team Comps</span> — Season Match opponents now show a generated 5-role roster during live matches.</li>
                 <li><span class="text-red-400 font-bold">Mid-Season Squad Lock</span> — Squad locks after your first match of a split until you advance to the next one.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.7</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.4.8</button>
             </div>
         </div>
     </div>

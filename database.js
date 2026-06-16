@@ -101,7 +101,10 @@ window.teamLineageBridges = {
     "BDS": "Shifters",
     "NS": "Nongshim RedForce", "DNS": "DN SOOPers", "BRO": "BRION", "BFX": "BNK FEARX",
     "AL": "Anyone's Legend", "BLG": "Bilibili Gaming", "JDG": "JD Gaming", "TES": "Top Esports", 
-    "WBG": "Weibo Gaming", "WE": "Team WE", "TT": "ThunderTalk Gaming", "LGD": "LGD Gaming", "OMG": "Oh My God", "UP": "Ultra Prime"
+    "WBG": "Weibo Gaming", "WE": "Team WE", "TT": "ThunderTalk Gaming", "LGD": "LGD Gaming", "OMG": "Oh My God", "UP": "Ultra Prime",
+    "CJ": "CJ Entus", "GET": "GE Tigers", "IM": "Incredible Miracle", "JAG": "Jin Air Green Wings", "NJ": "NaJin e-mFire",
+    "EP": "Energy Pacemaker", "GT": "Gamtee", "King": "Team King", "M3": "Masters 3", "Snake": "Snake Esports",
+    "SHRC": "Star Horn Royal Club", "VG": "Vici Gaming"
 };
 
 function genStats(rating) {
@@ -328,7 +331,7 @@ const baseDatabase = [
     { id: 1102, name: "Oner", role: "JNG", team: "T1", year: 2026, rating: 93, quality: "Master", region: "LCK", stats: { mec: 95, tmf: 92, frm: 90, cmp: 91, map: 92, ldr: 89 } },
     { id: 1103, name: "Faker", role: "MID", team: "T1", year: 2026, rating: 97, quality: "Challenger", region: "LCK", stats: { mec: 92, tmf: 98, frm: 92, cmp: 99, map: 99, ldr: 99 } },
     { id: 1104, name: "Peyz", role: "ADC", team: "T1", year: 2026, rating: 96, quality: "Grandmaster", region: "LCK", stats: { mec: 98, tmf: 96, frm: 96, cmp: 91, map: 87, ldr: 86 } },
-    { id: 1105, name: "Keria", role: "SUP", team: "T1", year: 2026, rating: 94, quality: "Master", region: "LCK", stats: { mec: 84, tmf: 94, frm: 95, cmp: 96, map: 97, ldr: 92 } },
+    { id: 1105, name: "Keria", role: "SUP", team: "T1", year: 2026, rating: 95, quality: "Master", region: "LCK", stats: { mec: 85, tmf: 95, frm: 96, cmp: 97, map: 98, ldr: 93 } },
 
     { id: 1111, name: "Kiin", role: "TOP", team: "Gen.G", year: 2026, rating: 95, quality: "Grandmaster", region: "LCK", stats: { mec: 93, tmf: 96, frm: 96, cmp: 94, map: 89, ldr: 91 } },
     { id: 1112, name: "Canyon", role: "JNG", team: "Gen.G", year: 2026, rating: 97, quality: "Challenger", region: "LCK", stats: { mec: 97, tmf: 96, frm: 98, cmp: 95, map: 98, ldr: 92 } },
@@ -364,7 +367,7 @@ const baseDatabase = [
     { id: 3052, name: "Sponge", role: "JNG", team: "NS", year: 2026, rating: 82, quality: "Gold", region: "LCK", stats: { mec: 83, tmf: 81, frm: 82, cmp: 80, map: 84, ldr: 80 } },
     { id: 3053, name: "Scout", role: "MID", team: "NS", year: 2026, rating: 94, quality: "Master", region: "LCK", stats: { mec: 95, tmf: 94, frm: 93, cmp: 96, map: 92, ldr: 94 } },
     { id: 3054, name: "Taeyoon", role: "ADC", team: "NS", year: 2026, rating: 81, quality: "Gold", region: "LCK", stats: { mec: 83, tmf: 80, frm: 82, cmp: 77, map: 75, ldr: 74 } },
-    { id: 3055, name: "Lehends", role: "SUP", team: "NS", year: 2026, rating: 93, quality: "Master", region: "LCK", stats: { mec: 83, tmf: 94, frm: 95, cmp: 95, map: 96, ldr: 96 } },
+    { id: 3055, name: "Lehends", role: "SUP", team: "NS", year: 2026, rating: 94, quality: "Master", region: "LCK", stats: { mec: 83, tmf: 95, frm: 96, cmp: 96, map: 97, ldr: 97 } },
 
     { id: 3056, name: "DuDu", role: "TOP", team: "DNS", year: 2026, rating: 85, quality: "Platinum", region: "LCK", stats: { mec: 87, tmf: 84, frm: 86, cmp: 82, map: 83, ldr: 80 } },
     { id: 3057, name: "Pyosik", role: "JNG", team: "DNS", year: 2026, rating: 87, quality: "Platinum", region: "LCK", stats: { mec: 88, tmf: 86, frm: 87, cmp: 85, map: 86, ldr: 84 } },
@@ -529,7 +532,7 @@ const baseDatabase = [
     { id: 3047, name: "Skeanz", role: "JNG", team: "SK", year: 2026, rating: 81, quality: "Gold", region: "LEC", stats: { mec: 83, tmf: 80, frm: 81, cmp: 79, map: 82, ldr: 79 } },
     { id: 3048, name: "LIDER", role: "MID", team: "SK", year: 2026, rating: 83, quality: "Gold", region: "LEC", stats: { mec: 88, tmf: 82, frm: 80, cmp: 81, map: 75, ldr: 77 } },
     { id: 3049, name: "Jopa", role: "ADC", team: "SK", year: 2026, rating: 82, quality: "Gold", region: "LEC", stats: { mec: 84, tmf: 81, frm: 83, cmp: 79, map: 76, ldr: 75 } },
-    { id: 3050, name: "Mikyx", role: "SUP", team: "SK", year: 2026, rating: 91, quality: "Diamond", region: "LEC", stats: { mec: 85, tmf: 92, frm: 93, cmp: 91, map: 93, ldr: 94 } },
+    { id: 3050, name: "Mikyx", role: "SUP", team: "SK", year: 2026, rating: 92, quality: "Diamond", region: "LEC", stats: { mec: 86, tmf: 93, frm: 94, cmp: 92, map: 94, ldr: 95 } },
 
     // Fnatic 2026
     { id: 3146, name: "Empyros", role: "TOP", team: "FNC", year: 2026, rating: 82, quality: "Gold",     region: "LEC", stats: { mec: 84, tmf: 81, frm: 83, cmp: 80, map: 79, ldr: 77 } },
@@ -670,7 +673,7 @@ const baseDatabase = [
     { id: 512, name: "Lucid",     role: "JNG", team: "DK",    year: 2025, rating: 88, quality: "Platinum",    region: "LCK", stats: { mec: 89, tmf: 87, frm: 88, cmp: 85, map: 87, ldr: 83 } },
     { id: 513, name: "ShowMaker", role: "MID", team: "DK",    year: 2025, rating: 93, quality: "Master",      region: "LCK", stats: { mec: 94, tmf: 91, frm: 92, cmp: 92, map: 90, ldr: 92 } },
     { id: 514, name: "Aiming",    role: "ADC", team: "DK",    year: 2025, rating: 90, quality: "Diamond",     region: "LCK", stats: { mec: 91, tmf: 89, frm: 91, cmp: 87, map: 83, ldr: 82 } },
-    { id: 515, name: "BeryL",     role: "SUP", team: "DK",    year: 2025, rating: 88, quality: "Platinum",    region: "LCK", stats: { mec: 80, tmf: 88, frm: 91, cmp: 90, map: 92, ldr: 93 } },
+    { id: 515, name: "BeryL",     role: "SUP", team: "DK",    year: 2025, rating: 89, quality: "Platinum",    region: "LCK", stats: { mec: 81, tmf: 89, frm: 92, cmp: 91, map: 93, ldr: 94 } },
 
     { id: 521, name: "Rich",      role: "TOP", team: "DRX",   year: 2025, rating: 84, quality: "Gold",        region: "LCK", stats: { mec: 85, tmf: 83, frm: 85, cmp: 81, map: 79, ldr: 79 } },
     { id: 522, name: "Sponge",    role: "JNG", team: "DRX",   year: 2025, rating: 82, quality: "Gold",        region: "LCK", stats: { mec: 83, tmf: 81, frm: 82, cmp: 79, map: 82, ldr: 77 } },
@@ -713,13 +716,13 @@ const baseDatabase = [
     { id: 582, name: "GIDEON",    role: "JNG", team: "NS",    year: 2025, rating: 83, quality: "Gold",        region: "LCK", stats: { mec: 85, tmf: 82, frm: 83, cmp: 80, map: 83, ldr: 79 } },
     { id: 583, name: "Fisher",    role: "MID", team: "NS",    year: 2025, rating: 82, quality: "Gold",        region: "LCK", stats: { mec: 84, tmf: 81, frm: 83, cmp: 79, map: 80, ldr: 78 } },
     { id: 584, name: "Jiwoo",     role: "ADC", team: "NS",    year: 2025, rating: 85, quality: "Platinum",    region: "LCK", stats: { mec: 88, tmf: 83, frm: 86, cmp: 82, map: 80, ldr: 78 } },
-    { id: 585, name: "Lehends",   role: "SUP", team: "NS",    year: 2025, rating: 90, quality: "Diamond",     region: "LCK", stats: { mec: 82, tmf: 92, frm: 91, cmp: 90, map: 92, ldr: 90 } },
+    { id: 585, name: "Lehends",   role: "SUP", team: "NS",    year: 2025, rating: 92, quality: "Diamond",     region: "LCK", stats: { mec: 82, tmf: 93, frm: 92, cmp: 91, map: 93, ldr: 94 } },
 
     { id: 591, name: "Doran",     role: "TOP", team: "T1",    year: 2025, rating: 91, quality: "Diamond",     region: "LCK", stats: { mec: 92, tmf: 89, frm: 91, cmp: 87, map: 86, ldr: 88 } },
     { id: 592, name: "Oner",      role: "JNG", team: "T1",    year: 2025, rating: 92, quality: "Master",      region: "LCK", stats: { mec: 93, tmf: 91, frm: 89, cmp: 89, map: 93, ldr: 88 } },
     { id: 593, name: "Faker",     role: "MID", team: "T1",    year: 2025, rating: 97, quality: "Challenger",  region: "LCK", stats: { mec: 95, tmf: 98, frm: 94, cmp: 99, map: 98, ldr: 99 } },
     { id: 594, name: "Gumayusi", role: "ADC", team: "T1",    year: 2025, rating: 91, quality: "Diamond",     region: "LCK", stats: { mec: 94, tmf: 92, frm: 93, cmp: 90, map: 83, ldr: 85 } },
-    { id: 595, name: "Keria",     role: "SUP", team: "T1",    year: 2025, rating: 93, quality: "Master",      region: "LCK", stats: { mec: 84, tmf: 93, frm: 94, cmp: 95, map: 96, ldr: 91 } },
+    { id: 595, name: "Keria",     role: "SUP", team: "T1",    year: 2025, rating: 94, quality: "Master",      region: "LCK", stats: { mec: 85, tmf: 94, frm: 95, cmp: 96, map: 97, ldr: 92 } },
     { id: 596, name: "Smash",     role: "ADC", team: "T1",    year: 2025, rating: 89, quality: "Diamond",     region: "LCK", stats: { mec: 92, tmf: 88, frm: 90, cmp: 85, map: 84, ldr: 80 } },
 
     // ==========================================
@@ -731,7 +734,7 @@ const baseDatabase = [
     { id: 2202, name: "Razork",    role: "JNG", team: "FNC", year: 2025, rating: 85, quality: "Platinum",  region: "LEC", stats: { mec: 86, tmf: 85, frm: 84, cmp: 84, map: 86, ldr: 82 } },
     { id: 2203, name: "Poby",      role: "MID", team: "FNC", year: 2025, rating: 80, quality: "Gold",      region: "LEC", stats: { mec: 82, tmf: 79, frm: 81, cmp: 78, map: 78, ldr: 75 } },
     { id: 2204, name: "Upset",     role: "ADC", team: "FNC", year: 2025, rating: 88, quality: "Platinum",  region: "LEC", stats: { mec: 90, tmf: 87, frm: 90, cmp: 86, map: 84, ldr: 82 } },
-    { id: 2205, name: "Mikyx",     role: "SUP", team: "FNC", year: 2025, rating: 90, quality: "Diamond",   region: "LEC", stats: { mec: 85, tmf: 90, frm: 91, cmp: 89, map: 93, ldr: 91 } },
+    { id: 2205, name: "Mikyx",     role: "SUP", team: "FNC", year: 2025, rating: 91, quality: "Diamond",   region: "LEC", stats: { mec: 86, tmf: 91, frm: 92, cmp: 90, map: 94, ldr: 93 } },
 
     // G2 Esports
     { id: 2206, name: "BrokenBlade", role: "TOP", team: "G2", year: 2025, rating: 88, quality: "Platinum", region: "LEC", stats: { mec: 87, tmf: 89, frm: 88, cmp: 88, map: 85, ldr: 88 } },
@@ -867,7 +870,7 @@ const baseDatabase = [
     { id: 102, name: "Zeus", role: "TOP", team: "T1", year: 2024, rating: 94, quality: "Master", region: "LCK", stats: { mec: 97, tmf: 92, frm: 95, cmp: 91, map: 85, ldr: 82 } },
     { id: 103, name: "Oner", role: "JNG", team: "T1", year: 2024, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 93, tmf: 90, frm: 88, cmp: 89, map: 91, ldr: 87 } },
     { id: 104, name: "Gumayusi", role: "ADC", team: "T1", year: 2024, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 94, tmf: 95, frm: 96, cmp: 98, map: 82, ldr: 84 } },
-    { id: 105, name: "Keria", role: "SUP", team: "T1", year: 2024, rating: 93, quality: "Master", region: "LCK", stats: { mec: 85, tmf: 92, frm: 93, cmp: 95, map: 96, ldr: 90 } },
+    { id: 105, name: "Keria", role: "SUP", team: "T1", year: 2024, rating: 94, quality: "Master", region: "LCK", stats: { mec: 86, tmf: 93, frm: 94, cmp: 96, map: 97, ldr: 91 } },
     
     { id: 111, name: "Kiin", role: "TOP", team: "Gen.G", year: 2024, rating: 95, quality: "Grandmaster", region: "LCK", stats: { mec: 94, tmf: 95, frm: 96, cmp: 93, map: 88, ldr: 89 } },
     { id: 112, name: "Canyon", role: "JNG", team: "Gen.G", year: 2024, rating: 96, quality: "Grandmaster", region: "LCK", stats: { mec: 96, tmf: 95, frm: 98, cmp: 94, map: 97, ldr: 90 } },
@@ -897,7 +900,7 @@ const baseDatabase = [
     { id: 152, name: "Pyosik", role: "JNG", team: "KT", year: 2024, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 87, tmf: 85, frm: 86, cmp: 84, map: 87, ldr: 83 } },
     { id: 153, name: "Bdd", role: "MID", team: "KT", year: 2024, rating: 89, quality: "Diamond", region: "LCK", stats: { mec: 88, tmf: 90, frm: 91, cmp: 89, map: 88, ldr: 87 } },
     { id: 154, name: "Deft", role: "ADC", team: "KT", year: 2024, rating: 88, quality: "Platinum", region: "LCK", stats: { mec: 87, tmf: 90, frm: 89, cmp: 88, map: 86, ldr: 91 } },
-    { id: 155, name: "BeryL", role: "SUP", team: "KT", year: 2024, rating: 87, quality: "Platinum", region: "LCK", stats: { mec: 80, tmf: 88, frm: 92, cmp: 92, map: 93, ldr: 94 } },
+    { id: 155, name: "BeryL", role: "SUP", team: "KT", year: 2024, rating: 88, quality: "Platinum", region: "LCK", stats: { mec: 81, tmf: 89, frm: 93, cmp: 93, map: 94, ldr: 95 } },
     
     { id: 161, name: "DuDu", role: "TOP", team: "KDF", year: 2024, rating: 83, quality: "Gold", region: "LCK", stats: { mec: 85, tmf: 81, frm: 84, cmp: 80, map: 81, ldr: 79 } },
     { id: 162, name: "Cuzz", role: "JNG", team: "KDF", year: 2024, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 84, tmf: 87, frm: 85, cmp: 85, map: 88, ldr: 86 } },
@@ -939,7 +942,7 @@ const baseDatabase = [
     { id: 302, name: "Yike", role: "JNG", team: "G2", year: 2024, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 86, frm: 87, cmp: 85, map: 86, ldr: 82 } },
     { id: 303, name: "Caps", role: "MID", team: "G2", year: 2024, rating: 95, quality: "Grandmaster", region: "LEC", stats: { mec: 95, tmf: 96, frm: 94, cmp: 97, map: 95, ldr: 96 } },
     { id: 304, name: "Hans Sama", role: "ADC", team: "G2", year: 2024, rating: 90, quality: "Diamond", region: "LEC", stats: { mec: 91, tmf: 89, frm: 91, cmp: 88, map: 85, ldr: 84 } },
-    { id: 305, name: "Mikyx", role: "SUP", team: "G2", year: 2024, rating: 92, quality: "Master", region: "LEC", stats: { mec: 86, tmf: 93, frm: 93, cmp: 94, map: 94, ldr: 92 } },
+    { id: 305, name: "Mikyx", role: "SUP", team: "G2", year: 2024, rating: 94, quality: "Master", region: "LEC", stats: { mec: 87, tmf: 94, frm: 94, cmp: 95, map: 96, ldr: 96 } },
    
     { id: 311, name: "Oscarinin", role: "TOP", team: "FNC", year: 2024, rating: 84, quality: "Gold", region: "LEC", stats: { mec: 86, tmf: 83, frm: 85, cmp: 82, map: 81, ldr: 79 } },
     { id: 312, name: "Razork", role: "JNG", team: "FNC", year: 2024, rating: 88, quality: "Platinum", region: "LEC", stats: { mec: 87, tmf: 89, frm: 86, cmp: 87, map: 88, ldr: 90 } },
@@ -1007,7 +1010,7 @@ const baseDatabase = [
     { id: 9001, name: "Faker", role: "MID", team: "SKT", year: 2015, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 99, frm: 98, cmp: 99, map: 98, ldr: 99 } },
     { id: 9002, name: "MaRin", role: "TOP", team: "SKT", year: 2015, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 96, frm: 97, cmp: 94, map: 95, ldr: 97 } },
     { id: 9003, name: "Bang", role: "ADC", team: "SKT", year: 2015, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 97, frm: 96, cmp: 98, map: 89, ldr: 88 } },
-    { id: 9004, name: "Wolf", role: "SUP", team: "SKT", year: 2015, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 82, tmf: 96, frm: 95, cmp: 95, map: 96, ldr: 94 } },
+    { id: 9004, name: "Wolf", role: "SUP", team: "SKT", year: 2015, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 83, tmf: 97, frm: 96, cmp: 96, map: 97, ldr: 95 } },
     { id: 9005, name: "Bengi", role: "JNG", team: "SKT", year: 2015, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 96, frm: 88, cmp: 98, map: 99, ldr: 95 } },
     { id: 9042, name: "Easyhoon", role: "MID", team: "SKT", year: 2015, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 85, tmf: 90, frm: 80, cmp: 99, map: 99, ldr: 91 } },
     { id: 9006, name: "kkOma", role: "COACH", team: "SKT", year: 2015, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 70, tmf: 96, frm: 97, cmp: 92, map: 99, ldr: 99 } },
@@ -1017,7 +1020,7 @@ const baseDatabase = [
     { id: 9045, name: "Blank", role: "JNG", team: "SKT", year: 2016, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 97, frm: 97, cmp: 92, map: 98, ldr: 90 } },
     { id: 9046, name: "Faker", role: "MID", team: "SKT", year: 2016, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 98, frm: 99, cmp: 99, map: 97, ldr: 86 } },
     { id: 9047, name: "Bang", role: "ADC", team: "SKT", year: 2016, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 98, tmf: 99, frm: 97, cmp: 98, map: 91, ldr: 85 } },
-    { id: 9048, name: "Wolf", role: "SUP", team: "SKT", year: 2016, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 89, tmf: 96, frm: 96, cmp: 97, map: 96, ldr: 96 } },
+    { id: 9048, name: "Wolf", role: "SUP", team: "SKT", year: 2016, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 90, tmf: 98, frm: 98, cmp: 98, map: 98, ldr: 97 } },
     
     { id: 9007, name: "TheShy", role: "TOP", team: "IG", year: 2018, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 95, frm: 97, cmp: 94, map: 88, ldr: 85 } },
     { id: 9008, name: "Rookie", role: "MID", team: "IG", year: 2018, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 96, frm: 97, cmp: 95, map: 94, ldr: 94 } },
@@ -1025,7 +1028,7 @@ const baseDatabase = [
     { id: 9010, name: "JackeyLove", role: "ADC", team: "IG", year: 2018, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 97, tmf: 96, frm: 95, cmp: 92, map: 89, ldr: 88 } },
     { id: 9011, name: "Baolan", role: "SUP", team: "IG", year: 2018, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 82, tmf: 95, frm: 92, cmp: 92, map: 92, ldr: 90 } },
     
-    { id: 9012, name: "Mata", role: "SUP", team: "SSW", year: 2014, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 96, frm: 98, cmp: 97, map: 99, ldr: 98 } },
+    { id: 9012, name: "Mata", role: "SUP", team: "SSW", year: 2014, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 98, frm: 99, cmp: 99, map: 100, ldr: 99 } },
     { id: 9013, name: "Looper", role: "TOP", team: "SSW", year: 2014, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 92, tmf: 94, frm: 91, cmp: 95, map: 94, ldr: 90 } },
     { id: 9014, name: "DanDy", role: "JNG", team: "SSW", year: 2014, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 97, frm: 95, cmp: 95, map: 98, ldr: 94 } },
     { id: 9015, name: "PawN", role: "MID", team: "SSW", year: 2014, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 94, frm: 93, cmp: 95, map: 92, ldr: 91 } },
@@ -1041,7 +1044,7 @@ const baseDatabase = [
     { id: 9023, name: "Canyon", role: "JNG", team: "DK", year: 2020, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 98, frm: 99, cmp: 96, map: 99, ldr: 94 } },
     { id: 9024, name: "Nuguri", role: "TOP", team: "DK", year: 2020, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 96, frm: 98, cmp: 92, map: 90, ldr: 88 } },
     { id: 9025, name: "Ghost", role: "ADC", team: "DK", year: 2020, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 90, tmf: 96, frm: 94, cmp: 98, map: 94, ldr: 92 } },
-    { id: 9026, name: "BeryL", role: "SUP", team: "DK", year: 2020, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 80, tmf: 95, frm: 97, cmp: 96, map: 99, ldr: 97 } },
+    { id: 9026, name: "BeryL", role: "SUP", team: "DK", year: 2020, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 82, tmf: 96, frm: 98, cmp: 97, map: 100, ldr: 98 } },
     
     { id: 9027, name: "Doinb", role: "MID", team: "FPX", year: 2019, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 89, tmf: 98, frm: 94, cmp: 99, map: 99, ldr: 99 } },
     { id: 9028, name: "Tian", role: "JNG", team: "FPX", year: 2019, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 95, frm: 94, cmp: 94, map: 96, ldr: 91 } },
@@ -1053,34 +1056,34 @@ const baseDatabase = [
     { id: 9033, name: "Jiejie", role: "JNG", team: "EDG", year: 2021, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 93, tmf: 94, frm: 92, cmp: 91, map: 94, ldr: 90 } },
     { id: 9034, name: "Scout", role: "MID", team: "EDG", year: 2021, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 95, frm: 96, cmp: 94, map: 95, ldr: 94 } },
     { id: 9035, name: "Viper", role: "ADC", team: "EDG", year: 2021, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 98, tmf: 97, frm: 97, cmp: 95, map: 94, ldr: 93 } },
-    { id: 9036, name: "Meiko", role: "SUP", team: "EDG", year: 2021, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 85, tmf: 96, frm: 97, cmp: 96, map: 97, ldr: 98 } },
+    { id: 9036, name: "Meiko", role: "SUP", team: "EDG", year: 2021, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 87, tmf: 98, frm: 98, cmp: 98, map: 98, ldr: 99 } },
    
     { id: 9037, name: "Kingen", role: "TOP", team: "DRX", year: 2022, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 94, frm: 91, cmp: 90, map: 90, ldr: 89 } },
     { id: 9038, name: "Pyosik", role: "JNG", team: "DRX", year: 2022, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 93, tmf: 92, frm: 90, cmp: 92, map: 91, ldr: 91 } },
     { id: 9039, name: "Zeka", role: "MID", team: "DRX", year: 2022, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 98, tmf: 93, frm: 93, cmp: 90, map: 91, ldr: 88 } },
     { id: 9040, name: "Deft", role: "ADC", team: "DRX", year: 2022, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 96, frm: 95, cmp: 95, map: 94, ldr: 97 } },
-    { id: 9041, name: "BeryL",    role: "SUP", team: "DRX", year: 2022, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 78, tmf: 94, frm: 97, cmp: 98, map: 99, ldr: 98 } },
+    { id: 9041, name: "BeryL",    role: "SUP", team: "DRX", year: 2022, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 81, tmf: 95, frm: 98, cmp: 99, map: 100, ldr: 99 } },
 
     // T1 2025 — World Champions
     { id: 9049, name: "Doran",    role: "TOP", team: "T1",  year: 2025, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 93, tmf: 90, frm: 92, cmp: 88, map: 87, ldr: 89 } },
     { id: 9050, name: "Oner",     role: "JNG", team: "T1",  year: 2025, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 90, cmp: 90, map: 94, ldr: 89 } },
     { id: 9051, name: "Faker",    role: "MID", team: "T1",  year: 2025, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 99, frm: 95, cmp: 99, map: 99, ldr: 99 } },
     { id: 9052, name: "Gumayusi",role: "ADC", team: "T1",  year: 2025, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 94, cmp: 91, map: 84, ldr: 86 } },
-    { id: 9053, name: "Keria",    role: "SUP", team: "T1",  year: 2025, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 85, tmf: 94, frm: 95, cmp: 96, map: 97, ldr: 92 } },
+    { id: 9053, name: "Keria",    role: "SUP", team: "T1",  year: 2025, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 87, tmf: 96, frm: 97, cmp: 98, map: 99, ldr: 94 } },
 
     // T1 2023 — World Champions (3-peat)
     { id: 9054, name: "Zeus",     role: "TOP", team: "T1",  year: 2023, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 95, cmp: 91, map: 90, ldr: 90 } },
     { id: 9055, name: "Oner",     role: "JNG", team: "T1",  year: 2023, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 91, cmp: 90, map: 95, ldr: 90 } },
     { id: 9056, name: "Faker",    role: "MID", team: "T1",  year: 2023, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 97, tmf: 99, frm: 96, cmp: 99, map: 99, ldr: 99 } },
     { id: 9057, name: "Gumayusi",role: "ADC", team: "T1",  year: 2023, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 93, cmp: 90, map: 83, ldr: 85 } },
-    { id: 9058, name: "Keria",    role: "SUP", team: "T1",  year: 2023, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 95, frm: 96, cmp: 97, map: 98, ldr: 93 } },
+    { id: 9058, name: "Keria",    role: "SUP", team: "T1",  year: 2023, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 97, frm: 98, cmp: 99, map: 100, ldr: 95 } },
 
     // T1 2024 — World Champions (4-peat)
     { id: 9059, name: "Zeus",     role: "TOP", team: "T1",  year: 2024, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 94, frm: 96, cmp: 92, map: 91, ldr: 91 } },
     { id: 9060, name: "Oner",     role: "JNG", team: "T1",  year: 2024, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 92, cmp: 91, map: 96, ldr: 91 } },
     { id: 9061, name: "Faker",    role: "MID", team: "T1",  year: 2024, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 93, tmf: 96, frm: 92, cmp: 96, map: 95, ldr: 96 } },
     { id: 9062, name: "Gumayusi",role: "ADC", team: "T1",  year: 2024, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 94, cmp: 91, map: 84, ldr: 86 } },
-    { id: 9063, name: "Keria",    role: "SUP", team: "T1",  year: 2024, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 86, tmf: 95, frm: 96, cmp: 97, map: 98, ldr: 93 } },
+    { id: 9063, name: "Keria",    role: "SUP", team: "T1",  year: 2024, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 87, tmf: 96, frm: 97, cmp: 98, map: 99, ldr: 94 } },
 
     // Fnatic 2011 — World Champions (inaugural)
     { id: 9064, name: "xPeke",       role: "TOP", team: "FNC", year: 2011, rating: 88, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 87, frm: 88, cmp: 86, map: 83, ldr: 85 } },
@@ -1131,7 +1134,7 @@ const baseDatabase = [
     { id: 9219, name: "Wei",    role: "JNG",   team: "RNG", year: 2022, rating: 95, quality: "MSI", region: "Legacy", stats: { mec: 93, tmf: 95, frm: 95, cmp: 97, map: 97, ldr: 94 } },
     { id: 9220, name: "Xiaohu", role: "MID",   team: "RNG", year: 2022, rating: 96, quality: "MSI", region: "Legacy", stats: { mec: 97, tmf: 97, frm: 96, cmp: 96, map: 93, ldr: 93 } },
     { id: 9221, name: "GALA",   role: "ADC",   team: "RNG", year: 2022, rating: 96, quality: "MSI", region: "Legacy", stats: { mec: 99, tmf: 95, frm: 97, cmp: 97, map: 92, ldr: 90 } },
-    { id: 9222, name: "Ming",   role: "SUP",   team: "RNG", year: 2022, rating: 96, quality: "MSI", region: "Legacy", stats: { mec: 87, tmf: 96, frm: 96, cmp: 96, map: 98, ldr: 97 } },
+    { id: 9222, name: "Ming",   role: "SUP",   team: "RNG", year: 2022, rating: 97, quality: "MSI", region: "Legacy", stats: { mec: 89, tmf: 97, frm: 97, cmp: 97, map: 99, ldr: 98 } },
     { id: 9223, name: "KenZhu", role: "COACH", team: "RNG", year: 2022, rating: 93, quality: "MSI", region: "Legacy", stats: { mec: 20, tmf: 91, frm: 93, cmp: 92, map: 93, ldr: 95 } },
 
     // JDG 2023 — MSI Champions (80% WR, 15G)
@@ -1147,7 +1150,7 @@ const baseDatabase = [
     { id: 9207, name: "Canyon",  role: "JNG",   team: "Gen.G", year: 2024, rating: 98, quality: "MSI", region: "Legacy", stats: { mec: 98, tmf: 97, frm: 99, cmp: 96, map: 99, ldr: 93 } },
     { id: 9208, name: "Chovy",   role: "MID",   team: "Gen.G", year: 2024, rating: 99, quality: "MSI", region: "Legacy", stats: { mec: 99, tmf: 98, frm: 99, cmp: 98, map: 94, ldr: 91 } },
     { id: 9209, name: "Peyz",    role: "ADC",   team: "Gen.G", year: 2024, rating: 97, quality: "MSI", region: "Legacy", stats: { mec: 98, tmf: 99, frm: 96, cmp: 95, map: 88, ldr: 86 } },
-    { id: 9210, name: "Lehends", role: "SUP",   team: "Gen.G", year: 2024, rating: 94, quality: "MSI", region: "Legacy", stats: { mec: 84, tmf: 95, frm: 95, cmp: 95, map: 97, ldr: 96 } },
+    { id: 9210, name: "Lehends", role: "SUP",   team: "Gen.G", year: 2024, rating: 96, quality: "MSI", region: "Legacy", stats: { mec: 85, tmf: 96, frm: 96, cmp: 96, map: 98, ldr: 98 } },
     { id: 9211, name: "KIM",     role: "COACH", team: "Gen.G", year: 2024, rating: 94, quality: "MSI", region: "Legacy", stats: { mec: 20, tmf: 92, frm: 94, cmp: 92, map: 93, ldr: 96 } },
 
     // ==========================================
@@ -1218,13 +1221,163 @@ const baseDatabase = [
     // MaRin — Worlds 2015 MVP (SKT T1)
     { id: 9511, name: "MaRin", role: "TOP", team: "SKT", year: 2015, rating: 98, quality: "MVP", region: "Legacy", stats: { mec: 98, tmf: 98, frm: 99, cmp: 96, map: 97, ldr: 99 } },
     // Mata — Worlds 2014 MVP (Samsung White)
-    { id: 9512, name: "Mata", role: "SUP", team: "SSW", year: 2014, rating: 98, quality: "MVP", region: "Legacy", stats: { mec: 87, tmf: 98, frm: 99, cmp: 99, map: 100, ldr: 99 } },
+    { id: 9512, name: "Mata", role: "SUP", team: "SSW", year: 2014, rating: 99, quality: "MVP", region: "Legacy", stats: { mec: 89, tmf: 99, frm: 100, cmp: 100, map: 100, ldr: 100 } },
     // Faker — Worlds 2013 MVP (SKT T1)
     { id: 9513, name: "Faker", role: "MID", team: "SKT", year: 2013, rating: 99, quality: "MVP", region: "Legacy", stats: { mec: 100, tmf: 99, frm: 98, cmp: 100, map: 100, ldr: 100 } },
     // Toyz — Worlds 2012 MVP (TPA)
     { id: 9514, name: "Toyz", role: "MID", team: "TPA", year: 2012, rating: 95, quality: "MVP", region: "Legacy", stats: { mec: 93, tmf: 93, frm: 94, cmp: 96, map: 95, ldr: 92 } },
     // Shushei — Worlds 2011 MVP (Fnatic)
     { id: 9515, name: "Shushei", role: "MID", team: "FNC", year: 2011, rating: 91, quality: "MVP", region: "Legacy", stats: { mec: 89, tmf: 90, frm: 90, cmp: 92, map: 89, ldr: 90 } },
+
+    // ==========================================
+    // --- CLASSIC YEARS: 2015 SPRING ROSTERS ---
+    // ==========================================
+    // ===== LCK 2015 Spring Season =====
+    // CJ - LCK 2015 Spring
+    { id: 10000, name: "Space", role: "ADC", team: "CJ", year: 2015, rating: 90, quality: "Diamond", region: "LCK", stats: { mec: 94, tmf: 89, frm: 93, cmp: 90, map: 86, ldr: 89 } },
+    { id: 10001, name: "Ambition", role: "JNG", team: "CJ", year: 2015, rating: 89, quality: "Platinum", region: "LCK", stats: { mec: 87, tmf: 92, frm: 88, cmp: 92, map: 93, ldr: 92 } },
+    { id: 10002, name: "Coco", role: "MID", team: "CJ", year: 2015, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 94, tmf: 92, frm: 93, cmp: 95, map: 91, ldr: 91 } },
+    { id: 10003, name: "MadLife", role: "SUP", team: "CJ", year: 2015, rating: 90, quality: "Diamond", region: "LCK", stats: { mec: 82, tmf: 91, frm: 87, cmp: 95, map: 95, ldr: 96 } },
+    { id: 10004, name: "Shy", role: "TOP", team: "CJ", year: 2015, rating: 89, quality: "Platinum", region: "LCK", stats: { mec: 91, tmf: 88, frm: 94, cmp: 91, map: 86, ldr: 89 } },
+    // GET - LCK 2015 Spring
+    { id: 10005, name: "PraY", role: "ADC", team: "GET", year: 2015, rating: 97, quality: "Grandmaster", region: "LCK", stats: { mec: 100, tmf: 96, frm: 100, cmp: 97, map: 93, ldr: 96 } },
+    { id: 10006, name: "Lee", role: "JNG", team: "GET", year: 2015, rating: 92, quality: "Diamond", region: "LCK", stats: { mec: 90, tmf: 95, frm: 91, cmp: 95, map: 96, ldr: 95 } },
+    { id: 10007, name: "Kuro", role: "MID", team: "GET", year: 2015, rating: 94, quality: "Master", region: "LCK", stats: { mec: 97, tmf: 95, frm: 96, cmp: 98, map: 94, ldr: 94 } },
+    { id: 10008, name: "GorillA", role: "SUP", team: "GET", year: 2015, rating: 93, quality: "Diamond", region: "LCK", stats: { mec: 85, tmf: 94, frm: 91, cmp: 98, map: 98, ldr: 99 } },
+    { id: 10009, name: "Smeb", role: "TOP", team: "GET", year: 2015, rating: 95, quality: "Master", region: "LCK", stats: { mec: 97, tmf: 94, frm: 100, cmp: 97, map: 92, ldr: 95 } },
+    // IM - LCK 2015 Spring
+    { id: 10010, name: "SONSTAR", role: "ADC", team: "IM", year: 2015, rating: 82, quality: "Gold", region: "LCK", stats: { mec: 86, tmf: 81, frm: 87, cmp: 79, map: 78, ldr: 78 } },
+    { id: 10011, name: "Wisdom", role: "JNG", team: "IM", year: 2015, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 84, tmf: 89, frm: 82, cmp: 86, map: 90, ldr: 87 } },
+    { id: 10012, name: "Frozen", role: "MID", team: "IM", year: 2015, rating: 85, quality: "Platinum", region: "LCK", stats: { mec: 88, tmf: 86, frm: 87, cmp: 87, map: 85, ldr: 82 } },
+    { id: 10013, name: "TusiN", role: "SUP", team: "IM", year: 2015, rating: 84, quality: "Gold", region: "LCK", stats: { mec: 76, tmf: 85, frm: 84, cmp: 86, map: 89, ldr: 87 } },
+    { id: 10014, name: "Lil4c", role: "TOP", team: "IM", year: 2015, rating: 81, quality: "Gold", region: "LCK", stats: { mec: 83, tmf: 80, frm: 84, cmp: 80, map: 78, ldr: 78 } },
+    // JAG - LCK 2015 Spring
+    { id: 10015, name: "Pilot", role: "ADC", team: "JAG", year: 2015, rating: 88, quality: "Platinum", region: "LCK", stats: { mec: 92, tmf: 87, frm: 93, cmp: 88, map: 84, ldr: 85 } },
+    { id: 10016, name: "Chaser", role: "JNG", team: "JAG", year: 2015, rating: 90, quality: "Diamond", region: "LCK", stats: { mec: 88, tmf: 93, frm: 86, cmp: 93, map: 94, ldr: 93 } },
+    { id: 10017, name: "GBM", role: "MID", team: "JAG", year: 2015, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 94, tmf: 92, frm: 91, cmp: 95, map: 91, ldr: 89 } },
+    { id: 10018, name: "Chei", role: "SUP", team: "JAG", year: 2015, rating: 87, quality: "Platinum", region: "LCK", stats: { mec: 79, tmf: 88, frm: 84, cmp: 90, map: 92, ldr: 91 } },
+    { id: 10019, name: "TrAce", role: "TOP", team: "JAG", year: 2015, rating: 88, quality: "Platinum", region: "LCK", stats: { mec: 90, tmf: 87, frm: 91, cmp: 90, map: 85, ldr: 86 } },
+    // KT - LCK 2015 Spring
+    { id: 10020, name: "Arrow", role: "ADC", team: "KT", year: 2015, rating: 87, quality: "Platinum", region: "LCK", stats: { mec: 91, tmf: 86, frm: 89, cmp: 85, map: 83, ldr: 84 } },
+    { id: 10021, name: "Score", role: "JNG", team: "KT", year: 2015, rating: 87, quality: "Platinum", region: "LCK", stats: { mec: 85, tmf: 90, frm: 84, cmp: 88, map: 91, ldr: 88 } },
+    { id: 10022, name: "Nagne", role: "MID", team: "KT", year: 2015, rating: 85, quality: "Platinum", region: "LCK", stats: { mec: 88, tmf: 86, frm: 87, cmp: 86, map: 85, ldr: 83 } },
+    { id: 10023, name: "hachani", role: "SUP", team: "KT", year: 2015, rating: 83, quality: "Gold", region: "LCK", stats: { mec: 75, tmf: 84, frm: 80, cmp: 85, map: 88, ldr: 86 } },
+    { id: 10024, name: "Ssumday", role: "TOP", team: "KT", year: 2015, rating: 87, quality: "Platinum", region: "LCK", stats: { mec: 89, tmf: 86, frm: 92, cmp: 87, map: 84, ldr: 85 } },
+    // NJ - LCK 2015 Spring
+    { id: 10025, name: "Ohq", role: "ADC", team: "NJ", year: 2015, rating: 88, quality: "Platinum", region: "LCK", stats: { mec: 92, tmf: 87, frm: 93, cmp: 88, map: 84, ldr: 85 } },
+    { id: 10026, name: "Watch", role: "JNG", team: "NJ", year: 2015, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 84, tmf: 89, frm: 83, cmp: 87, map: 90, ldr: 87 } },
+    { id: 10027, name: "Ggoong", role: "MID", team: "NJ", year: 2015, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 89, tmf: 87, frm: 86, cmp: 88, map: 86, ldr: 84 } },
+    { id: 10028, name: "Cain", role: "SUP", team: "NJ", year: 2015, rating: 82, quality: "Gold", region: "LCK", stats: { mec: 74, tmf: 83, frm: 82, cmp: 84, map: 87, ldr: 86 } },
+    { id: 10029, name: "Duke", role: "TOP", team: "NJ", year: 2015, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 88, tmf: 85, frm: 91, cmp: 86, map: 83, ldr: 83 } },
+    // SKT - LCK 2015 Spring
+    { id: 10030, name: "Bang", role: "ADC", team: "SKT", year: 2015, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 95, tmf: 90, frm: 96, cmp: 91, map: 87, ldr: 90 } },
+    { id: 10031, name: "Bengi", role: "JNG", team: "SKT", year: 2015, rating: 87, quality: "Platinum", region: "LCK", stats: { mec: 85, tmf: 90, frm: 83, cmp: 88, map: 91, ldr: 90 } },
+    { id: 10032, name: "Faker", role: "MID", team: "SKT", year: 2015, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 94, tmf: 92, frm: 93, cmp: 95, map: 91, ldr: 91 } },
+    { id: 10033, name: "Wolf", role: "SUP", team: "SKT", year: 2015, rating: 94, quality: "Master", region: "LCK", stats: { mec: 86, tmf: 95, frm: 94, cmp: 99, map: 99, ldr: 100 } },
+    { id: 10034, name: "MaRin", role: "TOP", team: "SKT", year: 2015, rating: 89, quality: "Platinum", region: "LCK", stats: { mec: 91, tmf: 88, frm: 94, cmp: 91, map: 86, ldr: 89 } },
+    // SSG - LCK 2015 Spring
+    { id: 10035, name: "Fury", role: "ADC", team: "SSG", year: 2015, rating: 84, quality: "Gold", region: "LCK", stats: { mec: 88, tmf: 83, frm: 87, cmp: 81, map: 80, ldr: 80 } },
+    { id: 10036, name: "Eve", role: "JNG", team: "SSG", year: 2015, rating: 83, quality: "Gold", region: "LCK", stats: { mec: 81, tmf: 86, frm: 82, cmp: 83, map: 87, ldr: 83 } },
+    { id: 10037, name: "BlisS", role: "MID", team: "SSG", year: 2015, rating: 78, quality: "Silver", region: "LCK", stats: { mec: 81, tmf: 79, frm: 77, cmp: 79, map: 78, ldr: 75 } },
+    { id: 10038, name: "Wraith", role: "SUP", team: "SSG", year: 2015, rating: 83, quality: "Gold", region: "LCK", stats: { mec: 75, tmf: 84, frm: 83, cmp: 85, map: 88, ldr: 86 } },
+    { id: 10039, name: "CuVee", role: "TOP", team: "SSG", year: 2015, rating: 83, quality: "Gold", region: "LCK", stats: { mec: 85, tmf: 82, frm: 86, cmp: 82, map: 80, ldr: 80 } },
+    // ===== LPL 2015 Spring Season =====
+    // EDG - LPL 2015 Spring
+    { id: 10040, name: "Deft", role: "ADC", team: "EDG", year: 2015, rating: 95, quality: "Master", region: "LPL", stats: { mec: 99, tmf: 94, frm: 100, cmp: 95, map: 91, ldr: 94 } },
+    { id: 10041, name: "ClearLove", role: "JNG", team: "EDG", year: 2015, rating: 99, quality: "Challenger", region: "LPL", stats: { mec: 97, tmf: 100, frm: 96, cmp: 100, map: 100, ldr: 100 } },
+    { id: 10042, name: "PawN", role: "MID", team: "EDG", year: 2015, rating: 95, quality: "Master", region: "LPL", stats: { mec: 98, tmf: 96, frm: 94, cmp: 99, map: 95, ldr: 95 } },
+    { id: 10043, name: "Meiko", role: "SUP", team: "EDG", year: 2015, rating: 96, quality: "Grandmaster", region: "LPL", stats: { mec: 88, tmf: 97, frm: 93, cmp: 100, map: 100, ldr: 100 } },
+    { id: 10044, name: "Mouse", role: "SUP", team: "EDG", year: 2015, rating: 91, quality: "Diamond", region: "LPL", stats: { mec: 83, tmf: 92, frm: 89, cmp: 96, map: 96, ldr: 97 } },
+    { id: 10045, name: "Koro1", role: "TOP", team: "EDG", year: 2015, rating: 97, quality: "Grandmaster", region: "LPL", stats: { mec: 99, tmf: 96, frm: 100, cmp: 99, map: 94, ldr: 97 } },
+    // EP - LPL 2015 Spring
+    { id: 10046, name: "kane", role: "ADC", team: "EP", year: 2015, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 86, tmf: 81, frm: 85, cmp: 79, map: 78, ldr: 78 } },
+    { id: 10047, name: "ZangAo", role: "ADC", team: "EP", year: 2015, rating: 80, quality: "Gold", region: "LPL", stats: { mec: 84, tmf: 79, frm: 82, cmp: 77, map: 76, ldr: 76 } },
+    { id: 10048, name: "Drizzle", role: "JNG", team: "EP", year: 2015, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 81, tmf: 86, frm: 79, cmp: 83, map: 87, ldr: 83 } },
+    { id: 10049, name: "Captain57", role: "JNG", team: "EP", year: 2015, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 80, tmf: 85, frm: 78, cmp: 82, map: 86, ldr: 82 } },
+    { id: 10050, name: "Raphael", role: "MID", team: "EP", year: 2015, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 85, tmf: 83, frm: 81, cmp: 83, map: 82, ldr: 79 } },
+    { id: 10051, name: "x1u", role: "SUP", team: "EP", year: 2015, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 74, tmf: 83, frm: 80, cmp: 84, map: 87, ldr: 85 } },
+    { id: 10052, name: "AmazingJ", role: "TOP", team: "EP", year: 2015, rating: 81, quality: "Gold", region: "LPL", stats: { mec: 83, tmf: 80, frm: 84, cmp: 80, map: 78, ldr: 78 } },
+    // GT - LPL 2015 Spring
+    { id: 10053, name: "Tale", role: "ADC", team: "GT", year: 2015, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 87, tmf: 82, frm: 85, cmp: 80, map: 79, ldr: 79 } },
+    { id: 10054, name: "hu1", role: "JNG", team: "GT", year: 2015, rating: 84, quality: "Gold", region: "LPL", stats: { mec: 82, tmf: 87, frm: 81, cmp: 85, map: 88, ldr: 84 } },
+    { id: 10055, name: "Danger", role: "JNG", team: "GT", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 83, tmf: 88, frm: 81, cmp: 85, map: 89, ldr: 85 } },
+    { id: 10056, name: "xiaohu", role: "MID", team: "GT", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 86, frm: 85, cmp: 87, map: 85, ldr: 82 } },
+    { id: 10057, name: "SinkDream", role: "SUP", team: "GT", year: 2015, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 75, tmf: 84, frm: 80, cmp: 85, map: 88, ldr: 86 } },
+    { id: 10058, name: "LetMe", role: "TOP", team: "GT", year: 2015, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 85, tmf: 82, frm: 85, cmp: 82, map: 80, ldr: 80 } },
+    // IG - LPL 2015 Spring
+    { id: 10059, name: "Kid", role: "ADC", team: "IG", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 92, tmf: 87, frm: 90, cmp: 88, map: 84, ldr: 85 } },
+    { id: 10060, name: "KaKAO", role: "JNG", team: "IG", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 86, tmf: 91, frm: 87, cmp: 91, map: 92, ldr: 89 } },
+    { id: 10061, name: "RooKie", role: "MID", team: "IG", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 91, tmf: 89, frm: 90, cmp: 90, map: 88, ldr: 86 } },
+    { id: 10062, name: "Kitties", role: "SUP", team: "IG", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 80, tmf: 89, frm: 88, cmp: 91, map: 93, ldr: 92 } },
+    { id: 10063, name: "Pokemon", role: "TOP", team: "IG", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 90, tmf: 87, frm: 90, cmp: 88, map: 85, ldr: 88 } },
+    { id: 10064, name: "Zzitai", role: "TOP", team: "IG", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 84, frm: 90, cmp: 84, map: 82, ldr: 83 } },
+    // King - LPL 2015 Spring
+    { id: 10065, name: "wuxin", role: "ADC", team: "King", year: 2015, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 90, tmf: 85, frm: 89, cmp: 83, map: 82, ldr: 83 } },
+    { id: 10066, name: "Mlxg", role: "JNG", team: "King", year: 2015, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 84, tmf: 89, frm: 83, cmp: 87, map: 90, ldr: 87 } },
+    { id: 10067, name: "Assassin", role: "MID", team: "King", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 86, frm: 85, cmp: 86, map: 85, ldr: 83 } },
+    { id: 10068, name: "Leyn", role: "SUP", team: "King", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 77, tmf: 86, frm: 85, cmp: 88, map: 90, ldr: 89 } },
+    { id: 10069, name: "Skye", role: "TOP", team: "King", year: 2015, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 85, frm: 88, cmp: 86, map: 83, ldr: 84 } },
+    // LGD - LPL 2015 Spring
+    { id: 10070, name: "imp", role: "ADC", team: "LGD", year: 2015, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 91, tmf: 86, frm: 90, cmp: 85, map: 83, ldr: 84 } },
+    { id: 10071, name: "TBQ", role: "JNG", team: "LGD", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 86, tmf: 91, frm: 87, cmp: 89, map: 92, ldr: 89 } },
+    { id: 10072, name: "We1less", role: "MID", team: "LGD", year: 2015, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 90, tmf: 88, frm: 89, cmp: 89, map: 87, ldr: 85 } },
+    { id: 10073, name: "Pyl", role: "SUP", team: "LGD", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 80, tmf: 89, frm: 86, cmp: 91, map: 93, ldr: 94 } },
+    { id: 10074, name: "Acorn", role: "TOP", team: "LGD", year: 2015, rating: 89, quality: "Platinum", region: "LPL", stats: { mec: 91, tmf: 88, frm: 91, cmp: 91, map: 86, ldr: 87 } },
+    { id: 10075, name: "Flame", role: "TOP", team: "LGD", year: 2015, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 89, tmf: 86, frm: 89, cmp: 87, map: 84, ldr: 85 } },
+    // M3 - LPL 2015 Spring
+    { id: 10076, name: "Candy", role: "ADC", team: "M3", year: 2015, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 91, tmf: 86, frm: 90, cmp: 85, map: 83, ldr: 84 } },
+    { id: 10077, name: "SmLz", role: "ADC", team: "M3", year: 2015, rating: 84, quality: "Gold", region: "LPL", stats: { mec: 88, tmf: 83, frm: 87, cmp: 82, map: 80, ldr: 80 } },
+    { id: 10078, name: "Condi", role: "JNG", team: "M3", year: 2015, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 81, tmf: 86, frm: 80, cmp: 83, map: 87, ldr: 83 } },
+    { id: 10079, name: "Ruo", role: "JNG", team: "M3", year: 2015, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 84, tmf: 89, frm: 85, cmp: 87, map: 90, ldr: 87 } },
+    { id: 10080, name: "dade", role: "MID", team: "M3", year: 2015, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 86, tmf: 84, frm: 82, cmp: 84, map: 83, ldr: 80 } },
+    { id: 10081, name: "Lovecd", role: "SUP", team: "M3", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 77, tmf: 86, frm: 85, cmp: 88, map: 90, ldr: 89 } },
+    { id: 10082, name: "Looper", role: "TOP", team: "M3", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 84, frm: 87, cmp: 85, map: 82, ldr: 82 } },
+    // OMG - LPL 2015 Spring
+    { id: 10083, name: "Uzi", role: "ADC", team: "OMG", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 92, tmf: 87, frm: 93, cmp: 86, map: 84, ldr: 87 } },
+    { id: 10084, name: "LoveLing", role: "JNG", team: "OMG", year: 2015, rating: 89, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 92, frm: 85, cmp: 92, map: 93, ldr: 92 } },
+    { id: 10085, name: "Cool", role: "MID", team: "OMG", year: 2015, rating: 92, quality: "Diamond", region: "LPL", stats: { mec: 95, tmf: 93, frm: 92, cmp: 96, map: 92, ldr: 92 } },
+    { id: 10086, name: "Luo", role: "SUP", team: "OMG", year: 2015, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 74, tmf: 83, frm: 82, cmp: 84, map: 87, ldr: 85 } },
+    { id: 10087, name: "Cloud", role: "SUP", team: "OMG", year: 2015, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 79, tmf: 88, frm: 85, cmp: 90, map: 92, ldr: 91 } },
+    { id: 10088, name: "Gogoing", role: "TOP", team: "OMG", year: 2015, rating: 91, quality: "Diamond", region: "LPL", stats: { mec: 93, tmf: 90, frm: 94, cmp: 93, map: 88, ldr: 91 } },
+    // SHRC - LPL 2015 Spring
+    { id: 10089, name: "HYY", role: "ADC", team: "SHRC", year: 2015, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 90, tmf: 85, frm: 88, cmp: 84, map: 82, ldr: 82 } },
+    { id: 10090, name: "NaMei", role: "ADC", team: "SHRC", year: 2015, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 87, tmf: 82, frm: 85, cmp: 80, map: 79, ldr: 80 } },
+    { id: 10091, name: "inSec", role: "JNG", team: "SHRC", year: 2015, rating: 84, quality: "Gold", region: "LPL", stats: { mec: 82, tmf: 87, frm: 81, cmp: 84, map: 88, ldr: 84 } },
+    { id: 10092, name: "Blank", role: "JNG", team: "SHRC", year: 2015, rating: 84, quality: "Gold", region: "LPL", stats: { mec: 82, tmf: 87, frm: 81, cmp: 84, map: 88, ldr: 84 } },
+    { id: 10093, name: "corn", role: "MID", team: "SHRC", year: 2015, rating: 84, quality: "Gold", region: "LPL", stats: { mec: 87, tmf: 85, frm: 83, cmp: 86, map: 84, ldr: 81 } },
+    { id: 10094, name: "Cola", role: "TOP", team: "SHRC", year: 2015, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 85, tmf: 82, frm: 86, cmp: 82, map: 80, ldr: 80 } },
+    { id: 10095, name: "GodLike", role: "TOP", team: "SHRC", year: 2015, rating: 84, quality: "Gold", region: "LPL", stats: { mec: 86, tmf: 83, frm: 86, cmp: 83, map: 81, ldr: 82 } },
+    { id: 10122, name: "Zero", role: "SUP", team: "SHRC", year: 2015, rating: 84, quality: "Gold", region: "LPL", stats: { mec: 76, tmf: 85, frm: 82, cmp: 87, map: 89, ldr: 88 } },
+    // Snake - LPL 2015 Spring
+    { id: 10096, name: "kRYST4L", role: "ADC", team: "Snake", year: 2015, rating: 89, quality: "Platinum", region: "LPL", stats: { mec: 93, tmf: 88, frm: 94, cmp: 87, map: 85, ldr: 88 } },
+    { id: 10097, name: "Beast", role: "JNG", team: "Snake", year: 2015, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 88, tmf: 93, frm: 86, cmp: 93, map: 94, ldr: 93 } },
+    { id: 10098, name: "BAKA", role: "MID", team: "Snake", year: 2015, rating: 89, quality: "Platinum", region: "LPL", stats: { mec: 92, tmf: 90, frm: 88, cmp: 91, map: 89, ldr: 89 } },
+    { id: 10099, name: "Ella", role: "SUP", team: "Snake", year: 2015, rating: 92, quality: "Diamond", region: "LPL", stats: { mec: 84, tmf: 93, frm: 89, cmp: 97, map: 97, ldr: 98 } },
+    { id: 10100, name: "Flandre", role: "TOP", team: "Snake", year: 2015, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 92, tmf: 89, frm: 95, cmp: 90, map: 87, ldr: 90 } },
+    // VG - LPL 2015 Spring
+    { id: 10101, name: "Vasilii", role: "ADC", team: "VG", year: 2015, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 94, tmf: 89, frm: 92, cmp: 90, map: 86, ldr: 89 } },
+    { id: 10102, name: "DanDy", role: "JNG", team: "VG", year: 2015, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 88, tmf: 93, frm: 89, cmp: 93, map: 94, ldr: 93 } },
+    { id: 10103, name: "Hetong", role: "MID", team: "VG", year: 2015, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 93, tmf: 91, frm: 90, cmp: 94, map: 90, ldr: 88 } },
+    { id: 10104, name: "Mata", role: "SUP", team: "VG", year: 2015, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 82, tmf: 91, frm: 88, cmp: 95, map: 95, ldr: 96 } },
+    { id: 10105, name: "Carry", role: "TOP", team: "VG", year: 2015, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 92, tmf: 89, frm: 95, cmp: 92, map: 87, ldr: 90 } },
+    // WE - LPL 2015 Spring
+    { id: 10106, name: "Styz", role: "ADC", team: "WE", year: 2015, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 86, tmf: 81, frm: 85, cmp: 79, map: 78, ldr: 78 } },
+    { id: 10107, name: "Mystic", role: "ADC", team: "WE", year: 2015, rating: 90, quality: "Diamond", region: "LPL", stats: { mec: 94, tmf: 89, frm: 92, cmp: 88, map: 86, ldr: 89 } },
+    { id: 10108, name: "Spirit", role: "JNG", team: "WE", year: 2015, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 84, tmf: 89, frm: 85, cmp: 87, map: 90, ldr: 87 } },
+    { id: 10109, name: "Ninja", role: "MID", team: "WE", year: 2015, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 85, tmf: 83, frm: 81, cmp: 83, map: 82, ldr: 79 } },
+    { id: 10110, name: "xiye", role: "MID", team: "WE", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 91, tmf: 89, frm: 88, cmp: 89, map: 88, ldr: 88 } },
+    { id: 10111, name: "YuZhe", role: "SUP", team: "WE", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 77, tmf: 86, frm: 83, cmp: 88, map: 90, ldr: 89 } },
+    { id: 10112, name: "Conan", role: "SUP", team: "WE", year: 2015, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 80, tmf: 89, frm: 85, cmp: 93, map: 93, ldr: 91 } },
+    { id: 10113, name: "Aluka", role: "TOP", team: "WE", year: 2015, rating: 85, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 84, frm: 87, cmp: 84, map: 82, ldr: 82 } },
+    // ===== LCK 2015 Spring Season - Head Coaches =====
+    { id: 10114, name: "Kezman", role: "COACH", team: "CJ", year: 2015, rating: 90, quality: "Diamond", region: "LCK", stats: { mec: 25, tmf: 87, frm: 90, cmp: 90, map: 91, ldr: 92 } },
+    { id: 10115, name: "Micro", role: "COACH", team: "IM", year: 2015, rating: 84, quality: "Gold", region: "LCK", stats: { mec: 25, tmf: 81, frm: 84, cmp: 84, map: 85, ldr: 86 } },
+    { id: 10116, name: "NoFe", role: "COACH", team: "GET", year: 2015, rating: 94, quality: "Master", region: "LCK", stats: { mec: 25, tmf: 91, frm: 94, cmp: 94, map: 95, ldr: 96 } },
+    { id: 10117, name: "Sweet", role: "COACH", team: "JAG", year: 2015, rating: 89, quality: "Platinum", region: "LCK", stats: { mec: 25, tmf: 86, frm: 89, cmp: 89, map: 90, ldr: 91 } },
+    { id: 10118, name: "Lee Ji-hoon", role: "COACH", team: "KT", year: 2015, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 25, tmf: 83, frm: 86, cmp: 86, map: 87, ldr: 88 } },
+    { id: 10119, name: "viNylCat", role: "COACH", team: "NJ", year: 2015, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 25, tmf: 83, frm: 86, cmp: 86, map: 87, ldr: 88 } },
+    { id: 10120, name: "DoGGi", role: "COACH", team: "SSG", year: 2015, rating: 82, quality: "Gold", region: "LCK", stats: { mec: 25, tmf: 79, frm: 82, cmp: 82, map: 83, ldr: 84 } },
+    { id: 10121, name: "kkOma", role: "COACH", team: "SKT", year: 2015, rating: 92, quality: "Diamond", region: "LCK", stats: { mec: 22, tmf: 89, frm: 92, cmp: 92, map: 93, ldr: 97 } },
 ];
 
 window.playerDatabase = baseDatabase.map(p => {

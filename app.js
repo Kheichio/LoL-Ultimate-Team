@@ -431,7 +431,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_7', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_4_8', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -595,7 +595,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1 || (trackStats.regionalSplitWon >= 1 && seasonData.trophyCase.some(t => t.wins >= 6))) unlocks.draftMode = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_4_7';
+    const patchKey = 'lol_patch_seen_v0_4_8';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
