@@ -488,7 +488,7 @@ const baseDatabase = [
 
     { id: 3006, name: "Sparda", role: "TOP", team: "NAVI", year: 2026, rating: 78, quality: "Silver", region: "LEC", stats: { mec: 76, tmf: 75, frm: 78, cmp: 74, map: 73, ldr: 71 } },
     { id: 3007, name: "Rabble", role: "JNG", team: "NAVI", year: 2026, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 77, tmf: 76, frm: 77, cmp: 75, map: 74, ldr: 73 } },
-    { id: 3008, name: "Poby", role: "MID", team: "NAVI", year: 2026, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 81, tmf: 77, frm: 79, cmp: 76, map: 76, ldr: 73 } },
+    { id: 3008, name: "Poby", role: "MID", team: "NAVI", year: 2026, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 87, tmf: 83, frm: 85, cmp: 82, map: 82, ldr: 79 } },
     { id: 3009, name: "Hans SamD", role: "ADC", team: "NAVI", year: 2026, rating: 82, quality: "Gold", region: "LEC", stats: { mec: 83, tmf: 81, frm: 84, cmp: 79, map: 78, ldr: 76 } },
     { id: 3010, name: "Parus", role: "SUP", team: "NAVI", year: 2026, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 74, tmf: 78, frm: 78, cmp: 75, map: 80, ldr: 77 } },
 
