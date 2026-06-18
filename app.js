@@ -3120,10 +3120,10 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
             </div>
         </div>
     `;
-    if (window._salaryCapMode && typeof getCardSalary === 'function') {
+    if (window._salaryCapMode && draftModeActive && typeof getCardSalary === 'function') {
         const sal = getCardSalary(card);
         const badge = document.createElement('div');
-        badge.className = 'absolute bottom-0 left-0 right-0 bg-emerald-900/95 text-emerald-300 text-center text-xs font-black py-1 rounded-b-xl border-t border-emerald-700/50 z-30';
+        badge.className = 'absolute top-7 left-0 right-0 bg-emerald-900/95 text-emerald-300 text-center text-[10px] font-black py-0.5 border-b border-emerald-700/50 z-30';
         badge.textContent = `💰 ${sal} salary`;
         cardDiv.appendChild(badge);
     }
@@ -3623,7 +3623,15 @@ function updateDraftPickUI() {
         }
     });
     const filledCount = ['TOP','JNG','MID','ADC','SUP'].filter(r => draftPickRoles[r]).length;
-    document.getElementById('draft-pick-counter').innerText = `Roles Filled: ${filledCount} / 5`;
+    const counterEl = document.getElementById('draft-pick-counter');
+    if (window._salaryCapMode) {
+        let spent = 0;
+        ['TOP','JNG','MID','ADC','SUP'].forEach(r => { if (draftPickRoles[r]) spent += getCardSalary(draftPickRoles[r]); });
+        window._salaryRemaining = SALARY_CAP - spent;
+        counterEl.innerText = `Budget: ${window._salaryRemaining} / ${SALARY_CAP} · Roles: ${filledCount}/5`;
+    } else {
+        counterEl.innerText = `Roles Filled: ${filledCount} / 5`;
+    }
     document.getElementById('draft-confirm-team-btn').disabled = filledCount < 5;
     renderDraftCardPool('draft-user-pick-grid', draftUserPool, 'pick');
 }
