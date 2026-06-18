@@ -3366,7 +3366,8 @@ function emergencyResetSim() {
     tourActive = false; isGoldenRoad = false; draftModeActive = false; window._salaryCapMode = false;
     draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
     draftActivePickRole = null; draftCpuTeam = {}; draftHybridScore1 = null; draft1v1Cards = { my: null, cpu: null };
-    ['tournament-active','tournament-results','draft-screen','draft-combat','tower-screen'].forEach(id => {
+    _scState = null;
+    ['tournament-active','tournament-results','draft-screen','draft-combat','tower-screen','salary-combat-screen'].forEach(id => {
         const el = document.getElementById(id); if(el) el.classList.add('hidden');
     });
     document.getElementById("tournament-lobby").classList.remove("hidden");
@@ -3647,6 +3648,12 @@ function renderDraftPickPhase() {
 }
 
 function confirmDraftTeam() {
+    if (window._salaryCapMode) {
+        // Salary Cap: CPU already picked in startSalaryCapDraft(), skip re-pick, enter season-style combat
+        showToast("Teams locked in! Starting the match...", 'success');
+        setTimeout(() => _scStartCombat(), 700);
+        return;
+    }
     // CPU picks best-rated card per role from its remaining pool (prefer natural role)
     const cpuAvail = draftCpuPool.filter(c => !draftUserBanIds.includes(c.uniqueId));
     const cpuRoles = ['TOP', 'JNG', 'MID', 'ADC', 'SUP'];
@@ -3979,6 +3986,181 @@ function updateSalaryDisplay() {
     window._salaryRemaining = SALARY_CAP - spent;
     const counter = document.getElementById('draft-pick-counter');
     if (counter) counter.innerText = `Budget: ${window._salaryRemaining} / ${SALARY_CAP}`;
+}
+
+// === SALARY CAP COMBAT (Season-Match-style Bo3) ===
+let _scState = null; // { wins, losses, round, log, options, phase }
+
+function _scStartCombat() {
+    document.getElementById('draft-screen').classList.add('hidden');
+    document.getElementById('salary-combat-screen').classList.remove('hidden');
+    _scState = { wins: 0, losses: 0, round: 1, log: [], options: [], phase: 'pick' };
+    _scPickOptions();
+    renderSalaryCombat();
+}
+
+function _scPickOptions() {
+    const available = _SEASON_PLAYS.filter(p => !(p.id === 'coach' && !draftPickRoles.COACH));
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
+    _scState.options = shuffled.slice(0, 3);
+}
+
+function _scStatVal(play) {
+    const roles = play.myRoles;
+    const vals = roles.map(r => {
+        const c = draftPickRoles[r];
+        if (!c) return 70;
+        return r === 'COACH' ? (c.stats.ldr || c.rating) : (c.stats[play.statKey] || 70);
+    });
+    return vals.length === 1 ? vals[0] : Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+}
+
+function _scOppStatVal(play) {
+    const c = draftCpuTeam;
+    const roles = play.myRoles;
+    const vals = roles.map(r => {
+        const card = c[r];
+        if (!card) return 70;
+        return r === 'COACH' ? (card.stats.ldr || card.rating) : (card.stats[play.statKey] || 70);
+    });
+    return vals.length === 1 ? vals[0] : Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+}
+
+function makeSalaryPlay(playId) {
+    if (!_scState || _scState.phase !== 'pick') return;
+    const play = _SEASON_PLAYS.find(p => p.id === playId);
+    if (!play) return;
+
+    const myVal = _scStatVal(play);
+    const oppVal = _scOppStatVal(play);
+    const variance = Math.round((Math.random() * 16) - 8);
+    const net = (myVal - oppVal) + variance;
+    const won = net > 0;
+
+    if (won) _scState.wins++; else _scState.losses++;
+    _scState.log.push({ round: _scState.round, icon: play.icon, label: play.label, detail: `${play.myRoles.join('+')} ${play.statKey.toUpperCase()} ${myVal} vs ${oppVal} (${net >= 0 ? '+' : ''}${net})`, won });
+
+    const matchDone = _scState.wins >= 2 || _scState.losses >= 2;
+    if (matchDone) {
+        _scState.phase = 'done';
+        const isWin = _scState.wins >= 2;
+        if (isWin) { blueEssence += 4000; addXP(100); showToast("Salary Cap Draft Won! +4,000 BE", "success"); }
+        else { showToast("Salary Cap Draft lost. No payout.", "error"); }
+        if (!trackStats.salaryCapWon) trackStats.salaryCapWon = 0;
+        if (isWin) trackStats.salaryCapWon++;
+        draftModeActive = false;
+        window._salaryCapMode = false;
+        saveGame();
+    } else {
+        _scState.round++;
+        _scPickOptions();
+    }
+    renderSalaryCombat();
+}
+
+function closeSalaryCombat() {
+    document.getElementById('salary-combat-screen').classList.add('hidden');
+    document.getElementById('tournament-lobby').classList.remove('hidden');
+    _scState = null;
+    draftModeActive = false;
+    window._salaryCapMode = false;
+}
+
+function renderSalaryCombat() {
+    const container = document.getElementById('salary-combat-content');
+    if (!container || !_scState) return;
+
+    function pips(count, max, colorClass) {
+        return Array.from({ length: max }, (_, i) =>
+            `<span class="inline-block w-5 h-5 rounded-full border-2 ${i < count ? colorClass + ' border-transparent' : 'bg-slate-700 border-slate-600'}"></span>`
+        ).join('');
+    }
+
+    // My team cards (left side)
+    const myCardsHTML = ['TOP','JNG','MID','ADC','SUP'].map(r => {
+        const c = draftPickRoles[r];
+        if (!c) return '';
+        return `<div class="flex items-center gap-2 text-sm py-1 border-b border-slate-700/30">
+            <span class="text-slate-500 font-black w-7 shrink-0 text-[10px]">${r}</span>
+            <span class="text-slate-200 font-bold truncate w-20">${c.name}</span>
+            <span class="font-mono text-[10px] text-slate-400">MEC <span class="text-cyan-400 font-black">${c.stats.mec}</span></span>
+            <span class="font-mono text-[10px] text-slate-400">TMF <span class="text-purple-400 font-black">${c.stats.tmf}</span></span>
+            <span class="font-mono text-[10px] text-slate-400">MAP <span class="text-emerald-400 font-black">${c.stats.map}</span></span>
+        </div>`;
+    }).join('');
+
+    // Opponent cards (right side)
+    const oppCardsHTML = ['TOP','JNG','MID','ADC','SUP'].map(r => {
+        const c = draftCpuTeam[r];
+        if (!c) return '';
+        return `<div class="flex items-center gap-2 text-sm py-1 border-b border-slate-700/30">
+            <span class="text-slate-500 font-black w-7 shrink-0 text-[10px]">${r}</span>
+            <span class="text-slate-200 font-bold truncate w-20">${c.name}</span>
+            <span class="font-mono text-[10px] text-slate-400">MEC <span class="text-cyan-400 font-black">${c.stats.mec}</span></span>
+            <span class="font-mono text-[10px] text-slate-400">TMF <span class="text-purple-400 font-black">${c.stats.tmf}</span></span>
+            <span class="font-mono text-[10px] text-slate-400">MAP <span class="text-emerald-400 font-black">${c.stats.map}</span></span>
+        </div>`;
+    }).join('');
+
+    // Play option cards
+    const playCards = _scState.phase === 'pick' ? _scState.options.map(play => {
+        const myVal = _scStatVal(play);
+        const oppVal = _scOppStatVal(play);
+        const edge = myVal - oppVal;
+        const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
+        return `<button onclick="makeSalaryPlay('${play.id}')" class="flex-1 min-w-[180px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-emerald-500 rounded-xl p-4 text-left cursor-pointer transition">
+            <div class="text-2xl mb-1">${play.icon}</div>
+            <div class="font-black text-slate-100 text-sm mb-0.5">${play.label}</div>
+            <div class="text-slate-500 text-xs mb-3">${play.desc}</div>
+            <div class="font-mono text-sm space-y-1 border-t border-slate-700 pt-2">
+                <div class="flex justify-between items-center"><span class="text-slate-400">${play.myRoles.join('+')} ${play.statKey.toUpperCase()}</span><span class="text-slate-200 font-black text-base">${myVal}</span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-500">Opp ${play.statKey.toUpperCase()}</span><span class="text-slate-300 font-bold text-base">${oppVal}</span></div>
+                <div class="flex justify-between items-center border-t border-slate-700/50 pt-1 mt-1"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black text-base">${edge >= 0 ? '+' : ''}${edge}</span></div>
+            </div>
+        </button>`;
+    }).join('') : '';
+
+    // Match log
+    const logHTML = _scState.log.length ? _scState.log.map(e =>
+        `<div class="flex items-start gap-2 text-sm font-mono ${e.won ? 'text-emerald-400' : 'text-red-400'}">
+            <span>${e.won ? '✅' : '❌'}</span><span><span class="font-black">${e.icon} ${e.label}</span> — ${e.detail}</span>
+        </div>`
+    ).join('') : `<div class="text-slate-600 text-sm font-mono">No plays yet.</div>`;
+
+    // Result banner
+    let resultBanner = '';
+    if (_scState.phase === 'done') {
+        const win = _scState.wins >= 2;
+        resultBanner = `<div class="rounded-2xl p-5 text-center border ${win ? 'bg-emerald-950/60 border-emerald-600' : 'bg-red-950/40 border-red-800'} mb-4">
+            <div class="text-4xl mb-2">${win ? '🏆' : '💀'}</div>
+            <div class="text-xl font-black ${win ? 'text-emerald-300' : 'text-red-400'}">${win ? 'Victory! +4,000 BE' : 'Defeat.'}</div>
+            <button onclick="closeSalaryCombat()" class="mt-4 bg-slate-700 hover:bg-slate-600 text-slate-200 px-6 py-2 rounded-xl font-bold cursor-pointer transition text-sm">Back to Lobby</button>
+        </div>`;
+    }
+
+    container.innerHTML = `
+        <div class="flex items-center justify-center gap-8 bg-slate-800/60 py-3 rounded-2xl border border-slate-700 mb-4">
+            <div class="text-center"><div class="text-xs text-emerald-400 font-black uppercase mb-1">You</div><div class="flex gap-1.5">${pips(_scState.wins, 2, 'bg-emerald-400')}</div></div>
+            <div class="text-slate-600 font-black text-lg">vs</div>
+            <div class="text-center"><div class="text-xs text-red-400 font-black uppercase mb-1">CPU</div><div class="flex gap-1.5">${pips(_scState.losses, 2, 'bg-red-500')}</div></div>
+        </div>
+        ${resultBanner}
+        ${_scState.phase === 'pick' ? `<div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Round ${_scState.round} — Choose Your Play</div>
+        <div class="flex flex-wrap gap-3 mb-4">${playCards}</div>` : ''}
+        <div class="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] gap-4">
+            <div class="bg-slate-800/60 rounded-xl border border-emerald-900/40 p-4">
+                <div class="text-xs font-black uppercase tracking-widest text-emerald-400 mb-2">Your Team</div>
+                <div class="space-y-0.5">${myCardsHTML}</div>
+            </div>
+            <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4 min-w-[200px]">
+                <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
+                <div class="space-y-1.5">${logHTML}</div>
+            </div>
+            <div class="bg-slate-800/60 rounded-xl border border-red-900/40 p-4">
+                <div class="text-xs font-black uppercase tracking-widest text-red-400 mb-2">CPU Team</div>
+                <div class="space-y-0.5">${oppCardsHTML}</div>
+            </div>
+        </div>`;
 }
 
 // === INFINITE TOWER MODE ===
