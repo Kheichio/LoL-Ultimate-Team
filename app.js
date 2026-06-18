@@ -650,6 +650,20 @@ window.onload = () => {
     checkAndRecoverTrainingTimer();
     _grStartCdTimer();
     startTradeMarketTimer();
+    // Global Season cooldown ticker (updates the header timer every second)
+    setInterval(() => {
+        const globalCd = document.getElementById('global-sm-cd');
+        if (!globalCd) return;
+        const smElapsed = Date.now() - (seasonData.lastMatchTs || 0);
+        const smRem = _smCooldownMs() - smElapsed;
+        if (smRem > 0 && (seasonData.matchResults || []).some(r => r !== null) && !seasonData.splitComplete) {
+            globalCd.classList.remove('hidden');
+            const timerEl = document.getElementById('global-sm-cd-timer');
+            if (timerEl) timerEl.textContent = Math.ceil(smRem / 1000) + 's';
+        } else {
+            globalCd.classList.add('hidden');
+        }
+    }, 1000);
     switchTab('welcome');
 };
 
@@ -1467,6 +1481,19 @@ function updateDisplays() {
     if (bootcampBonusEl) bootcampBonusEl.innerText = 5 + (skills.bootcamp || 0) * 2;
     const towerBest = document.getElementById('tower-best-display');
     if (towerBest) towerBest.textContent = `Best: Floor ${trackStats.towerHighestFloor || 0}`;
+    // Global Season Split cooldown display
+    const globalCd = document.getElementById('global-sm-cd');
+    if (globalCd) {
+        const smElapsed = Date.now() - (seasonData.lastMatchTs || 0);
+        const smRem = _smCooldownMs() - smElapsed;
+        if (smRem > 0 && (seasonData.matchResults || []).some(r => r !== null) && !seasonData.splitComplete) {
+            globalCd.classList.remove('hidden');
+            const timerEl = document.getElementById('global-sm-cd-timer');
+            if (timerEl) timerEl.textContent = Math.ceil(smRem / 1000) + 's';
+        } else {
+            globalCd.classList.add('hidden');
+        }
+    }
     updateTournamentLocks();
     updateBadges(); updateClubStatsUI(); renderClubGrid(); renderSquadView(); renderQuests(); renderUpgradeLab();
     if(currentCollectionRegion) renderCollection();
@@ -1580,14 +1607,16 @@ function buyPack(baseCost, type) {
             pulled.push(cardInst); club.push(cardInst);
         }
     }
-    // Signature card chance (0.1% per card)
-    pulled.forEach(inst => {
-        if (Math.random() < 0.001) {
-            inst.signature = true;
-            if (inst.stats) { Object.keys(inst.stats).forEach(k => { inst.stats[k] = (inst.stats[k] || 0) + 2; }); }
-            inst.rating = Math.min(100, (inst.rating || 0) + 2);
-        }
-    });
+    // Signature card chance (0.1% per card, Champion/MVP packs only)
+    if (type === 'Champion' || type === 'MVP') {
+        pulled.forEach(inst => {
+            if (Math.random() < 0.001) {
+                inst.signature = true;
+                if (inst.stats) { Object.keys(inst.stats).forEach(k => { inst.stats[k] = (inst.stats[k] || 0) + 2; }); }
+                inst.rating = Math.min(100, (inst.rating || 0) + 2);
+            }
+        });
+    }
     pulled.forEach(c => { if (c.quality === 'Challenger') trackStats.challengerPulled = (trackStats.challengerPulled || 0) + 1; });
     processNewCards(pulled); saveGame(); showPulls(pulled, `${type} Package Opened`);
 }
@@ -3091,6 +3120,13 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
             </div>
         </div>
     `;
+    if (window._salaryCapMode && typeof getCardSalary === 'function') {
+        const sal = getCardSalary(card);
+        const badge = document.createElement('div');
+        badge.className = 'absolute bottom-0 left-0 right-0 bg-emerald-900/95 text-emerald-300 text-center text-xs font-black py-1 rounded-b-xl border-t border-emerald-700/50 z-30';
+        badge.textContent = `💰 ${sal} salary`;
+        cardDiv.appendChild(badge);
+    }
     return cardDiv;
 }
 
@@ -4160,6 +4196,32 @@ function renderTowerUI() {
         </div>`
     ).join('') : `<div class="text-slate-600 text-sm font-mono">No plays yet.</div>`;
 
+    // Your roster with buffed stats
+    const myRosterHTML = ['TOP','JNG','MID','ADC','SUP'].map(r => {
+        const c = squad[r];
+        if (!c) return '';
+        const statKeys = ['mec','tmf','frm','cmp','map','ldr'];
+        const buffedStats = statKeys.map(s => {
+            const base = c.stats[s] || 0;
+            const buffed = _towerApplyBuffs(base, s, r);
+            const diff = buffed - base;
+            return `<span class="font-mono text-slate-400 text-[10px]">${s.toUpperCase()} <span class="text-cyan-400 font-black">${buffed}</span>${diff > 0 ? `<span class="text-emerald-400 text-[9px]">+${diff}</span>` : ''}</span>`;
+        }).join(' ');
+        return `<div class="flex items-center gap-2 text-sm py-1 border-b border-slate-700/30">
+            <span class="text-slate-500 font-black w-7 uppercase shrink-0 text-[10px]">${r}</span>
+            <span class="text-slate-200 font-bold truncate w-20">${c.name}</span>
+            <div class="flex flex-wrap gap-x-2 gap-y-0.5">${buffedStats}</div>
+        </div>`;
+    }).join('');
+
+    // Opponent stats
+    const oppStatsHTML = ['mec','tmf','frm','cmp','map','ldr'].map(s =>
+        `<div class="flex justify-between text-sm py-1 border-b border-slate-700/30">
+            <span class="text-slate-500 uppercase font-black text-[10px]">${s}</span>
+            <span class="text-red-400 font-black">${opp.stats[s]}</span>
+        </div>`
+    ).join('');
+
     container.innerHTML = `${buffsHTML}
         <div class="flex items-center gap-3 flex-wrap mb-4">
             <span class="text-xl">${opp.logo}</span>
@@ -4173,9 +4235,19 @@ function renderTowerUI() {
         </div>
         <div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Round ${ms.round} — Choose Your Play</div>
         <div class="flex flex-wrap gap-3 mb-4">${playCards}</div>
-        <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4">
-            <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
-            <div class="space-y-1.5">${logHTML}</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-slate-800/60 rounded-xl border border-slate-700 p-4">
+                <div class="text-xs font-black uppercase tracking-widest text-blue-400 mb-2">Your Roster (Buffed)</div>
+                <div class="space-y-0.5">${myRosterHTML}</div>
+            </div>
+            <div class="bg-slate-800/60 rounded-xl border border-red-900/40 p-4">
+                <div class="text-xs font-black uppercase tracking-widest text-red-400 mb-2">${opp.name} Stats</div>
+                <div class="space-y-0.5">${oppStatsHTML}</div>
+            </div>
+            <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4">
+                <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
+                <div class="space-y-1.5">${logHTML}</div>
+            </div>
         </div>`;
 }
 

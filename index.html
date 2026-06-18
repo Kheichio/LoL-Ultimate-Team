@@ -59,6 +59,7 @@
             <div class="mx-4 text-center flex flex-col items-center">
                 <button onclick="switchTab('tournament')" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black px-10 py-2.5 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)] transform hover:scale-105 transition text-sm tracking-widest uppercase cursor-pointer border border-blue-400">PLAY</button>
                 <div id="debt-warning" class="text-[10px] font-mono font-bold text-red-400 mt-1 hidden animate-pulse">Debt: <span id="debt-display">0</span> BE</div>
+                <div id="global-sm-cd" class="text-[10px] font-mono font-bold text-orange-400 mt-0.5 hidden">⏱ Season: <span id="global-sm-cd-timer">0s</span></div>
             </div>
 
             <button onclick="switchTab('squad')" data-tab="squad" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition whitespace-nowrap text-sm">Squad</button>
@@ -314,8 +315,8 @@
             <div class="flex gap-5 bg-slate-800 p-5 rounded-2xl border border-cyan-700/30 shadow items-start">
                 <div class="bg-cyan-500 text-slate-900 font-black text-xl w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg">6</div>
                 <div>
-                    <h3 class="font-black text-cyan-400 text-lg mb-1">Climb the Tournament Ladder</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed">Gaming Cafe and Regional Split are open from the start. <strong class="text-white">First Stand</strong> unlocks once you complete a Playoff-tier (6+ win) Season Split. <strong class="text-white">MSI</strong> unlocks after winning First Stand and completing 2 total splits. <strong class="text-white">Worlds</strong> unlocks after winning MSI and completing 3 total splits. <strong class="text-cyan-300">Draft Mode</strong> unlocks early — just win 1 Regional Split and hit Playoff tier once. Take on the <strong class="text-amber-300">Golden Road</strong> gauntlet to conquer all standard tournament stages in a single run for maximum rewards.</p>
+                    <h3 class="font-black text-cyan-400 text-lg mb-1">Climb the Tournament Ladder &amp; Special Modes</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Gaming Cafe and Regional Split are open from the start. <strong class="text-white">First Stand</strong> unlocks once you complete a Playoff-tier (6+ win) Season Split. <strong class="text-white">MSI</strong> unlocks after winning First Stand and completing 2 total splits. <strong class="text-white">Worlds</strong> unlocks after winning MSI and completing 3 total splits. <strong class="text-cyan-300">Draft Mode</strong> unlocks early — just win 1 Regional Split and hit Playoff tier once. Take on the <strong class="text-amber-300">Golden Road</strong> gauntlet to conquer all standard tournament stages in a single run (30-min cooldown between runs). Try the <strong class="text-emerald-300">Salary Cap Draft</strong> — build a roster under a salary budget for creative deckbuilding. Or enter the <strong class="text-red-300">Infinite Tower</strong> — an endless free-entry gauntlet with scaling opponents and permanent buffs after each win. Checkpoints every 10 floors save your progress.</p>
                 </div>
             </div>
 
@@ -356,13 +357,13 @@
                         <tbody>
                             <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇰🇷 LCK</td><td class="py-2 px-3 text-emerald-400 font-bold">8/8</td><td class="py-2 px-3 text-emerald-400 font-bold">7/7</td><td class="py-2 px-3 text-emerald-400 font-bold">10/10</td><td class="py-2 px-3 text-emerald-400 font-bold">10/10</td></tr>
                             <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇨🇳 LPL</td><td class="py-2 px-3 text-emerald-400 font-bold">12/12</td><td class="py-2 px-3 text-emerald-400 font-bold">5/5</td><td class="py-2 px-3 text-emerald-400 font-bold">16/16</td><td class="py-2 px-3 text-emerald-400 font-bold">14/14</td></tr>
-                            <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇪🇺 LEC</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-emerald-400 font-bold">5/5</td><td class="py-2 px-3 text-emerald-400 font-bold">10/10</td><td class="py-2 px-3 text-emerald-400 font-bold">12/12</td></tr>
+                            <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇪🇺 LEC</td><td class="py-2 px-3 text-emerald-400 font-bold">10/10</td><td class="py-2 px-3 text-emerald-400 font-bold">5/5</td><td class="py-2 px-3 text-emerald-400 font-bold">10/10</td><td class="py-2 px-3 text-emerald-400 font-bold">12/12</td></tr>
                             <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🇺🇸 LCS</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-emerald-400 font-bold">6/6</td><td class="py-2 px-3 text-emerald-400 font-bold">8/8</td><td class="py-2 px-3 text-emerald-400 font-bold">8/8</td></tr>
                             <tr class="border-t border-slate-700/50"><td class="text-left py-2 px-3 font-bold text-slate-200">🌏 LCP</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-slate-600">—</td><td class="py-2 px-3 text-emerald-400 font-bold">8/8</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <p class="text-xs text-slate-500 mt-3">2015 LCK Spring includes 8 head coaches. 2015 LPL Spring includes players from <strong class="text-slate-300">both halves</strong> of the season where teams rotated lineups (e.g. EDG's Mouse → Meiko split at Support).</p>
+                <p class="text-xs text-slate-500 mt-3">2015 LCK Spring includes 8 head coaches. 2015 LPL Spring includes players from <strong class="text-slate-300">both halves</strong> of the season where teams rotated lineups (e.g. EDG's Mouse → Meiko split at Support). 2015 LEC is the EU LCS Summer Season (region was renamed to LEC in 2019) — includes Fnatic's historic 18-0 undefeated split.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -398,6 +399,10 @@
                             <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-slate-400 shrink-0" style="background:linear-gradient(135deg,#334155,#94a3b8)"></span><span class="text-slate-300"><strong class="text-slate-100">Finalist 🥈</strong> — Worlds runner-up squads. Dark steel shimmer. Wildcard.</span></div>
                             <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-amber-600 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">Champion 🏆</strong> — World Champions. Gold holographic foil. Wildcard.</span></div>
                             <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full bg-pink-500 shrink-0"></span><span class="text-slate-300"><strong class="text-slate-100">MVP ✨</strong> — Tournament Finals MVPs. Rarest cards. Animated magenta aura.</span></div>
+                        </div>
+                        <div class="border-t border-slate-700/50 pt-2 mt-1">
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Ultra-Rare Variant</p>
+                            <div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full shrink-0" style="background:linear-gradient(135deg,#fbbf24,#a855f7)"></span><span class="text-slate-300"><strong class="text-slate-100">✦ Signature ✦</strong> — 0.1% chance from Champion/MVP packs only. Any card can become Signature: +2 all stats, +2 rating, unique gold/purple animated glow. Stacks with the card's base quality.</span></div>
                         </div>
                     </div>
                 </div>
@@ -499,7 +504,8 @@
                         </div>
                     </div>
                 </div>
-                <p class="text-xs text-slate-500 mt-3">📈 Scouting Skill adds up to +10 RNG to every roll at max level, shifting all drop rates upward. Results vary per individual card pull.</p>
+                <p class="text-xs text-slate-500 mt-3">📈 Scouting Skill adds up to +1.25% RNG to every roll at max level, shifting all drop rates upward. Results vary per individual card pull.</p>
+                <p class="text-xs text-slate-500 mt-1">✦ <span class="text-yellow-400">Signature Variant</span>: Champion and MVP packs have an additional <strong class="text-slate-300">0.1% per card</strong> chance to upgrade any pull into a Signature version (+2 all stats, +2 rating, unique glow). This rolls independently of the tier roll.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -686,6 +692,25 @@
                         <div class="bg-purple-950/30 p-2 rounded-lg border border-purple-900/30"><span class="text-purple-400 font-bold">Round 1 &amp; 2 — Tactical</span> — Pick MEC (Aggression), TMF (Teamfight), or MAP (Objective). Your team avg + ±7 variance vs CPU avg.</div>
                         <div class="bg-amber-950/30 p-2 rounded-lg border border-amber-900/30"><span class="text-amber-400 font-bold">Round 3 — Hybrid Finale</span> — Phase 1: pick from MEC/TMF/MAP. Phase 2: pick from FRM/CMP/LDR. Average of both scores + variance decides the round.</div>
                         <div class="bg-slate-900/60 p-2 rounded-lg"><span class="text-emerald-400 font-bold">Best of 3</span> — Win 2 rounds → 2,500 BE. Win 0 or 1 → no payout. Winner takes all.</div>
+                    </div>
+                </div>
+                <div class="bg-emerald-950/20 p-5 rounded-2xl border border-emerald-700/40">
+                    <h3 class="text-lg font-bold text-emerald-400 mb-3">💰 Salary Cap Draft Guide</h3>
+                    <div class="space-y-2 text-xs font-mono text-slate-400">
+                        <div class="bg-slate-900/60 p-2 rounded-lg"><span class="text-emerald-300 font-bold">1,500 BE entry · Win: 4,000 BE · Loss: No payout.</span> Requires 15 club cards.</div>
+                        <div class="bg-emerald-950/30 p-2 rounded-lg border border-emerald-900/30"><span class="text-emerald-400 font-bold">Salary Formula</span> — Each card costs <strong class="text-slate-200">(rating − 60) × 2.5</strong> salary units. A 99-rated Challenger costs 97.5; a 75-rated Silver costs 37.5.</div>
+                        <div class="bg-emerald-950/30 p-2 rounded-lg border border-emerald-900/30"><span class="text-emerald-400 font-bold">Budget Cap: 350</span> — Fill 5 roles without exceeding budget. No ban phase — go straight to picks. CPU also builds under the same cap.</div>
+                        <div class="bg-slate-900/60 p-2 rounded-lg"><span class="text-emerald-400 font-bold">Combat</span> — Same Best-of-3 tactical system as regular Draft Mode after teams are locked.</div>
+                    </div>
+                </div>
+                <div class="bg-red-950/20 p-5 rounded-2xl border border-red-700/40">
+                    <h3 class="text-lg font-bold text-red-400 mb-3">🗼 Infinite Tower Guide</h3>
+                    <div class="space-y-2 text-xs font-mono text-slate-400">
+                        <div class="bg-slate-900/60 p-2 rounded-lg"><span class="text-red-300 font-bold">Free entry · No unlock required.</span> Uses your current squad. Endless scaling difficulty.</div>
+                        <div class="bg-red-950/30 p-2 rounded-lg border border-red-900/30"><span class="text-red-400 font-bold">How it works</span> — Each floor is a Bo3 match using the same play-pick-from-3 stat system as Season Matches. Win 2 rounds to advance. Lose 2 and your run ends.</div>
+                        <div class="bg-amber-950/30 p-2 rounded-lg border border-amber-900/30"><span class="text-amber-400 font-bold">Buffs</span> — After each win, choose 1 of 3 permanent buffs: +5 flat stat, +15% to a stat, +8 role power, or +3 all stats. These stack infinitely to match ever-scaling opponents.</div>
+                        <div class="bg-red-950/30 p-2 rounded-lg border border-red-900/30"><span class="text-red-400 font-bold">Scaling</span> — Opponents start at rating 72 and gain +2.5 per floor (caps at 130). By floor 20+ you need significant buff stacking to compete.</div>
+                        <div class="bg-emerald-950/30 p-2 rounded-lg border border-emerald-900/30"><span class="text-emerald-400 font-bold">Checkpoints</span> — Every 10 floors: progress saved + BE reward (2k → 4k → 6k → 8k). Your all-time highest floor is tracked permanently.</div>
                     </div>
                 </div>
             </div>
