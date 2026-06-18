@@ -456,3 +456,7 @@ html.light-mode .card-face-down {
     opacity: 1;
     transform: scale(1) rotateY(0deg);
 }
+
+/* SIGNATURE — Gold + purple glow */
+.card-signature { box-shadow: 0 0 25px rgba(255,215,0,0.7), 0 0 50px rgba(168,85,247,0.3); animation: signature-glow 2s ease-in-out infinite; }
+@keyframes signature-glow { 0%,100% { box-shadow: 0 0 25px rgba(255,215,0,0.7), 0 0 50px rgba(168,85,247,0.3); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.9), 0 0 70px rgba(168,85,247,0.5); } }

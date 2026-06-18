@@ -1,6 +1,6 @@
 // app.js
 
-const _SPECIAL_QUALITIES = new Set(['Champion', 'MVP', 'Finalist', 'MSI', 'FirstStand']);
+const _SPECIAL_QUALITIES = new Set(['Champion', 'MVP', 'Finalist', 'MSI', 'FirstStand', 'Signature']);
 
 function ratingToQuality(rating) {
     if (rating >= 98) return 'Challenger';
@@ -434,7 +434,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_1', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_3', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -586,6 +586,8 @@ window.onload = () => {
     if(!trackStats.msiPacksOpened) trackStats.msiPacksOpened = 0;
     if(!trackStats.mvpPacksOpened) trackStats.mvpPacksOpened = 0;
     if(!trackStats.seasonMatchesPlayed) trackStats.seasonMatchesPlayed = 0;
+    if(!trackStats.towerHighestFloor) trackStats.towerHighestFloor = 0;
+    if(!trackStats.towerRuns) trackStats.towerRuns = 0;
 
     const savedUnlocks = localStorage.getItem("lol_unlocks_v1");
     if (savedUnlocks) unlocks = JSON.parse(savedUnlocks);
@@ -602,7 +604,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_1';
+    const patchKey = 'lol_patch_seen_v0_5_3';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1435,9 +1437,23 @@ function recalculateRegionalPrice() {
     const premium = getLoanPremium(); regBtn.innerText = `${price + premium} BE`;
 }
 
+function getPrestigeTitle() {
+    const tw = (trackStats.tournamentsWon || 0) + (trackStats.goldenRoads || 0);
+    const gr = trackStats.goldenRoads || 0;
+    const sc = trackStats.splitsCompleted || 0;
+    const dw = trackStats.draftModesWon || 0;
+    if (tw >= 50 && sc >= 20 && gr >= 5 && dw >= 3) return { title: 'Legend', emoji: '👑', color: 'text-yellow-400' };
+    if (tw >= 30 && sc >= 10 && gr >= 3) return { title: 'President', emoji: '🏛️', color: 'text-purple-400' };
+    if (tw >= 15 && sc >= 5 && gr >= 1) return { title: 'GM', emoji: '⭐', color: 'text-blue-400' };
+    if (tw >= 5 || sc >= 2) return { title: 'Director', emoji: '📋', color: 'text-emerald-400' };
+    return { title: 'Scout', emoji: '🔍', color: 'text-slate-400' };
+}
+
 function updateDisplays() {
     document.getElementById("be-display").innerText = blueEssence;
     document.getElementById("club-count-val").innerText = club.length;
+    const titleEl = document.getElementById('prestige-title-display');
+    if (titleEl) { const t = getPrestigeTitle(); titleEl.innerHTML = `<span class="${t.color}">${t.emoji} ${t.title}</span>`; }
     const premium = getLoanPremium(); document.getElementById("inflation-premium-display").innerText = `+${premium} BE`;
     if (activeLoans > 0) { document.getElementById("debt-warning").classList.remove("hidden"); document.getElementById("debt-display").innerText = activeLoans * 500; }
     else { document.getElementById("debt-warning").classList.add("hidden"); }
@@ -1449,6 +1465,8 @@ function updateDisplays() {
     if (hasBoughtStarter) starterBtn.classList.add("hidden"); else starterBtn.classList.remove("hidden");
     const bootcampBonusEl = document.getElementById("bootcamp-bonus-display");
     if (bootcampBonusEl) bootcampBonusEl.innerText = 5 + (skills.bootcamp || 0) * 2;
+    const towerBest = document.getElementById('tower-best-display');
+    if (towerBest) towerBest.textContent = `Best: Floor ${trackStats.towerHighestFloor || 0}`;
     updateTournamentLocks();
     updateBadges(); updateClubStatsUI(); renderClubGrid(); renderSquadView(); renderQuests(); renderUpgradeLab();
     if(currentCollectionRegion) renderCollection();
@@ -1562,6 +1580,14 @@ function buyPack(baseCost, type) {
             pulled.push(cardInst); club.push(cardInst);
         }
     }
+    // Signature card chance (0.1% per card)
+    pulled.forEach(inst => {
+        if (Math.random() < 0.001) {
+            inst.signature = true;
+            if (inst.stats) { Object.keys(inst.stats).forEach(k => { inst.stats[k] = (inst.stats[k] || 0) + 2; }); }
+            inst.rating = Math.min(100, (inst.rating || 0) + 2);
+        }
+    });
     pulled.forEach(c => { if (c.quality === 'Challenger') trackStats.challengerPulled = (trackStats.challengerPulled || 0) + 1; });
     processNewCards(pulled); saveGame(); showPulls(pulled, `${type} Package Opened`);
 }
@@ -3039,7 +3065,8 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     const roleIconHtml = (window.roleIcons && window.roleIcons[card.role]) || '';
 
     // Tier header — always inside the card (no clipping bugs)
-    const tierLabel = card.role === "COACH" ? "COACH STAFF" : card.quality;
+    const tierLabel = card.signature ? '✦ SIGNATURE ✦' : (card.role === "COACH" ? "COACH STAFF" : card.quality);
+    if (card.signature) cardDiv.classList.add('card-signature');
 
     cardDiv.innerHTML = `
         <div class="w-full text-center py-1.5 px-3 bg-black/25 border-b ${dividerColor} text-[10px] font-black uppercase tracking-widest ${textBase} rounded-t-xl">${tierLabel}</div>
@@ -3300,15 +3327,16 @@ function advanceGoldenRoadStage() { grStageIndex++; loadGoldenRoadStage(); docum
 function emergencyResetSim() {
     if(simIntervalId) clearTimeout(simIntervalId);
     document.getElementById("pre-match-stats").classList.add("hidden");
-    tourActive = false; isGoldenRoad = false; draftModeActive = false;
+    tourActive = false; isGoldenRoad = false; draftModeActive = false; window._salaryCapMode = false;
     draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
     draftActivePickRole = null; draftCpuTeam = {}; draftHybridScore1 = null; draft1v1Cards = { my: null, cpu: null };
-    ['tournament-active','tournament-results','draft-screen','draft-combat'].forEach(id => {
+    ['tournament-active','tournament-results','draft-screen','draft-combat','tower-screen'].forEach(id => {
         const el = document.getElementById(id); if(el) el.classList.add('hidden');
     });
     document.getElementById("tournament-lobby").classList.remove("hidden");
+    towerState = null;
 }
-function finishTournamentUI() { document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
+function finishTournamentUI() { window._salaryCapMode = false; document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
 function setupBracketUI() {
     const container = document.getElementById("bracket-container"); container.innerHTML = "";
     for(let i=0; i<tourData.maxRounds; i++) {
@@ -3526,11 +3554,14 @@ function assignCardToRole(uniqueId) {
     if (draftCpuBanIds.includes(uniqueId)) return;
     const card = draftUserPool.find(c => c.uniqueId === uniqueId);
     if (!card) return;
+    // Salary cap budget check
+    if (window._salaryCapMode && getCardSalary(card) > window._salaryRemaining + (draftPickRoles[draftActivePickRole] ? getCardSalary(draftPickRoles[draftActivePickRole]) : 0)) { showToast("Over budget!", "error"); return; }
     // Remove card from any existing slot assignment
     Object.keys(draftPickRoles).forEach(r => {
         if (draftPickRoles[r] && draftPickRoles[r].uniqueId === uniqueId) draftPickRoles[r] = null;
     });
     draftPickRoles[draftActivePickRole] = card;
+    if (window._salaryCapMode) updateSalaryDisplay();
     updateDraftPickUI();
 }
 
@@ -3798,12 +3829,14 @@ function processDraftRoundResult(won) {
 
 function endDraftMode() {
     const won = draftMatchWins >= 2;
-    const reward = won ? 2500 : 0;
+    const isSalaryCap = !!window._salaryCapMode;
+    const reward = won ? (isSalaryCap ? 4000 : 2500) : 0;
     blueEssence += reward;
     trackStats.draftModesPlayed = (trackStats.draftModesPlayed || 0) + 1;
     if (won) trackStats.draftModesWon = (trackStats.draftModesWon || 0) + 1;
     else trackStats.losses = (trackStats.losses || 0) + 1;
     draftModeActive = false;
+    window._salaryCapMode = false;
 
     document.getElementById('draft-combat').classList.add('hidden');
     const outcomeDiv = document.getElementById('tournament-results');
@@ -3826,6 +3859,324 @@ function endDraftMode() {
 
     addXP(won ? 150 : 50);
     saveGame(); updateDisplays();
+}
+
+// === SALARY CAP DRAFT MODE ===
+function getCardSalary(card) { return Math.floor((card.rating - 60) * 2.5); }
+const SALARY_CAP = 350;
+
+function startSalaryCapDraft() {
+    if (club.length < 15) { showToast("Need at least 15 cards in your Club.", "error"); return; }
+    if (blueEssence < 1500) { showToast("Need 1,500 BE to enter Salary Cap Draft.", "error"); return; }
+    blueEssence -= 1500;
+
+    // Reuse existing draft infrastructure but with salary constraint
+    draftModeActive = true;
+    draftMatchRound = 0;
+    draftMatchWins = 0;
+    draftMatchLosses = 0;
+
+    // Set up pools same as normal draft
+    const shuffledClub = [...club].sort(() => Math.random() - 0.5);
+    draftUserPool = shuffledClub.slice(0, 15);
+    const userAvg = Math.round(draftUserPool.reduce((s, c) => s + c.rating, 0) / draftUserPool.length);
+    const cpuTarget = userAvg + 2;
+    const db = getDB().filter(p => p.role !== 'COACH');
+    const cpuPool = [];
+    ['TOP','JNG','MID','ADC','SUP'].forEach(role => {
+        const pool = db.filter(p => p.role === role);
+        const sorted = pool.sort((a,b) => Math.abs(a.rating - cpuTarget) - Math.abs(b.rating - cpuTarget));
+        cpuPool.push(...sorted.slice(0, 3));
+    });
+    draftCpuPool = cpuPool.sort(() => Math.random() - 0.5);
+
+    // No ban phase in salary cap — go straight to pick with salary UI
+    draftUserBanIds = [];
+    draftCpuBanIds = [];
+    draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
+    draftActivePickRole = null;
+
+    // CPU picks team under salary cap
+    draftCpuTeam = {};
+    let cpuBudget = SALARY_CAP;
+    ['TOP','JNG','MID','ADC','SUP'].forEach(role => {
+        const available = draftCpuPool.filter(c => c.role === role && getCardSalary(c) <= cpuBudget);
+        if (available.length) {
+            const pick = available[Math.floor(Math.random() * available.length)];
+            draftCpuTeam[role] = { ...pick, uniqueId: 'scpu_' + role + '_' + Date.now() };
+            cpuBudget -= getCardSalary(pick);
+        }
+    });
+
+    // Show salary pick UI (reuse draft-screen with modifications)
+    document.getElementById('tournament-lobby').classList.add('hidden');
+    document.getElementById('draft-screen').classList.remove('hidden');
+    document.getElementById('draft-ban-panel').classList.add('hidden');
+    document.getElementById('draft-pick-panel').classList.remove('hidden');
+
+    // Override subtitle to show salary info
+    document.getElementById('draft-phase-subtitle').innerText = `SALARY CAP MODE: Budget ${SALARY_CAP}. Each card costs (rating-60)×2.5. Fill 5 roles under budget.`;
+
+    // Track salary state on window for the pick phase
+    window._salaryCapMode = true;
+    window._salaryRemaining = SALARY_CAP;
+
+    saveGame();
+    renderDraftPickPhase();
+    updateSalaryDisplay();
+}
+
+function updateSalaryDisplay() {
+    if (!window._salaryCapMode) return;
+    let spent = 0;
+    ['TOP','JNG','MID','ADC','SUP'].forEach(r => {
+        if (draftPickRoles[r]) spent += getCardSalary(draftPickRoles[r]);
+    });
+    window._salaryRemaining = SALARY_CAP - spent;
+    const counter = document.getElementById('draft-pick-counter');
+    if (counter) counter.innerText = `Budget: ${window._salaryRemaining} / ${SALARY_CAP}`;
+}
+
+// === INFINITE TOWER MODE ===
+let towerState = null;
+
+function startInfiniteTower() {
+    if (['TOP','JNG','MID','ADC','SUP'].some(r => !squad[r])) { showToast("Assign all 5 positions first.", "error"); return; }
+
+    // Check for saved checkpoint
+    const saved = localStorage.getItem("lol_tower_v1");
+    if (saved) {
+        towerState = JSON.parse(saved);
+        showConfirm("Resume Tower?", `You have a saved run at Floor ${towerState.floor} with ${towerState.buffs.length} buffs. Resume or start fresh?`, () => {
+            _towerEnter();
+        });
+        return;
+    }
+
+    towerState = { floor: 1, buffs: [], checkpoint: 0, phase: 'match', matchState: null };
+    _towerEnter();
+}
+
+function _towerEnter() {
+    document.getElementById('tournament-lobby').classList.add('hidden');
+    document.getElementById('tower-screen').classList.remove('hidden');
+    _towerStartMatch();
+}
+
+function closeTower() {
+    document.getElementById('tower-screen').classList.add('hidden');
+    document.getElementById('tournament-lobby').classList.remove('hidden');
+    towerState = null;
+}
+
+function _towerGenOpponent(floor) {
+    const baseRating = Math.min(130, 70 + Math.floor(floor * 2.5));
+    const style = _SEASON_STYLES[Math.floor(Math.random() * _SEASON_STYLES.length)];
+    const name = _SEASON_TEAM_NAMES[Math.floor(Math.random() * _SEASON_TEAM_NAMES.length)];
+    const logo = _SEASON_LOGOS[Math.floor(Math.random() * _SEASON_LOGOS.length)];
+    return { name, logo, avgRating: baseRating, style, stats: _smGenStats(baseRating, style, 130) };
+}
+
+function _towerApplyBuffs(baseVal, statKey, role) {
+    let val = baseVal;
+    for (const buff of (towerState.buffs || [])) {
+        if (buff.type === 'flatStat' && buff.stat === statKey) val += buff.value;
+        if (buff.type === 'pctStat' && buff.stat === statKey) val += Math.round(baseVal * buff.value / 100);
+        if (buff.type === 'allStats') val += buff.value;
+        if (buff.type === 'roleBonus' && buff.role === role) val += buff.value;
+    }
+    return val;
+}
+
+function _towerStatVal(play) {
+    const roles = play.myRoles;
+    const vals = roles.map(r => {
+        const c = squad[r];
+        if (!c) return 70;
+        const raw = r === 'COACH' ? (c.stats.ldr || c.rating) : (c.stats[play.statKey] || 70);
+        return _towerApplyBuffs(raw, play.statKey, r);
+    });
+    return vals.length === 1 ? vals[0] : Math.round(vals.reduce((a,b) => a+b, 0) / vals.length);
+}
+
+function _towerStartMatch() {
+    const opp = _towerGenOpponent(towerState.floor);
+    towerState.phase = 'match';
+    towerState.matchState = { opp, wins: 0, losses: 0, round: 1, log: [], options: [] };
+    _towerPickOptions();
+    renderTowerUI();
+}
+
+function _towerPickOptions() {
+    const available = _SEASON_PLAYS.filter(p => !(p.id === 'coach' && !squad.COACH));
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
+    const picked = [];
+    for (const p of shuffled) { if (picked.length >= 3) break; picked.push(p); }
+    towerState.matchState.options = picked.slice(0, 3);
+}
+
+function makeTowerPlay(playId) {
+    if (!towerState || towerState.phase !== 'match') return;
+    const ms = towerState.matchState;
+    const play = _SEASON_PLAYS.find(p => p.id === playId);
+    if (!play) return;
+
+    const myVal = _towerStatVal(play);
+    const oppVal = ms.opp.stats[play.statKey] || ms.opp.avgRating;
+    const variance = Math.round((Math.random() * 16) - 8);
+    const net = (myVal - oppVal) + variance;
+    const won = net > 0;
+
+    if (won) ms.wins++; else ms.losses++;
+    ms.log.push({ round: ms.round, icon: play.icon, label: play.label, detail: `${play.myRoles.join('+')} ${play.statKey.toUpperCase()} ${myVal} vs ${oppVal} (${net >= 0 ? '+' : ''}${net})`, won });
+
+    const matchDone = ms.wins >= 2 || ms.losses >= 2;
+    if (matchDone) {
+        if (ms.wins >= 2) {
+            towerState.floor++;
+            // Checkpoint every 10 floors
+            if (towerState.floor % 10 === 1 && towerState.floor > 1) {
+                const reward = Math.min(8000, 2000 * Math.ceil((towerState.floor - 1) / 10));
+                blueEssence += reward;
+                towerState.checkpoint = towerState.floor - 1;
+                localStorage.setItem("lol_tower_v1", JSON.stringify(towerState));
+                saveGame();
+                showToast(`Checkpoint Floor ${towerState.floor - 1}! +${reward} BE`, "success");
+            }
+            // Track best
+            if (!trackStats.towerHighestFloor || towerState.floor > trackStats.towerHighestFloor) {
+                trackStats.towerHighestFloor = towerState.floor;
+            }
+            towerState.phase = 'buff';
+            _towerGenBuffOptions();
+        } else {
+            towerState.phase = 'defeat';
+            localStorage.removeItem("lol_tower_v1");
+            if (!trackStats.towerRuns) trackStats.towerRuns = 0;
+            trackStats.towerRuns++;
+            saveGame();
+        }
+    } else {
+        ms.round++;
+        _towerPickOptions();
+    }
+    renderTowerUI();
+}
+
+function _towerGenBuffOptions() {
+    const statKeys = ['mec','tmf','frm','cmp','map','ldr'];
+    const roles = ['TOP','JNG','MID','ADC','SUP'];
+    const buffPool = [
+        ...statKeys.map(s => ({ type: 'flatStat', stat: s, value: 5, label: `+5 ${s.toUpperCase()}`, desc: `+5 to ${s.toUpperCase()} for all your players` })),
+        ...statKeys.map(s => ({ type: 'pctStat', stat: s, value: 15, label: `+15% ${s.toUpperCase()}`, desc: `+15% multiplicative boost to ${s.toUpperCase()}` })),
+        ...roles.map(r => ({ type: 'roleBonus', role: r, value: 8, label: `${r} Power +8`, desc: `+8 to all stats when ${r} is involved in a play` })),
+        { type: 'allStats', value: 3, label: '+3 All Stats', desc: '+3 to every stat for all your players' },
+        { type: 'allStats', value: 2, label: '+2 All Stats', desc: '+2 to every stat for all your players' },
+    ];
+    const shuffled = [...buffPool].sort(() => Math.random() - 0.5);
+    towerState.buffOptions = shuffled.slice(0, 3);
+}
+
+function selectTowerBuff(idx) {
+    if (!towerState || towerState.phase !== 'buff') return;
+    const chosen = towerState.buffOptions[idx];
+    towerState.buffs.push(chosen);
+    towerState.buffOptions = null;
+    _towerStartMatch();
+}
+
+function renderTowerUI() {
+    const container = document.getElementById('tower-content');
+    if (!container || !towerState) return;
+    const floorLabel = document.getElementById('tower-floor-label');
+    if (floorLabel) floorLabel.textContent = `Floor ${towerState.floor}`;
+
+    // Active buffs summary
+    const buffsHTML = towerState.buffs.length
+        ? `<div class="flex flex-wrap gap-2 mb-4">${towerState.buffs.map(b => `<span class="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-950/60 border border-amber-700/40 text-amber-300">${b.label}</span>`).join('')}</div>`
+        : '';
+
+    if (towerState.phase === 'defeat') {
+        container.innerHTML = `${buffsHTML}
+            <div class="bg-red-950/40 p-8 rounded-2xl border border-red-800 text-center">
+                <div class="text-5xl mb-3">💀</div>
+                <h3 class="text-2xl font-black text-red-400 mb-2">Tower Collapsed</h3>
+                <p class="text-slate-400 mb-1">You reached <span class="text-amber-400 font-black">Floor ${towerState.floor}</span> with <span class="text-emerald-400 font-black">${towerState.buffs.length}</span> buffs.</p>
+                <p class="text-slate-500 text-sm mb-5">Best: Floor ${trackStats.towerHighestFloor || 1}</p>
+                <button onclick="closeTower()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-8 py-3 rounded-xl font-bold cursor-pointer transition">Return to Lobby</button>
+            </div>`;
+        const bestEl = document.getElementById('tower-best-display');
+        if (bestEl) bestEl.textContent = `Best: Floor ${trackStats.towerHighestFloor || 0}`;
+        return;
+    }
+
+    if (towerState.phase === 'buff') {
+        const opts = towerState.buffOptions || [];
+        container.innerHTML = `${buffsHTML}
+            <div class="bg-emerald-950/30 p-6 rounded-2xl border border-emerald-700/50 text-center">
+                <h3 class="text-xl font-black text-emerald-300 mb-2 uppercase tracking-widest">Choose a Buff</h3>
+                <p class="text-slate-400 text-sm mb-5">Floor ${towerState.floor - 1} cleared! Pick one upgrade to carry forward.</p>
+                <div class="flex flex-wrap gap-4 justify-center">
+                    ${opts.map((b, i) => `<button onclick="selectTowerBuff(${i})" class="bg-slate-800 hover:bg-slate-700 border border-amber-700/50 hover:border-amber-400 rounded-xl p-5 cursor-pointer transition text-center min-w-[180px] flex flex-col items-center gap-2">
+                        <span class="text-2xl">⚡</span>
+                        <span class="text-amber-300 font-black text-sm">${b.label}</span>
+                        <span class="text-slate-400 text-xs">${b.desc}</span>
+                    </button>`).join('')}
+                </div>
+            </div>`;
+        return;
+    }
+
+    // Match phase
+    const ms = towerState.matchState;
+    const opp = ms.opp;
+
+    function pips(count, max, colorClass) {
+        return Array.from({ length: max }, (_, i) =>
+            `<span class="inline-block w-4 h-4 rounded-full border-2 ${i < count ? colorClass + ' border-transparent' : 'bg-slate-700 border-slate-600'}"></span>`
+        ).join('');
+    }
+
+    const playCards = ms.options.map(play => {
+        const myVal = _towerStatVal(play);
+        const oppVal = opp.stats[play.statKey] || opp.avgRating;
+        const edge = myVal - oppVal;
+        const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
+        return `<button onclick="makeTowerPlay('${play.id}')" class="flex-1 min-w-[180px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-red-500 rounded-xl p-4 text-left cursor-pointer transition">
+            <div class="text-2xl mb-1">${play.icon}</div>
+            <div class="font-black text-slate-100 text-sm mb-0.5">${play.label}</div>
+            <div class="text-slate-500 text-xs mb-3">${play.desc}</div>
+            <div class="font-mono text-sm space-y-1 border-t border-slate-700 pt-2">
+                <div class="flex justify-between"><span class="text-slate-400">${play.myRoles.join('+')} ${play.statKey.toUpperCase()}</span><span class="text-slate-200 font-black text-base">${myVal}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Opp ${play.statKey.toUpperCase()}</span><span class="text-slate-300 font-bold text-base">${oppVal}</span></div>
+                <div class="flex justify-between border-t border-slate-700/50 pt-1"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black text-base">${edge >= 0 ? '+' : ''}${edge}</span></div>
+            </div>
+        </button>`;
+    }).join('');
+
+    const logHTML = ms.log.length ? ms.log.map(e =>
+        `<div class="flex items-start gap-2 text-sm font-mono ${e.won ? 'text-emerald-400' : 'text-red-400'}">
+            <span>${e.won ? '✅' : '❌'}</span><span><span class="font-black">${e.icon} ${e.label}</span> — ${e.detail}</span>
+        </div>`
+    ).join('') : `<div class="text-slate-600 text-sm font-mono">No plays yet.</div>`;
+
+    container.innerHTML = `${buffsHTML}
+        <div class="flex items-center gap-3 flex-wrap mb-4">
+            <span class="text-xl">${opp.logo}</span>
+            <span class="font-black text-slate-100">${opp.name}</span>
+            <span class="text-slate-500 text-sm">${opp.style} · Avg <span class="font-bold text-slate-300">${opp.avgRating}</span></span>
+        </div>
+        <div class="flex items-center justify-center gap-8 bg-slate-800/60 py-3 rounded-2xl border border-slate-700 mb-4">
+            <div class="text-center"><div class="text-xs text-blue-400 font-black uppercase mb-1">You</div><div class="flex gap-1">${pips(ms.wins, 2, 'bg-blue-400')}</div></div>
+            <div class="text-slate-600 font-black">vs</div>
+            <div class="text-center"><div class="text-xs text-red-400 font-black uppercase mb-1">Tower</div><div class="flex gap-1">${pips(ms.losses, 2, 'bg-red-500')}</div></div>
+        </div>
+        <div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Round ${ms.round} — Choose Your Play</div>
+        <div class="flex flex-wrap gap-3 mb-4">${playCards}</div>
+        <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4">
+            <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
+            <div class="space-y-1.5">${logHTML}</div>
+        </div>`;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────

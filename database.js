@@ -104,7 +104,9 @@ window.teamLineageBridges = {
     "WBG": "Weibo Gaming", "WE": "Team WE", "TT": "ThunderTalk Gaming", "LGD": "LGD Gaming", "OMG": "Oh My God", "UP": "Ultra Prime",
     "CJ": "CJ Entus", "GET": "GE Tigers", "IM": "Incredible Miracle", "JAG": "Jin Air Green Wings", "NJ": "NaJin e-mFire",
     "EP": "Energy Pacemaker", "GT": "Gamtee", "King": "Team King", "M3": "Masters 3", "Snake": "Snake Esports",
-    "SHRC": "Star Horn Royal Club", "VG": "Vici Gaming"
+    "SHRC": "Star Horn Royal Club", "VG": "Vici Gaming",
+    "CW": "Copenhagen Wolves", "EL": "Elements", "GMB": "Gambit Gaming", "GIA": "Giants Gaming",
+    "H2K": "H2k-Gaming", "OG": "Origen", "ROC": "Team ROCCAT", "UOL": "Unicorns of Love"
 };
 
 function genStats(rating) {
@@ -1378,6 +1380,68 @@ const baseDatabase = [
     { id: 10119, name: "viNylCat", role: "COACH", team: "NJ", year: 2015, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 25, tmf: 83, frm: 86, cmp: 86, map: 87, ldr: 88 } },
     { id: 10120, name: "DoGGi", role: "COACH", team: "SSG", year: 2015, rating: 82, quality: "Gold", region: "LCK", stats: { mec: 25, tmf: 79, frm: 82, cmp: 82, map: 83, ldr: 84 } },
     { id: 10121, name: "kkOma", role: "COACH", team: "SKT", year: 2015, rating: 92, quality: "Diamond", region: "LCK", stats: { mec: 22, tmf: 89, frm: 92, cmp: 92, map: 93, ldr: 97 } },
+
+    // ===== EU LCS 2015 Summer Season (LEC) =====
+    // Fnatic (18-0 undefeated split)
+    { id: 10200, name: "Huni", role: "TOP", team: "FNC", year: 2015, rating: 94, quality: "Master", region: "LEC", stats: { mec: 97, tmf: 92, frm: 95, cmp: 95, map: 91, ldr: 92 } },
+    { id: 10201, name: "Reignover", role: "JNG", team: "FNC", year: 2015, rating: 94, quality: "Master", region: "LEC", stats: { mec: 93, tmf: 98, frm: 90, cmp: 94, map: 99, ldr: 97 } },
+    { id: 10202, name: "Febiven", role: "MID", team: "FNC", year: 2015, rating: 94, quality: "Master", region: "LEC", stats: { mec: 97, tmf: 96, frm: 94, cmp: 97, map: 93, ldr: 92 } },
+    { id: 10203, name: "Rekkles", role: "ADC", team: "FNC", year: 2015, rating: 95, quality: "Master", region: "LEC", stats: { mec: 99, tmf: 93, frm: 97, cmp: 94, map: 90, ldr: 90 } },
+    { id: 10204, name: "YellOwStaR", role: "SUP", team: "FNC", year: 2015, rating: 96, quality: "Grandmaster", region: "LEC", stats: { mec: 87, tmf: 97, frm: 96, cmp: 97, map: 99, ldr: 99 } },
+    // Origen
+    { id: 10205, name: "sOAZ", role: "TOP", team: "OG", year: 2015, rating: 91, quality: "Diamond", region: "LEC", stats: { mec: 95, tmf: 88, frm: 93, cmp: 90, map: 90, ldr: 90 } },
+    { id: 10206, name: "Amazing", role: "JNG", team: "OG", year: 2015, rating: 90, quality: "Diamond", region: "LEC", stats: { mec: 89, tmf: 94, frm: 86, cmp: 93, map: 94, ldr: 93 } },
+    { id: 10207, name: "xPeke", role: "MID", team: "OG", year: 2015, rating: 90, quality: "Diamond", region: "LEC", stats: { mec: 94, tmf: 89, frm: 92, cmp: 91, map: 91, ldr: 88 } },
+    { id: 10208, name: "Niels", role: "ADC", team: "OG", year: 2015, rating: 92, quality: "Diamond", region: "LEC", stats: { mec: 95, tmf: 89, frm: 95, cmp: 91, map: 87, ldr: 90 } },
+    { id: 10209, name: "Mithy", role: "SUP", team: "OG", year: 2015, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 81, tmf: 90, frm: 84, cmp: 90, map: 92, ldr: 90 } },
+    // H2k-Gaming
+    { id: 10210, name: "Odoamne", role: "TOP", team: "H2K", year: 2015, rating: 88, quality: "Platinum", region: "LEC", stats: { mec: 89, tmf: 87, frm: 92, cmp: 88, map: 83, ldr: 86 } },
+    { id: 10211, name: "Loulex", role: "JNG", team: "H2K", year: 2015, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 84, tmf: 92, frm: 83, cmp: 87, map: 93, ldr: 87 } },
+    { id: 10212, name: "Ryu", role: "MID", team: "H2K", year: 2015, rating: 89, quality: "Platinum", region: "LEC", stats: { mec: 94, tmf: 88, frm: 89, cmp: 92, map: 88, ldr: 87 } },
+    { id: 10213, name: "Hjarnan", role: "ADC", team: "H2K", year: 2015, rating: 89, quality: "Platinum", region: "LEC", stats: { mec: 93, tmf: 89, frm: 93, cmp: 86, map: 85, ldr: 87 } },
+    { id: 10214, name: "KaSing", role: "SUP", team: "H2K", year: 2015, rating: 89, quality: "Platinum", region: "LEC", stats: { mec: 82, tmf: 92, frm: 87, cmp: 94, map: 92, ldr: 92 } },
+    // Unicorns of Love
+    { id: 10215, name: "Vizicsacsi", role: "TOP", team: "UOL", year: 2015, rating: 89, quality: "Platinum", region: "LEC", stats: { mec: 90, tmf: 89, frm: 90, cmp: 88, map: 86, ldr: 88 } },
+    { id: 10216, name: "Kikis", role: "JNG", team: "UOL", year: 2015, rating: 89, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 91, frm: 84, cmp: 89, map: 93, ldr: 89 } },
+    { id: 10217, name: "PowerOfEvil", role: "MID", team: "UOL", year: 2015, rating: 88, quality: "Platinum", region: "LEC", stats: { mec: 92, tmf: 91, frm: 86, cmp: 91, map: 88, ldr: 87 } },
+    { id: 10218, name: "Vardags", role: "ADC", team: "UOL", year: 2015, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 91, tmf: 85, frm: 90, cmp: 86, map: 82, ldr: 86 } },
+    { id: 10219, name: "Hylissang", role: "SUP", team: "UOL", year: 2015, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 78, tmf: 89, frm: 84, cmp: 89, map: 92, ldr: 91 } },
+    // Gambit Gaming
+    { id: 10220, name: "Cabochard", role: "TOP", team: "GMB", year: 2015, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 87, tmf: 87, frm: 90, cmp: 86, map: 84, ldr: 83 } },
+    { id: 10221, name: "Diamondprox", role: "JNG", team: "GMB", year: 2015, rating: 82, quality: "Gold", region: "LEC", stats: { mec: 80, tmf: 83, frm: 77, cmp: 85, map: 88, ldr: 82 } },
+    { id: 10222, name: "Betsy", role: "MID", team: "GMB", year: 2015, rating: 84, quality: "Gold", region: "LEC", stats: { mec: 88, tmf: 84, frm: 83, cmp: 85, map: 84, ldr: 81 } },
+    { id: 10223, name: "FORG1VEN", role: "ADC", team: "GMB", year: 2015, rating: 83, quality: "Gold", region: "LEC", stats: { mec: 85, tmf: 80, frm: 87, cmp: 80, map: 79, ldr: 79 } },
+    { id: 10224, name: "Edward", role: "SUP", team: "GMB", year: 2015, rating: 83, quality: "Gold", region: "LEC", stats: { mec: 75, tmf: 84, frm: 81, cmp: 86, map: 88, ldr: 87 } },
+    // SK Gaming
+    { id: 10225, name: "fredy122", role: "TOP", team: "SK", year: 2015, rating: 83, quality: "Gold", region: "LEC", stats: { mec: 86, tmf: 83, frm: 85, cmp: 84, map: 81, ldr: 82 } },
+    { id: 10226, name: "Svenskeren", role: "JNG", team: "SK", year: 2015, rating: 84, quality: "Gold", region: "LEC", stats: { mec: 82, tmf: 86, frm: 79, cmp: 83, map: 87, ldr: 86 } },
+    { id: 10227, name: "Fox", role: "MID", team: "SK", year: 2015, rating: 84, quality: "Gold", region: "LEC", stats: { mec: 88, tmf: 83, frm: 85, cmp: 85, map: 83, ldr: 82 } },
+    { id: 10228, name: "CandyPanda", role: "ADC", team: "SK", year: 2015, rating: 83, quality: "Gold", region: "LEC", stats: { mec: 89, tmf: 82, frm: 85, cmp: 83, map: 81, ldr: 79 } },
+    { id: 10229, name: "nRated", role: "SUP", team: "SK", year: 2015, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 75, tmf: 86, frm: 84, cmp: 87, map: 92, ldr: 87 } },
+    // Giants Gaming
+    { id: 10230, name: "Werlyb", role: "TOP", team: "GIA", year: 2015, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 86, frm: 88, cmp: 86, map: 83, ldr: 85 } },
+    { id: 10231, name: "Fr3deric", role: "JNG", team: "GIA", year: 2015, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 82, tmf: 86, frm: 82, cmp: 86, map: 88, ldr: 87 } },
+    { id: 10232, name: "Pepiinero", role: "MID", team: "GIA", year: 2015, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 91, tmf: 88, frm: 86, cmp: 91, map: 86, ldr: 86 } },
+    { id: 10233, name: "Adryh", role: "ADC", team: "GIA", year: 2015, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 89, tmf: 84, frm: 89, cmp: 83, map: 79, ldr: 82 } },
+    { id: 10234, name: "G0DFRED", role: "SUP", team: "GIA", year: 2015, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 77, tmf: 87, frm: 85, cmp: 88, map: 90, ldr: 92 } },
+    // Elements
+    { id: 10235, name: "Jwaow", role: "TOP", team: "EL", year: 2015, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 85, frm: 90, cmp: 88, map: 85, ldr: 83 } },
+    { id: 10236, name: "Dexter", role: "JNG", team: "EL", year: 2015, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 85, tmf: 89, frm: 81, cmp: 87, map: 91, ldr: 89 } },
+    { id: 10237, name: "Froggen", role: "MID", team: "EL", year: 2015, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 89, tmf: 85, frm: 86, cmp: 89, map: 86, ldr: 83 } },
+    { id: 10238, name: "Tabzz", role: "ADC", team: "EL", year: 2015, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 91, tmf: 82, frm: 86, cmp: 85, map: 80, ldr: 80 } },
+    { id: 10239, name: "promisq", role: "SUP", team: "EL", year: 2015, rating: 84, quality: "Gold", region: "LEC", stats: { mec: 77, tmf: 87, frm: 83, cmp: 86, map: 87, ldr: 90 } },
+    // Team ROCCAT
+    { id: 10240, name: "Steve", role: "TOP", team: "ROC", year: 2015, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 85, frm: 90, cmp: 88, map: 84, ldr: 85 } },
+    { id: 10241, name: "Jankos", role: "JNG", team: "ROC", year: 2015, rating: 89, quality: "Platinum", region: "LEC", stats: { mec: 87, tmf: 92, frm: 86, cmp: 91, map: 92, ldr: 89 } },
+    { id: 10242, name: "Nukeduck", role: "MID", team: "ROC", year: 2015, rating: 89, quality: "Platinum", region: "LEC", stats: { mec: 91, tmf: 88, frm: 89, cmp: 92, map: 89, ldr: 89 } },
+    { id: 10243, name: "MrRallez", role: "ADC", team: "ROC", year: 2015, rating: 87, quality: "Platinum", region: "LEC", stats: { mec: 92, tmf: 87, frm: 88, cmp: 84, map: 82, ldr: 86 } },
+    { id: 10244, name: "Vander", role: "SUP", team: "ROC", year: 2015, rating: 86, quality: "Platinum", region: "LEC", stats: { mec: 77, tmf: 86, frm: 84, cmp: 89, map: 91, ldr: 92 } },
+    // Copenhagen Wolves
+    { id: 10245, name: "YoungBuck", role: "TOP", team: "CW", year: 2015, rating: 81, quality: "Gold", region: "LEC", stats: { mec: 84, tmf: 80, frm: 83, cmp: 82, map: 77, ldr: 81 } },
+    { id: 10246, name: "Airwaks", role: "JNG", team: "CW", year: 2015, rating: 84, quality: "Gold", region: "LEC", stats: { mec: 83, tmf: 87, frm: 81, cmp: 84, map: 86, ldr: 86 } },
+    { id: 10247, name: "Soren", role: "MID", team: "CW", year: 2015, rating: 79, quality: "Silver", region: "LEC", stats: { mec: 84, tmf: 79, frm: 80, cmp: 82, map: 80, ldr: 77 } },
+    { id: 10248, name: "Freeze", role: "ADC", team: "CW", year: 2015, rating: 85, quality: "Platinum", region: "LEC", stats: { mec: 88, tmf: 84, frm: 87, cmp: 84, map: 79, ldr: 81 } },
+    { id: 10249, name: "Unlimited", role: "SUP", team: "CW", year: 2015, rating: 81, quality: "Gold", region: "LEC", stats: { mec: 72, tmf: 84, frm: 80, cmp: 86, map: 85, ldr: 84 } },
 ];
 
 window.playerDatabase = baseDatabase.map(p => {

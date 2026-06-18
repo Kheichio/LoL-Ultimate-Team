@@ -34,11 +34,12 @@
 
     <header class="bg-slate-800 p-4 shadow-xl flex items-center justify-between border-b border-slate-700 sticky top-0 z-50 gap-4">
         
-        <div class="flex-shrink-0">
+        <div class="flex-shrink-0 flex flex-col items-center gap-1">
             <div class="bg-slate-900 px-4 py-2 rounded-full border border-slate-700 text-sm font-mono font-bold text-blue-400 flex items-center gap-2 shadow-inner">
                 <span onclick="secretMoneyCheat()" class="cursor-pointer hover:scale-125 transition duration-200 text-lg" title="Dev Cheat: Add 10,000 BE">💎</span>
                 <span><span id="be-display">1000</span> BE</span>
             </div>
+            <div id="prestige-title-display" class="text-[10px] font-black uppercase tracking-widest"></div>
         </div>
 
         <div class="flex items-center justify-center flex-wrap gap-2 flex-grow">
@@ -331,7 +332,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.1</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.3</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -709,16 +710,21 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.1)</h3>
+                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.3)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-yellow-400 font-bold">Upgrade Tab Notification</span> — The Upgrade nav button now shows a pulsing badge whenever you have enough cards and BE to perform at least one upgrade, so you never miss a free power spike sitting in your Club.</li>
-                    <li><span class="text-cyan-400 font-bold">Mid-Split Meta &amp; Slump Shake-Up</span> — Team Metas and Slumps now reroll once per Season Split, right after your 5th match. The back half of every split brings a fresh set of buffed and slumping teams instead of staying static for all 10 matches.</li>
-                    <li><span class="text-red-400 font-bold">Elite Teams Buffed to a 110 Cap</span> — Elite Split opponents now roll a 95–110 rating (up from 95–99), with individual stats able to reach that ceiling too instead of being clamped at 99. 110 is the new ultimate-difficulty cap — well above any player card in the game.</li>
+                    <li><span class="text-red-400 font-bold">Infinite Tower (New Mode)</span> — Free-entry endless grind mode in the Play Hub. Face infinite opponents in Bo3 matches (same play-pick-from-3 system as Season Matches). After each win, choose 1 of 3 permanent buffs: flat stat bonuses, percentage boosts, or role-specific power spikes. Opponents scale +2.5 rating per floor (capping at 130) so buffs stack to match. Checkpoints every 10 floors save your progress and award escalating BE (2k/4k/6k/8k). Tracks your all-time highest floor.</li>
+                    <li><span class="text-emerald-400 font-bold">Salary Cap Draft (New Mode)</span> — Separate mode from regular Draft Mode (1,500 BE entry, 4,000 BE win). Each card has a salary cost based on rating: (rating−60)×2.5. Total budget of 350 forces creative roster-building — you can't just field 5 Challengers. Skips the ban phase; same Bo3 combat. CPU also drafts under the cap.</li>
+                    <li><span class="text-yellow-400 font-bold">Signature Cards</span> — Extremely rare (0.1% chance) variants that can appear in Champion and MVP packs. Signature cards get +2 to ALL stats and +2 rating, with a unique gold/purple animated glow and "✦ SIGNATURE ✦" tier label. Pure collector flex tracked separately in the Archive.</li>
+                    <li><span class="text-purple-400 font-bold">Manager Prestige Titles</span> — Your cumulative achievements now earn a visible title displayed in the header: Scout → Director → GM → President → Legend. Based on total tournament wins, splits completed, Golden Roads, and draft wins. Pure bragging rights, no gameplay impact.</li>
+                    <li><span class="text-cyan-400 font-bold">2015 EU LCS Summer Rosters</span> — All 10 teams added (50 new cards): Fnatic's legendary 18-0 undefeated split (Huni/Reignover/Febiven/Rekkles/YellOwStaR, rated 94–96), Origen (sOAZ/xPeke/Niels/Mithy), H2k, Unicorns of Love, Gambit, SK Gaming, Giants, Elements, ROCCAT, Copenhagen Wolves. Ratings derived from real stats. 8 new team codes added (CW, EL, GMB, GIA, H2K, OG, ROC, UOL).</li>
+                    <li><span class="text-orange-400 font-bold">Golden Road 30-Min Cooldown</span> — After finishing (or getting knocked out of) a Golden Road run, a 30-minute cooldown gates your next attempt. Live countdown shown on the Embark button, persists across reloads.</li>
+                    <li><span class="text-blue-400 font-bold">Play Hub Reorganized</span> — Season Matches, Draft Mode, and Golden Road now sit as a prominent 4-column row (with Salary Cap Draft) at the top of the Competitive Arenas tab, side by side. The 5-tier bracket grid and Infinite Tower sit below.</li>
+                    <li><span class="text-slate-300 font-bold">Poby 2026 NAVI Buffed</span> — Rating 79→85 (Silver→Platinum), reflecting his real form this season.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.0): Bench Substitutions in Season Splits · Rising Elite Split Odds · Bootcamp Locked During Matches</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.1): Upgrade Tab Notification · Mid-Split Meta &amp; Slump Shake-Up · Elite Teams Buffed to 110 Cap</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.0): Bench Substitutions in Season Splits · Rising Elite Split Odds · Bootcamp Locked During Matches</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.9): Season Match Enemy Roster Stats · Golden Road Locked Behind Worlds · Transfer Window Lv1 Ability · Trade Requirements Buffed · Season Split Lock-In Warning · BLG 2026 Roster Buffed · Draft Mode Legacy Flex Exemption</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.8): Classic Years 2015 LCK &amp; LPL Spring · Roster Coverage Chart · Slumps Intensified · Achievements · Quests Overhaul · Earlier Draft Mode · Elite Pack Rebalance · Cheaper Upgrades · Nav Bar Reorder · Opponent Team Comps · Mid-Season Squad Lock</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.7): Slumps Intensified · Achievements · Quests Overhaul · Earlier Draft Mode · Elite Pack Rebalance · Cheaper Upgrades · Nav Bar Reorder · Opponent Team Comps · Mid-Season Squad Lock</p>
             </div>
 
         </section>
@@ -975,7 +981,7 @@
             <p class="mb-6 text-slate-400 text-sm">Test your roster against structured brackets, or enter the long Golden Road gauntlet.</p>
             
             <div id="tournament-lobby">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 mb-8">
                     <div class="golden-road-bg p-6 rounded-2xl text-center shadow-2xl relative overflow-hidden flex flex-col">
                         <div class="absolute -right-6 -top-6 opacity-10 text-[120px]">🏆</div>
                         <h3 class="text-xl font-black text-yellow-400 mb-1 drop-shadow-lg tracking-widest uppercase">The Golden Road</h3>
@@ -1007,6 +1013,17 @@
                             <span class="bg-black/30 px-2 py-1 rounded-lg border border-emerald-800/60 text-emerald-300">10W: 8,000 BE</span>
                         </div>
                         <button onclick="startSeasonMatchMode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.5)]">Open Season</button>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-800 p-6 rounded-2xl border border-emerald-700/50 text-center shadow-2xl relative overflow-hidden flex flex-col">
+                        <div class="absolute -left-6 -top-6 opacity-10 text-[120px]">💰</div>
+                        <h3 class="text-xl font-black text-emerald-300 mb-1 drop-shadow-lg tracking-widest uppercase">Salary Cap Draft</h3>
+                        <p class="text-slate-300 text-xs mb-3 flex-1">Build a team under a fixed salary budget. Creativity over raw power. Best of 3.</p>
+                        <div class="flex justify-center items-center gap-2 mb-3 text-[10px] font-mono">
+                            <span class="bg-black/30 px-2 py-1 rounded-lg border border-emerald-800/60 text-emerald-200">1,500 BE</span>
+                            <span class="bg-black/30 px-2 py-1 rounded-lg border border-emerald-800/60 text-emerald-300">Win: 4,000 BE</span>
+                        </div>
+                        <button onclick="startSalaryCapDraft()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-6 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.5)]">Enter Salary Draft</button>
                     </div>
                 </div>
 
@@ -1055,6 +1072,29 @@
                         <button id="btn-worlds" onclick="startTournament('Worlds', 600, 3500, 800, 95, 4)" class="w-full bg-amber-600 hover:bg-amber-500 text-amber-950 font-black py-3 rounded-lg cursor-pointer transition text-sm shadow-md uppercase">Enter (600 BE)</button>
                     </div>
                 </div>
+
+                <!-- INFINITE TOWER -->
+                <div class="mt-8 bg-gradient-to-br from-red-950 via-slate-900 to-amber-950/40 p-6 rounded-2xl border border-red-700/50 text-center shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 opacity-10 text-[120px]">🗼</div>
+                    <h3 class="text-2xl font-black text-red-300 mb-1 drop-shadow-lg tracking-widest uppercase">Infinite Tower</h3>
+                    <p class="text-slate-300 text-sm max-w-2xl mx-auto mb-3">Face endless opponents with scaling difficulty. Choose buffs after each win. How far can you climb?</p>
+                    <div class="flex justify-center items-center gap-4 mb-4 text-xs font-mono">
+                        <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-red-800/60 text-red-200">Free Entry</span>
+                        <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-emerald-800/60 text-emerald-300">Rewards every 10 floors</span>
+                        <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-amber-800/60 text-amber-300" id="tower-best-display">Best: Floor 0</span>
+                    </div>
+                    <button onclick="startInfiniteTower()" class="bg-red-600 hover:bg-red-500 text-white px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(239,68,68,0.5)]">Climb</button>
+                </div>
+            </div>
+
+            <!-- INFINITE TOWER SCREEN -->
+            <div id="tower-screen" class="hidden space-y-6">
+                <div class="flex items-center gap-4 mb-2">
+                    <button onclick="closeTower()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wide">← Back to Lobby</button>
+                    <h3 class="text-xl font-black text-red-300 uppercase tracking-widest">Infinite Tower</h3>
+                    <span class="ml-auto font-mono text-sm text-amber-400 font-black" id="tower-floor-label">Floor 1</span>
+                </div>
+                <div id="tower-content"></div>
             </div>
 
             <!-- SEASON MATCHES SCREEN -->
@@ -1430,7 +1470,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.1 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.3 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1438,14 +1478,18 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-yellow-400 font-bold">Upgrade Tab Notification</span> — A pulsing badge now appears on the Upgrade nav button whenever an upgrade is available.</li>
-                <li><span class="text-cyan-400 font-bold">Mid-Split Meta &amp; Slump Shake-Up</span> — Team Metas and Slumps now reroll once per split, right after your 5th match.</li>
-                <li><span class="text-red-400 font-bold">Elite Teams Buffed to a 110 Cap</span> — Elite Split opponents can now roll up to a 110 rating (up from 99) for a genuine ultimate-difficulty spike.</li>
+                <li><span class="text-red-400 font-bold">Infinite Tower (New Mode)</span> — Endless Bo3 matches with scaling opponents. Choose permanent buffs after each win. Checkpoints every 10 floors. How far can you climb?</li>
+                <li><span class="text-emerald-400 font-bold">Salary Cap Draft (New Mode)</span> — Build a team under a fixed salary budget (350 cap). Creativity over raw power. 1,500 BE entry, 4,000 BE win.</li>
+                <li><span class="text-yellow-400 font-bold">Signature Cards</span> — 0.1% chance from Champion/MVP packs. +2 all stats, unique gold/purple glow. Ultimate collector flex.</li>
+                <li><span class="text-purple-400 font-bold">Manager Prestige Titles</span> — Earn Scout → Director → GM → President → Legend based on cumulative achievements. Shown in the header.</li>
+                <li><span class="text-cyan-400 font-bold">2015 EU LCS Summer</span> — All 10 teams (50 cards) including Fnatic's legendary 18-0 split.</li>
+                <li><span class="text-orange-400 font-bold">Golden Road 30-Min Cooldown</span> — Cooldown between runs with a live countdown on the button.</li>
+                <li><span class="text-blue-400 font-bold">Play Hub Reorganized</span> — Top modes (Golden Road, Draft, Season, Salary Cap) now sit side by side.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.1</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.3</button>
             </div>
         </div>
     </div>
