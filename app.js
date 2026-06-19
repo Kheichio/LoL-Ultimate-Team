@@ -102,7 +102,14 @@ let quests = [
     { id: 'q28', desc: 'Open 10 Champion Packs', target: 10, type: 'champPacksOpened', reward: 1000, claimed: false },
     { id: 'q29', desc: 'Open 10 MVP Packs', target: 10, type: 'mvpPacksOpened', reward: 1000, claimed: false },
     // Season Match repeatable (0.4.7)
-    { id: 'rq6', desc: 'Play 5 Season Matches', target: 5, type: 'seasonMatchesPlayed', reward: 600, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 }
+    { id: 'rq6', desc: 'Play 5 Season Matches', target: 5, type: 'seasonMatchesPlayed', reward: 600, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    // New mode quests (0.5.3)
+    { id: 'q30', desc: 'Reach Floor 10 in Infinite Tower', target: 10, type: 'towerHighestFloor', reward: 2000, claimed: false },
+    { id: 'q31', desc: 'Reach Floor 25 in Infinite Tower', target: 25, type: 'towerHighestFloor', reward: 5000, claimed: false },
+    { id: 'q32', desc: 'Reach Floor 50 in Infinite Tower', target: 50, type: 'towerHighestFloor', reward: 10000, claimed: false },
+    { id: 'q33', desc: 'Win a Salary Cap Draft', target: 1, type: 'salaryCapWon', reward: 3000, claimed: false },
+    { id: 'q34', desc: 'Win 5 Salary Cap Drafts', target: 5, type: 'salaryCapWon', reward: 8000, claimed: false },
+    { id: 'q35', desc: 'Pull a Signature Card', target: 1, type: 'signaturesPulled', reward: 5000, claimed: false }
 ];
 
 // Achievements — live state checks (squad rating, archive progress) rather than tracked counters. Replaces Timed Challenges.
@@ -755,6 +762,7 @@ function processNewCards(cards) {
         if (!collectionRegistry[c.id]) {
             collectionRegistry[c.id] = { claimed: false, acquiredAt: Date.now() };
         }
+        if (c.signature) collectionRegistry[c.id].signature = true;
     });
 }
 
@@ -1078,7 +1086,8 @@ function renderCollection() {
         ownedCards.forEach(c => {
             let wrapper = document.createElement("div"); wrapper.className = "shrink-0 transition duration-500 relative";
             if (!collectionRegistry[c.id].claimed) { let dot = document.createElement("div"); dot.className = "absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-slate-900 shadow-[0_0_10px_rgba(250,204,21,0.8)] z-20 animate-pulse"; wrapper.appendChild(dot); }
-            wrapper.appendChild(createCardElement(c, false, null, null)); cardContainer.appendChild(wrapper);
+            const displayCard = collectionRegistry[c.id].signature ? { ...c, signature: true } : c;
+            wrapper.appendChild(createCardElement(displayCard, false, null, null)); cardContainer.appendChild(wrapper);
         });
         section.appendChild(cardContainer); grid.appendChild(section); return;
     }
@@ -1147,7 +1156,8 @@ function renderCollection() {
             let isOwned = !!collectionRegistry[c.id];
             let wrapper = document.createElement("div"); wrapper.className = `snap-start shrink-0 transition duration-500 ${isOwned ? 'relative' : 'grayscale opacity-25 scale-95 hover:opacity-40'}`;
             if (isOwned && !collectionRegistry[c.id].claimed) { let dot = document.createElement("div"); dot.className = "absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-yellow-400 rounded-full border border-slate-900 shadow z-20 animate-pulse"; wrapper.appendChild(dot); }
-            wrapper.appendChild(createCardElement(c, false, null, null)); cardContainer.appendChild(wrapper);
+            const displayCard = (isOwned && collectionRegistry[c.id].signature) ? { ...c, signature: true } : c;
+            wrapper.appendChild(createCardElement(displayCard, false, null, null)); cardContainer.appendChild(wrapper);
         });
         section.appendChild(cardContainer); grid.appendChild(section);
     });
@@ -1439,6 +1449,8 @@ function updateClubStatsUI() {
     setEl("stat-losses", trackStats.losses || 0);
     setEl("stat-golden-road-wins", trackStats.goldenRoads || 0);
     setEl("stat-draft-wins", trackStats.draftModesWon || 0);
+    setEl("stat-tower-best", trackStats.towerHighestFloor || 0);
+    setEl("stat-salary-wins", trackStats.salaryCapWon || 0);
 }
 
 function recalculateRegionalPrice() {
@@ -1614,6 +1626,7 @@ function buyPack(baseCost, type) {
                 inst.signature = true;
                 if (inst.stats) { Object.keys(inst.stats).forEach(k => { inst.stats[k] = (inst.stats[k] || 0) + 2; }); }
                 inst.rating = Math.min(100, (inst.rating || 0) + 2);
+                trackStats.signaturesPulled = (trackStats.signaturesPulled || 0) + 1;
             }
         });
     }
@@ -3914,9 +3927,31 @@ function endDraftMode() {
 
 // === SALARY CAP DRAFT MODE ===
 function getCardSalary(card) { return Math.floor((card.rating - 60) * 2.5); }
-const SALARY_CAP = 350;
+let SALARY_CAP = 350;
 
-function startSalaryCapDraft() {
+function startSalaryCapDraft(difficulty) {
+    if (!difficulty) {
+        showConfirm("Salary Cap Difficulty", "Easy (400 budget), Medium (350), or Hard (300). Pick your challenge level.", () => _launchSalaryCap(400));
+        const modal = document.getElementById('confirm-modal-box');
+        if (modal) {
+            const btnYes = document.getElementById('confirm-btn-yes');
+            const btnCancel = document.getElementById('confirm-btn-cancel');
+            btnYes.innerText = 'Easy (400)';
+            btnCancel.innerText = 'Medium (350)';
+            const hardBtn = document.createElement('button');
+            hardBtn.className = 'bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-bold transition w-full text-base';
+            hardBtn.innerText = 'Hard (300)';
+            hardBtn.onclick = () => { document.getElementById('confirm-modal').classList.add('hidden'); _launchSalaryCap(300); };
+            btnCancel.onclick = () => { document.getElementById('confirm-modal').classList.add('hidden'); _launchSalaryCap(350); };
+            modal.querySelector('.flex.gap-3').appendChild(hardBtn);
+        }
+        return;
+    }
+    _launchSalaryCap(difficulty);
+}
+
+function _launchSalaryCap(budget) {
+    SALARY_CAP = budget;
     if (club.length < 15) { showToast("Need at least 15 cards in your Club.", "error"); return; }
     if (blueEssence < 1500) { showToast("Need 1,500 BE to enter Salary Cap Draft.", "error"); return; }
     blueEssence -= 1500;
@@ -4040,10 +4075,10 @@ function makeSalaryPlay(playId) {
     if (won) _scState.wins++; else _scState.losses++;
     _scState.log.push({ round: _scState.round, icon: play.icon, label: play.label, detail: `${play.myRoles.join('+')} ${play.statKey.toUpperCase()} ${myVal} vs ${oppVal} (${net >= 0 ? '+' : ''}${net})`, won });
 
-    const matchDone = _scState.wins >= 2 || _scState.losses >= 2;
+    const matchDone = _scState.wins >= 3 || _scState.losses >= 3;
     if (matchDone) {
         _scState.phase = 'done';
-        const isWin = _scState.wins >= 2;
+        const isWin = _scState.wins >= 3;
         if (isWin) { blueEssence += 4000; addXP(100); showToast("Salary Cap Draft Won! +4,000 BE", "success"); }
         else { showToast("Salary Cap Draft lost. No payout.", "error"); }
         if (!trackStats.salaryCapWon) trackStats.salaryCapWon = 0;
@@ -4076,61 +4111,35 @@ function renderSalaryCombat() {
         ).join('');
     }
 
-    // My team cards (left side)
-    const myCardsHTML = ['TOP','JNG','MID','ADC','SUP'].map(r => {
-        const c = draftPickRoles[r];
-        if (!c) return '';
-        return `<div class="flex items-center gap-2 text-sm py-1 border-b border-slate-700/30">
-            <span class="text-slate-500 font-black w-7 shrink-0 text-[10px]">${r}</span>
-            <span class="text-slate-200 font-bold truncate w-20">${c.name}</span>
-            <span class="font-mono text-[10px] text-slate-400">MEC <span class="text-cyan-400 font-black">${c.stats.mec}</span></span>
-            <span class="font-mono text-[10px] text-slate-400">TMF <span class="text-purple-400 font-black">${c.stats.tmf}</span></span>
-            <span class="font-mono text-[10px] text-slate-400">MAP <span class="text-emerald-400 font-black">${c.stats.map}</span></span>
-        </div>`;
-    }).join('');
-
-    // Opponent cards (right side)
-    const oppCardsHTML = ['TOP','JNG','MID','ADC','SUP'].map(r => {
-        const c = draftCpuTeam[r];
-        if (!c) return '';
-        return `<div class="flex items-center gap-2 text-sm py-1 border-b border-slate-700/30">
-            <span class="text-slate-500 font-black w-7 shrink-0 text-[10px]">${r}</span>
-            <span class="text-slate-200 font-bold truncate w-20">${c.name}</span>
-            <span class="font-mono text-[10px] text-slate-400">MEC <span class="text-cyan-400 font-black">${c.stats.mec}</span></span>
-            <span class="font-mono text-[10px] text-slate-400">TMF <span class="text-purple-400 font-black">${c.stats.tmf}</span></span>
-            <span class="font-mono text-[10px] text-slate-400">MAP <span class="text-emerald-400 font-black">${c.stats.map}</span></span>
-        </div>`;
-    }).join('');
-
     // Play option cards
     const playCards = _scState.phase === 'pick' ? _scState.options.map(play => {
         const myVal = _scStatVal(play);
         const oppVal = _scOppStatVal(play);
         const edge = myVal - oppVal;
         const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
-        return `<button onclick="makeSalaryPlay('${play.id}')" class="flex-1 min-w-[180px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-emerald-500 rounded-xl p-4 text-left cursor-pointer transition">
-            <div class="text-2xl mb-1">${play.icon}</div>
-            <div class="font-black text-slate-100 text-sm mb-0.5">${play.label}</div>
-            <div class="text-slate-500 text-xs mb-3">${play.desc}</div>
-            <div class="font-mono text-sm space-y-1 border-t border-slate-700 pt-2">
-                <div class="flex justify-between items-center"><span class="text-slate-400">${play.myRoles.join('+')} ${play.statKey.toUpperCase()}</span><span class="text-slate-200 font-black text-base">${myVal}</span></div>
-                <div class="flex justify-between items-center"><span class="text-slate-500">Opp ${play.statKey.toUpperCase()}</span><span class="text-slate-300 font-bold text-base">${oppVal}</span></div>
-                <div class="flex justify-between items-center border-t border-slate-700/50 pt-1 mt-1"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black text-base">${edge >= 0 ? '+' : ''}${edge}</span></div>
+        return `<button onclick="makeSalaryPlay('${play.id}')" class="flex-1 min-w-[160px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-emerald-500 rounded-xl p-3 text-left cursor-pointer transition">
+            <div class="text-xl mb-1">${play.icon}</div>
+            <div class="font-black text-slate-100 text-xs mb-0.5">${play.label}</div>
+            <div class="text-slate-500 text-[10px] mb-2">${play.desc}</div>
+            <div class="font-mono text-xs space-y-0.5 border-t border-slate-700 pt-1">
+                <div class="flex justify-between"><span class="text-slate-400">${play.myRoles.join('+')} ${play.statKey.toUpperCase()}</span><span class="text-slate-200 font-black">${myVal}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Opp</span><span class="text-slate-300 font-bold">${oppVal}</span></div>
+                <div class="flex justify-between border-t border-slate-700/50 pt-0.5"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black">${edge >= 0 ? '+' : ''}${edge}</span></div>
             </div>
         </button>`;
     }).join('') : '';
 
     // Match log
     const logHTML = _scState.log.length ? _scState.log.map(e =>
-        `<div class="flex items-start gap-2 text-sm font-mono ${e.won ? 'text-emerald-400' : 'text-red-400'}">
+        `<div class="flex items-start gap-2 text-xs font-mono ${e.won ? 'text-emerald-400' : 'text-red-400'}">
             <span>${e.won ? '✅' : '❌'}</span><span><span class="font-black">${e.icon} ${e.label}</span> — ${e.detail}</span>
         </div>`
-    ).join('') : `<div class="text-slate-600 text-sm font-mono">No plays yet.</div>`;
+    ).join('') : '';
 
     // Result banner
     let resultBanner = '';
     if (_scState.phase === 'done') {
-        const win = _scState.wins >= 2;
+        const win = _scState.wins >= 3;
         resultBanner = `<div class="rounded-2xl p-5 text-center border ${win ? 'bg-emerald-950/60 border-emerald-600' : 'bg-red-950/40 border-red-800'} mb-4">
             <div class="text-4xl mb-2">${win ? '🏆' : '💀'}</div>
             <div class="text-xl font-black ${win ? 'text-emerald-300' : 'text-red-400'}">${win ? 'Victory! +4,000 BE' : 'Defeat.'}</div>
@@ -4140,27 +4149,43 @@ function renderSalaryCombat() {
 
     container.innerHTML = `
         <div class="flex items-center justify-center gap-8 bg-slate-800/60 py-3 rounded-2xl border border-slate-700 mb-4">
-            <div class="text-center"><div class="text-xs text-emerald-400 font-black uppercase mb-1">You</div><div class="flex gap-1.5">${pips(_scState.wins, 2, 'bg-emerald-400')}</div></div>
+            <div class="text-center"><div class="text-xs text-emerald-400 font-black uppercase mb-1">You</div><div class="flex gap-1.5">${pips(_scState.wins, 3, 'bg-emerald-400')}</div></div>
             <div class="text-slate-600 font-black text-lg">vs</div>
-            <div class="text-center"><div class="text-xs text-red-400 font-black uppercase mb-1">CPU</div><div class="flex gap-1.5">${pips(_scState.losses, 2, 'bg-red-500')}</div></div>
+            <div class="text-center"><div class="text-xs text-red-400 font-black uppercase mb-1">CPU</div><div class="flex gap-1.5">${pips(_scState.losses, 3, 'bg-red-500')}</div></div>
         </div>
         ${resultBanner}
         ${_scState.phase === 'pick' ? `<div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Round ${_scState.round} — Choose Your Play</div>
         <div class="flex flex-wrap gap-3 mb-4">${playCards}</div>` : ''}
-        <div class="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] gap-4">
-            <div class="bg-slate-800/60 rounded-xl border border-emerald-900/40 p-4">
-                <div class="text-xs font-black uppercase tracking-widest text-emerald-400 mb-2">Your Team</div>
-                <div class="space-y-0.5">${myCardsHTML}</div>
+        <div class="flex gap-3 overflow-x-auto pb-2">
+            <div class="shrink-0">
+                <div class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2 text-center">Your Team</div>
+                <div id="sc-my-cards" class="flex gap-2"></div>
             </div>
-            <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4 min-w-[200px]">
-                <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
-                <div class="space-y-1.5">${logHTML}</div>
+            <div class="flex-1 min-w-[180px] bg-slate-950/60 rounded-xl border border-slate-700 p-3 self-start">
+                <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
+                <div class="space-y-1">${logHTML}</div>
             </div>
-            <div class="bg-slate-800/60 rounded-xl border border-red-900/40 p-4">
-                <div class="text-xs font-black uppercase tracking-widest text-red-400 mb-2">CPU Team</div>
-                <div class="space-y-0.5">${oppCardsHTML}</div>
+            <div class="shrink-0">
+                <div class="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2 text-center">CPU Team</div>
+                <div id="sc-opp-cards" class="flex gap-2"></div>
             </div>
         </div>`;
+
+    // Render actual card visuals into the side containers
+    const myCardsEl = document.getElementById('sc-my-cards');
+    const oppCardsEl = document.getElementById('sc-opp-cards');
+    if (myCardsEl) {
+        ['TOP','JNG','MID','ADC','SUP'].forEach(r => {
+            const c = draftPickRoles[r];
+            if (c) myCardsEl.appendChild(createCardElement(c, true));
+        });
+    }
+    if (oppCardsEl) {
+        ['TOP','JNG','MID','ADC','SUP'].forEach(r => {
+            const c = draftCpuTeam[r];
+            if (c) oppCardsEl.appendChild(createCardElement(c, true));
+        });
+    }
 }
 
 // === INFINITE TOWER MODE ===
