@@ -3380,6 +3380,7 @@ function emergencyResetSim() {
     draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
     draftActivePickRole = null; draftCpuTeam = {}; draftHybridScore1 = null; draft1v1Cards = { my: null, cpu: null };
     _scState = null;
+    document.querySelectorAll('.sc-floating-panel').forEach(el => el.remove());
     ['tournament-active','tournament-results','draft-screen','draft-combat','tower-screen','salary-combat-screen'].forEach(id => {
         const el = document.getElementById(id); if(el) el.classList.add('hidden');
     });
@@ -4110,6 +4111,7 @@ function makeSalaryPlay(playId) {
 }
 
 function closeSalaryCombat() {
+    document.querySelectorAll('.sc-floating-panel').forEach(el => el.remove());
     document.getElementById('salary-combat-screen').classList.add('hidden');
     document.getElementById('tournament-lobby').classList.remove('hidden');
     _scState = null;
@@ -4163,6 +4165,26 @@ function renderSalaryCombat() {
         </div>`;
     }
 
+    // Remove any previous floating card panels
+    document.querySelectorAll('.sc-floating-panel').forEach(el => el.remove());
+
+    // Create floating card panels pinned to left and right edges of the viewport
+    function buildFloatingPanel(side, label, labelColor, cards) {
+        const panel = document.createElement('div');
+        panel.className = `sc-floating-panel fixed top-20 ${side === 'left' ? 'left-2' : 'right-2'} z-40 pointer-events-none`;
+        panel.innerHTML = `<div class="text-[10px] font-black uppercase tracking-widest ${labelColor} mb-2 text-center pointer-events-auto">${label}</div>`;
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-2 gap-2 pointer-events-auto';
+        cards.forEach(c => { if (c) grid.appendChild(createCardElement(c, true)); });
+        panel.appendChild(grid);
+        document.body.appendChild(panel);
+    }
+
+    const myCards = ['TOP','JNG','MID','ADC','SUP'].map(r => draftPickRoles[r]).filter(Boolean);
+    const oppCards = ['TOP','JNG','MID','ADC','SUP'].map(r => draftCpuTeam[r]).filter(Boolean);
+    buildFloatingPanel('left', 'Your Team', 'text-emerald-400', myCards);
+    buildFloatingPanel('right', 'CPU Team', 'text-red-400', oppCards);
+
     container.innerHTML = `
         <div class="flex items-center justify-center gap-8 bg-slate-800/60 py-3 rounded-2xl border border-slate-700 mb-4">
             <div class="text-center"><div class="text-xs text-emerald-400 font-black uppercase mb-1">You</div><div class="flex gap-1.5">${pips(_scState.wins, 3, 'bg-emerald-400')}</div></div>
@@ -4171,37 +4193,11 @@ function renderSalaryCombat() {
         </div>
         ${resultBanner}
         ${_scState.phase === 'pick' ? `<div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Round ${_scState.round} — Choose Your Play</div>
-        <div class="flex flex-wrap gap-3 mb-4">${playCards}</div>` : ''}
-        <div class="grid grid-cols-[auto_1fr_auto] gap-4 items-start">
-            <div>
-                <div class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2 text-center">Your Team</div>
-                <div id="sc-my-cards" class="flex flex-col gap-2"></div>
-            </div>
-            <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-3">
-                <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
-                <div class="space-y-1">${logHTML}</div>
-            </div>
-            <div>
-                <div class="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2 text-center">CPU Team</div>
-                <div id="sc-opp-cards" class="flex flex-col gap-2"></div>
-            </div>
+        <div class="flex flex-wrap gap-3 justify-center mb-4">${playCards}</div>` : ''}
+        <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4 max-w-xl mx-auto">
+            <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
+            <div class="space-y-1.5">${logHTML}</div>
         </div>`;
-
-    // Render actual card visuals into the side containers
-    const myCardsEl = document.getElementById('sc-my-cards');
-    const oppCardsEl = document.getElementById('sc-opp-cards');
-    if (myCardsEl) {
-        ['TOP','JNG','MID','ADC','SUP'].forEach(r => {
-            const c = draftPickRoles[r];
-            if (c) myCardsEl.appendChild(createCardElement(c, true));
-        });
-    }
-    if (oppCardsEl) {
-        ['TOP','JNG','MID','ADC','SUP'].forEach(r => {
-            const c = draftCpuTeam[r];
-            if (c) oppCardsEl.appendChild(createCardElement(c, true));
-        });
-    }
 }
 
 // === INFINITE TOWER MODE ===
