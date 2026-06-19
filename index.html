@@ -333,7 +333,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.3</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.4</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -614,7 +614,7 @@
                         <h4 class="text-indigo-300 font-black mb-1">🏆 Season Splits — Free Entry</h4>
                         <p class="text-slate-400 text-xs mb-2">Accessed from <strong class="text-indigo-400">Play → Open Season</strong>. A split consists of 10 opponents generated at the start with <strong class="text-slate-300">scaling difficulty</strong> — Match 1 is the easiest, Match 10 is the hardest. You can play them in any order, one at a time; progress saves between sessions. Only Season Match results count toward your split record — standard tournaments do not. Winning or losing a match awards manager XP (+75 / +25, multiplied by Mentorship).</p>
                         <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">How a match works:</strong> Each match is <strong class="text-slate-300">Best of 5 rounds</strong>. Every round you choose one of three randomly offered plays — each play pits a specific set of your players' stats against the opponent's matching stat. The edge is shown upfront (e.g. <span class="text-emerald-400">+7</span> or <span class="text-red-400">−3</span>) with a random ±8 variance applied on resolution. First to 3 round wins takes the match.</p>
-                        <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">Team Metas &amp; Slumps:</strong> 5–10 real teams get a random <span class="text-emerald-400">+2 to +10 buff</span> to one specific stat — if you have a card from that team, plays using that stat get boosted. Separately, 5–15 other real teams are in a <span class="text-red-400">slump</span>, taking a flat <span class="text-red-400">−8 to −15</span> penalty across all stats. <strong class="text-slate-300">These reroll once mid-split</strong> — right after your 5th match — so the back half of every split brings a fresh set of metas and slumps. Both are shown on the Season Matches screen and the Season tab, including exactly which of your current squad members are affected.</p>
+                        <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">Team Metas &amp; Slumps:</strong> 5–10 real teams get a random <span class="text-emerald-400">+8 to +25 buff</span> to one specific stat — if you have a card from that team, plays using that stat get a significant boost. Separately, 5–15 other real teams are in a <span class="text-red-400">slump</span>, taking a flat <span class="text-red-400">−8 to −15</span> penalty across all stats. <strong class="text-slate-300">These reroll once mid-split</strong> — right after your 5th match — so the back half of every split brings a fresh set of metas and slumps. Both are shown on the Season Matches screen and the Season tab, including exactly which of your current squad members are affected.</p>
                         <p class="text-slate-400 text-xs mb-2"><strong class="text-slate-300">Elite Splits:</strong> 20% chance through Split 4, then rising 2% per split from Split 5 onward (capped at 70%) to keep late-game progression interesting. Elite splits upgrade 1 to 6 CPU opponents to a 95–110 rating with fully regenerated stats — 110 is the ultimate difficulty ceiling, well above any player card. Flagged with 🔥 wherever they appear.</p>
                         <p class="text-slate-400 text-xs"><strong class="text-slate-300">Opponent styles skew their stats:</strong> Aggressive teams spike MEC, Defensive teams spike MAP/LDR, Chaotic teams have extreme MEC but weak CMP. Split rewards on completion: 10W = 8,000 BE · 8–9W = 5,000 · 6–7W = 3,000 · 4–5W = 1,500 · 0–3W = 500. All completed splits are logged in the <strong class="text-indigo-400">Season tab</strong> trophy case, alongside a live <strong class="text-indigo-400">Split Standings</strong> chart ranking your team against simulated CPU records.</p>
                     </div>
@@ -742,21 +742,27 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.3)</h3>
+                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.4)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-red-400 font-bold">Infinite Tower (New Mode)</span> — Free-entry endless grind mode in the Play Hub. Face infinite opponents in Bo3 matches (same play-pick-from-3 system as Season Matches). After each win, choose 1 of 3 permanent buffs: flat stat bonuses, percentage boosts, or role-specific power spikes. Opponents scale +2.5 rating per floor (capping at 130) so buffs stack to match. Checkpoints every 10 floors save your progress and award escalating BE (2k/4k/6k/8k). Tracks your all-time highest floor.</li>
-                    <li><span class="text-emerald-400 font-bold">Salary Cap Draft (New Mode)</span> — Separate mode from regular Draft Mode (1,500 BE entry, 4,000 BE win). Each card has a salary cost based on rating: (rating−60)×2.5. Total budget of 350 forces creative roster-building — you can't just field 5 Challengers. Skips the ban phase; same Bo3 combat. CPU also drafts under the cap.</li>
-                    <li><span class="text-yellow-400 font-bold">Signature Cards</span> — Extremely rare (0.1% chance) variants that can appear in Champion and MVP packs. Signature cards get +2 to ALL stats and +2 rating, with a unique gold/purple animated glow and "✦ SIGNATURE ✦" tier label. Pure collector flex tracked separately in the Archive.</li>
-                    <li><span class="text-purple-400 font-bold">Manager Prestige Titles</span> — Your cumulative achievements now earn a visible title displayed in the header: Scout → Director → GM → President → Legend. Based on total tournament wins, splits completed, Golden Roads, and draft wins. Pure bragging rights, no gameplay impact.</li>
-                    <li><span class="text-cyan-400 font-bold">2015 EU LCS Summer Rosters</span> — All 10 teams added (50 new cards): Fnatic's legendary 18-0 undefeated split (Huni/Reignover/Febiven/Rekkles/YellOwStaR, rated 94–96), Origen (sOAZ/xPeke/Niels/Mithy), H2k, Unicorns of Love, Gambit, SK Gaming, Giants, Elements, ROCCAT, Copenhagen Wolves. Ratings derived from real stats. 8 new team codes added (CW, EL, GMB, GIA, H2K, OG, ROC, UOL).</li>
-                    <li><span class="text-orange-400 font-bold">Golden Road 30-Min Cooldown</span> — After finishing (or getting knocked out of) a Golden Road run, a 30-minute cooldown gates your next attempt. Live countdown shown on the Embark button, persists across reloads.</li>
-                    <li><span class="text-blue-400 font-bold">Play Hub Reorganized</span> — Season Matches, Draft Mode, and Golden Road now sit as a prominent 4-column row (with Salary Cap Draft) at the top of the Competitive Arenas tab, side by side. The 5-tier bracket grid and Infinite Tower sit below.</li>
-                    <li><span class="text-slate-300 font-bold">Poby 2026 NAVI Buffed</span> — Rating 79→85 (Silver→Platinum), reflecting his real form this season.</li>
+                    <li><span class="text-blue-400 font-bold">Card Comparison in Picker</span> — When assigning a card to a squad slot that already has a player, every card in the picker now shows a compact stat diff badge: OVR change plus MEC/TMF/MAP diffs in green/red so you can compare at a glance before committing.</li>
+                    <li><span class="text-cyan-400 font-bold">Auto-Fill Best Squad</span> — New one-click button in the Squad tab that auto-assigns the highest-rated card per role from your Club, with a chemistry bias toward your most common region. Also fills coach and up to 3 bench slots.</li>
+                    <li><span class="text-emerald-400 font-bold">Team Metas Buffed</span> — Meta team buffs now range from +8 to +25 (up from +2 to +10). A meta-buffed play can now swing an entire matchup, making it genuinely worth building around hot-form teams.</li>
+                    <li><span class="text-emerald-400 font-bold">Budget Draft Difficulty Selector</span> — Choose Easy (400 budget / 1,500 BE reward), Medium (350 / 2,500 BE), or Hard (300 / 5,000 BE) with color-coded green/amber/red buttons. Higher difficulty = tighter budget but bigger payout.</li>
+                    <li><span class="text-emerald-400 font-bold">Budget Draft Combat Reworked</span> — Now uses the Season Match play-pick-from-3 system (Bo5) instead of the old Draft Mode tactical picks. Team cards displayed as floating panels on the far left and right edges of the screen in a 2×3 grid.</li>
+                    <li><span class="text-orange-400 font-bold">Draft Pick UX Improvements</span> — Selecting a role slot now auto-sorts the card pool to show matching-role cards first. Unaffordable cards in Budget Draft are grayed out. Salary cost displayed on every card during Budget Draft.</li>
+                    <li><span class="text-yellow-400 font-bold">Golden Road Buy-In Raised</span> — Buy-in increased from 1,000 to 2,500 BE, reflecting its endgame status. World Championship reward adjusted to 3,000 BE (from 3,500).</li>
+                    <li><span class="text-red-400 font-bold">Infinite Tower Uncapped</span> — Opponent rating and stats now scale infinitely past floor 24 (no more 130 cap). Floor 100 opponents hit 320+ rating — only deep buff stacking can compete. Resume/Start Fresh/Cancel buttons on saved runs.</li>
+                    <li><span class="text-yellow-400 font-bold">Signature Cards in Archives</span> — Signature cards now display with their unique glow and "✦ SIGNATURE ✦" label in the Archive, tracked via your collection registry.</li>
+                    <li><span class="text-purple-400 font-bold">New Quests</span> — 6 new quests: Reach Tower Floor 10/25/50, Win 1/5 Salary Cap Drafts, Pull a Signature Card. Tower Best and Salary Wins now tracked in Club stats.</li>
+                    <li><span class="text-cyan-400 font-bold">Pack Rates Clarified</span> — Guide now shows exact percentages (no more approximations) with a "Total: 100%" line per pack. Standard pack corrected to actual 92%/8% split. Signature variant (0.1%) noted on Champion/MVP packs.</li>
+                    <li><span class="text-slate-300 font-bold">Global Season Cooldown Timer</span> — A live countdown now appears in the header next to the PLAY button whenever the Season Match cooldown is active, visible from any tab.</li>
+                    <li><span class="text-slate-300 font-bold">CPU Budget Draft Fix</span> — CPU now always fills all 5 roles in Budget Draft, even on Hard difficulty. Uses smart budget reservation to avoid leaving slots empty.</li>
+                    <li><span class="text-slate-300 font-bold">Confirm Modal Fix</span> — Custom modal buttons (Tower resume, Budget Draft difficulty) no longer bleed into unrelated confirm dialogs like Upgrade prompts.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.1): Upgrade Tab Notification · Mid-Split Meta &amp; Slump Shake-Up · Elite Teams Buffed to 110 Cap</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.3): Infinite Tower · Salary Cap Draft · Signature Cards · Manager Prestige Titles · 2015 EU LCS Summer · Golden Road Cooldown · Play Hub Reorganized · Poby Buff</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.1): Upgrade Tab Notification · Mid-Split Meta &amp; Slump Shake-Up · Elite Teams Buffed to 110 Cap</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.0): Bench Substitutions in Season Splits · Rising Elite Split Odds · Bootcamp Locked During Matches</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.9): Season Match Enemy Roster Stats · Golden Road Locked Behind Worlds · Transfer Window Lv1 Ability · Trade Requirements Buffed · Season Split Lock-In Warning · BLG 2026 Roster Buffed · Draft Mode Legacy Flex Exemption</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.8): Classic Years 2015 LCK &amp; LPL Spring · Roster Coverage Chart · Slumps Intensified · Achievements · Quests Overhaul · Earlier Draft Mode · Elite Pack Rebalance · Cheaper Upgrades · Nav Bar Reorder · Opponent Team Comps · Mid-Season Squad Lock</p>
             </div>
 
         </section>
@@ -1007,6 +1013,7 @@
                         </button>
                     </div>
                     
+                    <button onclick="autoFillSquad()" class="w-full bg-blue-950/40 hover:bg-blue-900 text-blue-400 hover:text-blue-200 text-xs py-4 rounded-xl font-bold transition border border-blue-900/60 shadow cursor-pointer uppercase tracking-wider mb-2">Auto-Fill Best Squad</button>
                     <button onclick="clearSquad()" class="w-full bg-red-950/40 hover:bg-red-900 text-red-400 hover:text-red-200 text-xs py-4 rounded-xl font-bold transition border border-red-900/60 shadow mt-auto cursor-pointer uppercase tracking-wider">Disband Full Roster Configuration</button>
                 </div>
 
@@ -1519,7 +1526,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.3 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.4 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1527,18 +1534,19 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-red-400 font-bold">Infinite Tower (New Mode)</span> — Endless Bo3 matches with scaling opponents. Choose permanent buffs after each win. Checkpoints every 10 floors. How far can you climb?</li>
-                <li><span class="text-emerald-400 font-bold">Salary Cap Draft (New Mode)</span> — Build a team under a fixed salary budget (350 cap). Creativity over raw power. 1,500 BE entry, 4,000 BE win.</li>
-                <li><span class="text-yellow-400 font-bold">Signature Cards</span> — 0.1% chance from Champion/MVP packs. +2 all stats, unique gold/purple glow. Ultimate collector flex.</li>
-                <li><span class="text-purple-400 font-bold">Manager Prestige Titles</span> — Earn Scout → Director → GM → President → Legend based on cumulative achievements. Shown in the header.</li>
-                <li><span class="text-cyan-400 font-bold">2015 EU LCS Summer</span> — All 10 teams (50 cards) including Fnatic's legendary 18-0 split.</li>
-                <li><span class="text-orange-400 font-bold">Golden Road 30-Min Cooldown</span> — Cooldown between runs with a live countdown on the button.</li>
-                <li><span class="text-blue-400 font-bold">Play Hub Reorganized</span> — Top modes (Golden Road, Draft, Season, Salary Cap) now sit side by side.</li>
+                <li><span class="text-blue-400 font-bold">Card Comparison in Picker</span> — See stat diffs (OVR, MEC, TMF, MAP) against the current card before swapping.</li>
+                <li><span class="text-cyan-400 font-bold">Auto-Fill Best Squad</span> — One-click button fills your squad with the best available cards per role, biased toward your strongest region for chemistry.</li>
+                <li><span class="text-emerald-400 font-bold">Team Metas Buffed</span> — Meta buffs now range +8 to +25 (up from +2 to +10). Building around meta teams is now a real strategy.</li>
+                <li><span class="text-emerald-400 font-bold">Budget Draft Overhaul</span> — Difficulty selector (Easy/Medium/Hard), Bo5 season-style combat, cards on screen edges, auto-sort by role, grayed-out unaffordable cards, scaled rewards (1.5k/2.5k/5k).</li>
+                <li><span class="text-red-400 font-bold">Infinite Tower Uncapped</span> — No more 130 stat ceiling. Opponents scale infinitely — only stacked buffs can keep up. Resume button added.</li>
+                <li><span class="text-yellow-400 font-bold">Golden Road 2,500 BE</span> — Buy-in raised, Worlds reward adjusted to 3,000 BE.</li>
+                <li><span class="text-purple-400 font-bold">New Quests + Stats</span> — Tower Floor/Salary Cap/Signature quests. Tower Best and Salary Wins in Club tab.</li>
+                <li><span class="text-slate-300 font-bold">Fixes</span> — Pack rates clarified, Signature Archive display, CPU always fills 5 roles, global Season cooldown timer, confirm modal fix.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.3</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.4</button>
             </div>
         </div>
     </div>

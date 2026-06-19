@@ -441,7 +441,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_3', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_4', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -618,7 +618,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_3';
+    const patchKey = 'lol_patch_seen_v0_5_4';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1901,7 +1901,7 @@ function generateSeasonOpponents() {
     });
 }
 
-// Pick 5–10 real team metas (+2 to +10 buff to a specific stat) and 5–15 real team slumps (-8 to -15 to all stats),
+// Pick 5–10 real team metas (+8 to +25 buff to a specific stat) and 5–15 real team slumps (-8 to -15 to all stats),
 // applied to the USER's player cards from those teams. Re-rollable mid-split (see _finishSeasonGame) to keep splits fresh.
 function _smRollMetaSlump() {
     const db = getDB();
@@ -1912,7 +1912,7 @@ function _smRollMetaSlump() {
     seasonData.metaTeams = shuffledForMeta.slice(0, metaCount).map(team => ({
         team,
         statKey: statKeys[Math.floor(Math.random() * statKeys.length)],
-        buff: 2 + Math.floor(Math.random() * 9), // +2 to +10
+        buff: 8 + Math.floor(Math.random() * 18), // +8 to +25
     }));
 
     const metaTeamNames = new Set(seasonData.metaTeams.map(m => m.team));
@@ -2935,8 +2935,11 @@ function renderPickerCards() {
         return;
     }
 
+    const currentCard = squad[activeSlot];
     const addCardEl = (card) => {
-        const isCurrentlyAssigned = squad[activeSlot] && squad[activeSlot].uniqueId === card.uniqueId;
+        const isCurrentlyAssigned = currentCard && currentCard.uniqueId === card.uniqueId;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative';
         const el = createCardElement(card, false, () => {
             squad[activeSlot] = isCurrentlyAssigned ? null : card;
             closePlayerPicker();
@@ -2947,7 +2950,24 @@ function renderPickerCards() {
             el.style.outlineOffset = '3px';
             el.title = 'Currently assigned — click to remove';
         }
-        container.appendChild(el);
+        wrapper.appendChild(el);
+
+        // Comparison overlay vs currently assigned card
+        if (currentCard && !isCurrentlyAssigned && card.stats && currentCard.stats) {
+            const rDiff = card.rating - currentCard.rating;
+            const diffs = ['mec','tmf','map'].map(s => {
+                const d = (card.stats[s] || 0) - (currentCard.stats[s] || 0);
+                return d !== 0 ? `<span class="${d > 0 ? 'text-emerald-400' : 'text-red-400'}">${s.toUpperCase()} ${d > 0 ? '+' : ''}${d}</span>` : '';
+            }).filter(Boolean).join(' ');
+            if (rDiff !== 0 || diffs) {
+                const rColor = rDiff > 0 ? 'text-emerald-400' : rDiff < 0 ? 'text-red-400' : 'text-slate-400';
+                const badge = document.createElement('div');
+                badge.className = 'absolute -bottom-1 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-slate-600 rounded-lg px-2 py-1 text-[9px] font-black font-mono z-30 whitespace-nowrap text-center';
+                badge.innerHTML = `<span class="${rColor}">OVR ${rDiff > 0 ? '+' : ''}${rDiff}</span>${diffs ? ' · ' + diffs : ''}`;
+                wrapper.appendChild(badge);
+            }
+        }
+        container.appendChild(wrapper);
     };
 
     if (_pickerFilters.sort === 'role') {
@@ -2994,6 +3014,51 @@ function clearSquad() {
         return;
     }
     squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null }; saveGame();
+}
+
+function autoFillSquad() {
+    if (_isSquadLockedForSeason()) {
+        showToast("Squad is locked for this Season Split.", "error");
+        return;
+    }
+    const used = new Set();
+    const newSquad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null };
+
+    // Pick best card per role by rating, preferring same-region chemistry
+    const regionCounts = {};
+    club.filter(c => c.role !== 'COACH').forEach(c => { regionCounts[c.region] = (regionCounts[c.region] || 0) + 1; });
+    const bestRegion = Object.entries(regionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+    ['TOP', 'JNG', 'MID', 'ADC', 'SUP'].forEach(role => {
+        const candidates = club.filter(c => c.role === role && !used.has(c.uniqueId))
+            .sort((a, b) => {
+                const aBonus = (bestRegion && a.region === bestRegion) ? 3 : 0;
+                const bBonus = (bestRegion && b.region === bestRegion) ? 3 : 0;
+                return (b.rating + bBonus) - (a.rating + aBonus);
+            });
+        if (candidates.length) {
+            newSquad[role] = candidates[0];
+            used.add(candidates[0].uniqueId);
+        }
+    });
+
+    // Coach: best available
+    const coaches = club.filter(c => c.role === 'COACH' && !used.has(c.uniqueId)).sort((a, b) => b.rating - a.rating);
+    if (coaches.length) { newSquad.COACH = coaches[0]; used.add(coaches[0].uniqueId); }
+
+    // Fill bench with next-best per role
+    const subSlots = ['SUB1', 'SUB2', 'SUB3'];
+    let subIdx = 0;
+    ['TOP', 'JNG', 'MID', 'ADC', 'SUP'].forEach(role => {
+        if (subIdx >= 3) return;
+        const bench = club.filter(c => c.role === role && !used.has(c.uniqueId)).sort((a, b) => b.rating - a.rating);
+        if (bench.length) { newSquad[subSlots[subIdx]] = bench[0]; used.add(bench[0].uniqueId); subIdx++; }
+    });
+
+    squad = newSquad;
+    saveGame();
+    renderSquadView();
+    showToast("Squad auto-filled with your best available cards!", "success");
 }
 
 function getTierFromRating(rating) {
