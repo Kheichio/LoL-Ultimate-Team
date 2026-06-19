@@ -3999,13 +3999,24 @@ function _launchSalaryCap(budget, reward) {
     draftPickRoles = { TOP: null, JNG: null, MID: null, ADC: null, SUP: null, COACH: null };
     draftActivePickRole = null;
 
-    // CPU picks team under salary cap
+    // CPU picks team under salary cap — guarantees all 5 roles are filled
     draftCpuTeam = {};
     let cpuBudget = SALARY_CAP;
-    ['TOP','JNG','MID','ADC','SUP'].forEach(role => {
-        const available = draftCpuPool.filter(c => c.role === role && getCardSalary(c) <= cpuBudget);
-        if (available.length) {
-            const pick = available[Math.floor(Math.random() * available.length)];
+    const cpuRolesLeft = ['TOP','JNG','MID','ADC','SUP'];
+    const allDb = getDB().filter(p => p.role !== 'COACH');
+    cpuRolesLeft.forEach((role, idx) => {
+        const rolesRemaining = cpuRolesLeft.length - idx;
+        const reservePerSlot = rolesRemaining > 1 ? Math.floor((cpuBudget - 37) / (rolesRemaining - 1)) : 0;
+        const maxSpend = Math.max(37, cpuBudget - Math.max(0, (rolesRemaining - 1) * 37));
+        // Try CPU pool first, then full DB as fallback
+        let candidates = draftCpuPool.filter(c => c.role === role && getCardSalary(c) <= maxSpend);
+        if (!candidates.length) candidates = draftCpuPool.filter(c => c.role === role);
+        if (!candidates.length) candidates = allDb.filter(c => c.role === role);
+        candidates.sort((a, b) => getCardSalary(a) - getCardSalary(b));
+        // Pick a random affordable one, or cheapest if none affordable
+        const affordable = candidates.filter(c => getCardSalary(c) <= cpuBudget);
+        const pick = affordable.length ? affordable[Math.floor(Math.random() * Math.min(affordable.length, 3))] : candidates[0];
+        if (pick) {
             draftCpuTeam[role] = { ...pick, uniqueId: 'scpu_' + role + '_' + Date.now() };
             cpuBudget -= getCardSalary(pick);
         }
@@ -4233,11 +4244,11 @@ function closeTower() {
 }
 
 function _towerGenOpponent(floor) {
-    const baseRating = Math.min(130, 70 + Math.floor(floor * 2.5));
+    const baseRating = 70 + Math.floor(floor * 2.5);
     const style = _SEASON_STYLES[Math.floor(Math.random() * _SEASON_STYLES.length)];
     const name = _SEASON_TEAM_NAMES[Math.floor(Math.random() * _SEASON_TEAM_NAMES.length)];
     const logo = _SEASON_LOGOS[Math.floor(Math.random() * _SEASON_LOGOS.length)];
-    return { name, logo, avgRating: baseRating, style, stats: _smGenStats(baseRating, style, 130) };
+    return { name, logo, avgRating: baseRating, style, stats: _smGenStats(baseRating, style, baseRating) };
 }
 
 function _towerApplyBuffs(baseVal, statKey, role) {
