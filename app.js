@@ -136,7 +136,7 @@ const grStages = [
     { name: "Regional Split 2", diff: 85, rounds: 3, r1: 600, r2: 150 },
     { name: "MSI Arena", diff: 90, rounds: 3, r1: 1100, r2: 300 },
     { name: "Regional Split 3", diff: 93, rounds: 3, r1: 1300, r2: 400 },
-    { name: "World Championship", diff: 96, rounds: 4, r1: 2500, r2: 800 }
+    { name: "World Championship", diff: 96, rounds: 4, r1: 3000, r2: 800 }
 ];
 
 let tourActive = false;
@@ -1402,10 +1402,10 @@ function startGoldenRoad() {
         return;
     }
     if (!checkSquadReady()) return;
-    if (blueEssence < 1000) { showToast("Insufficient assets for Golden Road.", "error"); return; }
+    if (blueEssence < 2500) { showToast("Insufficient assets for Golden Road (2,500 BE).", "error"); return; }
     if(simIntervalId) clearTimeout(simIntervalId);
 
-    blueEssence -= 1000; isGoldenRoad = true; tourActive = true; grStageIndex = 0; grAccruedEssence = 0; tacticalBonus = 0; tourRound = 0;
+    blueEssence -= 2500; isGoldenRoad = true; tourActive = true; grStageIndex = 0; grAccruedEssence = 0; tacticalBonus = 0; tourRound = 0;
     let stageInfo = grStages[grStageIndex];
     tourData = { name: stageInfo.name, reward1: stageInfo.r1, reward2: stageInfo.r2, maxRounds: stageInfo.rounds };
     generateRealPlayerEnemies(stageInfo.diff, stageInfo.rounds);
@@ -3558,6 +3558,14 @@ function renderDraftCardPool(containerId, cards, mode) {
             }
         }
 
+        // Gray out unaffordable cards in salary cap mode
+        if (mode === 'pick' && window._salaryCapMode && !Object.values(draftPickRoles).some(c => c && c.uniqueId === card.uniqueId)) {
+            const refund = (draftActivePickRole && draftPickRoles[draftActivePickRole]) ? getCardSalary(draftPickRoles[draftActivePickRole]) : 0;
+            if (getCardSalary(card) > window._salaryRemaining + refund) {
+                wrapper.className += ' opacity-30 grayscale pointer-events-none';
+            }
+        }
+
         const cardEl = createCardElement(card, false, clickFn, null);
         wrapper.appendChild(cardEl);
         if (overlayHTML) wrapper.insertAdjacentHTML('beforeend', overlayHTML);
@@ -3647,7 +3655,17 @@ function updateDraftPickUI() {
         counterEl.innerText = `Roles Filled: ${filledCount} / 5`;
     }
     document.getElementById('draft-confirm-team-btn').disabled = filledCount < 5;
-    renderDraftCardPool('draft-user-pick-grid', draftUserPool, 'pick');
+    // Auto-sort: selected role first, then others by rating
+    let sortedPool = [...draftUserPool];
+    if (draftActivePickRole) {
+        sortedPool.sort((a, b) => {
+            const aMatch = (a.role === draftActivePickRole || (draftActivePickRole === 'COACH' && a.role === 'COACH')) ? 0 : 1;
+            const bMatch = (b.role === draftActivePickRole || (draftActivePickRole === 'COACH' && b.role === 'COACH')) ? 0 : 1;
+            if (aMatch !== bMatch) return aMatch - bMatch;
+            return b.rating - a.rating;
+        });
+    }
+    renderDraftCardPool('draft-user-pick-grid', sortedPool, 'pick');
 }
 
 function renderDraftPickPhase() {
@@ -3929,29 +3947,27 @@ function endDraftMode() {
 function getCardSalary(card) { return Math.floor((card.rating - 60) * 2.5); }
 let SALARY_CAP = 350;
 
-function startSalaryCapDraft(difficulty) {
-    if (!difficulty) {
-        showConfirm("Salary Cap Difficulty", "Easy (400 budget), Medium (350), or Hard (300). Pick your challenge level.", () => _launchSalaryCap(400));
-        const modal = document.getElementById('confirm-modal-box');
-        if (modal) {
-            const btnYes = document.getElementById('confirm-btn-yes');
-            const btnCancel = document.getElementById('confirm-btn-cancel');
-            btnYes.innerText = 'Easy (400)';
-            btnCancel.innerText = 'Medium (350)';
-            const hardBtn = document.createElement('button');
-            hardBtn.className = 'bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-bold transition w-full text-base';
-            hardBtn.innerText = 'Hard (300)';
-            hardBtn.onclick = () => { document.getElementById('confirm-modal').classList.add('hidden'); _launchSalaryCap(300); };
-            btnCancel.onclick = () => { document.getElementById('confirm-modal').classList.add('hidden'); _launchSalaryCap(350); };
-            modal.querySelector('.flex.gap-3').appendChild(hardBtn);
-        }
-        return;
-    }
-    _launchSalaryCap(difficulty);
+let _salaryCapReward = 2500;
+
+function startSalaryCapDraft() {
+    if (club.length < 15) { showToast("Need at least 15 cards in your Club.", "error"); return; }
+    if (blueEssence < 1500) { showToast("Need 1,500 BE to enter Salary Cap Draft.", "error"); return; }
+    const modal = document.getElementById('confirm-modal');
+    const box = document.getElementById('confirm-modal-box');
+    document.getElementById('confirm-title').innerText = 'Choose Difficulty';
+    document.getElementById('confirm-desc').innerText = 'Higher difficulty = tighter budget but bigger reward.';
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); });
+    const btnContainer = box.querySelector('.flex.gap-3');
+    btnContainer.innerHTML = `
+        <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_launchSalaryCap(400,1500)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Easy (400)</button>
+        <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_launchSalaryCap(350,2500)" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Medium (350)</button>
+        <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_launchSalaryCap(300,5000)" class="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Hard (300)</button>`;
 }
 
-function _launchSalaryCap(budget) {
+function _launchSalaryCap(budget, reward) {
     SALARY_CAP = budget;
+    _salaryCapReward = reward || 2500;
     if (club.length < 15) { showToast("Need at least 15 cards in your Club.", "error"); return; }
     if (blueEssence < 1500) { showToast("Need 1,500 BE to enter Salary Cap Draft.", "error"); return; }
     blueEssence -= 1500;
@@ -4079,7 +4095,7 @@ function makeSalaryPlay(playId) {
     if (matchDone) {
         _scState.phase = 'done';
         const isWin = _scState.wins >= 3;
-        if (isWin) { blueEssence += 4000; addXP(100); showToast("Salary Cap Draft Won! +4,000 BE", "success"); }
+        if (isWin) { blueEssence += _salaryCapReward; addXP(100); showToast(`Salary Cap Draft Won! +${_salaryCapReward} BE`, "success"); }
         else { showToast("Salary Cap Draft lost. No payout.", "error"); }
         if (!trackStats.salaryCapWon) trackStats.salaryCapWon = 0;
         if (isWin) trackStats.salaryCapWon++;
@@ -4142,7 +4158,7 @@ function renderSalaryCombat() {
         const win = _scState.wins >= 3;
         resultBanner = `<div class="rounded-2xl p-5 text-center border ${win ? 'bg-emerald-950/60 border-emerald-600' : 'bg-red-950/40 border-red-800'} mb-4">
             <div class="text-4xl mb-2">${win ? '🏆' : '💀'}</div>
-            <div class="text-xl font-black ${win ? 'text-emerald-300' : 'text-red-400'}">${win ? 'Victory! +4,000 BE' : 'Defeat.'}</div>
+            <div class="text-xl font-black ${win ? 'text-emerald-300' : 'text-red-400'}">${win ? `Victory! +${_salaryCapReward} BE` : 'Defeat.'}</div>
             <button onclick="closeSalaryCombat()" class="mt-4 bg-slate-700 hover:bg-slate-600 text-slate-200 px-6 py-2 rounded-xl font-bold cursor-pointer transition text-sm">Back to Lobby</button>
         </div>`;
     }
@@ -4156,18 +4172,18 @@ function renderSalaryCombat() {
         ${resultBanner}
         ${_scState.phase === 'pick' ? `<div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Round ${_scState.round} — Choose Your Play</div>
         <div class="flex flex-wrap gap-3 mb-4">${playCards}</div>` : ''}
-        <div class="flex gap-3 overflow-x-auto pb-2">
-            <div class="shrink-0">
+        <div class="grid grid-cols-[auto_1fr_auto] gap-4 items-start">
+            <div>
                 <div class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2 text-center">Your Team</div>
-                <div id="sc-my-cards" class="flex gap-2"></div>
+                <div id="sc-my-cards" class="flex flex-col gap-2"></div>
             </div>
-            <div class="flex-1 min-w-[180px] bg-slate-950/60 rounded-xl border border-slate-700 p-3 self-start">
+            <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-3">
                 <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
                 <div class="space-y-1">${logHTML}</div>
             </div>
-            <div class="shrink-0">
+            <div>
                 <div class="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2 text-center">CPU Team</div>
-                <div id="sc-opp-cards" class="flex gap-2"></div>
+                <div id="sc-opp-cards" class="flex flex-col gap-2"></div>
             </div>
         </div>`;
 
