@@ -460,3 +460,8 @@ html.light-mode .card-face-down {
 /* SIGNATURE — Gold + purple glow */
 .card-signature { box-shadow: 0 0 25px rgba(255,215,0,0.7), 0 0 50px rgba(168,85,247,0.3); animation: signature-glow 2s ease-in-out infinite; }
 @keyframes signature-glow { 0%,100% { box-shadow: 0 0 25px rgba(255,215,0,0.7), 0 0 50px rgba(168,85,247,0.3); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.9), 0 0 70px rgba(168,85,247,0.5); } }
+
+/* Pack pull special effects */
+@keyframes pullFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pullBurst { 0% { transform: scale(1); filter: brightness(1); } 30% { transform: scale(1.15); filter: brightness(1.8); } 100% { transform: scale(1); filter: brightness(1); } }
+@keyframes sparkFly { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--sx), var(--sy)) scale(0); opacity: 0; } }

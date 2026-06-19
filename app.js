@@ -220,14 +220,39 @@ function showPulls(cards, title) {
     });
 
     // Reveal cards one at a time with staggered delays
+    const WILDCARD_Q = ['Champion', 'MVP', 'Finalist', 'MSI', 'FirstStand'];
     cards.forEach((card, i) => {
         setTimeout(() => {
             const cardEl = createCardElement(card, false, null, null);
             cardEl.classList.add("card-reveal-anim");
             wrappers[i].innerHTML = "";
             wrappers[i].appendChild(cardEl);
-            // Double-rAF ensures the initial CSS state is painted before transition fires
             requestAnimationFrame(() => requestAnimationFrame(() => cardEl.classList.add("card-revealed")));
+
+            // Special effects for wildcard / signature pulls
+            const isWildcard = WILDCARD_Q.includes(card.quality);
+            const isSig = card.signature;
+            if (isWildcard || isSig) {
+                // Screen flash
+                const flash = document.createElement('div');
+                const flashColor = card.quality === 'Champion' ? 'rgba(234,179,8,0.4)' : card.quality === 'MVP' ? 'rgba(236,72,153,0.4)' : isSig ? 'rgba(168,85,247,0.5)' : 'rgba(99,102,241,0.3)';
+                flash.style.cssText = `position:fixed;inset:0;background:${flashColor};z-index:9999;pointer-events:none;animation:pullFlash 0.6s ease-out forwards;`;
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 700);
+                // Card glow burst
+                wrappers[i].style.animation = 'pullBurst 0.8s ease-out';
+                // Particle sparks
+                for (let p = 0; p < 12; p++) {
+                    const spark = document.createElement('div');
+                    const angle = (p / 12) * 360;
+                    const dist = 60 + Math.random() * 40;
+                    spark.style.cssText = `position:absolute;width:6px;height:6px;border-radius:50%;background:${isSig ? '#a855f7' : card.quality === 'Champion' ? '#fbbf24' : card.quality === 'MVP' ? '#ec4899' : '#818cf8'};top:50%;left:50%;z-index:50;pointer-events:none;animation:sparkFly 0.7s ease-out forwards;--sx:${Math.cos(angle*Math.PI/180)*dist}px;--sy:${Math.sin(angle*Math.PI/180)*dist}px;`;
+                    wrappers[i].style.position = 'relative';
+                    wrappers[i].appendChild(spark);
+                    setTimeout(() => spark.remove(), 800);
+                }
+            }
+
             if (i === cards.length - 1 && confirmBtn) {
                 setTimeout(() => confirmBtn.classList.remove("hidden"), 500);
             }
@@ -1955,6 +1980,9 @@ function _smPlayHasMetaBuff(play) {
     return play.myRoles.some(r => _smMetaBuff(squad[r], play.statKey) > 0);
 }
 
+function _tacticsBonus() { return (skills.tactics || 0) * 3; }
+function _tacticsBadgeHTML() { const b = _tacticsBonus(); return b > 0 ? `<span class="text-[9px] font-black text-emerald-400 bg-emerald-950/60 border border-emerald-700/40 px-1.5 py-0.5 rounded ml-1">🎯 Tactics +${b}</span>` : ''; }
+
 function _smStatVal(play) {
     function playerStat(role) {
         const c = squad[role];
@@ -1964,9 +1992,8 @@ function _smStatVal(play) {
     }
 
     const roles = play.myRoles;
-    if (roles.length === 1) return playerStat(roles[0]);
-    const vals = roles.map(r => playerStat(r));
-    return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    const base = roles.length === 1 ? playerStat(roles[0]) : Math.round(roles.map(r => playerStat(r)).reduce((a, b) => a + b, 0) / roles.length);
+    return base + _tacticsBonus();
 }
 
 const _SM_COOLDOWN_MS = 60000;
@@ -2455,8 +2482,8 @@ function _renderSeasonGame(container) {
             ? `<span class="text-slate-400 line-through text-xs mr-1">${baseVal}</span><span class="text-emerald-300 font-black text-base">${myVal}</span>`
             : `<span class="text-slate-200 font-black text-base">${myVal}</span>`;
         return `<button onclick="makeSeasonPlay('${play.id}')" class="flex-1 min-w-[180px] ${cardBg} border ${cardBorder} rounded-xl p-4 text-left cursor-pointer transition group">
-            <div class="flex items-start justify-between mb-1">
-                <span class="text-2xl">${play.icon}</span>${metaBadge}
+            <div class="flex items-start justify-between mb-1 flex-wrap gap-1">
+                <span class="text-2xl">${play.icon}</span>${metaBadge}${_tacticsBadgeHTML()}
             </div>
             <div class="font-black text-slate-100 text-sm mb-0.5 group-hover:text-indigo-300">${play.label}</div>
             <div class="text-slate-500 text-xs mb-3 leading-tight">${play.desc}</div>
@@ -3781,6 +3808,14 @@ function confirmDraftTeam() {
 }
 
 function showDraftCombat() {
+    // Reuse the Season-style play combat system (same as Salary Cap Draft)
+    document.getElementById('draft-screen').classList.add('hidden');
+    if (!window._salaryCapMode) _salaryCapReward = 2500;
+    _scStartCombat();
+    return;
+}
+
+function _oldShowDraftCombat() {
     document.getElementById('draft-screen').classList.add('hidden');
     const dc = document.getElementById('draft-combat');
     dc.classList.remove('hidden');
@@ -4147,7 +4182,8 @@ function _scStatVal(play) {
         if (!c) return 70;
         return r === 'COACH' ? (c.stats.ldr || c.rating) : (c.stats[play.statKey] || 70);
     });
-    return vals.length === 1 ? vals[0] : Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    const base = vals.length === 1 ? vals[0] : Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    return base + _tacticsBonus();
 }
 
 function _scOppStatVal(play) {
@@ -4179,10 +4215,12 @@ function makeSalaryPlay(playId) {
     if (matchDone) {
         _scState.phase = 'done';
         const isWin = _scState.wins >= 3;
-        if (isWin) { blueEssence += _salaryCapReward; addXP(100); showToast(`Salary Cap Draft Won! +${_salaryCapReward} BE`, "success"); }
-        else { showToast("Salary Cap Draft lost. No payout.", "error"); }
-        if (!trackStats.salaryCapWon) trackStats.salaryCapWon = 0;
-        if (isWin) trackStats.salaryCapWon++;
+        const isSC = !!window._salaryCapMode;
+        const modeLabel = isSC ? 'Salary Cap Draft' : 'Draft Mode';
+        if (isWin) { blueEssence += _salaryCapReward; addXP(100); showToast(`${modeLabel} Won! +${_salaryCapReward} BE`, "success"); }
+        else { showToast(`${modeLabel} lost. No payout.`, "error"); }
+        if (isSC) { if (!trackStats.salaryCapWon) trackStats.salaryCapWon = 0; if (isWin) trackStats.salaryCapWon++; }
+        else { trackStats.draftModesWon = (trackStats.draftModesWon || 0) + (isWin ? 1 : 0); trackStats.draftModesPlayed = (trackStats.draftModesPlayed || 0) + 1; }
         draftModeActive = false;
         window._salaryCapMode = false;
         saveGame();
@@ -4219,7 +4257,7 @@ function renderSalaryCombat() {
         const edge = myVal - oppVal;
         const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
         return `<button onclick="makeSalaryPlay('${play.id}')" class="flex-1 min-w-[160px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-emerald-500 rounded-xl p-3 text-left cursor-pointer transition">
-            <div class="text-xl mb-1">${play.icon}</div>
+            <div class="flex items-center gap-1 mb-1"><span class="text-xl">${play.icon}</span>${_tacticsBadgeHTML()}</div>
             <div class="font-black text-slate-100 text-xs mb-0.5">${play.label}</div>
             <div class="text-slate-500 text-[10px] mb-2">${play.desc}</div>
             <div class="font-mono text-xs space-y-0.5 border-t border-slate-700 pt-1">
@@ -4362,7 +4400,8 @@ function _towerStatVal(play) {
         const raw = r === 'COACH' ? (c.stats.ldr || c.rating) : (c.stats[play.statKey] || 70);
         return _towerApplyBuffs(raw, play.statKey, r);
     });
-    return vals.length === 1 ? vals[0] : Math.round(vals.reduce((a,b) => a+b, 0) / vals.length);
+    const base = vals.length === 1 ? vals[0] : Math.round(vals.reduce((a,b) => a+b, 0) / vals.length);
+    return base + _tacticsBonus();
 }
 
 function _towerStartMatch() {
@@ -4439,8 +4478,24 @@ function _towerGenBuffOptions() {
         { type: 'allStats', value: 3, label: '+3 All Stats', desc: '+3 to every stat for all your players' },
         { type: 'allStats', value: 2, label: '+2 All Stats', desc: '+2 to every stat for all your players' },
     ];
-    const shuffled = [...buffPool].sort(() => Math.random() - 0.5);
-    towerState.buffOptions = shuffled.slice(0, 3);
+    // 1% chance to generate a rare mega buff option
+    const megaPool = [
+        ...statKeys.map(s => ({ type: 'flatStat', stat: s, value: 20, label: `+20 ${s.toUpperCase()} ★`, desc: `MEGA: +20 to ${s.toUpperCase()} for all players!` })),
+        { type: 'allStats', value: 12, label: '+12 All Stats ★', desc: 'MEGA: +12 to every stat for all your players!' },
+        ...roles.map(r => ({ type: 'roleBonus', role: r, value: 25, label: `${r} Power +25 ★`, desc: `MEGA: +25 to all stats when ${r} is involved!` })),
+        ...statKeys.map(s => ({ type: 'pctStat', stat: s, value: 50, label: `+50% ${s.toUpperCase()} ★`, desc: `MEGA: +50% multiplicative boost to ${s.toUpperCase()}!` })),
+    ];
+    const options = [];
+    for (let slot = 0; slot < 3; slot++) {
+        if (Math.random() < 0.01) {
+            const mega = megaPool[Math.floor(Math.random() * megaPool.length)];
+            options.push(mega);
+        } else {
+            const pick = buffPool[Math.floor(Math.random() * buffPool.length)];
+            options.push(pick);
+        }
+    }
+    towerState.buffOptions = options;
 }
 
 function selectTowerBuff(idx) {
@@ -4478,17 +4533,21 @@ function renderTowerUI() {
 
     if (towerState.phase === 'buff') {
         const opts = towerState.buffOptions || [];
+        const buffCardsHTML = opts.map((b, i) => {
+            const isMega = b.label.includes('★');
+            const cls = isMega ? 'bg-purple-950/60 hover:bg-purple-900/60 border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'bg-slate-800 hover:bg-slate-700 border border-amber-700/50 hover:border-amber-400';
+            const icon = isMega ? '💎' : '⚡';
+            return `<button onclick="selectTowerBuff(${i})" class="${cls} rounded-xl p-5 cursor-pointer transition text-center min-w-[180px] flex flex-col items-center gap-2">
+                <span class="text-2xl">${icon}</span>
+                <span class="${isMega ? 'text-purple-300' : 'text-amber-300'} font-black text-sm">${b.label}</span>
+                <span class="text-slate-400 text-xs">${b.desc}</span>
+            </button>`;
+        }).join('');
         container.innerHTML = `${buffsHTML}
             <div class="bg-emerald-950/30 p-6 rounded-2xl border border-emerald-700/50 text-center">
                 <h3 class="text-xl font-black text-emerald-300 mb-2 uppercase tracking-widest">Choose a Buff</h3>
                 <p class="text-slate-400 text-sm mb-5">Floor ${towerState.floor - 1} cleared! Pick one upgrade to carry forward.</p>
-                <div class="flex flex-wrap gap-4 justify-center">
-                    ${opts.map((b, i) => `<button onclick="selectTowerBuff(${i})" class="bg-slate-800 hover:bg-slate-700 border border-amber-700/50 hover:border-amber-400 rounded-xl p-5 cursor-pointer transition text-center min-w-[180px] flex flex-col items-center gap-2">
-                        <span class="text-2xl">⚡</span>
-                        <span class="text-amber-300 font-black text-sm">${b.label}</span>
-                        <span class="text-slate-400 text-xs">${b.desc}</span>
-                    </button>`).join('')}
-                </div>
+                <div class="flex flex-wrap gap-4 justify-center">${buffCardsHTML}</div>
             </div>`;
         return;
     }
@@ -4509,7 +4568,7 @@ function renderTowerUI() {
         const edge = myVal - oppVal;
         const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
         return `<button onclick="makeTowerPlay('${play.id}')" class="flex-1 min-w-[180px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-red-500 rounded-xl p-4 text-left cursor-pointer transition">
-            <div class="text-2xl mb-1">${play.icon}</div>
+            <div class="flex items-center gap-1 mb-1"><span class="text-2xl">${play.icon}</span>${_tacticsBadgeHTML()}</div>
             <div class="font-black text-slate-100 text-sm mb-0.5">${play.label}</div>
             <div class="text-slate-500 text-xs mb-3">${play.desc}</div>
             <div class="font-mono text-sm space-y-1 border-t border-slate-700 pt-2">
