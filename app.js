@@ -471,9 +471,16 @@ function showConfirm(message, description, onConfirm) {
     const modal = document.getElementById("confirm-modal");
     if(!modal) return;
     const modalBox = document.getElementById("confirm-modal-box");
+
+    // Restore default buttons in case a custom modal previously replaced them
+    const btnContainer = modalBox.querySelector('.flex.gap-3');
+    if (btnContainer && !document.getElementById('confirm-btn-cancel')) {
+        btnContainer.innerHTML = `<button id="confirm-btn-cancel" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-6 py-2.5 rounded-lg font-bold transition w-full text-base">Cancel</button><button id="confirm-btn-yes" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-bold transition w-full text-base">Confirm</button>`;
+    }
+
     const btnYes = document.getElementById("confirm-btn-yes");
     const btnCancel = document.getElementById("confirm-btn-cancel");
-    
+
     document.getElementById("confirm-title").innerText = message;
     document.getElementById("confirm-desc").innerText = description;
     
