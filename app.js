@@ -4220,13 +4220,33 @@ function startInfiniteTower() {
     // Check for saved checkpoint
     const saved = localStorage.getItem("lol_tower_v1");
     if (saved) {
-        towerState = JSON.parse(saved);
-        showConfirm("Resume Tower?", `You have a saved run at Floor ${towerState.floor} with ${towerState.buffs.length} buffs. Resume or start fresh?`, () => {
-            _towerEnter();
-        });
+        const savedData = JSON.parse(saved);
+        const modal = document.getElementById('confirm-modal');
+        const box = document.getElementById('confirm-modal-box');
+        document.getElementById('confirm-title').innerText = 'Saved Tower Run Found';
+        document.getElementById('confirm-desc').innerText = `Floor ${savedData.floor} · ${savedData.buffs.length} buffs · Checkpoint ${savedData.checkpoint || 0}. Resume your run or start fresh?`;
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); });
+        const btnContainer = box.querySelector('.flex.gap-3');
+        btnContainer.innerHTML = `
+            <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_towerResume()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Resume</button>
+            <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_towerFresh()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Start Fresh</button>
+            <button onclick="document.getElementById('confirm-modal').classList.add('hidden','opacity-0');document.getElementById('confirm-modal-box').classList.remove('scale-100');document.getElementById('confirm-modal-box').classList.add('scale-95')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Cancel</button>`;
         return;
     }
 
+    _towerFresh();
+}
+
+function _towerResume() {
+    const saved = localStorage.getItem("lol_tower_v1");
+    if (saved) towerState = JSON.parse(saved);
+    else { _towerFresh(); return; }
+    _towerEnter();
+}
+
+function _towerFresh() {
+    localStorage.removeItem("lol_tower_v1");
     towerState = { floor: 1, buffs: [], checkpoint: 0, phase: 'match', matchState: null };
     _towerEnter();
 }
