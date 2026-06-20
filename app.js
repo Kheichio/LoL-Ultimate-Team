@@ -409,23 +409,22 @@ function claimQuest(id) {
     const q = quests.find(x => x.id === id);
     if (!q) return;
 
-    let progress;
     if (q.repeatable) {
-        progress = Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0));
+        const progress = Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0));
+        const completions = Math.floor(progress / q.target);
+        if (completions <= 0) return;
+        const totalReward = q.reward * completions;
+        blueEssence += totalReward;
+        q.baselineAtReset = (q.baselineAtReset || 0) + (completions * q.target);
+        q.timesCompleted = (q.timesCompleted || 0) + completions;
+        showToast(`Quest completed${completions > 1 ? ` x${completions}` : ''}! +${totalReward} BE`, "success");
     } else {
         if (q.claimed) return;
-        progress = trackStats[q.type] || 0;
-    }
-    if (progress < q.target) return;
-
-    blueEssence += q.reward;
-    showToast(`Quest completed! +${q.reward} BE`, "success");
-
-    if (q.repeatable) {
-        q.baselineAtReset = trackStats[q.type] || 0;
-        q.timesCompleted = (q.timesCompleted || 0) + 1;
-    } else {
+        const progress = trackStats[q.type] || 0;
+        if (progress < q.target) return;
+        blueEssence += q.reward;
         q.claimed = true;
+        showToast(`Quest completed! +${q.reward} BE`, "success");
     }
 
     saveGame();

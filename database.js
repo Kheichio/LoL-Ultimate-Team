@@ -132,7 +132,7 @@ const baseDatabase = [
     { id: 8010, name: "oDin", role: "COACH", team: "DNS", year: 2026, rating: 86, quality: "Platinum", region: "LCK", stats: { mec: 24, tmf: 86, frm: 87, cmp: 85, map: 88, ldr: 87 } },
     { id: 8011, name: "Helper", role: "COACH", team: "AL", year: 2026, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 24, tmf: 86, frm: 87, cmp: 85, map: 88, ldr: 89 } },
     { id: 8012, name: "Daeny", role: "COACH", team: "BLG", year: 2026, rating: 97, quality: "Grandmaster", region: "LPL", stats: { mec: 32, tmf: 97, frm: 98, cmp: 96, map: 99, ldr: 98 } },
-    { id: 8013, name: "Mafa", role: "COACH", team: "iG", year: 2026, rating: 90, quality: "Platinum", region: "LPL", stats: { mec: 24, tmf: 89, frm: 91, cmp: 91, map: 92, ldr: 92 } },
+    { id: 8013, name: "Mafa", role: "COACH", team: "IG", year: 2026, rating: 90, quality: "Platinum", region: "LPL", stats: { mec: 24, tmf: 89, frm: 91, cmp: 91, map: 92, ldr: 92 } },
     { id: 8014, name: "Tabe", role: "COACH", team: "JDG", year: 2026, rating: 92, quality: "Diamond", region: "LPL", stats: { mec: 22, tmf: 91, frm: 93, cmp: 93, map: 94, ldr: 94 } },
     { id: 8015, name: "Poppy", role: "COACH", team: "TES", year: 2026, rating: 88, quality: "Gold", region: "LPL", stats: { mec: 23, tmf: 86, frm: 88, cmp: 87, map: 89, ldr: 89 } },
     { id: 8016, name: "Shine", role: "COACH", team: "WBG", year: 2026, rating: 89, quality: "Diamond", region: "LPL", stats: { mec: 24, tmf: 88, frm: 90, cmp: 89, map: 90, ldr: 91 } },
@@ -221,12 +221,12 @@ const baseDatabase = [
     { id: 5035, name: "Jwei",       role: "SUP", team: "FPX", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 79, tmf: 86, frm: 87, cmp: 87, map: 88, ldr: 87 } },
     { id: 5036, name: "Shad0w",     role: "JNG", team: "BLG", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 84, tmf: 82, frm: 82, cmp: 80, map: 83, ldr: 78 } },
 
-    // iG — Invictus Gaming (11-3 Rumble Ascend, 2nd, strong individual talent)
-    { id: 5041, name: "TheShy",     role: "TOP", team: "iG",  year: 2025, rating: 91, quality: "Diamond",  region: "LPL", stats: { mec: 93, tmf: 90, frm: 92, cmp: 88, map: 86, ldr: 85 } },
-    { id: 5042, name: "Jiejie",     role: "JNG", team: "iG",  year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 89, frm: 86, cmp: 88, map: 90, ldr: 87 } },
-    { id: 5043, name: "Rookie",     role: "MID", team: "iG",  year: 2025, rating: 94, quality: "Master",   region: "LPL", stats: { mec: 96, tmf: 93, frm: 94, cmp: 91, map: 89, ldr: 90 } },
-    { id: 5044, name: "GALA",       role: "ADC", team: "iG",  year: 2025, rating: 89, quality: "Diamond",  region: "LPL", stats: { mec: 91, tmf: 88, frm: 90, cmp: 85, map: 83, ldr: 81 } },
-    { id: 5045, name: "Meiko",      role: "SUP", team: "iG",  year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 80, tmf: 87, frm: 88, cmp: 87, map: 89, ldr: 89 } },
+    // IG — Invictus Gaming (11-3 Rumble Ascend, 2nd, strong individual talent)
+    { id: 5041, name: "TheShy",     role: "TOP", team: "IG",  year: 2025, rating: 91, quality: "Diamond",  region: "LPL", stats: { mec: 93, tmf: 90, frm: 92, cmp: 88, map: 86, ldr: 85 } },
+    { id: 5042, name: "Jiejie",     role: "JNG", team: "IG",  year: 2025, rating: 88, quality: "Platinum", region: "LPL", stats: { mec: 87, tmf: 89, frm: 86, cmp: 88, map: 90, ldr: 87 } },
+    { id: 5043, name: "Rookie",     role: "MID", team: "IG",  year: 2025, rating: 94, quality: "Master",   region: "LPL", stats: { mec: 96, tmf: 93, frm: 94, cmp: 91, map: 89, ldr: 90 } },
+    { id: 5044, name: "GALA",       role: "ADC", team: "IG",  year: 2025, rating: 89, quality: "Diamond",  region: "LPL", stats: { mec: 91, tmf: 88, frm: 90, cmp: 85, map: 83, ldr: 81 } },
+    { id: 5045, name: "Meiko",      role: "SUP", team: "IG",  year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 80, tmf: 87, frm: 88, cmp: 87, map: 89, ldr: 89 } },
 
     // JDG — JD Gaming (5-9 Rumble, strong individual MVPs despite team results)
     { id: 5051, name: "Ale",        role: "TOP", team: "JDG", year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 86, frm: 88, cmp: 84, map: 82, ldr: 81 } },
@@ -315,7 +315,7 @@ const baseDatabase = [
     { id: 8076, name: "Maokai",    role: "COACH", team: "BLG", year: 2025, rating: 87, quality: "Platinum", region: "LPL", stats: { mec: 22, tmf: 86, frm: 87, cmp: 86, map: 88, ldr: 89 } },
     { id: 8077, name: "Mni",       role: "COACH", team: "EDG", year: 2025, rating: 84, quality: "Gold",     region: "LPL", stats: { mec: 20, tmf: 83, frm: 84, cmp: 83, map: 85, ldr: 84 } },
     { id: 8078, name: "QingSi",    role: "COACH", team: "FPX", year: 2025, rating: 82, quality: "Gold",     region: "LPL", stats: { mec: 18, tmf: 81, frm: 82, cmp: 81, map: 83, ldr: 82 } },
-    { id: 8079, name: "Daeny",     role: "COACH", team: "iG",  year: 2025, rating: 90, quality: "Diamond",  region: "LPL", stats: { mec: 30, tmf: 89, frm: 91, cmp: 90, map: 92, ldr: 91 } },
+    { id: 8079, name: "Daeny",     role: "COACH", team: "IG",  year: 2025, rating: 90, quality: "Diamond",  region: "LPL", stats: { mec: 30, tmf: 89, frm: 91, cmp: 90, map: 92, ldr: 91 } },
     { id: 8080, name: "cvmax",     role: "COACH", team: "JDG", year: 2025, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 26, tmf: 85, frm: 86, cmp: 85, map: 87, ldr: 87 } },
     { id: 8081, name: "1874",      role: "COACH", team: "LGD", year: 2025, rating: 81, quality: "Gold",     region: "LPL", stats: { mec: 18, tmf: 80, frm: 81, cmp: 80, map: 82, ldr: 82 } },
     { id: 8082, name: "U",         role: "COACH", team: "LNG", year: 2025, rating: 83, quality: "Gold",     region: "LPL", stats: { mec: 19, tmf: 82, frm: 83, cmp: 82, map: 84, ldr: 83 } },
@@ -421,11 +421,11 @@ const baseDatabase = [
     { id: 3084, name: "Elk", role: "ADC", team: "WBG", year: 2026, rating: 94, quality: "Master", region: "LPL", stats: { mec: 95, tmf: 94, frm: 95, cmp: 91, map: 89, ldr: 87 } },
     { id: 3085, name: "Erha", role: "SUP", team: "WBG", year: 2026, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 75, tmf: 83, frm: 82, cmp: 80, map: 84, ldr: 81 } },
 
-    { id: 3096, name: "Soboro", role: "TOP", team: "iG", year: 2026, rating: 81, quality: "Gold", region: "LPL", stats: { mec: 84, tmf: 79, frm: 83, cmp: 78, map: 76, ldr: 74 } },
-    { id: 3097, name: "Wei", role: "JNG", team: "iG", year: 2026, rating: 91, quality: "Diamond", region: "LPL", stats: { mec: 88, tmf: 92, frm: 85, cmp: 91, map: 93, ldr: 94 } },
-    { id: 3098, name: "Rookie", role: "MID", team: "iG", year: 2026, rating: 92, quality: "Master", region: "LPL", stats: { mec: 94, tmf: 91, frm: 92, cmp: 93, map: 90, ldr: 91 } },
-    { id: 3099, name: "Photic", role: "ADC", team: "iG", year: 2026, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 85, frm: 87, cmp: 84, map: 82, ldr: 81 } },
-    { id: 3100, name: "Jwei", role: "SUP", team: "iG", year: 2026, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 76, tmf: 83, frm: 82, cmp: 80, map: 84, ldr: 82 } },
+    { id: 3096, name: "Soboro", role: "TOP", team: "IG", year: 2026, rating: 81, quality: "Gold", region: "LPL", stats: { mec: 84, tmf: 79, frm: 83, cmp: 78, map: 76, ldr: 74 } },
+    { id: 3097, name: "Wei", role: "JNG", team: "IG", year: 2026, rating: 91, quality: "Diamond", region: "LPL", stats: { mec: 88, tmf: 92, frm: 85, cmp: 91, map: 93, ldr: 94 } },
+    { id: 3098, name: "Rookie", role: "MID", team: "IG", year: 2026, rating: 92, quality: "Master", region: "LPL", stats: { mec: 94, tmf: 91, frm: 92, cmp: 93, map: 90, ldr: 91 } },
+    { id: 3099, name: "Photic", role: "ADC", team: "IG", year: 2026, rating: 86, quality: "Platinum", region: "LPL", stats: { mec: 88, tmf: 85, frm: 87, cmp: 84, map: 82, ldr: 81 } },
+    { id: 3100, name: "Jwei", role: "SUP", team: "IG", year: 2026, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 76, tmf: 83, frm: 82, cmp: 80, map: 84, ldr: 82 } },
 
     { id: 3101, name: "HOYA", role: "TOP", team: "NIP", year: 2026, rating: 83, quality: "Gold", region: "LPL", stats: { mec: 85, tmf: 81, frm: 84, cmp: 80, map: 79, ldr: 77 } },
     { id: 3102, name: "Guwon", role: "JNG", team: "NIP", year: 2026, rating: 82, quality: "Gold", region: "LPL", stats: { mec: 83, tmf: 81, frm: 80, cmp: 80, map: 83, ldr: 79 } },
