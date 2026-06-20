@@ -39,7 +39,7 @@
         
         <div class="flex-shrink-0 flex flex-col items-center gap-1">
             <div class="bg-slate-900 px-4 py-2 rounded-full border border-slate-700 text-sm font-mono font-bold text-blue-400 flex items-center gap-2 shadow-inner">
-                <span onclick="secretMoneyCheat()" class="cursor-pointer hover:scale-125 transition duration-200 text-lg" title="Dev Cheat: Add 10,000 BE">💎</span>
+                <span class="text-lg">💎</span>
                 <span><span id="be-display">1000</span> BE</span>
             </div>
             <div id="prestige-title-display" class="text-[10px] font-black uppercase tracking-widest"></div>
@@ -690,7 +690,7 @@
                     </div>
                     <div class="bg-slate-900/60 p-3 rounded-xl">
                         <span class="text-amber-300 font-bold block mb-1">🏆 Global Leaderboard</span>
-                        <span>The "Board" tab ranks the top 50 managers by total wins. Shows team name, splits, golden roads, tower best, and prestige title. Click "Update Leaderboard" in the Account panel to push your stats.</span>
+                        <span>The "Board" tab ranks the top 50 managers by total wins. Shows raw power, total power, wins, splits, golden roads, tower best, total BE, and prestige title. Click "Update Leaderboard" in the Account panel to push your stats.</span>
                     </div>
                 </div>
             </div>
@@ -787,6 +787,8 @@
                     <li><span class="text-slate-300 font-bold">Repeatable Quest Stacking</span> — If you complete a repeatable quest multiple times before claiming, you now get credit for ALL completions in one click (e.g. "Quest completed x3! +1800 BE") instead of losing overflow progress.</li>
                     <li><span class="text-slate-300 font-bold">Invictus Gaming Fix</span> — "iG" and "IG" cards unified under one Archive lineage. All 24 Invictus Gaming cards now grouped correctly.</li>
                     <li><span class="text-slate-300 font-bold">Faker Balance Pass</span> — Modern Champion cards (2023/2024/2025) nerfed by -1 rating each. Modern base cards (2025: 97→95, 2026: 97→93). MEC/FRM decline, LDR stays 99. 2013 MVP/Champion: 99→97. 2015 Champion: 99→98.</li>
+                    <li><span class="text-amber-400 font-bold">Leaderboard: Total BE Column</span> — The global leaderboard now shows each player's current Blue Essence balance alongside raw power, total power, and all other stats.</li>
+                    <li><span class="text-slate-300 font-bold">Dev Tools Removed</span> — The visible money cheat button has been removed from the header. Dev testing commands are now hidden behind a passphrase-locked console system for authorized use only.</li>
                 </ul>
                 <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.5a): Faker Champion nerfs · Coach purge · Club capacity 10 levels</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.5): Club House Capacity · Mentorship Buffed · XP Doubled · Tower Rewards Nerfed · Tower Auto-Resume · Play Hub Reorganized · Wildcard Pull Effects · Tactical Acumen Everywhere · Draft Mode Reworked · Tower Mega Buffs · Card Comparison · Auto-Fill Squad · Budget Draft Overhaul · Golden Road 2.5k</p>
@@ -1621,11 +1623,11 @@
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
                 <li><span class="text-indigo-400 font-bold">Online Accounts</span> — Create an account with email/password. Sign in to access cloud features. Your profile shows in the header.</li>
                 <li><span class="text-emerald-400 font-bold">Cloud Save</span> — Save your entire game to the cloud and load it on any device. All data syncs: club, squad, stats, skills, season, tower, quests.</li>
-                <li><span class="text-amber-400 font-bold">Global Leaderboard</span> — New "Board" tab ranks the top 50 managers worldwide by total wins, splits, golden roads, tower floor, and prestige title.</li>
+                <li><span class="text-amber-400 font-bold">Global Leaderboard</span> — New "Board" tab ranks the top 50 managers worldwide. Shows raw power, total power, wins, splits, golden roads, tower best, total BE, and prestige title.</li>
                 <li><span class="text-amber-400 font-bold">Card Lock System</span> — Lock cards in your Club to protect them from selling, purging, trades, and upgrades. Toggle with the 🔒 button.</li>
                 <li><span class="text-red-400 font-bold">Coach Purge</span> — Purge coaches under 80/90/95 rating. Locked and squad coaches protected.</li>
                 <li><span class="text-slate-300 font-bold">Repeatable Quest Stacking</span> — Multiple completions before claiming now stack (e.g., "x3! +1800 BE").</li>
-                <li><span class="text-slate-300 font-bold">Invictus Gaming Fix</span> — "iG"/"IG" unified in Archive. Faker balance pass across all eras.</li>
+                <li><span class="text-slate-300 font-bold">Fixes</span> — iG/IG unified in Archive. Faker nerfed across all eras. Total BE added to leaderboard. Dev cheat tools removed and replaced with passphrase-locked console commands.</li>
             </ul>
 
             <div class="flex gap-3">

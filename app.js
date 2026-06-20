@@ -798,10 +798,54 @@ function updateBadges() {
     }
 }
 
-function secretMoneyCheat() {
-    blueEssence += 10000;
-    saveGame();
-    showToast("Cheat Activated: +10,000 BE!", "success");
+// Dev console — type the secret phrase in the browser console to unlock: devUnlock('your-phrase-here')
+let _devUnlocked = false;
+const _DEV_PASSPHRASE = 'turbodev2026';
+
+function devUnlock(phrase) {
+    if (phrase === _DEV_PASSPHRASE) {
+        _devUnlocked = true;
+        console.log('%c[DEV MODE ACTIVE] Commands: devBE(amount), devSP(amount), devMaxCards(), devUnlockAll(), devSetTower(floor)', 'color: #22c55e; font-weight: bold; font-size: 14px');
+        showToast('Dev mode activated.', 'success');
+    } else {
+        console.log('Invalid passphrase.');
+    }
+}
+
+function devBE(amount) {
+    if (!_devUnlocked) { console.log('Dev mode not active. Use devUnlock(passphrase)'); return; }
+    blueEssence += (amount || 10000); saveGame(); updateDisplays();
+    console.log(`+${amount || 10000} BE. Total: ${blueEssence}`);
+}
+
+function devSP(amount) {
+    if (!_devUnlocked) { console.log('Dev mode not active.'); return; }
+    skillPoints += (amount || 10); saveGame(); renderSkillsUI();
+    console.log(`+${amount || 10} SP. Total: ${skillPoints}`);
+}
+
+function devMaxCards() {
+    if (!_devUnlocked) { console.log('Dev mode not active.'); return; }
+    const db = getDB(); if (!db) return;
+    db.slice(0, 50).forEach(c => {
+        club.push({ ...c, uniqueId: 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2) });
+    });
+    saveGame(); updateDisplays();
+    console.log('Added 50 cards to club.');
+}
+
+function devUnlockAll() {
+    if (!_devUnlocked) { console.log('Dev mode not active.'); return; }
+    unlocks.firstStand = true; unlocks.msi = true; unlocks.worlds = true; unlocks.draftMode = true; unlocks.goldenRoad = true;
+    saveGame(); updateTournamentLocks();
+    console.log('All modes unlocked.');
+}
+
+function devSetTower(floor) {
+    if (!_devUnlocked) { console.log('Dev mode not active.'); return; }
+    trackStats.towerHighestFloor = floor || 100;
+    saveGame(); updateDisplays();
+    console.log(`Tower best set to ${floor || 100}.`);
 }
 
 function secretSkillPointCheat() {
@@ -5011,6 +5055,7 @@ function pushToLeaderboard() {
         clubSize: club.length,
         rawPower: rawPower,
         totalPower: chemData.totalPower || 0,
+        totalBE: blueEssence || 0,
         updatedAt: Date.now(),
     };
     fbDb.collection('leaderboard').doc(currentUser.uid).set(entry).then(() => {
@@ -5039,6 +5084,7 @@ function renderLeaderboard() {
                 <span class="w-14 text-center">Splits</span>
                 <span class="w-12 text-center">GR</span>
                 <span class="w-14 text-center">Tower</span>
+                <span class="w-16 text-center">BE</span>
                 <span class="w-16 text-center">Title</span>
             </div>`;
         let rank = 0;
@@ -5064,6 +5110,7 @@ function renderLeaderboard() {
                 <span class="w-14 text-center text-slate-300">${d.splitsCompleted}</span>
                 <span class="w-12 text-center text-yellow-400">${d.goldenRoads}</span>
                 <span class="w-14 text-center text-red-400">${d.towerBest}</span>
+                <span class="w-16 text-center text-blue-300 text-xs font-mono">${d.totalBE != null ? (d.totalBE >= 1000 ? Math.floor(d.totalBE/1000) + 'k' : d.totalBE) : '—'}</span>
                 <span class="w-16 text-center text-xs text-slate-400">${d.prestigeTitle}</span>
             </div>`;
         });
