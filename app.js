@@ -466,7 +466,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_4', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_5', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -644,7 +644,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_4';
+    const patchKey = 'lol_patch_seen_v0_5_5';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1240,7 +1240,7 @@ function claimCollectionRewards() {
 }
 
 function addXP(amount) {
-    const xpMultipliers = [1, 1.25, 1.5, 1.75, 2, 2.5];
+    const xpMultipliers = [1, 1.5, 2, 2.5, 3, 4];
     const boosted = Math.round(amount * (xpMultipliers[Math.min(skills.mentorship || 0, 5)]));
     managerXP += boosted; let needed = managerLevel * 250; let leveledUp = false;
     while(managerXP >= needed) { managerXP -= needed; managerLevel++; skillPoints++; needed = managerLevel * 250; leveledUp = true; }
@@ -1249,7 +1249,9 @@ function addXP(amount) {
 }
 
 const _SKILL_DOUBLE_COST = new Set(['bootcamp']);
+const _SKILL_FLAT_COST = new Set(['clubhouse']);
 function _skillCost(skillName, currentLvl) {
+    if (_SKILL_FLAT_COST.has(skillName)) return 1;
     const base = currentLvl + 1;
     return _SKILL_DOUBLE_COST.has(skillName) ? base * 2 : base;
 }
@@ -1274,9 +1276,9 @@ function renderSkillsUI() {
         { key: "tactics",      name: "Tactical Acumen",        desc: "Grants a guaranteed +3 flat power bonus per level (max +15 at level 5) to your squad during the Tactical Draft phase of tournament matches.",                                                          color: "emerald"},
         { key: "transfer",      name: "Transfer Window",        desc: "Lv1: 25% chance per trade offer to land a Transfer Window Discount (~25% off asset cost). Lv2: +4 trade offers. Lv3: unlocks Role Filter in Exchange Hub. Lv4: +5 offers. Lv5: Force Refresh locks the market to your chosen role.",  color: "orange" },
         { key: "conditioning",  name: "Team Conditioning",      desc: "Reduces the cooldown between Season Matches (60s base). Lv1: 45s. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown — play matches back to back.",                                                       color: "rose"   },
-        { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: ×1.25 (+25%). Lv2: ×1.5 (+50%). Lv3: ×1.75 (+75%). Lv4: ×2. Lv5: ×2.5 — reach new manager levels and skill points far faster.",                                           color: "violet" },
+        { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: ×1.5 (+50%). Lv2: ×2 (double). Lv3: ×2.5. Lv4: ×3 (triple). Lv5: ×4 — massively accelerates manager level progression.",                                           color: "violet" },
         { key: "bootcamp",      name: "Bootcamp Director",      desc: "Costs double SP per level. Increases the Bootcamp power bonus by +2 per level — from +5 base up to +15 at level 5.",                                       color: "lime"   },
-        { key: "clubhouse",    name: "Club House Capacity",    desc: "Increases max club size by 15 per level. Base capacity: 50. Lv5: 125 cards. Sell or upgrade cards to free space when full.",                                                                  color: "sky"    },
+        { key: "clubhouse",    name: "Club House Capacity",    desc: "Increases max club size by 50 per level. Base capacity: 100. Lv5: 350 cards. Costs only 1 SP per level.",                                                                  color: "sky"    },
     ];
     container.innerHTML = "";
     skillDefs.forEach(def => {
@@ -1367,7 +1369,7 @@ function startTrainingVisualCountdown() {
 }
 
 function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? (5 + (skills.bootcamp || 0) * 2) : 0; }
-function getClubCapacity() { return 50 + (skills.clubhouse || 0) * 15; }
+function getClubCapacity() { return 100 + (skills.clubhouse || 0) * 50; }
 function isClubFull() { return club.length >= getClubCapacity(); }
 function getLoanPremium() { let basePremium = 150 - (skills.negotiation * 20); return activeLoans * Math.max(0, basePremium); }
 function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); showToast("Credit allocated!", "success"); }
@@ -1610,7 +1612,7 @@ function buyPack(baseCost, type) {
     let db = getDB(); if(!db) return;
     if (isClubFull()) { showToast(`Club is full (${club.length}/${getClubCapacity()}). Sell or upgrade cards, or level up Club House Capacity.`, "error"); return; }
     let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
-    blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
+    blueEssence -= actualCost; trackStats.packs++; addXP(50); let pulled = [];
     const _packTypeKey = { Standard: 'standardPacksOpened', Elite: 'elitePacksOpened', Supreme: 'supremePacksOpened', FirstStand: 'firstStandPacksOpened', MSI: 'msiPacksOpened', Champion: 'champPacksOpened', MVP: 'mvpPacksOpened' }[type];
     if (_packTypeKey) trackStats[_packTypeKey] = (trackStats[_packTypeKey] || 0) + 1;
     if (type === 'Champion') {
@@ -1727,7 +1729,7 @@ function buyTargetPack(targetType) {
     
     let regionVal = document.getElementById("region-select").value;
     let tierVal = document.getElementById("region-tier-select").value;
-    blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
+    blueEssence -= actualCost; trackStats.packs++; addXP(50); let pulled = [];
     for (let i=0; i<5; i++) {
         let targetTier = "Silver";
         if (tierVal === "Standard") targetTier = Math.random() < 0.75 ? "Silver" : "Gold";
@@ -2153,7 +2155,7 @@ function _finishSeasonGame() {
     const played = seasonData.matchResults.filter(r => r !== null).length;
     if (played >= seasonData.gamesPerSplit) seasonData.splitComplete = true;
     trackStats.seasonMatchesPlayed = (trackStats.seasonMatchesPlayed || 0) + 1;
-    addXP(win ? 75 : 25);
+    addXP(win ? 150 : 50);
 
     // Mid-split shake-up: team metas and slumps reroll once after the 5th match, keeping the back half of the split fresh
     if (played === 5) {
@@ -3471,7 +3473,7 @@ function playMatchStep() {
 }
 
 function handleTournamentWin() {
-    blueEssence += tourData.reward1; addXP(100);
+    blueEssence += tourData.reward1; addXP(200);
 
     // Track stage-specific wins for quests — applies to both standalone and Golden Road
     const stageName = tourData.name;
@@ -4277,7 +4279,7 @@ function makeSalaryPlay(playId) {
         const isWin = _scState.wins >= 3;
         const isSC = !!window._salaryCapMode;
         const modeLabel = isSC ? 'Salary Cap Draft' : 'Draft Mode';
-        if (isWin) { blueEssence += _salaryCapReward; addXP(100); showToast(`${modeLabel} Won! +${_salaryCapReward} BE`, "success"); }
+        if (isWin) { blueEssence += _salaryCapReward; addXP(200); showToast(`${modeLabel} Won! +${_salaryCapReward} BE`, "success"); }
         else { showToast(`${modeLabel} lost. No payout.`, "error"); }
         if (isSC) { if (!trackStats.salaryCapWon) trackStats.salaryCapWon = 0; if (isWin) trackStats.salaryCapWon++; }
         else { trackStats.draftModesWon = (trackStats.draftModesWon || 0) + (isWin ? 1 : 0); trackStats.draftModesPlayed = (trackStats.draftModesPlayed || 0) + 1; }
@@ -4493,7 +4495,8 @@ function makeTowerPlay(playId) {
             towerState.floor++;
             // Checkpoint every 10 floors
             if (towerState.floor % 10 === 1 && towerState.floor > 1) {
-                const reward = Math.min(8000, 2000 * Math.ceil((towerState.floor - 1) / 10));
+                const checkpointNum = Math.ceil((towerState.floor - 1) / 10);
+                const reward = Math.floor(300 * Math.pow(2, checkpointNum - 1));
                 blueEssence += reward;
                 towerState.checkpoint = towerState.floor - 1;
                 localStorage.setItem("lol_tower_v1", JSON.stringify(towerState));

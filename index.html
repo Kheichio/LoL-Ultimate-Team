@@ -333,7 +333,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.4</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.5</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -753,27 +753,36 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.4)</h3>
+                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.5)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-blue-400 font-bold">Card Comparison in Picker</span> — When assigning a card to a squad slot that already has a player, every card in the picker now shows a compact stat diff badge: OVR change plus MEC/TMF/MAP diffs in green/red so you can compare at a glance before committing.</li>
-                    <li><span class="text-cyan-400 font-bold">Auto-Fill Best Squad</span> — New one-click button in the Squad tab that auto-assigns the highest-rated card per role from your Club, with a chemistry bias toward your most common region. Also fills coach and up to 3 bench slots.</li>
-                    <li><span class="text-emerald-400 font-bold">Team Metas Buffed</span> — Meta team buffs now range from +8 to +25 (up from +2 to +10). A meta-buffed play can now swing an entire matchup, making it genuinely worth building around hot-form teams.</li>
-                    <li><span class="text-emerald-400 font-bold">Budget Draft Difficulty Selector</span> — Choose Easy (400 budget / 1,500 BE reward), Medium (350 / 2,500 BE), or Hard (300 / 5,000 BE) with color-coded green/amber/red buttons. Higher difficulty = tighter budget but bigger payout.</li>
-                    <li><span class="text-emerald-400 font-bold">Budget Draft Combat Reworked</span> — Now uses the Season Match play-pick-from-3 system (Bo5) instead of the old Draft Mode tactical picks. Team cards displayed as floating panels on the far left and right edges of the screen in a 2×3 grid.</li>
-                    <li><span class="text-orange-400 font-bold">Draft Pick UX Improvements</span> — Selecting a role slot now auto-sorts the card pool to show matching-role cards first. Unaffordable cards in Budget Draft are grayed out. Salary cost displayed on every card during Budget Draft.</li>
-                    <li><span class="text-yellow-400 font-bold">Golden Road Buy-In Raised</span> — Buy-in increased from 1,000 to 2,500 BE, reflecting its endgame status. World Championship reward adjusted to 3,000 BE (from 3,500).</li>
-                    <li><span class="text-red-400 font-bold">Infinite Tower Uncapped</span> — Opponent rating and stats now scale infinitely past floor 24 (no more 130 cap). Floor 100 opponents hit 320+ rating — only deep buff stacking can compete. Resume/Start Fresh/Cancel buttons on saved runs.</li>
-                    <li><span class="text-yellow-400 font-bold">Signature Cards in Archives</span> — Signature cards now display with their unique glow and "✦ SIGNATURE ✦" label in the Archive, tracked via your collection registry.</li>
-                    <li><span class="text-purple-400 font-bold">New Quests</span> — 6 new quests: Reach Tower Floor 10/25/50, Win 1/5 Salary Cap Drafts, Pull a Signature Card. Tower Best and Salary Wins now tracked in Club stats.</li>
-                    <li><span class="text-cyan-400 font-bold">Pack Rates Clarified</span> — Guide now shows exact percentages (no more approximations) with a "Total: 100%" line per pack. Standard pack corrected to actual 92%/8% split. Signature variant (0.1%) noted on Champion/MVP packs.</li>
-                    <li><span class="text-slate-300 font-bold">Global Season Cooldown Timer</span> — A live countdown now appears in the header next to the PLAY button whenever the Season Match cooldown is active, visible from any tab.</li>
-                    <li><span class="text-slate-300 font-bold">CPU Budget Draft Fix</span> — CPU now always fills all 5 roles in Budget Draft, even on Hard difficulty. Uses smart budget reservation to avoid leaving slots empty.</li>
-                    <li><span class="text-slate-300 font-bold">Confirm Modal Fix</span> — Custom modal buttons (Tower resume, Budget Draft difficulty) no longer bleed into unrelated confirm dialogs like Upgrade prompts.</li>
+                    <li><span class="text-sky-400 font-bold">Club House Capacity Skill (New)</span> — Base capacity: 100 cards. New "Club House Capacity" skill adds +50 per level (max 350 at Lv5). Only costs 1 SP per level. Club count now shows X/Y. Packs blocked when full.</li>
+                    <li><span class="text-violet-400 font-bold">Mentorship Program Buffed</span> — XP multipliers doubled across the board. Lv1: ×1.5, Lv2: ×2, Lv3: ×2.5, Lv4: ×3, Lv5: ×4. Combined with higher base XP, leveling is now significantly faster.</li>
+                    <li><span class="text-emerald-400 font-bold">Base XP Doubled</span> — Packs: 25→50 XP. Season Matches: 75/25→150/50 XP. Tournament/Draft wins: 100→200 XP. Higher base values mean Mentorship multipliers hit even harder.</li>
+                    <li><span class="text-red-400 font-bold">Infinite Tower Rewards Nerfed</span> — Checkpoint rewards now start at 300 BE and double each time (300→600→1200→2400...) instead of flat 2k–8k. Prevents autoclicker farming while rewarding deep runs exponentially.</li>
+                    <li><span class="text-red-400 font-bold">Infinite Tower Auto-Resume</span> — Clicking "Climb" now always resumes your saved run. Progress saves after every win and buff selection, not just checkpoints. Leave and come back anytime — only defeat resets your run.</li>
+                    <li><span class="text-indigo-400 font-bold">Play Hub Reorganized</span> — Season Matches now has its own full-width banner at the top. Golden Road, Draft Mode, Salary Cap Draft, and Infinite Tower sit in a 4-column grid below. Standard bracket tournaments below that.</li>
+                    <li><span class="text-yellow-400 font-bold">Wildcard Pull Effects</span> — Pulling a Legacy card (Champion/MVP/Finalist/MSI/FirstStand) or Signature card now triggers a screen flash, brightness burst, and particle sparks. Each tier has its own color.</li>
+                    <li><span class="text-emerald-400 font-bold">Tactical Acumen Everywhere</span> — The +3/level power bonus now applies in Season Matches, Salary Cap Draft, Infinite Tower, and Tournaments. A visible "🎯 Tactics +X" badge appears on every play card.</li>
+                    <li><span class="text-cyan-400 font-bold">Draft Mode Reworked</span> — Regular Draft Mode combat now uses the Season-style play-pick-from-3 system (Bo5) with floating card panels, replacing the old tactical stat-pick rounds.</li>
+                    <li><span class="text-red-400 font-bold">Tower Mega Buffs</span> — 1% chance per buff slot to offer a ★ MEGA upgrade (+20 stat, +12 all, +25 role, or +50%). Purple glow and 💎 icon distinguish them from normal options.</li>
+                    <li><span class="text-blue-400 font-bold">Card Comparison in Picker</span> — Every card in the picker shows a stat diff badge (OVR/MEC/TMF/MAP) vs the currently assigned card, so you can compare before committing.</li>
+                    <li><span class="text-cyan-400 font-bold">Auto-Fill Best Squad</span> — One-click button fills all roles with the best available cards, biased toward your strongest region for chemistry.</li>
+                    <li><span class="text-emerald-400 font-bold">Team Metas Buffed to +8–25</span> — Up from +2–10. Meta plays now swing matchups meaningfully.</li>
+                    <li><span class="text-emerald-400 font-bold">Budget Draft Overhaul</span> — Difficulty selector (Easy 2k/Med 2.5k/Hard 3.5k), Bo5, floating side cards at 55% scale, auto-sort by role, grayed-out unaffordable cards, CPU always fills 5 roles.</li>
+                    <li><span class="text-yellow-400 font-bold">Golden Road 2,500 BE Buy-In</span> — Raised from 1k. World Championship reward: 3,000 BE (from 3,500).</li>
+                    <li><span class="text-orange-400 font-bold">Split Tier Renames</span> — Champions Split (8-9W), Contenders Split (6-7W), Mid-Table Split (4-5W), Relegation Split (0-3W). Flawless stays.</li>
+                    <li><span class="text-purple-400 font-bold">Manager Title in Club</span> — Prestige title progression panel moved from Skills to Club tab, shown below stats and above the card list.</li>
+                    <li><span class="text-orange-400 font-bold">Picker Role Sort</span> — Selecting a role auto-sorts: exact role match first, then Legacy flex cards, then others — all by rating.</li>
+                    <li><span class="text-slate-300 font-bold">Refresh Check</span> — On every load, all existing club/squad cards are synced with the latest database definitions. Balance changes (buffs/nerfs) now apply retroactively to cards you already own.</li>
+                    <li><span class="text-slate-300 font-bold">Faker 2013 &amp; 2015 Nerfed</span> — 2013 MVP/Champion: 99→97. 2015 Champion: 99→98. Progression now: 2013 (97) → 2015 (98) → 2016 (99).</li>
+                    <li><span class="text-slate-300 font-bold">Upgrade Quest Adjusted</span> — "Perform 3 Upgrades" repeatable: reward 1200→800 BE.</li>
+                    <li><span class="text-slate-300 font-bold">New Quests</span> — Tower Floor 10/25/50, Salary Cap Win 1/5, Pull a Signature Card. Tower Best and Salary Wins in Club stats.</li>
+                    <li><span class="text-slate-300 font-bold">Guide Updates</span> — Prestige titles documented, Salary Cap/Tower guides positioned next to Draft Mode guide, pack rates exact with totals, Signature tier in Card Tier System.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.3): Infinite Tower · Salary Cap Draft · Signature Cards · Manager Prestige Titles · 2015 EU LCS Summer · Golden Road Cooldown · Play Hub Reorganized · Poby Buff</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.4): Card Comparison · Auto-Fill Squad · Team Metas Buffed · Budget Draft Difficulty · Draft Reworked · Tower Uncapped · Signature Archives · Pack Rates Clarified · Golden Road 2.5k · Faker Nerfs</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.3): Infinite Tower · Salary Cap Draft · Signature Cards · Manager Prestige Titles · 2015 EU LCS Summer · Golden Road Cooldown · Play Hub Reorganized</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.1): Upgrade Tab Notification · Mid-Split Meta &amp; Slump Shake-Up · Elite Teams Buffed to 110 Cap</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.0): Bench Substitutions in Season Splits · Rising Elite Split Odds · Bootcamp Locked During Matches</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.4.9): Season Match Enemy Roster Stats · Golden Road Locked Behind Worlds · Transfer Window Lv1 Ability · Trade Requirements Buffed · Season Split Lock-In Warning · BLG 2026 Roster Buffed · Draft Mode Legacy Flex Exemption</p>
             </div>
 
         </section>
@@ -1542,7 +1551,7 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.4 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.5 — What's New</p>
 
             <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
                 <span class="text-lg shrink-0">⚠️</span>
@@ -1550,19 +1559,21 @@
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-blue-400 font-bold">Card Comparison in Picker</span> — See stat diffs (OVR, MEC, TMF, MAP) against the current card before swapping.</li>
-                <li><span class="text-cyan-400 font-bold">Auto-Fill Best Squad</span> — One-click button fills your squad with the best available cards per role, biased toward your strongest region for chemistry.</li>
-                <li><span class="text-emerald-400 font-bold">Team Metas Buffed</span> — Meta buffs now range +8 to +25 (up from +2 to +10). Building around meta teams is now a real strategy.</li>
-                <li><span class="text-emerald-400 font-bold">Budget Draft Overhaul</span> — Difficulty selector (Easy/Medium/Hard), Bo5 season-style combat, cards on screen edges, auto-sort by role, grayed-out unaffordable cards, scaled rewards (1.5k/2.5k/5k).</li>
-                <li><span class="text-red-400 font-bold">Infinite Tower Uncapped</span> — No more 130 stat ceiling. Opponents scale infinitely — only stacked buffs can keep up. Resume button added.</li>
-                <li><span class="text-yellow-400 font-bold">Golden Road 2,500 BE</span> — Buy-in raised, Worlds reward adjusted to 3,000 BE.</li>
-                <li><span class="text-purple-400 font-bold">New Quests + Stats</span> — Tower Floor/Salary Cap/Signature quests. Tower Best and Salary Wins in Club tab.</li>
-                <li><span class="text-slate-300 font-bold">Fixes</span> — Pack rates clarified, Signature Archive display, CPU always fills 5 roles, global Season cooldown timer, confirm modal fix.</li>
+                <li><span class="text-sky-400 font-bold">Club House Capacity</span> — New skill. Base 100 cards, +50/level, only 1 SP each. Max 350 at Lv5.</li>
+                <li><span class="text-violet-400 font-bold">Mentorship Buffed</span> — XP multipliers now ×1.5/×2/×2.5/×3/×4. Combined with doubled base XP (packs 50, wins 150-200), leveling is much faster.</li>
+                <li><span class="text-red-400 font-bold">Tower Rewards Nerfed</span> — Start at 300 BE, doubling each checkpoint (300→600→1200...) to prevent autoclicker farming.</li>
+                <li><span class="text-red-400 font-bold">Tower Auto-Resume</span> — Progress saves after every win. Leave anytime, resume on return. Only defeat resets.</li>
+                <li><span class="text-yellow-400 font-bold">Wildcard Pull Effects</span> — Screen flash + particle sparks when pulling Legacy/Signature cards. Color-coded per tier.</li>
+                <li><span class="text-emerald-400 font-bold">Tactical Acumen Everywhere</span> — +3/level bonus now works in all modes with a visible badge on every play card.</li>
+                <li><span class="text-cyan-400 font-bold">Draft Mode Reworked</span> — Now uses Season-style Bo5 play-pick system with floating card panels.</li>
+                <li><span class="text-indigo-400 font-bold">Season Matches at Top</span> — Own full-width banner. Tower moved into the 4-mode grid.</li>
+                <li><span class="text-emerald-400 font-bold">Budget Draft</span> — Rewards: Easy 2k, Med 2.5k, Hard 3.5k. Cards at 55% scale to prevent overlap.</li>
+                <li><span class="text-slate-300 font-bold">Balance</span> — Faker 2013/2015 nerfed, metas +8–25, split tiers renamed, picker auto-sorts by role, refresh check syncs all owned cards on load.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.4</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.5</button>
             </div>
         </div>
     </div>
