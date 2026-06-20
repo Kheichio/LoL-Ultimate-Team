@@ -1009,7 +1009,7 @@ const baseDatabase = [
     // ==========================================
     // --- 3. WORLD CHAMPIONS (Legacy Wildcards) ---
     // ==========================================
-    { id: 9001, name: "Faker", role: "MID", team: "SKT", year: 2015, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 99, frm: 98, cmp: 99, map: 98, ldr: 99 } },
+    { id: 9001, name: "Faker", role: "MID", team: "SKT", year: 2015, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 98, tmf: 97, frm: 97, cmp: 98, map: 97, ldr: 95 } },
     { id: 9002, name: "MaRin", role: "TOP", team: "SKT", year: 2015, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 96, frm: 97, cmp: 94, map: 95, ldr: 97 } },
     { id: 9003, name: "Bang", role: "ADC", team: "SKT", year: 2015, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 97, frm: 96, cmp: 98, map: 89, ldr: 88 } },
     { id: 9004, name: "Wolf", role: "SUP", team: "SKT", year: 2015, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 83, tmf: 97, frm: 96, cmp: 96, map: 97, ldr: 95 } },

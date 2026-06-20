@@ -1271,26 +1271,29 @@ function renderSkillsUI() {
         container.innerHTML += `<div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex flex-col justify-between"><div><h3 class="text-sm font-black text-${def.color}-400 mb-1">${def.name}</h3><p class="text-[11px] text-slate-400 mb-3 leading-relaxed">${def.desc}</p><div class="flex gap-1.5 mb-3 justify-center">${dotsHTML}</div></div>${btnHTML}</div>`;
     });
 
-    // Manager Title Progression panel
+}
+
+function renderPrestigeTitlePanel() {
+    const container = document.getElementById('prestige-panel');
+    if (!container) return;
     const currentTitle = getPrestigeTitle();
     const titleTiers = [
-        { title: 'Scout', emoji: '🔍', color: 'text-slate-400', req: 'Default — everyone starts here' },
-        { title: 'Director', emoji: '📋', color: 'text-emerald-400', req: '5 tournament wins OR 2 splits completed' },
-        { title: 'GM', emoji: '⭐', color: 'text-blue-400', req: '15 wins + 5 splits + 1 golden road' },
-        { title: 'President', emoji: '🏛️', color: 'text-purple-400', req: '30 wins + 10 splits + 3 golden roads' },
-        { title: 'Legend', emoji: '👑', color: 'text-yellow-400', req: '50 wins + 20 splits + 5 golden roads + 3 draft wins' },
+        { title: 'Scout', emoji: '🔍', color: 'text-slate-400', req: 'Default' },
+        { title: 'Director', emoji: '📋', color: 'text-emerald-400', req: '5 wins OR 2 splits' },
+        { title: 'GM', emoji: '⭐', color: 'text-blue-400', req: '15 wins + 5 splits + 1 GR' },
+        { title: 'President', emoji: '🏛️', color: 'text-purple-400', req: '30 wins + 10 splits + 3 GR' },
+        { title: 'Legend', emoji: '👑', color: 'text-yellow-400', req: '50 wins + 20 splits + 5 GR + 3 drafts' },
     ];
-    let titleHTML = `<div class="bg-purple-950/20 p-4 rounded-xl border border-purple-800/40 mt-4 col-span-full">
-        <h3 class="text-purple-400 font-black mb-2 text-xs uppercase tracking-widest">Manager Title Progression</h3>
-        <p class="text-slate-400 text-xs mb-3">Current title: <span class="${currentTitle.color} font-bold">${currentTitle.emoji} ${currentTitle.title}</span></p>
+    let html = `<h4 class="text-purple-400 font-black mb-2 text-xs uppercase tracking-widest">Manager Title Progression</h4>
+        <p class="text-slate-400 text-xs mb-2">Current: <span class="${currentTitle.color} font-bold">${currentTitle.emoji} ${currentTitle.title}</span></p>
         <div class="space-y-1 text-xs font-mono">`;
     titleTiers.forEach(t => {
         const isCurrent = t.title === currentTitle.title;
-        const highlight = isCurrent ? 'bg-slate-800/80 border border-slate-600 rounded-lg px-2 py-1' : 'px-2 py-1';
-        titleHTML += `<div class="flex justify-between ${highlight}"><span class="${t.color}">${t.emoji} ${t.title}${isCurrent ? ' ◀' : ''}</span><span class="text-slate-500">${t.req}</span></div>`;
+        const hl = isCurrent ? 'bg-slate-800/80 border border-slate-600 rounded-lg px-2 py-1' : 'px-2 py-1';
+        html += `<div class="flex justify-between ${hl}"><span class="${t.color}">${t.emoji} ${t.title}${isCurrent ? ' ◀' : ''}</span><span class="text-slate-500">${t.req}</span></div>`;
     });
-    titleHTML += `</div></div>`;
-    container.innerHTML += titleHTML;
+    html += `</div>`;
+    container.innerHTML = html;
 }
 
 function executeTeamTraining() {
@@ -1508,6 +1511,7 @@ function updateClubStatsUI() {
     setEl("stat-draft-wins", trackStats.draftModesWon || 0);
     setEl("stat-tower-best", trackStats.towerHighestFloor || 0);
     setEl("stat-salary-wins", trackStats.salaryCapWon || 0);
+    renderPrestigeTitlePanel();
 }
 
 function recalculateRegionalPrice() {
@@ -4290,7 +4294,7 @@ function renderSalaryCombat() {
         const oppVal = _scOppStatVal(play);
         const edge = myVal - oppVal;
         const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
-        return `<button onclick="makeSalaryPlay('${play.id}')" class="flex-1 min-w-[160px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-emerald-500 rounded-xl p-3 text-left cursor-pointer transition">
+        return `<button onclick="makeSalaryPlay('${play.id}')" class="flex-1 min-w-[140px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-emerald-500 rounded-xl p-2.5 text-left cursor-pointer transition">
             <div class="flex items-center gap-1 mb-1"><span class="text-xl">${play.icon}</span>${_tacticsBadgeHTML()}</div>
             <div class="font-black text-slate-100 text-xs mb-0.5">${play.label}</div>
             <div class="text-slate-500 text-[10px] mb-2">${play.desc}</div>
@@ -4326,11 +4330,11 @@ function renderSalaryCombat() {
     // Create floating card panels pinned to left and right edges of the viewport
     function buildFloatingPanel(side, label, labelColor, cards) {
         const panel = document.createElement('div');
-        panel.className = `sc-floating-panel fixed top-20 ${side === 'left' ? 'left-2' : 'right-2'} z-40 pointer-events-none`;
-        panel.style.cssText = `transform: scale(0.7); transform-origin: top ${side};`;
-        panel.innerHTML = `<div class="text-[10px] font-black uppercase tracking-widest ${labelColor} mb-2 text-center pointer-events-auto">${label}</div>`;
+        panel.className = `sc-floating-panel fixed top-16 ${side === 'left' ? 'left-0' : 'right-0'} z-30 pointer-events-none`;
+        panel.style.cssText = `transform: scale(0.55); transform-origin: top ${side};`;
+        panel.innerHTML = `<div class="text-[10px] font-black uppercase tracking-widest ${labelColor} mb-1 text-center pointer-events-auto">${label}</div>`;
         const grid = document.createElement('div');
-        grid.className = 'grid grid-cols-2 gap-2 pointer-events-auto';
+        grid.className = 'grid grid-cols-2 gap-1 pointer-events-auto';
         cards.forEach(c => { if (c) grid.appendChild(createCardElement(c, true)); });
         panel.appendChild(grid);
         document.body.appendChild(panel);
@@ -4341,7 +4345,7 @@ function renderSalaryCombat() {
     buildFloatingPanel('left', 'Your Team', 'text-emerald-400', myCards);
     buildFloatingPanel('right', 'CPU Team', 'text-red-400', oppCards);
 
-    container.innerHTML = `
+    container.innerHTML = `<div class="mx-auto" style="max-width:min(700px, calc(100vw - 420px))">
         <div class="flex items-center justify-center gap-8 bg-slate-800/60 py-3 rounded-2xl border border-slate-700 mb-4">
             <div class="text-center"><div class="text-xs text-emerald-400 font-black uppercase mb-1">You</div><div class="flex gap-1.5">${pips(_scState.wins, 3, 'bg-emerald-400')}</div></div>
             <div class="text-slate-600 font-black text-lg">vs</div>
@@ -4349,11 +4353,12 @@ function renderSalaryCombat() {
         </div>
         ${resultBanner}
         ${_scState.phase === 'pick' ? `<div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Round ${_scState.round} — Choose Your Play</div>
-        <div class="flex flex-wrap gap-3 justify-center mb-4">${playCards}</div>` : ''}
-        <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4 max-w-xl mx-auto">
+        <div class="flex flex-wrap gap-2 justify-center mb-4">${playCards}</div>` : ''}
+        <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4">
             <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
             <div class="space-y-1.5">${logHTML}</div>
-        </div>`;
+        </div>
+    </div>`;
 }
 
 // === INFINITE TOWER MODE ===
@@ -4362,25 +4367,12 @@ let towerState = null;
 function startInfiniteTower() {
     if (['TOP','JNG','MID','ADC','SUP'].some(r => !squad[r])) { showToast("Assign all 5 positions first.", "error"); return; }
 
-    // Check for saved checkpoint
     const saved = localStorage.getItem("lol_tower_v1");
     if (saved) {
-        const savedData = JSON.parse(saved);
-        const modal = document.getElementById('confirm-modal');
-        const box = document.getElementById('confirm-modal-box');
-        document.getElementById('confirm-title').innerText = 'Saved Tower Run Found';
-        document.getElementById('confirm-desc').innerText = `Floor ${savedData.floor} · ${savedData.buffs.length} buffs · Checkpoint ${savedData.checkpoint || 0}. Resume your run or start fresh?`;
-        modal.classList.remove('hidden');
-        requestAnimationFrame(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); });
-        const btnContainer = box.querySelector('.flex.gap-3');
-        btnContainer.innerHTML = `
-            <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_towerResume()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Resume</button>
-            <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_towerFresh()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Start Fresh</button>
-            <button onclick="document.getElementById('confirm-modal').classList.add('hidden','opacity-0');document.getElementById('confirm-modal-box').classList.remove('scale-100');document.getElementById('confirm-modal-box').classList.add('scale-95')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Cancel</button>`;
-        return;
+        _towerResume();
+    } else {
+        _towerFresh();
     }
-
-    _towerFresh();
 }
 
 function _towerResume() {
