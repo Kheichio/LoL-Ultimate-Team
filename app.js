@@ -465,7 +465,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_5a', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_6', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -643,7 +643,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_5a';
+    const patchKey = 'lol_patch_seen_v0_5_6';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -954,7 +954,7 @@ function renderTradeMarket() {
     visibleOffers.forEach(offer => {
         let rewardCardDef = db.find(p => p.id === offer.rewardBaseId);
         if(!rewardCardDef) return;
-        let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId));
+        let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId) && !c.locked);
         let hasEnough = availableFodder.length >= offer.reqCount;
         
         const wrapper = document.createElement("div");
@@ -996,7 +996,7 @@ function renderTradeMarket() {
 function executeTrade(offerId) {
     let offer = tradeMarket.offers.find(o => o.id === offerId);
     if(!offer || offer.completed) return;
-    let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId));
+    let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId) && !c.locked);
     if (availableFodder.length < offer.reqCount) { showToast("Not enough unlocked assets to trade.", "error"); return; }
     
     for(let i=0; i<offer.reqCount; i++) {
@@ -1760,6 +1760,14 @@ function renderClubGrid() {
         if (isSelected) { cardEl.style.outline = "3px solid #a855f7"; cardEl.style.outlineOffset = "2px"; }
         wrap.appendChild(cardEl);
 
+        // Lock indicator
+        if (card.locked) {
+            const lockBadge = document.createElement('div');
+            lockBadge.className = 'text-[9px] font-black text-amber-400 bg-amber-950/60 border border-amber-700/40 px-1.5 py-0.5 rounded text-center';
+            lockBadge.textContent = '🔒 Locked';
+            wrap.appendChild(lockBadge);
+        }
+
         if (compareMode) {
             let btn = document.createElement("button");
             btn.className = `text-xs px-3 py-1.5 rounded-lg w-full font-bold shadow-md transition ${isSelected ? 'bg-purple-800 text-purple-300 cursor-not-allowed' : 'bg-purple-900/60 text-purple-300 hover:bg-purple-700 cursor-pointer'}`;
@@ -1768,14 +1776,27 @@ function renderClubGrid() {
             else btn.disabled = true;
             wrap.appendChild(btn);
         } else {
+            const btnRow = document.createElement("div"); btnRow.className = "flex gap-1 w-full";
+            const inSquad = Object.values(squad).some(s => s && s.uniqueId === card.uniqueId);
+            // Lock/unlock toggle
+            const lockBtn = document.createElement("button");
+            lockBtn.className = `text-xs px-2 py-1.5 rounded-lg font-bold cursor-pointer transition shadow-md ${card.locked ? 'bg-amber-900/60 text-amber-300 hover:bg-amber-800' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
+            lockBtn.innerHTML = card.locked ? '🔓' : '🔒';
+            lockBtn.title = card.locked ? 'Unlock' : 'Lock (protect from sell/purge)';
+            lockBtn.onclick = () => { card.locked = !card.locked; saveGame(); renderClubGrid(); };
+            btnRow.appendChild(lockBtn);
+            // Sell button
             let btn = document.createElement("button"); let price = getSellValue(card.quality);
-            if (Object.values(squad).some(s => s && s.uniqueId === card.uniqueId)) {
-                btn.className = "text-xs bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg w-full font-bold cursor-not-allowed shadow-md"; btn.innerText = "In Squad"; btn.disabled = true;
+            if (inSquad) {
+                btn.className = "text-xs bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg flex-1 font-bold cursor-not-allowed shadow-md"; btn.innerText = "In Squad"; btn.disabled = true;
+            } else if (card.locked) {
+                btn.className = "text-xs bg-slate-700 text-slate-500 px-3 py-1.5 rounded-lg flex-1 font-bold cursor-not-allowed shadow-md"; btn.innerText = "Locked"; btn.disabled = true;
             } else {
-                btn.className = "text-xs bg-red-950/60 text-red-300 px-3 py-1.5 rounded-lg w-full font-bold cursor-pointer transition hover:bg-red-900 shadow-md"; btn.innerHTML = `Sell (+${price})`;
-                btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(card.quality)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+1; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); };
+                btn.className = "text-xs bg-red-950/60 text-red-300 px-3 py-1.5 rounded-lg flex-1 font-bold cursor-pointer transition hover:bg-red-900 shadow-md"; btn.innerHTML = `Sell (+${price})`;
+                btn.onclick = () => { blueEssence += price; trackStats.soldCount++; trackStats.soldBE += price; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(card.quality)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+1; club = club.filter(c => c.uniqueId !== card.uniqueId); saveGame(); renderClubGrid(); updateDisplays(); };
             }
-            wrap.appendChild(btn);
+            btnRow.appendChild(btn);
+            wrap.appendChild(btnRow);
         }
         grid.appendChild(wrap);
     });
@@ -3571,7 +3592,7 @@ function triggerWipe() {
 function triggerForfeit() { showConfirm("Forfeit Tournament?", "Lose your bracket positioning and stake.", () => emergencyResetSim()); }
 function sellAllLowTier(tier) {
     let sold = 0; let val = 0; let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
-    let toSell = club.filter(c => c.quality === tier && !activeIds.includes(c.uniqueId));
+    let toSell = club.filter(c => c.quality === tier && !activeIds.includes(c.uniqueId) && !c.locked);
     toSell.forEach(c => { sold++; val += getSellValue(c.quality); club = club.filter(cl => cl.uniqueId !== c.uniqueId); });
     if(sold > 0) { blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(tier)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+sold; showToast(`Purged ${sold} ${tier}s for ${val} BE!`, "success"); saveGame(); }
     else showToast(`No unassigned ${tier}s found.`, "info");
@@ -3583,7 +3604,7 @@ function purgeUnderTier(keepTier) {
     const toPurge = TIER_ORDER.slice(0, keepIdx);
     let sold = 0, val = 0, gmSold = 0;
     let activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
-    let toSell = club.filter(c => toPurge.includes(c.quality) && !activeIds.includes(c.uniqueId));
+    let toSell = club.filter(c => toPurge.includes(c.quality) && !activeIds.includes(c.uniqueId) && !c.locked);
     toSell.forEach(c => { sold++; val += getSellValue(c.quality); if (['Grandmaster','Challenger'].includes(c.quality)) gmSold++; });
     club = club.filter(c => !toSell.some(s => s.uniqueId === c.uniqueId));
     if (sold > 0) {
@@ -3596,7 +3617,7 @@ function purgeUnderTier(keepTier) {
 
 function purgeCoachesUnder(ratingThreshold) {
     const activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
-    const toSell = club.filter(c => c.role === 'COACH' && c.rating < ratingThreshold && !activeIds.includes(c.uniqueId));
+    const toSell = club.filter(c => c.role === 'COACH' && c.rating < ratingThreshold && !activeIds.includes(c.uniqueId) && !c.locked);
     if (toSell.length === 0) { showToast(`No coaches under ${ratingThreshold} rating to purge.`, 'info'); return; }
     let val = 0;
     toSell.forEach(c => { val += getSellValue(c.quality); });
@@ -4730,7 +4751,7 @@ function hasAvailableUpgrade() {
         const cost = UPGRADE_COSTS[fromTier];
         const needed = UPGRADE_CARD_COUNTS[fromTier];
         return ROLES.some(role => {
-            const count = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId)).length;
+            const count = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId) && !c.locked).length;
             return count >= needed && blueEssence >= cost;
         });
     });
@@ -4745,7 +4766,7 @@ function upgradeCards(role, fromTier) {
     const cost = UPGRADE_COSTS[fromTier];
     const needed = UPGRADE_CARD_COUNTS[fromTier];
     const activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
-    const eligible = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId));
+    const eligible = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId) && !c.locked);
     if (eligible.length < needed) {
         showToast(`Need ${needed} ${fromTier} ${role} cards. You have ${eligible.length}.`, 'error'); return;
     }
@@ -4801,7 +4822,7 @@ function renderUpgradeLab() {
         const cost = UPGRADE_COSTS[fromTier];
         const needed = UPGRADE_CARD_COUNTS[fromTier];
         ROLES.forEach(role => {
-            const count = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId)).length;
+            const count = club.filter(c => c.role === role && c.quality === fromTier && !activeIds.includes(c.uniqueId) && !c.locked).length;
             if (count === 0) return;
             hasAny = true;
             const canUpgrade = count >= needed && blueEssence >= cost;
@@ -4852,4 +4873,192 @@ function quickSellDuplicates() {
     });
     if(sold > 0) { club = toKeep; blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (gmSold > 0) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+gmSold; showToast(`Purged ${sold} Duplicates for ${val} BE!`, "success"); saveGame(); }
     else showToast("No duplicates found.", "info");
+}
+
+// ─── FIREBASE: AUTH, CLOUD SAVE, LEADERBOARD ────────────────────────────────
+
+let currentUser = null;
+
+function toggleAuthPanel() {
+    const panel = document.getElementById('auth-panel');
+    if (panel) panel.classList.toggle('hidden');
+}
+
+function updateAuthUI(user) {
+    currentUser = user;
+    const btn = document.getElementById('auth-btn');
+    const signedOut = document.getElementById('auth-signed-out');
+    const signedIn = document.getElementById('auth-signed-in');
+    if (user) {
+        if (btn) btn.innerHTML = user.photoURL ? `<img src="${user.photoURL}" class="w-5 h-5 rounded-full inline mr-1" onerror="this.style.display='none'">${user.displayName || 'Account'}` : `👤 ${user.displayName || user.email || 'Account'}`;
+        if (signedOut) signedOut.classList.add('hidden');
+        if (signedIn) signedIn.classList.remove('hidden');
+        document.getElementById('auth-name').textContent = user.displayName || 'Player';
+        document.getElementById('auth-email').textContent = user.email || '';
+        const avatar = document.getElementById('auth-avatar');
+        if (avatar) { avatar.src = user.photoURL || ''; avatar.onerror = () => avatar.style.display = 'none'; }
+    } else {
+        if (btn) btn.innerHTML = '👤 Sign In';
+        if (signedOut) signedOut.classList.remove('hidden');
+        if (signedIn) signedIn.classList.add('hidden');
+    }
+}
+
+function toggleAuthMode(showRegister) {
+    document.getElementById('auth-mode-login').classList.toggle('hidden', showRegister);
+    document.getElementById('auth-mode-register').classList.toggle('hidden', !showRegister);
+}
+
+function firebaseSignIn() {
+    const email = document.getElementById('auth-email-input').value.trim();
+    const pass = document.getElementById('auth-pass-input').value;
+    if (!email || !pass) { showToast('Enter email and password.', 'error'); return; }
+    fbAuth.signInWithEmailAndPassword(email, pass).then(result => {
+        showToast(`Welcome back, ${result.user.displayName || result.user.email}!`, 'success');
+        toggleAuthPanel();
+    }).catch(err => {
+        const msg = err.code === 'auth/user-not-found' ? 'No account with that email.' : err.code === 'auth/wrong-password' ? 'Wrong password.' : err.code === 'auth/invalid-credential' ? 'Invalid email or password.' : err.message;
+        showToast(msg, 'error');
+    });
+}
+
+function firebaseRegister() {
+    const name = document.getElementById('auth-reg-name').value.trim();
+    const email = document.getElementById('auth-reg-email').value.trim();
+    const pass = document.getElementById('auth-reg-pass').value;
+    if (!name) { showToast('Enter a display name.', 'error'); return; }
+    if (!email || !pass) { showToast('Enter email and password.', 'error'); return; }
+    if (pass.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
+    fbAuth.createUserWithEmailAndPassword(email, pass).then(result => {
+        return result.user.updateProfile({ displayName: name }).then(() => {
+            showToast(`Account created! Welcome, ${name}!`, 'success');
+            toggleAuthPanel();
+            updateAuthUI(result.user);
+        });
+    }).catch(err => {
+        const msg = err.code === 'auth/email-already-in-use' ? 'Email already registered. Try signing in.' : err.code === 'auth/weak-password' ? 'Password too weak (min 6 chars).' : err.message;
+        showToast(msg, 'error');
+    });
+}
+
+function firebaseSignOut() {
+    fbAuth.signOut().then(() => {
+        currentUser = null;
+        showToast('Signed out.', 'info');
+        toggleAuthPanel();
+    });
+}
+
+// Listen for auth state changes
+if (typeof fbAuth !== 'undefined') {
+    fbAuth.onAuthStateChanged(user => updateAuthUI(user));
+}
+
+// Cloud Save — push all localStorage game state to Firestore
+function cloudSave() {
+    if (!currentUser) { showToast('Sign in first.', 'error'); return; }
+    saveGame(); // ensure localStorage is current
+    const data = {};
+    const keys = ['lol_be_v7_pro','lol_loans_v7_pro','lol_club_v7_pro','lol_squad_v7_pro','lol_starter_v7_pro',
+        'lol_identity_v7_pro','lol_stats_v7_pro','lol_new_items_v7_pro','lol_prog_v7_pro','lol_collection_v7_pro',
+        'lol_archive_seen_v1','lol_trade_v7_pro','lol_team_complete_v8','lol_season_v1','lol_quests_v8_pro',
+        'lol_achievements_v1','lol_unlocks_v1','lol_training_expiry','lol_training_tier',
+        'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode'];
+    keys.forEach(k => { const v = localStorage.getItem(k); if (v !== null) data[k] = v; });
+    data.savedAt = Date.now();
+    data.teamName = teamIdentity.name || 'My Team';
+
+    fbDb.collection('saves').doc(currentUser.uid).set(data).then(() => {
+        showToast('Game saved to cloud!', 'success');
+        pushToLeaderboard();
+    }).catch(err => showToast(`Cloud save failed: ${err.message}`, 'error'));
+}
+
+// Cloud Load — pull from Firestore into localStorage, then reload
+function cloudLoad() {
+    if (!currentUser) { showToast('Sign in first.', 'error'); return; }
+    fbDb.collection('saves').doc(currentUser.uid).get().then(doc => {
+        if (!doc.exists) { showToast('No cloud save found for this account.', 'info'); return; }
+        const data = doc.data();
+        showConfirm('Load Cloud Save?', `This will overwrite your local save with the cloud data (saved ${new Date(data.savedAt).toLocaleString()}). Continue?`, () => {
+            Object.entries(data).forEach(([k, v]) => {
+                if (k !== 'savedAt' && k !== 'teamName') localStorage.setItem(k, v);
+            });
+            location.reload();
+        });
+    }).catch(err => showToast(`Cloud load failed: ${err.message}`, 'error'));
+}
+
+// Leaderboard — push stats to a public collection
+function pushToLeaderboard() {
+    if (!currentUser) { showToast('Sign in to update the leaderboard.', 'error'); return; }
+    const entry = {
+        uid: currentUser.uid,
+        displayName: currentUser.displayName || 'Anonymous',
+        photoURL: currentUser.photoURL || '',
+        teamName: teamIdentity.name || 'My Team',
+        teamLogo: teamIdentity.logo || '🛡️',
+        totalWins: (trackStats.tournamentsWon || 0) + (trackStats.goldenRoads || 0) + (trackStats.draftModesWon || 0) + (trackStats.salaryCapWon || 0),
+        splitsCompleted: trackStats.splitsCompleted || 0,
+        goldenRoads: trackStats.goldenRoads || 0,
+        towerBest: trackStats.towerHighestFloor || 0,
+        prestigeTitle: getPrestigeTitle().title,
+        clubSize: club.length,
+        updatedAt: Date.now(),
+    };
+    fbDb.collection('leaderboard').doc(currentUser.uid).set(entry).then(() => {
+        showToast('Leaderboard updated!', 'success');
+    }).catch(err => showToast(`Leaderboard update failed: ${err.message}`, 'error'));
+}
+
+// Render leaderboard
+function renderLeaderboard() {
+    const container = document.getElementById('leaderboard-content');
+    if (!container) return;
+    container.innerHTML = '<div class="text-slate-500 text-center py-8 font-mono">Loading...</div>';
+
+    fbDb.collection('leaderboard').orderBy('totalWins', 'desc').limit(50).get().then(snapshot => {
+        if (snapshot.empty) {
+            container.innerHTML = '<div class="text-slate-500 text-center py-12 font-mono">No players on the leaderboard yet. Sign in and click "Update Leaderboard" to be first!</div>';
+            return;
+        }
+        let html = `<div class="bg-slate-800 rounded-xl border border-amber-700/40 overflow-hidden">
+            <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-700 bg-slate-900/60 text-xs font-black uppercase tracking-widest text-slate-400">
+                <span class="w-8 text-center">#</span>
+                <span class="flex-1">Manager</span>
+                <span class="w-16 text-center">Wins</span>
+                <span class="w-16 text-center">Splits</span>
+                <span class="w-16 text-center">GR</span>
+                <span class="w-16 text-center">Tower</span>
+                <span class="w-20 text-center">Title</span>
+            </div>`;
+        let rank = 0;
+        snapshot.forEach(doc => {
+            rank++;
+            const d = doc.data();
+            const isMe = currentUser && doc.id === currentUser.uid;
+            const rowBg = isMe ? 'bg-indigo-900/40 border-l-4 border-indigo-400' : rank <= 3 ? 'bg-amber-950/20' : '';
+            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+            const rankColor = rank <= 3 ? 'text-amber-400 font-black' : 'text-slate-500';
+            html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/50 text-sm ${rowBg}">
+                <span class="w-8 text-center ${rankColor}">${medal || rank}</span>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                    <img src="${d.photoURL}" class="w-6 h-6 rounded-full" onerror="this.style.display='none'">
+                    <div class="min-w-0">
+                        <div class="font-bold text-slate-200 truncate">${d.teamLogo} ${d.teamName}${isMe ? ' (You)' : ''}</div>
+                        <div class="text-[10px] text-slate-500 truncate">${d.displayName}</div>
+                    </div>
+                </div>
+                <span class="w-16 text-center font-bold text-emerald-400">${d.totalWins}</span>
+                <span class="w-16 text-center text-slate-300">${d.splitsCompleted}</span>
+                <span class="w-16 text-center text-yellow-400">${d.goldenRoads}</span>
+                <span class="w-16 text-center text-red-400">${d.towerBest}</span>
+                <span class="w-20 text-center text-xs text-slate-400">${d.prestigeTitle}</span>
+            </div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }).catch(err => {
+        container.innerHTML = `<div class="text-red-400 text-center py-8 font-mono">Failed to load leaderboard: ${err.message}</div>`;
+    });
 }

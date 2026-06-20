@@ -14,6 +14,9 @@
     <meta name="twitter:title" content="LoL Ultimate Team">
     <meta name="twitter:description" content="Build your ultimate League of Legends roster — pack openings, squad builder, tournaments, trade market and more.">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-900 font-sans min-h-screen flex flex-col select-none text-base overflow-x-hidden text-slate-300">
@@ -92,8 +95,10 @@
             </button>
         </div>
 
-        <div class="flex-shrink-0">
-            <button onclick="triggerWipe()" class="text-xs bg-red-950/40 hover:bg-red-600 text-red-400 hover:text-white font-bold px-4 py-2 rounded-lg cursor-pointer transition border border-red-900/40 shadow shadow-red-900/20">Wipe</button>
+        <div class="flex-shrink-0 flex items-center gap-2">
+            <button onclick="switchTab('leaderboard'); renderLeaderboard();" data-tab="leaderboard" class="nav-btn bg-slate-700 px-3 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-amber-400 whitespace-nowrap text-xs">🏆 Board</button>
+            <button id="auth-btn" onclick="toggleAuthPanel()" class="bg-indigo-900/60 hover:bg-indigo-800 text-indigo-300 font-bold px-3 py-2 rounded-lg cursor-pointer transition text-xs border border-indigo-700/40">👤 Sign In</button>
+            <button onclick="triggerWipe()" class="text-xs bg-red-950/40 hover:bg-red-600 text-red-400 hover:text-white font-bold px-3 py-2 rounded-lg cursor-pointer transition border border-red-900/40 shadow shadow-red-900/20">Wipe</button>
         </div>
     </header>
 
@@ -333,7 +338,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.5a</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.6</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -672,6 +677,24 @@
                 </div>
             </div>
 
+            <div class="bg-indigo-950/30 p-6 rounded-2xl border border-indigo-700/50 shadow-lg">
+                <h3 class="text-lg font-bold text-indigo-400 mb-3">🌐 Online Features</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono text-slate-400">
+                    <div class="bg-slate-900/60 p-3 rounded-xl">
+                        <span class="text-indigo-300 font-bold block mb-1">👤 Accounts</span>
+                        <span>Create an account with email/password. Click "Sign In" in the top-right header. Your session persists across reloads.</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl">
+                        <span class="text-emerald-300 font-bold block mb-1">☁️ Cloud Save</span>
+                        <span>Save your full game state to the cloud from the Account panel. Load it on any device — all progress syncs: club, squad, stats, skills, season, tower, quests, everything.</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl">
+                        <span class="text-amber-300 font-bold block mb-1">🏆 Global Leaderboard</span>
+                        <span>The "Board" tab ranks the top 50 managers by total wins. Shows team name, splits, golden roads, tower best, and prestige title. Click "Update Leaderboard" in the Account panel to push your stats.</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                     <h3 class="text-lg font-bold text-orange-400 mb-3">🔄 Exchange Hub</h3>
@@ -753,40 +776,22 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.5a)</h3>
+                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.6)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-slate-300 font-bold">Modern Faker Champion Cards Nerfed</span> — 2023/2025 Champion: 99→98. 2024 Champion: 95→94. MEC and FRM take the biggest hits, LDR untouched — reflects aging mechanics with elite leadership intact.</li>
-                    <li><span class="text-slate-300 font-bold">Modern Faker Base Cards Nerfed</span> — 2026 base: 97→93. 2025 base: 97→95. Same pattern: declining MEC/FRM, LDR stays 99.</li>
-                    <li><span class="text-red-400 font-bold">Coach Purge Buttons</span> — Three new buttons in the Club tab: purge all coaches rated below 80, 90, or 95. Shows a confirmation with count and BE total before selling. Squad coaches are protected.</li>
-                    <li><span class="text-sky-400 font-bold">Club House Capacity Expanded</span> — Now has 10 levels (up from 5). Base 100 + 50/level = max 600 cards at Lv10. Still costs only 1 SP per level.</li>
-                    <li><span class="text-sky-400 font-bold">Club House Capacity Skill (New)</span> — Base capacity: 100 cards. New "Club House Capacity" skill adds +50 per level (max 600 at Lv10). Only costs 1 SP per level. Club count now shows X/Y. Packs blocked when full.</li>
-                    <li><span class="text-violet-400 font-bold">Mentorship Program Buffed</span> — XP multipliers doubled across the board. Lv1: ×1.5, Lv2: ×2, Lv3: ×2.5, Lv4: ×3, Lv5: ×4. Combined with higher base XP, leveling is now significantly faster.</li>
-                    <li><span class="text-emerald-400 font-bold">Base XP Doubled</span> — Packs: 25→50 XP. Season Matches: 75/25→150/50 XP. Tournament/Draft wins: 100→200 XP. Higher base values mean Mentorship multipliers hit even harder.</li>
-                    <li><span class="text-red-400 font-bold">Infinite Tower Rewards Nerfed</span> — Checkpoint rewards now start at 300 BE and double each time (300→600→1200→2400...) instead of flat 2k–8k. Prevents autoclicker farming while rewarding deep runs exponentially.</li>
-                    <li><span class="text-red-400 font-bold">Infinite Tower Auto-Resume</span> — Clicking "Climb" now always resumes your saved run. Progress saves after every win and buff selection, not just checkpoints. Leave and come back anytime — only defeat resets your run.</li>
-                    <li><span class="text-indigo-400 font-bold">Play Hub Reorganized</span> — Season Matches now has its own full-width banner at the top. Golden Road, Draft Mode, Salary Cap Draft, and Infinite Tower sit in a 4-column grid below. Standard bracket tournaments below that.</li>
-                    <li><span class="text-yellow-400 font-bold">Wildcard Pull Effects</span> — Pulling a Legacy card (Champion/MVP/Finalist/MSI/FirstStand) or Signature card now triggers a screen flash, brightness burst, and particle sparks. Each tier has its own color.</li>
-                    <li><span class="text-emerald-400 font-bold">Tactical Acumen Everywhere</span> — The +3/level power bonus now applies in Season Matches, Salary Cap Draft, Infinite Tower, and Tournaments. A visible "🎯 Tactics +X" badge appears on every play card.</li>
-                    <li><span class="text-cyan-400 font-bold">Draft Mode Reworked</span> — Regular Draft Mode combat now uses the Season-style play-pick-from-3 system (Bo5) with floating card panels, replacing the old tactical stat-pick rounds.</li>
-                    <li><span class="text-red-400 font-bold">Tower Mega Buffs</span> — 1% chance per buff slot to offer a ★ MEGA upgrade (+20 stat, +12 all, +25 role, or +50%). Purple glow and 💎 icon distinguish them from normal options.</li>
-                    <li><span class="text-blue-400 font-bold">Card Comparison in Picker</span> — Every card in the picker shows a stat diff badge (OVR/MEC/TMF/MAP) vs the currently assigned card, so you can compare before committing.</li>
-                    <li><span class="text-cyan-400 font-bold">Auto-Fill Best Squad</span> — One-click button fills all roles with the best available cards, biased toward your strongest region for chemistry.</li>
-                    <li><span class="text-emerald-400 font-bold">Team Metas Buffed to +8–25</span> — Up from +2–10. Meta plays now swing matchups meaningfully.</li>
-                    <li><span class="text-emerald-400 font-bold">Budget Draft Overhaul</span> — Difficulty selector (Easy 2k/Med 2.5k/Hard 3.5k), Bo5, floating side cards at 55% scale, auto-sort by role, grayed-out unaffordable cards, CPU always fills 5 roles.</li>
-                    <li><span class="text-yellow-400 font-bold">Golden Road 2,500 BE Buy-In</span> — Raised from 1k. World Championship reward: 3,000 BE (from 3,500).</li>
-                    <li><span class="text-orange-400 font-bold">Split Tier Renames</span> — Champions Split (8-9W), Contenders Split (6-7W), Mid-Table Split (4-5W), Relegation Split (0-3W). Flawless stays.</li>
-                    <li><span class="text-purple-400 font-bold">Manager Title in Club</span> — Prestige title progression panel moved from Skills to Club tab, shown below stats and above the card list.</li>
-                    <li><span class="text-orange-400 font-bold">Picker Role Sort</span> — Selecting a role auto-sorts: exact role match first, then Legacy flex cards, then others — all by rating.</li>
-                    <li><span class="text-slate-300 font-bold">Refresh Check</span> — On every load, all existing club/squad cards are synced with the latest database definitions. Balance changes (buffs/nerfs) now apply retroactively to cards you already own.</li>
-                    <li><span class="text-slate-300 font-bold">Faker 2013 &amp; 2015 Nerfed</span> — 2013 MVP/Champion: 99→97. 2015 Champion: 99→98. Progression now: 2013 (97) → 2015 (98) → 2016 (99).</li>
-                    <li><span class="text-slate-300 font-bold">Upgrade Quest Adjusted</span> — "Perform 3 Upgrades" repeatable: reward 1200→800 BE.</li>
-                    <li><span class="text-slate-300 font-bold">New Quests</span> — Tower Floor 10/25/50, Salary Cap Win 1/5, Pull a Signature Card. Tower Best and Salary Wins in Club stats.</li>
-                    <li><span class="text-slate-300 font-bold">Guide Updates</span> — Prestige titles documented, Salary Cap/Tower guides positioned next to Draft Mode guide, pack rates exact with totals, Signature tier in Card Tier System.</li>
+                    <li><span class="text-indigo-400 font-bold">Online Accounts (New)</span> — Create an account with email and password. Your profile appears in the header when signed in. Full account management with sign in, register, and sign out.</li>
+                    <li><span class="text-emerald-400 font-bold">Cloud Save (New)</span> — Save your entire game to the cloud and load it on any device. All data is synced: club, squad, stats, skills, season progress, tower runs, quests, everything. Click "Save to Cloud" or "Load from Cloud" in the Account panel.</li>
+                    <li><span class="text-amber-400 font-bold">Global Leaderboard (New)</span> — New "Board" tab in the nav bar shows the top 50 managers worldwide, ranked by total wins. Columns: Team Name, Wins, Splits, Golden Roads, Tower Best, and Prestige Title. Your entry is highlighted. Top 3 get medals. Click "Update Leaderboard" to push your stats.</li>
+                    <li><span class="text-amber-400 font-bold">Card Lock System (New)</span> — Click the 🔒 button on any card in your Club to lock it. Locked cards are fully protected from selling, all purge functions, trade fodder consumption, and upgrade fodder. A visible "🔒 Locked" badge shows on locked cards. Toggle anytime with the lock/unlock button.</li>
+                    <li><span class="text-red-400 font-bold">Coach Purge Buttons</span> — Three new buttons in Club: purge coaches rated below 80, 90, or 95. Confirmation dialog, squad and locked coaches protected.</li>
+                    <li><span class="text-sky-400 font-bold">Club House Capacity Expanded</span> — 10 levels (up from 5). Base 100 + 50/level = max 600 at Lv10. 1 SP per level.</li>
+                    <li><span class="text-slate-300 font-bold">Repeatable Quest Stacking</span> — If you complete a repeatable quest multiple times before claiming, you now get credit for ALL completions in one click (e.g. "Quest completed x3! +1800 BE") instead of losing overflow progress.</li>
+                    <li><span class="text-slate-300 font-bold">Invictus Gaming Fix</span> — "iG" and "IG" cards unified under one Archive lineage. All 24 Invictus Gaming cards now grouped correctly.</li>
+                    <li><span class="text-slate-300 font-bold">Faker Balance Pass</span> — Modern Champion cards (2023/2024/2025) nerfed by -1 rating each. Modern base cards (2025: 97→95, 2026: 97→93). MEC/FRM decline, LDR stays 99. 2013 MVP/Champion: 99→97. 2015 Champion: 99→98.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.4): Card Comparison · Auto-Fill Squad · Team Metas Buffed · Budget Draft Difficulty · Draft Reworked · Tower Uncapped · Signature Archives · Pack Rates Clarified · Golden Road 2.5k · Faker Nerfs</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.3): Infinite Tower · Salary Cap Draft · Signature Cards · Manager Prestige Titles · 2015 EU LCS Summer · Golden Road Cooldown · Play Hub Reorganized</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.1): Upgrade Tab Notification · Mid-Split Meta &amp; Slump Shake-Up · Elite Teams Buffed to 110 Cap</p>
-                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.0): Bench Substitutions in Season Splits · Rising Elite Split Odds · Bootcamp Locked During Matches</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.5a): Faker Champion nerfs · Coach purge · Club capacity 10 levels</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.5): Club House Capacity · Mentorship Buffed · XP Doubled · Tower Rewards Nerfed · Tower Auto-Resume · Play Hub Reorganized · Wildcard Pull Effects · Tactical Acumen Everywhere · Draft Mode Reworked · Tower Mega Buffs · Card Comparison · Auto-Fill Squad · Budget Draft Overhaul · Golden Road 2.5k</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.3): Infinite Tower · Salary Cap Draft · Signature Cards · Manager Prestige Titles · 2015 EU LCS Summer · Golden Road Cooldown</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.0–0.5.1): Bench Substitutions · Rising Elite Split Odds · Bootcamp Locked · Upgrade Tab Notification · Mid-Split Shake-Up · Elite 110 Cap</p>
             </div>
 
         </section>
@@ -804,6 +809,14 @@
             </div>
             <div id="trade-filter-bar" class="hidden"></div>
             <div id="trade-offers-container" class="flex flex-wrap gap-4 justify-center"></div>
+        </section>
+
+        <section id="tab-leaderboard" class="tab-content hidden max-w-4xl mx-auto">
+            <h2 class="text-3xl font-black text-amber-400 mb-2 tracking-wide">Global Leaderboard</h2>
+            <p class="mb-4 text-slate-400 text-sm">See how you stack up against other managers worldwide. Sign in to appear on the board.</p>
+            <div id="leaderboard-content" class="space-y-3">
+                <div class="text-slate-500 text-center py-12 font-mono">Sign in to view the leaderboard.</div>
+            </div>
         </section>
 
         <section id="tab-collection" class="tab-content hidden">
@@ -1543,6 +1556,43 @@
         </div>
     </div>
 
+    <div id="auth-panel" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-slate-800 border border-slate-600 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <h3 class="text-xl font-black text-indigo-300 mb-2">Account</h3>
+            <div id="auth-signed-out">
+                <p class="text-slate-400 text-sm mb-4">Sign in to save your progress to the cloud, sync across devices, and appear on the global leaderboard.</p>
+                <div id="auth-mode-login">
+                    <input type="email" id="auth-email-input" placeholder="Email" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-slate-200 mb-2 focus:outline-none focus:border-indigo-500">
+                    <input type="password" id="auth-pass-input" placeholder="Password" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-slate-200 mb-3 focus:outline-none focus:border-indigo-500">
+                    <button onclick="firebaseSignIn()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">Sign In</button>
+                    <p class="text-slate-500 text-xs">Don't have an account? <button onclick="toggleAuthMode(true)" class="text-indigo-400 cursor-pointer hover:text-indigo-300 font-bold">Register</button></p>
+                </div>
+                <div id="auth-mode-register" class="hidden">
+                    <input type="text" id="auth-reg-name" placeholder="Display Name" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-slate-200 mb-2 focus:outline-none focus:border-indigo-500">
+                    <input type="email" id="auth-reg-email" placeholder="Email" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-slate-200 mb-2 focus:outline-none focus:border-indigo-500">
+                    <input type="password" id="auth-reg-pass" placeholder="Password (min 6 chars)" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-slate-200 mb-3 focus:outline-none focus:border-indigo-500">
+                    <button onclick="firebaseRegister()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">Create Account</button>
+                    <p class="text-slate-500 text-xs">Already have an account? <button onclick="toggleAuthMode(false)" class="text-indigo-400 cursor-pointer hover:text-indigo-300 font-bold">Sign In</button></p>
+                </div>
+                <button onclick="toggleAuthPanel()" class="text-slate-500 text-xs cursor-pointer hover:text-slate-300 mt-3">Cancel</button>
+            </div>
+            <div id="auth-signed-in" class="hidden">
+                <div class="flex items-center gap-3 bg-slate-900 p-3 rounded-xl mb-4">
+                    <img id="auth-avatar" src="" class="w-10 h-10 rounded-full border-2 border-indigo-500" onerror="this.style.display='none'">
+                    <div class="text-left flex-1">
+                        <div id="auth-name" class="text-slate-200 font-bold text-sm truncate"></div>
+                        <div id="auth-email" class="text-slate-500 text-[10px] truncate"></div>
+                    </div>
+                </div>
+                <button onclick="cloudSave()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">☁️ Save to Cloud</button>
+                <button onclick="cloudLoad()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">📥 Load from Cloud</button>
+                <button onclick="pushToLeaderboard()" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-900 font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-4">🏆 Update Leaderboard</button>
+                <button onclick="firebaseSignOut()" class="text-red-400 text-xs cursor-pointer hover:text-red-300">Sign Out</button>
+                <button onclick="toggleAuthPanel()" class="text-slate-500 text-xs cursor-pointer hover:text-slate-300 ml-4">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="bench-swap-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
         <div class="bg-slate-800 border border-slate-600 rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
             <div class="flex items-center justify-between mb-3">
@@ -1561,27 +1611,45 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.5a — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.6 — What's New</p>
 
-            <div class="bg-amber-950/40 border border-amber-700/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-amber-300">
-                <span class="text-lg shrink-0">⚠️</span>
-                <span>This is an active alpha. Some updates may require you to <strong class="text-amber-200">wipe your save data</strong> to avoid save conflicts. A wipe option is available in the top-right if you experience issues.</span>
+            <div class="bg-indigo-950/60 border border-indigo-500/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-indigo-200">
+                <span class="text-lg shrink-0">🌐</span>
+                <span><strong class="text-indigo-100">LoL Ultimate Team is now online!</strong> Create an account, save to the cloud, sync across devices, and compete on the global leaderboard. Click the <strong class="text-indigo-100">Sign In</strong> button in the top-right to get started.</span>
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-slate-300 font-bold">Faker Champion Cards Nerfed</span> — Modern Champion cards (2023/2024/2025) each dropped 1 rating. MEC/FRM hit hardest, LDR untouched.</li>
-                <li><span class="text-red-400 font-bold">Coach Purge Buttons</span> — Purge coaches under 80/90/95 rating with one click. Confirmation dialog, squad-protected.</li>
-                <li><span class="text-sky-400 font-bold">Club Capacity Expanded</span> — Now 10 levels (up from 5). Max 600 cards at Lv10, still 1 SP each.</li>
+                <li><span class="text-indigo-400 font-bold">Online Accounts</span> — Create an account with email/password. Sign in to access cloud features. Your profile shows in the header.</li>
+                <li><span class="text-emerald-400 font-bold">Cloud Save</span> — Save your entire game to the cloud and load it on any device. All data syncs: club, squad, stats, skills, season, tower, quests.</li>
+                <li><span class="text-amber-400 font-bold">Global Leaderboard</span> — New "Board" tab ranks the top 50 managers worldwide by total wins, splits, golden roads, tower floor, and prestige title.</li>
+                <li><span class="text-amber-400 font-bold">Card Lock System</span> — Lock cards in your Club to protect them from selling, purging, trades, and upgrades. Toggle with the 🔒 button.</li>
+                <li><span class="text-red-400 font-bold">Coach Purge</span> — Purge coaches under 80/90/95 rating. Locked and squad coaches protected.</li>
+                <li><span class="text-slate-300 font-bold">Repeatable Quest Stacking</span> — Multiple completions before claiming now stack (e.g., "x3! +1800 BE").</li>
+                <li><span class="text-slate-300 font-bold">Invictus Gaming Fix</span> — "iG"/"IG" unified in Archive. Faker balance pass across all eras.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.5a</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.6</button>
             </div>
         </div>
     </div>
 
     <script src="database.js"></script>
+    <script>
+    // Firebase Init
+    const firebaseConfig = {
+        apiKey: "AIzaSyDJYp1aHd3ndiVfl7fLpjPNFy_JNMM9OzA",
+        authDomain: "lol-ultimate-team.firebaseapp.com",
+        projectId: "lol-ultimate-team",
+        storageBucket: "lol-ultimate-team.firebasestorage.app",
+        messagingSenderId: "630759696575",
+        appId: "1:630759696575:web:7b9974921e58b6eb773e0a"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const fbAuth = firebase.auth();
+    const fbDb = firebase.firestore();
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
