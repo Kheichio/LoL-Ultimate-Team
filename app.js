@@ -86,7 +86,7 @@ let quests = [
     { id: 'q16', desc: 'Perform your first card Upgrade', target: 1, type: 'upgradesPerformed', reward: 800, claimed: false },
     { id: 'q17', desc: 'Perform 10 card Upgrades', target: 10, type: 'upgradesPerformed', reward: 4000, claimed: false },
     // New repeatable quests (0.3.2)
-    { id: 'rq5', desc: 'Perform 3 card Upgrades', target: 3, type: 'upgradesPerformed', reward: 1200, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq5', desc: 'Perform 3 card Upgrades', target: 3, type: 'upgradesPerformed', reward: 800, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
     // Season Split quests (0.4.6)
     { id: 'q18', desc: 'Win a Season Split Undefeated (10-0)', target: 1, type: 'undefeatedSplits', reward: 3000, claimed: false },
     { id: 'q19', desc: 'Win a Split With 2 Slumped Players in your Squad', target: 1, type: 'splitsWithDebuffedWin', reward: 2500, claimed: false },
@@ -567,6 +567,7 @@ window.onload = () => {
         if (skills.conditioning === undefined) skills.conditioning = 0;
         if (skills.mentorship === undefined) skills.mentorship = 0;
         if (skills.bootcamp === undefined) skills.bootcamp = 0;
+        if (skills.clubhouse === undefined) skills.clubhouse = 0;
     }
     
     const savedCol = localStorage.getItem("lol_collection_v7_pro");
@@ -1253,6 +1254,7 @@ function renderSkillsUI() {
         { key: "conditioning",  name: "Team Conditioning",      desc: "Reduces the cooldown between Season Matches (60s base). Lv1: 45s. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown — play matches back to back.",                                                       color: "rose"   },
         { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: ×1.25 (+25%). Lv2: ×1.5 (+50%). Lv3: ×1.75 (+75%). Lv4: ×2. Lv5: ×2.5 — reach new manager levels and skill points far faster.",                                           color: "violet" },
         { key: "bootcamp",      name: "Bootcamp Director",      desc: "Costs double SP per level. Increases the Bootcamp power bonus by +2 per level — from +5 base up to +15 at level 5.",                                       color: "lime"   },
+        { key: "clubhouse",    name: "Club House Capacity",    desc: "Increases max club size by 15 per level. Base capacity: 50. Lv5: 125 cards. Sell or upgrade cards to free space when full.",                                                                  color: "sky"    },
     ];
     container.innerHTML = "";
     skillDefs.forEach(def => {
@@ -1268,6 +1270,27 @@ function renderSkillsUI() {
 
         container.innerHTML += `<div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex flex-col justify-between"><div><h3 class="text-sm font-black text-${def.color}-400 mb-1">${def.name}</h3><p class="text-[11px] text-slate-400 mb-3 leading-relaxed">${def.desc}</p><div class="flex gap-1.5 mb-3 justify-center">${dotsHTML}</div></div>${btnHTML}</div>`;
     });
+
+    // Manager Title Progression panel
+    const currentTitle = getPrestigeTitle();
+    const titleTiers = [
+        { title: 'Scout', emoji: '🔍', color: 'text-slate-400', req: 'Default — everyone starts here' },
+        { title: 'Director', emoji: '📋', color: 'text-emerald-400', req: '5 tournament wins OR 2 splits completed' },
+        { title: 'GM', emoji: '⭐', color: 'text-blue-400', req: '15 wins + 5 splits + 1 golden road' },
+        { title: 'President', emoji: '🏛️', color: 'text-purple-400', req: '30 wins + 10 splits + 3 golden roads' },
+        { title: 'Legend', emoji: '👑', color: 'text-yellow-400', req: '50 wins + 20 splits + 5 golden roads + 3 draft wins' },
+    ];
+    let titleHTML = `<div class="bg-purple-950/20 p-4 rounded-xl border border-purple-800/40 mt-4 col-span-full">
+        <h3 class="text-purple-400 font-black mb-2 text-xs uppercase tracking-widest">Manager Title Progression</h3>
+        <p class="text-slate-400 text-xs mb-3">Current title: <span class="${currentTitle.color} font-bold">${currentTitle.emoji} ${currentTitle.title}</span></p>
+        <div class="space-y-1 text-xs font-mono">`;
+    titleTiers.forEach(t => {
+        const isCurrent = t.title === currentTitle.title;
+        const highlight = isCurrent ? 'bg-slate-800/80 border border-slate-600 rounded-lg px-2 py-1' : 'px-2 py-1';
+        titleHTML += `<div class="flex justify-between ${highlight}"><span class="${t.color}">${t.emoji} ${t.title}${isCurrent ? ' ◀' : ''}</span><span class="text-slate-500">${t.req}</span></div>`;
+    });
+    titleHTML += `</div></div>`;
+    container.innerHTML += titleHTML;
 }
 
 function executeTeamTraining() {
@@ -1319,6 +1342,8 @@ function startTrainingVisualCountdown() {
 }
 
 function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? (5 + (skills.bootcamp || 0) * 2) : 0; }
+function getClubCapacity() { return 50 + (skills.clubhouse || 0) * 15; }
+function isClubFull() { return club.length >= getClubCapacity(); }
 function getLoanPremium() { let basePremium = 150 - (skills.negotiation * 20); return activeLoans * Math.max(0, basePremium); }
 function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); showToast("Credit allocated!", "success"); }
 function payLoan() {
@@ -1509,7 +1534,7 @@ function getPrestigeTitle() {
 
 function updateDisplays() {
     document.getElementById("be-display").innerText = blueEssence;
-    document.getElementById("club-count-val").innerText = club.length;
+    document.getElementById("club-count-val").innerText = `${club.length}/${getClubCapacity()}`;
     const titleEl = document.getElementById('prestige-title-display');
     if (titleEl) { const t = getPrestigeTitle(); titleEl.innerHTML = `<span class="${t.color}">${t.emoji} ${t.title}</span>`; }
     const premium = getLoanPremium(); document.getElementById("inflation-premium-display").innerText = `+${premium} BE`;
@@ -1557,6 +1582,7 @@ function buyStarterPack() {
 
 function buyPack(baseCost, type) {
     let db = getDB(); if(!db) return;
+    if (isClubFull()) { showToast(`Club is full (${club.length}/${getClubCapacity()}). Sell or upgrade cards, or level up Club House Capacity.`, "error"); return; }
     let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     blueEssence -= actualCost; trackStats.packs++; addXP(25); let pulled = [];
     const _packTypeKey = { Standard: 'standardPacksOpened', Elite: 'elitePacksOpened', Supreme: 'supremePacksOpened', FirstStand: 'firstStandPacksOpened', MSI: 'msiPacksOpened', Champion: 'champPacksOpened', MVP: 'mvpPacksOpened' }[type];
@@ -2119,10 +2145,10 @@ function _smBackToList() {
 
 function _smSplitTier(wins) {
     if (wins >= 10) return { tier: "🏆 Flawless Split",     reward: 8000 };
-    if (wins >= 8)  return { tier: "🥇 Championship Split", reward: 5000 };
-    if (wins >= 6)  return { tier: "🥈 Playoff Split",      reward: 3000 };
-    if (wins >= 4)  return { tier: "🥉 Qualifying Split",   reward: 1500 };
-    return              { tier: "📋 Development Split",     reward: 500  };
+    if (wins >= 8)  return { tier: "🥇 Champions Split",    reward: 5000 };
+    if (wins >= 6)  return { tier: "🥈 Contenders Split",   reward: 3000 };
+    if (wins >= 4)  return { tier: "🥉 Mid-Table Split",    reward: 1500 };
+    return              { tier: "📋 Relegation Split",      reward: 500  };
 }
 
 function advanceToNextSplit() {
@@ -2936,6 +2962,14 @@ function renderPickerCards() {
         pool = pool.filter(p => p.role === 'COACH');
     } else if (['TOP','JNG','MID','ADC','SUP'].includes(activeSlot)) {
         pool = pool.filter(p => p.role !== 'COACH' && (p.role === activeSlot || ["Champion", "Finalist", "MSI", "FirstStand"].includes(p.quality)));
+        // Sort: exact role match first, then Legacy flex-eligible cards, then others — by rating desc within each group
+        const _legacyQualities = new Set(["Champion", "MVP", "Finalist", "MSI", "FirstStand"]);
+        pool.sort((a, b) => {
+            const aGroup = a.role === activeSlot ? 0 : _legacyQualities.has(a.quality) ? 1 : 2;
+            const bGroup = b.role === activeSlot ? 0 : _legacyQualities.has(b.quality) ? 1 : 2;
+            if (aGroup !== bGroup) return aGroup - bGroup;
+            return b.rating - a.rating;
+        });
     }
 
     // Region filter
@@ -4068,9 +4102,9 @@ function startSalaryCapDraft() {
     requestAnimationFrame(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); });
     const btnContainer = box.querySelector('.flex.gap-3');
     btnContainer.innerHTML = `
-        <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_launchSalaryCap(400,1500)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Easy (400)</button>
+        <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_launchSalaryCap(400,2000)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Easy (400)</button>
         <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_launchSalaryCap(350,2500)" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Medium (350)</button>
-        <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_launchSalaryCap(300,5000)" class="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Hard (300)</button>`;
+        <button onclick="document.getElementById('confirm-modal').classList.add('hidden');_launchSalaryCap(300,3500)" class="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-lg font-bold cursor-pointer transition text-sm">Hard (300)</button>`;
 }
 
 function _launchSalaryCap(budget, reward) {
@@ -4293,6 +4327,7 @@ function renderSalaryCombat() {
     function buildFloatingPanel(side, label, labelColor, cards) {
         const panel = document.createElement('div');
         panel.className = `sc-floating-panel fixed top-20 ${side === 'left' ? 'left-2' : 'right-2'} z-40 pointer-events-none`;
+        panel.style.cssText = `transform: scale(0.7); transform-origin: top ${side};`;
         panel.innerHTML = `<div class="text-[10px] font-black uppercase tracking-widest ${labelColor} mb-2 text-center pointer-events-auto">${label}</div>`;
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-2 gap-2 pointer-events-auto';

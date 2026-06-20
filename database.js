@@ -1104,7 +1104,7 @@ const baseDatabase = [
     // SK Telecom T1 K 2013 — World Champions (Faker's debut)
     { id: 9074, name: "Impact",    role: "TOP", team: "SKT", year: 2013, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 92, tmf: 92, frm: 91, cmp: 90, map: 87, ldr: 88 } },
     { id: 9075, name: "Bengi",     role: "JNG", team: "SKT", year: 2013, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 94, frm: 88, cmp: 94, map: 95, ldr: 93 } },
-    { id: 9076, name: "Faker",     role: "MID", team: "SKT", year: 2013, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 99, tmf: 98, frm: 97, cmp: 99, map: 99, ldr: 99 } },
+    { id: 9076, name: "Faker",     role: "MID", team: "SKT", year: 2013, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 97, tmf: 96, frm: 95, cmp: 97, map: 97, ldr: 97 } },
     { id: 9077, name: "Piglet",    role: "ADC", team: "SKT", year: 2013, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 93, frm: 95, cmp: 91, map: 89, ldr: 88 } },
     { id: 9078, name: "PoohManDu", role: "SUP", team: "SKT", year: 2013, rating: 91, quality: "Champion", region: "Legacy", stats: { mec: 80, tmf: 92, frm: 91, cmp: 92, map: 91, ldr: 90 } },
 
@@ -1225,7 +1225,7 @@ const baseDatabase = [
     // Mata — Worlds 2014 MVP (Samsung White)
     { id: 9512, name: "Mata", role: "SUP", team: "SSW", year: 2014, rating: 99, quality: "MVP", region: "Legacy", stats: { mec: 89, tmf: 99, frm: 100, cmp: 100, map: 100, ldr: 100 } },
     // Faker — Worlds 2013 MVP (SKT T1)
-    { id: 9513, name: "Faker", role: "MID", team: "SKT", year: 2013, rating: 99, quality: "MVP", region: "Legacy", stats: { mec: 100, tmf: 99, frm: 98, cmp: 100, map: 100, ldr: 100 } },
+    { id: 9513, name: "Faker", role: "MID", team: "SKT", year: 2013, rating: 97, quality: "MVP", region: "Legacy", stats: { mec: 98, tmf: 97, frm: 96, cmp: 98, map: 98, ldr: 98 } },
     // Toyz — Worlds 2012 MVP (TPA)
     { id: 9514, name: "Toyz", role: "MID", team: "TPA", year: 2012, rating: 95, quality: "MVP", region: "Legacy", stats: { mec: 93, tmf: 93, frm: 94, cmp: 96, map: 95, ldr: 92 } },
     // Shushei — Worlds 2011 MVP (Fnatic)
