@@ -4386,26 +4386,35 @@ function renderSalaryCombat() {
     const container = document.getElementById('salary-combat-content');
     if (!container || !_scState) return;
 
+    // Remove any leftover floating panels from old layout
+    document.querySelectorAll('.sc-floating-panel').forEach(el => el.remove());
+
+    // Compute team power ratings
+    const myPower = draftTeamAvgRating(draftPickRoles);
+    const cpuPower = draftTeamAvgRating(draftCpuTeam);
+    const myName = (teamIdentity.name || 'My Team');
+    const myLogo = (teamIdentity.logo || '🛡️');
+
     function pips(count, max, colorClass) {
         return Array.from({ length: max }, (_, i) =>
             `<span class="inline-block w-5 h-5 rounded-full border-2 ${i < count ? colorClass + ' border-transparent' : 'bg-slate-700 border-slate-600'}"></span>`
         ).join('');
     }
 
-    // Play option cards
+    // Play option buttons
     const playCards = _scState.phase === 'pick' ? _scState.options.map(play => {
         const myVal = _scStatVal(play);
         const oppVal = _scOppStatVal(play);
         const edge = myVal - oppVal;
         const edgeColor = edge > 3 ? 'text-emerald-400' : edge < -3 ? 'text-red-400' : 'text-yellow-400';
-        return `<button onclick="makeSalaryPlay('${play.id}')" class="flex-1 min-w-[140px] bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-emerald-500 rounded-xl p-2.5 text-left cursor-pointer transition">
-            <div class="flex items-center gap-1 mb-1"><span class="text-xl">${play.icon}</span>${_tacticsBadgeHTML()}</div>
-            <div class="font-black text-slate-100 text-xs mb-0.5">${play.label}</div>
-            <div class="text-slate-500 text-[10px] mb-2">${play.desc}</div>
-            <div class="font-mono text-xs space-y-0.5 border-t border-slate-700 pt-1">
-                <div class="flex justify-between"><span class="text-slate-400">${play.myRoles.join('+')} ${play.statKey.toUpperCase()}</span><span class="text-slate-200 font-black">${myVal}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Opp</span><span class="text-slate-300 font-bold">${oppVal}</span></div>
-                <div class="flex justify-between border-t border-slate-700/50 pt-0.5"><span class="text-slate-400">Edge</span><span class="${edgeColor} font-black">${edge >= 0 ? '+' : ''}${edge}</span></div>
+        return `<button onclick="makeSalaryPlay('${play.id}')" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-emerald-500 rounded-xl p-3 text-left cursor-pointer transition">
+            <div class="flex items-center gap-2 mb-1"><span class="text-xl">${play.icon}</span><span class="font-black text-slate-100 text-sm">${play.label}</span>${_tacticsBadgeHTML()}</div>
+            <div class="font-mono text-xs flex justify-between items-center gap-3">
+                <span class="text-slate-400">${play.myRoles.join('+')} ${play.statKey.toUpperCase()}</span>
+                <span class="text-slate-200 font-black">${myVal}</span>
+                <span class="text-slate-600">vs</span>
+                <span class="text-slate-300 font-bold">${oppVal}</span>
+                <span class="${edgeColor} font-black ml-auto">${edge >= 0 ? '+' : ''}${edge}</span>
             </div>
         </button>`;
     }).join('') : '';
@@ -4415,7 +4424,7 @@ function renderSalaryCombat() {
         `<div class="flex items-start gap-2 text-xs font-mono ${e.won ? 'text-emerald-400' : 'text-red-400'}">
             <span>${e.won ? '✅' : '❌'}</span><span><span class="font-black">${e.icon} ${e.label}</span> — ${e.detail}</span>
         </div>`
-    ).join('') : '';
+    ).join('') : `<div class="text-slate-600 text-xs font-mono text-center py-4">No plays yet.</div>`;
 
     // Result banner
     let resultBanner = '';
@@ -4428,41 +4437,72 @@ function renderSalaryCombat() {
         </div>`;
     }
 
-    // Remove any previous floating card panels
-    document.querySelectorAll('.sc-floating-panel').forEach(el => el.remove());
+    // Build the 3-column layout HTML, then programmatically append card elements
+    container.innerHTML = `
+        <div class="grid grid-cols-[1fr_minmax(320px,480px)_1fr] gap-4 items-start">
+            <!-- LEFT: Your Team -->
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">${myLogo}</span>
+                    <div>
+                        <div class="font-black text-slate-200 text-sm truncate">${myName}</div>
+                        <div class="text-4xl font-black text-blue-400 leading-none">${myPower}</div>
+                    </div>
+                </div>
+                <div id="sc-left-cards" class="flex flex-col gap-2"></div>
+            </div>
 
-    // Create floating card panels pinned to left and right edges of the viewport
-    function buildFloatingPanel(side, label, labelColor, cards) {
-        const panel = document.createElement('div');
-        panel.className = `sc-floating-panel fixed top-16 ${side === 'left' ? 'left-0' : 'right-0'} z-30 pointer-events-none`;
-        panel.style.cssText = `transform: scale(0.55); transform-origin: top ${side};`;
-        panel.innerHTML = `<div class="text-[10px] font-black uppercase tracking-widest ${labelColor} mb-1 text-center pointer-events-auto">${label}</div>`;
-        const grid = document.createElement('div');
-        grid.className = 'grid grid-cols-2 gap-1 pointer-events-auto';
-        cards.forEach(c => { if (c) grid.appendChild(createCardElement(c, true)); });
-        panel.appendChild(grid);
-        document.body.appendChild(panel);
-    }
+            <!-- CENTER: Score + Plays + Log -->
+            <div>
+                <div class="flex items-center justify-center gap-6 bg-slate-800/80 py-3 rounded-2xl border border-slate-700 mb-4">
+                    <div class="text-center"><div class="flex gap-1.5">${pips(_scState.wins, 3, 'bg-blue-400')}</div></div>
+                    <div class="text-slate-500 font-black text-2xl uppercase tracking-widest">VS</div>
+                    <div class="text-center"><div class="flex gap-1.5">${pips(_scState.losses, 3, 'bg-red-500')}</div></div>
+                </div>
+                ${resultBanner}
+                ${_scState.phase === 'pick' ? `
+                <div class="text-center text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Round ${_scState.round} — Choose Your Play</div>
+                <div class="space-y-2 mb-4">${playCards}</div>` : ''}
+                <div class="bg-slate-950/80 rounded-xl border border-slate-700 p-3">
+                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
+                    <div class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar">${logHTML}</div>
+                </div>
+            </div>
 
-    const myCards = ['TOP','JNG','MID','ADC','SUP'].map(r => draftPickRoles[r]).filter(Boolean);
-    const oppCards = ['TOP','JNG','MID','ADC','SUP'].map(r => draftCpuTeam[r]).filter(Boolean);
-    buildFloatingPanel('left', 'Your Team', 'text-emerald-400', myCards);
-    buildFloatingPanel('right', 'CPU Team', 'text-red-400', oppCards);
+            <!-- RIGHT: CPU Team -->
+            <div class="flex flex-col items-end">
+                <div class="flex items-center gap-2 mb-3 flex-row-reverse">
+                    <span class="text-2xl">🤖</span>
+                    <div class="text-right">
+                        <div class="font-black text-slate-200 text-sm">CPU Draft</div>
+                        <div class="text-4xl font-black text-red-400 leading-none">${cpuPower}</div>
+                    </div>
+                </div>
+                <div id="sc-right-cards" class="flex flex-col gap-2"></div>
+            </div>
+        </div>`;
 
-    container.innerHTML = `<div class="mx-auto" style="max-width:min(700px, calc(100vw - 420px))">
-        <div class="flex items-center justify-center gap-8 bg-slate-800/60 py-3 rounded-2xl border border-slate-700 mb-4">
-            <div class="text-center"><div class="text-xs text-emerald-400 font-black uppercase mb-1">You</div><div class="flex gap-1.5">${pips(_scState.wins, 3, 'bg-emerald-400')}</div></div>
-            <div class="text-slate-600 font-black text-lg">vs</div>
-            <div class="text-center"><div class="text-xs text-red-400 font-black uppercase mb-1">CPU</div><div class="flex gap-1.5">${pips(_scState.losses, 3, 'bg-red-500')}</div></div>
-        </div>
-        ${resultBanner}
-        ${_scState.phase === 'pick' ? `<div class="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Round ${_scState.round} — Choose Your Play</div>
-        <div class="flex flex-wrap gap-2 justify-center mb-4">${playCards}</div>` : ''}
-        <div class="bg-slate-950/60 rounded-xl border border-slate-700 p-4">
-            <div class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Match Log</div>
-            <div class="space-y-1.5">${logHTML}</div>
-        </div>
-    </div>`;
+    // Render actual card elements into the side columns
+    const leftEl = document.getElementById('sc-left-cards');
+    const rightEl = document.getElementById('sc-right-cards');
+    ['TOP','JNG','MID','ADC','SUP','COACH'].forEach(role => {
+        const myCard = draftPickRoles[role];
+        if (myCard && leftEl) {
+            const wrap = document.createElement('div');
+            wrap.className = 'relative';
+            wrap.appendChild(createCardElement(myCard, false, null, null));
+            wrap.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 bg-blue-900/90 text-blue-200 text-[9px] font-black px-1.5 py-0.5 rounded-tl-xl rounded-br-xl z-10">${role}</div>`);
+            leftEl.appendChild(wrap);
+        }
+        const cpuCard = draftCpuTeam[role];
+        if (cpuCard && rightEl) {
+            const wrap = document.createElement('div');
+            wrap.className = 'relative';
+            wrap.appendChild(createCardElement(cpuCard, false, null, null));
+            wrap.insertAdjacentHTML('beforeend', `<div class="absolute top-0 right-0 bg-red-900/90 text-red-200 text-[9px] font-black px-1.5 py-0.5 rounded-tr-xl rounded-bl-xl z-10">${role}</div>`);
+            rightEl.appendChild(wrap);
+        }
+    });
 }
 
 // === INFINITE TOWER MODE ===
