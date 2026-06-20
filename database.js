@@ -331,7 +331,7 @@ const baseDatabase = [
     // --- 2026 LCK ROSTERS ---
     { id: 1101, name: "Doran", role: "TOP", team: "T1", year: 2026, rating: 91, quality: "Diamond", region: "LCK", stats: { mec: 92, tmf: 89, frm: 91, cmp: 86, map: 85, ldr: 88 } },
     { id: 1102, name: "Oner", role: "JNG", team: "T1", year: 2026, rating: 93, quality: "Master", region: "LCK", stats: { mec: 95, tmf: 92, frm: 90, cmp: 91, map: 92, ldr: 89 } },
-    { id: 1103, name: "Faker", role: "MID", team: "T1", year: 2026, rating: 97, quality: "Challenger", region: "LCK", stats: { mec: 92, tmf: 98, frm: 92, cmp: 99, map: 99, ldr: 99 } },
+    { id: 1103, name: "Faker", role: "MID", team: "T1", year: 2026, rating: 93, quality: "Diamond", region: "LCK", stats: { mec: 85, tmf: 93, frm: 84, cmp: 96, map: 95, ldr: 99 } },
     { id: 1104, name: "Peyz", role: "ADC", team: "T1", year: 2026, rating: 96, quality: "Grandmaster", region: "LCK", stats: { mec: 98, tmf: 96, frm: 96, cmp: 91, map: 87, ldr: 86 } },
     { id: 1105, name: "Keria", role: "SUP", team: "T1", year: 2026, rating: 95, quality: "Master", region: "LCK", stats: { mec: 85, tmf: 95, frm: 96, cmp: 97, map: 98, ldr: 93 } },
 
@@ -722,7 +722,7 @@ const baseDatabase = [
 
     { id: 591, name: "Doran",     role: "TOP", team: "T1",    year: 2025, rating: 91, quality: "Diamond",     region: "LCK", stats: { mec: 92, tmf: 89, frm: 91, cmp: 87, map: 86, ldr: 88 } },
     { id: 592, name: "Oner",      role: "JNG", team: "T1",    year: 2025, rating: 92, quality: "Master",      region: "LCK", stats: { mec: 93, tmf: 91, frm: 89, cmp: 89, map: 93, ldr: 88 } },
-    { id: 593, name: "Faker",     role: "MID", team: "T1",    year: 2025, rating: 97, quality: "Challenger",  region: "LCK", stats: { mec: 95, tmf: 98, frm: 94, cmp: 99, map: 98, ldr: 99 } },
+    { id: 593, name: "Faker",     role: "MID", team: "T1",    year: 2025, rating: 95, quality: "Master",  region: "LCK", stats: { mec: 90, tmf: 95, frm: 89, cmp: 97, map: 96, ldr: 99 } },
     { id: 594, name: "Gumayusi", role: "ADC", team: "T1",    year: 2025, rating: 91, quality: "Diamond",     region: "LCK", stats: { mec: 94, tmf: 92, frm: 93, cmp: 90, map: 83, ldr: 85 } },
     { id: 595, name: "Keria",     role: "SUP", team: "T1",    year: 2025, rating: 94, quality: "Master",      region: "LCK", stats: { mec: 85, tmf: 94, frm: 95, cmp: 96, map: 97, ldr: 92 } },
     { id: 596, name: "Smash",     role: "ADC", team: "T1",    year: 2025, rating: 89, quality: "Diamond",     region: "LCK", stats: { mec: 92, tmf: 88, frm: 90, cmp: 85, map: 84, ldr: 80 } },
@@ -1069,21 +1069,21 @@ const baseDatabase = [
     // T1 2025 — World Champions
     { id: 9049, name: "Doran",    role: "TOP", team: "T1",  year: 2025, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 93, tmf: 90, frm: 92, cmp: 88, map: 87, ldr: 89 } },
     { id: 9050, name: "Oner",     role: "JNG", team: "T1",  year: 2025, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 90, cmp: 90, map: 94, ldr: 89 } },
-    { id: 9051, name: "Faker",    role: "MID", team: "T1",  year: 2025, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 99, frm: 95, cmp: 99, map: 99, ldr: 99 } },
+    { id: 9051, name: "Faker",    role: "MID", team: "T1",  year: 2025, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 98, frm: 93, cmp: 99, map: 98, ldr: 99 } },
     { id: 9052, name: "Gumayusi",role: "ADC", team: "T1",  year: 2025, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 94, cmp: 91, map: 84, ldr: 86 } },
     { id: 9053, name: "Keria",    role: "SUP", team: "T1",  year: 2025, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 87, tmf: 96, frm: 97, cmp: 98, map: 99, ldr: 94 } },
 
     // T1 2023 — World Champions (3-peat)
     { id: 9054, name: "Zeus",     role: "TOP", team: "T1",  year: 2023, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 95, cmp: 91, map: 90, ldr: 90 } },
     { id: 9055, name: "Oner",     role: "JNG", team: "T1",  year: 2023, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 91, cmp: 90, map: 95, ldr: 90 } },
-    { id: 9056, name: "Faker",    role: "MID", team: "T1",  year: 2023, rating: 99, quality: "Champion", region: "Legacy", stats: { mec: 97, tmf: 99, frm: 96, cmp: 99, map: 99, ldr: 99 } },
+    { id: 9056, name: "Faker",    role: "MID", team: "T1",  year: 2023, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 98, frm: 94, cmp: 99, map: 98, ldr: 99 } },
     { id: 9057, name: "Gumayusi",role: "ADC", team: "T1",  year: 2023, rating: 92, quality: "Champion", region: "Legacy", stats: { mec: 94, tmf: 92, frm: 93, cmp: 90, map: 83, ldr: 85 } },
     { id: 9058, name: "Keria",    role: "SUP", team: "T1",  year: 2023, rating: 98, quality: "Champion", region: "Legacy", stats: { mec: 88, tmf: 97, frm: 98, cmp: 99, map: 100, ldr: 95 } },
 
     // T1 2024 — World Champions (4-peat)
     { id: 9059, name: "Zeus",     role: "TOP", team: "T1",  year: 2024, rating: 96, quality: "Champion", region: "Legacy", stats: { mec: 96, tmf: 94, frm: 96, cmp: 92, map: 91, ldr: 91 } },
     { id: 9060, name: "Oner",     role: "JNG", team: "T1",  year: 2024, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 92, cmp: 91, map: 96, ldr: 91 } },
-    { id: 9061, name: "Faker",    role: "MID", team: "T1",  year: 2024, rating: 95, quality: "Champion", region: "Legacy", stats: { mec: 93, tmf: 96, frm: 92, cmp: 96, map: 95, ldr: 96 } },
+    { id: 9061, name: "Faker",    role: "MID", team: "T1",  year: 2024, rating: 94, quality: "Champion", region: "Legacy", stats: { mec: 91, tmf: 95, frm: 90, cmp: 96, map: 94, ldr: 96 } },
     { id: 9062, name: "Gumayusi",role: "ADC", team: "T1",  year: 2024, rating: 93, quality: "Champion", region: "Legacy", stats: { mec: 95, tmf: 93, frm: 94, cmp: 91, map: 84, ldr: 86 } },
     { id: 9063, name: "Keria",    role: "SUP", team: "T1",  year: 2024, rating: 97, quality: "Champion", region: "Legacy", stats: { mec: 87, tmf: 96, frm: 97, cmp: 98, map: 99, ldr: 94 } },
 
