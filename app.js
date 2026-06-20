@@ -4456,7 +4456,7 @@ function renderSalaryCombat() {
                         <div class="text-4xl font-black text-blue-400 leading-none">${myPower}</div>
                     </div>
                 </div>
-                <div id="sc-left-cards" class="flex flex-col gap-2"></div>
+                <div id="sc-left-cards" class="grid grid-cols-2 gap-2"></div>
             </div>
 
             <!-- CENTER: Score + Plays + Log -->
@@ -4485,7 +4485,7 @@ function renderSalaryCombat() {
                         <div class="text-4xl font-black text-red-400 leading-none">${cpuPower}</div>
                     </div>
                 </div>
-                <div id="sc-right-cards" class="flex flex-col gap-2"></div>
+                <div id="sc-right-cards" class="grid grid-cols-2 gap-2"></div>
             </div>
         </div>`;
 
