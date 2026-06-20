@@ -3361,10 +3361,12 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
         </div>
     `;
     if (window._salaryCapMode && draftModeActive && typeof getCardSalary === 'function') {
-        const sal = getCardSalary(card);
+        const baseSal = getCardSalary(card);
+        const flexSal = draftActivePickRole ? getCardSalary(card, draftActivePickRole) : baseSal;
+        const isDiscounted = flexSal < baseSal;
         const badge = document.createElement('div');
-        badge.className = 'absolute top-7 left-0 right-0 bg-emerald-900/95 text-emerald-300 text-center text-[10px] font-black py-0.5 border-b border-emerald-700/50 z-30';
-        badge.textContent = `💰 ${sal} salary`;
+        badge.className = `absolute top-7 left-0 right-0 ${isDiscounted ? 'bg-amber-900/95 text-amber-300' : 'bg-emerald-900/95 text-emerald-300'} text-center text-[10px] font-black py-0.5 border-b ${isDiscounted ? 'border-amber-700/50' : 'border-emerald-700/50'} z-30`;
+        badge.textContent = isDiscounted ? `💰 ${flexSal} salary (flex -${baseSal - flexSal})` : `💰 ${baseSal} salary`;
         cardDiv.appendChild(badge);
     }
     return cardDiv;
@@ -3802,8 +3804,8 @@ function renderDraftCardPool(containerId, cards, mode) {
 
         // Gray out unaffordable cards in salary cap mode
         if (mode === 'pick' && window._salaryCapMode && !Object.values(draftPickRoles).some(c => c && c.uniqueId === card.uniqueId)) {
-            const refund = (draftActivePickRole && draftPickRoles[draftActivePickRole]) ? getCardSalary(draftPickRoles[draftActivePickRole]) : 0;
-            if (getCardSalary(card) > window._salaryRemaining + refund) {
+            const refund = (draftActivePickRole && draftPickRoles[draftActivePickRole]) ? getCardSalary(draftPickRoles[draftActivePickRole], draftActivePickRole) : 0;
+            if (getCardSalary(card, draftActivePickRole) > window._salaryRemaining + refund) {
                 wrapper.className += ' opacity-30 grayscale pointer-events-none';
             }
         }
@@ -3855,7 +3857,7 @@ function assignCardToRole(uniqueId) {
     const card = draftUserPool.find(c => c.uniqueId === uniqueId);
     if (!card) return;
     // Salary cap budget check
-    if (window._salaryCapMode && getCardSalary(card) > window._salaryRemaining + (draftPickRoles[draftActivePickRole] ? getCardSalary(draftPickRoles[draftActivePickRole]) : 0)) { showToast("Over budget!", "error"); return; }
+    if (window._salaryCapMode && getCardSalary(card, draftActivePickRole) > window._salaryRemaining + (draftPickRoles[draftActivePickRole] ? getCardSalary(draftPickRoles[draftActivePickRole], draftActivePickRole) : 0)) { showToast("Over budget!", "error"); return; }
     // Remove card from any existing slot assignment
     Object.keys(draftPickRoles).forEach(r => {
         if (draftPickRoles[r] && draftPickRoles[r].uniqueId === uniqueId) draftPickRoles[r] = null;
@@ -3890,7 +3892,7 @@ function updateDraftPickUI() {
     const counterEl = document.getElementById('draft-pick-counter');
     if (window._salaryCapMode) {
         let spent = 0;
-        ['TOP','JNG','MID','ADC','SUP'].forEach(r => { if (draftPickRoles[r]) spent += getCardSalary(draftPickRoles[r]); });
+        ['TOP','JNG','MID','ADC','SUP'].forEach(r => { if (draftPickRoles[r]) spent += getCardSalary(draftPickRoles[r], r); });
         window._salaryRemaining = SALARY_CAP - spent;
         counterEl.innerText = `Budget: ${window._salaryRemaining} / ${SALARY_CAP} · Roles: ${filledCount}/5`;
     } else {
@@ -4194,7 +4196,12 @@ function endDraftMode() {
 }
 
 // === SALARY CAP DRAFT MODE ===
-function getCardSalary(card) { return Math.floor((card.rating - 60) * 2.5); }
+function getCardSalary(card, assignedRole) {
+    const isLegacy = card.region === 'Legacy';
+    const offRole = assignedRole && card.role !== assignedRole && !(card.role === 'COACH' && assignedRole === 'COACH');
+    const discount = (offRole && !isLegacy) ? 25 : 0;
+    return Math.max(5, Math.floor((card.rating - 60) * 2.5) - discount);
+}
 let SALARY_CAP = 350;
 
 let _salaryCapReward = 2500;
@@ -4293,7 +4300,7 @@ function updateSalaryDisplay() {
     if (!window._salaryCapMode) return;
     let spent = 0;
     ['TOP','JNG','MID','ADC','SUP'].forEach(r => {
-        if (draftPickRoles[r]) spent += getCardSalary(draftPickRoles[r]);
+        if (draftPickRoles[r]) spent += getCardSalary(draftPickRoles[r], r);
     });
     window._salaryRemaining = SALARY_CAP - spent;
     const counter = document.getElementById('draft-pick-counter');
