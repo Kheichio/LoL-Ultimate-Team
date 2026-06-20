@@ -4992,6 +4992,11 @@ function cloudLoad() {
 // Leaderboard — push stats to a public collection
 function pushToLeaderboard() {
     if (!currentUser) { showToast('Sign in to update the leaderboard.', 'error'); return; }
+    // Compute raw power (avg rating of 5 starters) and total power (with chemistry/bonuses)
+    let rawPower = 0, starterCount = 0;
+    ['TOP','JNG','MID','ADC','SUP'].forEach(r => { if (squad[r]) { rawPower += squad[r].rating; starterCount++; } });
+    rawPower = starterCount > 0 ? Math.round(rawPower / starterCount) : 0;
+    const chemData = computeChemistry();
     const entry = {
         uid: currentUser.uid,
         displayName: currentUser.displayName || 'Anonymous',
@@ -5004,6 +5009,8 @@ function pushToLeaderboard() {
         towerBest: trackStats.towerHighestFloor || 0,
         prestigeTitle: getPrestigeTitle().title,
         clubSize: club.length,
+        rawPower: rawPower,
+        totalPower: chemData.totalPower || 0,
         updatedAt: Date.now(),
     };
     fbDb.collection('leaderboard').doc(currentUser.uid).set(entry).then(() => {
@@ -5026,11 +5033,13 @@ function renderLeaderboard() {
             <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-700 bg-slate-900/60 text-xs font-black uppercase tracking-widest text-slate-400">
                 <span class="w-8 text-center">#</span>
                 <span class="flex-1">Manager</span>
-                <span class="w-16 text-center">Wins</span>
-                <span class="w-16 text-center">Splits</span>
-                <span class="w-16 text-center">GR</span>
-                <span class="w-16 text-center">Tower</span>
-                <span class="w-20 text-center">Title</span>
+                <span class="w-14 text-center">Raw</span>
+                <span class="w-14 text-center">Power</span>
+                <span class="w-14 text-center">Wins</span>
+                <span class="w-14 text-center">Splits</span>
+                <span class="w-12 text-center">GR</span>
+                <span class="w-14 text-center">Tower</span>
+                <span class="w-16 text-center">Title</span>
             </div>`;
         let rank = 0;
         snapshot.forEach(doc => {
@@ -5049,11 +5058,13 @@ function renderLeaderboard() {
                         <div class="text-[10px] text-slate-500 truncate">${d.displayName}</div>
                     </div>
                 </div>
-                <span class="w-16 text-center font-bold text-emerald-400">${d.totalWins}</span>
-                <span class="w-16 text-center text-slate-300">${d.splitsCompleted}</span>
-                <span class="w-16 text-center text-yellow-400">${d.goldenRoads}</span>
-                <span class="w-16 text-center text-red-400">${d.towerBest}</span>
-                <span class="w-20 text-center text-xs text-slate-400">${d.prestigeTitle}</span>
+                <span class="w-14 text-center text-blue-300 font-bold">${d.rawPower || '—'}</span>
+                <span class="w-14 text-center text-green-400 font-black">${d.totalPower || '—'}</span>
+                <span class="w-14 text-center font-bold text-emerald-400">${d.totalWins}</span>
+                <span class="w-14 text-center text-slate-300">${d.splitsCompleted}</span>
+                <span class="w-12 text-center text-yellow-400">${d.goldenRoads}</span>
+                <span class="w-14 text-center text-red-400">${d.towerBest}</span>
+                <span class="w-16 text-center text-xs text-slate-400">${d.prestigeTitle}</span>
             </div>`;
         });
         html += '</div>';
