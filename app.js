@@ -684,6 +684,28 @@ window.onload = () => {
         achievements = achievements.map(a => savedAMap[a.id] ? { ...a, claimed: savedAMap[a.id].claimed } : a);
     }
 
+    // Refresh check: sync existing club cards with latest database definitions
+    // so balance changes (stat buffs/nerfs, rating adjustments) apply to cards already in the player's club
+    const db = getDB();
+    if (db && club.length > 0) {
+        club.forEach((card, idx) => {
+            const base = db.find(p => p.id === card.id);
+            if (base && !card.signature) {
+                club[idx] = { ...card, rating: base.rating, stats: { ...base.stats }, quality: base.quality, name: base.name, team: base.team, region: base.region };
+            }
+        });
+        // Also refresh squad references
+        Object.keys(squad).forEach(slot => {
+            if (squad[slot]) {
+                const base = db.find(p => p.id === squad[slot].id);
+                if (base && !squad[slot].signature) {
+                    squad[slot] = { ...squad[slot], rating: base.rating, stats: { ...base.stats }, quality: base.quality, name: base.name, team: base.team, region: base.region };
+                }
+            }
+        });
+        saveGame();
+    }
+
     populateDropdownFilters();
     recalculateRegionalPrice();
     updateDisplays();
@@ -4395,6 +4417,9 @@ function _towerEnter() {
 }
 
 function closeTower() {
+    if (towerState && towerState.phase !== 'defeat') {
+        localStorage.setItem("lol_tower_v1", JSON.stringify(towerState));
+    }
     document.getElementById('tower-screen').classList.add('hidden');
     document.getElementById('tournament-lobby').classList.remove('hidden');
     towerState = null;
@@ -4481,6 +4506,8 @@ function makeTowerPlay(playId) {
             }
             towerState.phase = 'buff';
             _towerGenBuffOptions();
+            localStorage.setItem("lol_tower_v1", JSON.stringify(towerState));
+            saveGame();
         } else {
             towerState.phase = 'defeat';
             localStorage.removeItem("lol_tower_v1");
@@ -4530,6 +4557,7 @@ function selectTowerBuff(idx) {
     const chosen = towerState.buffOptions[idx];
     towerState.buffs.push(chosen);
     towerState.buffOptions = null;
+    localStorage.setItem("lol_tower_v1", JSON.stringify(towerState));
     _towerStartMatch();
 }
 
