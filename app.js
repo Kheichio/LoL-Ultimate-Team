@@ -858,7 +858,7 @@ const _DEV_PASSPHRASE = 'turbodev2026';
 function devUnlock(phrase) {
     if (phrase === _DEV_PASSPHRASE) {
         _devUnlocked = true;
-        console.log('%c[DEV MODE ACTIVE] Commands: devBE(amount), devSP(amount), devMaxCards(), devUnlockAll(), devSetTower(floor)', 'color: #22c55e; font-weight: bold; font-size: 14px');
+        console.log('%c[DEV MODE ACTIVE] Commands:\n  devBE(amount)  devSP(amount)  devMaxCards()  devUnlockAll()  devSetTower(floor)\n  devPull(quality, count)  devPullSig()\n  Qualities: Silver, Gold, Platinum, Diamond, Master, Grandmaster, Challenger, Champion, MVP, Finalist, MSI, FirstStand', 'color: #22c55e; font-weight: bold; font-size: 12px');
         showToast('Dev mode activated.', 'success');
     } else {
         console.log('Invalid passphrase.');
@@ -899,6 +899,40 @@ function devSetTower(floor) {
     trackStats.towerHighestFloor = floor || 100;
     saveGame(); updateDisplays();
     console.log(`Tower best set to ${floor || 100}.`);
+}
+
+function devPull(quality, count) {
+    if (!_devUnlocked) { console.log('Dev mode not active. Use devUnlock(passphrase)'); return; }
+    const db = getDB(); if (!db) return;
+    const validQ = ['Silver','Gold','Platinum','Diamond','Master','Grandmaster','Challenger','Champion','MVP','Finalist','MSI','FirstStand'];
+    if (!validQ.includes(quality)) { console.log('Invalid quality. Valid: ' + validQ.join(', ')); return; }
+    const pool = db.filter(p => p.quality === quality);
+    if (!pool.length) { console.log(`No cards with quality "${quality}" in database.`); return; }
+    const n = Math.min(count || 1, 20);
+    const pulled = [];
+    for (let i = 0; i < n; i++) {
+        const base = pool[Math.floor(Math.random() * pool.length)];
+        const inst = { ...base, uniqueId: 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2) };
+        club.push(inst); pulled.push(inst);
+    }
+    processNewCards(pulled); saveGame();
+    showPulls(pulled, `Dev Pull: ${n}x ${quality}`);
+    console.log(`Pulled ${n} ${quality} card(s).`);
+}
+
+function devPullSig() {
+    if (!_devUnlocked) { console.log('Dev mode not active.'); return; }
+    const db = getDB(); if (!db) return;
+    const legacyPool = db.filter(p => ['Champion','MVP','Finalist','MSI','FirstStand'].includes(p.quality));
+    if (!legacyPool.length) return;
+    const base = legacyPool[Math.floor(Math.random() * legacyPool.length)];
+    const inst = { ...base, uniqueId: 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2), signature: true };
+    Object.keys(inst.stats).forEach(k => { inst.stats[k] = (inst.stats[k] || 0) + 2; });
+    inst.rating = Math.min(100, inst.rating + 2);
+    trackStats.signaturesPulled = (trackStats.signaturesPulled || 0) + 1;
+    club.push(inst); processNewCards([inst]); saveGame();
+    showPulls([inst], 'Dev Pull: Signature');
+    console.log(`Pulled Signature ${inst.quality}: ${inst.name}`);
 }
 
 
@@ -4670,7 +4704,7 @@ function makeTowerPlay(playId) {
             // Checkpoint every 10 floors
             if (towerState.floor % 10 === 1 && towerState.floor > 1) {
                 const checkpointNum = Math.ceil((towerState.floor - 1) / 10);
-                const reward = Math.floor(300 * Math.pow(2, checkpointNum - 1));
+                const reward = Math.min(5000, Math.floor(300 * Math.pow(2, checkpointNum - 1)));
                 blueEssence += reward;
                 towerState.checkpoint = towerState.floor - 1;
                 localStorage.setItem("lol_tower_v1", JSON.stringify(towerState));
