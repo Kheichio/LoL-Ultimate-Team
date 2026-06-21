@@ -1607,7 +1607,7 @@ function updateTeamCustomization() {
 }
 
 function updateClubStatsUI() {
-    document.getElementById("stat-wins").innerText = (trackStats.tournamentsWon || 0) + (trackStats.goldenRoads || 0);
+    document.getElementById("stat-wins").innerText = trackStats.tournamentsWon || 0;
     document.getElementById("stat-packs").innerText = trackStats.packs || 0;
     document.getElementById("stat-liquidated").innerText = trackStats.soldBE || 0;
     let mvp = "None"; let highestMatches = 0;
@@ -5141,7 +5141,7 @@ function pushToLeaderboard() {
         photoURL: currentUser.photoURL || '',
         teamName: teamIdentity.name || 'My Team',
         teamLogo: teamIdentity.logo || '🛡️',
-        totalWins: (trackStats.tournamentsWon || 0) + (trackStats.goldenRoads || 0) + (trackStats.draftModesWon || 0) + (trackStats.salaryCapWon || 0),
+        trophies: trackStats.tournamentsWon || 0,
         splitsCompleted: trackStats.splitsCompleted || 0,
         goldenRoads: trackStats.goldenRoads || 0,
         towerBest: trackStats.towerHighestFloor || 0,
@@ -5163,7 +5163,7 @@ function renderLeaderboard() {
     if (!container) return;
     container.innerHTML = '<div class="text-slate-500 text-center py-8 font-mono">Loading...</div>';
 
-    fbDb.collection('leaderboard').orderBy('totalWins', 'desc').limit(50).get().then(snapshot => {
+    fbDb.collection('leaderboard').orderBy('trophies', 'desc').limit(50).get().then(snapshot => {
         if (snapshot.empty) {
             container.innerHTML = '<div class="text-slate-500 text-center py-12 font-mono">No players on the leaderboard yet. Sign in and click "Update Leaderboard" to be first!</div>';
             return;
@@ -5174,7 +5174,7 @@ function renderLeaderboard() {
                 <span class="flex-1">Manager</span>
                 <span class="w-14 text-center">Raw</span>
                 <span class="w-14 text-center">Power</span>
-                <span class="w-14 text-center">Wins</span>
+                <span class="w-16 text-center">Trophies</span>
                 <span class="w-14 text-center">Splits</span>
                 <span class="w-12 text-center">GR</span>
                 <span class="w-14 text-center">Tower</span>
@@ -5200,7 +5200,7 @@ function renderLeaderboard() {
                 </div>
                 <span class="w-14 text-center text-blue-300 font-bold">${d.rawPower || '—'}</span>
                 <span class="w-14 text-center text-green-400 font-black">${d.totalPower || '—'}</span>
-                <span class="w-14 text-center font-bold text-emerald-400">${d.totalWins}</span>
+                <span class="w-16 text-center font-bold text-emerald-400">${d.trophies != null ? d.trophies : (d.totalWins || 0)}</span>
                 <span class="w-14 text-center text-slate-300">${d.splitsCompleted}</span>
                 <span class="w-12 text-center text-yellow-400">${d.goldenRoads}</span>
                 <span class="w-14 text-center text-red-400">${d.towerBest}</span>

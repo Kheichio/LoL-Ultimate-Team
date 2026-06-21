@@ -695,6 +695,30 @@
                 </div>
             </div>
 
+            <div class="bg-slate-800 p-6 rounded-2xl border border-amber-700/40 shadow-lg">
+                <h3 class="text-lg font-bold text-amber-400 mb-3">🏆 Stats, Trophies &amp; Leaderboard</h3>
+                <p class="text-sm text-slate-300 leading-relaxed mb-3">Your Club tab tracks multiple stat categories. Here's exactly what counts toward each:</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+                        <span class="text-amber-400 font-black block mb-1">🏆 Tournament Trophies</span>
+                        <span class="text-slate-400">Wins from: Gaming Cafe, Regional Split, First Stand, MSI, World Championship. This is the primary ranking stat on the global leaderboard.</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-yellow-800/40">
+                        <span class="text-yellow-400 font-black block mb-1">🛤️ Golden Roads</span>
+                        <span class="text-slate-400">Full Golden Road gauntlet completions. Tracked separately — does NOT count toward Tournament Trophies. Has its own leaderboard column.</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+                        <span class="text-indigo-400 font-black block mb-1">📊 Splits Completed</span>
+                        <span class="text-slate-400">Total Season Splits finished (all 10 matches played). Tracked separately on the leaderboard.</span>
+                    </div>
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+                        <span class="text-slate-300 font-black block mb-1">Separate Stats (not in Trophies)</span>
+                        <span class="text-slate-400">Draft Mode wins, Salary Cap Draft wins, Infinite Tower best floor — all tracked in Club stats and on the leaderboard, but do NOT add to Tournament Trophies.</span>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-3">The global leaderboard sorts by <strong class="text-amber-300">Tournament Trophies</strong>. All other stats (Raw Power, Total Power, Splits, Golden Roads, Tower Best, BE, Prestige Title) are displayed alongside but don't affect ranking position.</p>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                     <h3 class="text-lg font-bold text-orange-400 mb-3">🔄 Exchange Hub</h3>
@@ -860,8 +884,9 @@
             <!-- Row 1: Core stats -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3 text-center text-sm">
                 <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow">
-                    <span class="text-slate-500 block font-bold text-xs uppercase mb-1">Trophy Count</span>
+                    <span class="text-slate-500 block font-bold text-xs uppercase mb-1">Tournament Trophies</span>
                     <span class="font-mono font-bold text-slate-200 text-xl" id="stat-wins">0</span>
+                    <span class="text-slate-600 block text-[9px] font-mono mt-0.5">Cafe + Regional + FS + MSI + Worlds</span>
                 </div>
                 <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow">
                     <span class="text-slate-500 block font-bold text-xs uppercase mb-1">Packs Opened</span>
