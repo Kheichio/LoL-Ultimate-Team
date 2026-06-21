@@ -465,3 +465,4 @@ html.light-mode .card-face-down {
 @keyframes pullFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes pullBurst { 0% { transform: scale(1); filter: brightness(1); } 30% { transform: scale(1.15); filter: brightness(1.8); } 100% { transform: scale(1); filter: brightness(1); } }
 @keyframes sparkFly { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--sx), var(--sy)) scale(0); opacity: 0; } }
+@keyframes sigReveal { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.1) rotate(2deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }

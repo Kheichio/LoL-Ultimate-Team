@@ -232,21 +232,74 @@ function showPulls(cards, title) {
             // Special effects for wildcard / signature pulls
             const isWildcard = WILDCARD_Q.includes(card.quality);
             const isSig = card.signature;
-            if (isWildcard || isSig) {
-                // Screen flash
+
+            if (isSig) {
+                // === SIGNATURE CINEMATIC REVEAL ===
+                // Sound effect
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(523, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1047, ctx.currentTime + 0.15);
+                    osc.frequency.exponentialRampToValueAtTime(1568, ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+                    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 1.2);
+                    // Second harmonic shimmer
+                    const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
+                    osc2.connect(gain2); gain2.connect(ctx.destination);
+                    osc2.type = 'triangle'; osc2.frequency.setValueAtTime(1568, ctx.currentTime + 0.2);
+                    osc2.frequency.exponentialRampToValueAtTime(2093, ctx.currentTime + 0.5);
+                    gain2.gain.setValueAtTime(0.15, ctx.currentTime + 0.2);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+                    osc2.start(ctx.currentTime + 0.2); osc2.stop(ctx.currentTime + 1.5);
+                } catch(e) {}
+
+                // Full-screen overlay with card in center
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:auto;';
+                overlay.innerHTML = '<div style="position:absolute;inset:0;background:radial-gradient(circle,rgba(168,85,247,0.4) 0%,rgba(0,0,0,0.95) 70%);animation:pullFlash 3s ease-out forwards;"></div>';
+
+                // Particle ring
+                for (let p = 0; p < 24; p++) {
+                    const spark = document.createElement('div');
+                    const angle = (p / 24) * 360;
+                    const dist = 120 + Math.random() * 80;
+                    spark.style.cssText = `position:absolute;width:8px;height:8px;border-radius:50%;background:${Math.random()>0.5?'#fbbf24':'#a855f7'};top:50%;left:50%;z-index:10001;pointer-events:none;animation:sparkFly 1.2s ease-out forwards;--sx:${Math.cos(angle*Math.PI/180)*dist}px;--sy:${Math.sin(angle*Math.PI/180)*dist}px;`;
+                    overlay.appendChild(spark);
+                }
+
+                // Card clone in center
+                const centerCard = createCardElement(card, false, null, null);
+                centerCard.style.cssText = 'position:relative;z-index:10002;animation:sigReveal 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;transform:scale(0) rotate(-10deg);';
+                const cardWrap = document.createElement('div');
+                cardWrap.style.cssText = 'position:relative;z-index:10002;display:flex;flex-direction:column;align-items:center;gap:12px;';
+                cardWrap.appendChild(centerCard);
+
+                const label = document.createElement('div');
+                label.style.cssText = 'z-index:10002;color:#fbbf24;font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:6px;text-shadow:0 0 30px rgba(168,85,247,0.8),0 0 60px rgba(251,191,36,0.4);animation:sigReveal 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;transform:scale(0);';
+                label.textContent = '✦ SIGNATURE CARD ✦';
+                cardWrap.appendChild(label);
+
+                overlay.appendChild(cardWrap);
+                overlay.onclick = () => overlay.remove();
+                document.body.appendChild(overlay);
+                setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 5000);
+
+            } else if (isWildcard) {
+                // Screen flash for non-signature wildcards
                 const flash = document.createElement('div');
-                const flashColor = card.quality === 'Champion' ? 'rgba(234,179,8,0.4)' : card.quality === 'MVP' ? 'rgba(236,72,153,0.4)' : isSig ? 'rgba(168,85,247,0.5)' : 'rgba(99,102,241,0.3)';
+                const flashColor = card.quality === 'Champion' ? 'rgba(234,179,8,0.4)' : card.quality === 'MVP' ? 'rgba(236,72,153,0.4)' : 'rgba(99,102,241,0.3)';
                 flash.style.cssText = `position:fixed;inset:0;background:${flashColor};z-index:9999;pointer-events:none;animation:pullFlash 0.6s ease-out forwards;`;
                 document.body.appendChild(flash);
                 setTimeout(() => flash.remove(), 700);
-                // Card glow burst
                 wrappers[i].style.animation = 'pullBurst 0.8s ease-out';
-                // Particle sparks
                 for (let p = 0; p < 12; p++) {
                     const spark = document.createElement('div');
                     const angle = (p / 12) * 360;
                     const dist = 60 + Math.random() * 40;
-                    spark.style.cssText = `position:absolute;width:6px;height:6px;border-radius:50%;background:${isSig ? '#a855f7' : card.quality === 'Champion' ? '#fbbf24' : card.quality === 'MVP' ? '#ec4899' : '#818cf8'};top:50%;left:50%;z-index:50;pointer-events:none;animation:sparkFly 0.7s ease-out forwards;--sx:${Math.cos(angle*Math.PI/180)*dist}px;--sy:${Math.sin(angle*Math.PI/180)*dist}px;`;
+                    spark.style.cssText = `position:absolute;width:6px;height:6px;border-radius:50%;background:${card.quality === 'Champion' ? '#fbbf24' : card.quality === 'MVP' ? '#ec4899' : '#818cf8'};top:50%;left:50%;z-index:50;pointer-events:none;animation:sparkFly 0.7s ease-out forwards;--sx:${Math.cos(angle*Math.PI/180)*dist}px;--sy:${Math.sin(angle*Math.PI/180)*dist}px;`;
                     wrappers[i].style.position = 'relative';
                     wrappers[i].appendChild(spark);
                     setTimeout(() => spark.remove(), 800);
@@ -848,12 +901,6 @@ function devSetTower(floor) {
     console.log(`Tower best set to ${floor || 100}.`);
 }
 
-function secretSkillPointCheat() {
-    skillPoints += 10;
-    saveGame();
-    renderSkillsUI();
-    showToast("Cheat Activated: +10 Skill Points!", "success");
-}
 
 function processNewCards(cards) {
     cards.forEach(c => {
