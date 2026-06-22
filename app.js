@@ -27,7 +27,6 @@ const collectionRewards = { Silver: 10, Gold: 20, Platinum: 40, Diamond: 80, Mas
 
 // --- GLOBAL STATE ---
 let blueEssence = 1000;
-let activeLoans = 0;
 let club = [];
 let squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null };
 let hasBoughtStarter = false;
@@ -38,7 +37,7 @@ let hasNewClubItems = false;
 let managerXP = 0;
 let managerLevel = 1;
 let skillPoints = 0;
-let skills = { scouting: 0, negotiation: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0, bootcamp: 0 };
+let skills = { scouting: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0, bootcamp: 0 };
 let tradeRoleFilter = null;
 
 // New Systems State
@@ -518,7 +517,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_6', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_7', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -587,8 +586,6 @@ function showConfirm(message, description, onConfirm) {
 window.onload = () => {
     const savedBE = localStorage.getItem("lol_be_v7_pro");
     if (savedBE) blueEssence = parseInt(savedBE, 10);
-    const savedLoans = localStorage.getItem("lol_loans_v7_pro");
-    if (savedLoans) activeLoans = parseInt(savedLoans, 10);
     const savedClub = localStorage.getItem("lol_club_v7_pro");
     if (savedClub) club = JSON.parse(savedClub);
     const savedSquad = localStorage.getItem("lol_squad_v7_pro");
@@ -614,7 +611,7 @@ window.onload = () => {
         managerXP = p.managerXP || 0; 
         managerLevel = p.managerLevel || 1; 
         skillPoints = p.skillPoints || 0; 
-        skills = p.skills || { scouting: 0, negotiation: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0, bootcamp: 0 };
+        skills = p.skills || { scouting: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0, bootcamp: 0 };
         if (skills.transfer === undefined) skills.transfer = 0;
         if (skills.conditioning === undefined) skills.conditioning = 0;
         if (skills.mentorship === undefined) skills.mentorship = 0;
@@ -696,7 +693,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_6';
+    const patchKey = 'lol_patch_seen_v0_5_7';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -778,12 +775,35 @@ window.onload = () => {
             globalCd.classList.add('hidden');
         }
     }, 1000);
+
+    // Daily Login Bonus
+    const today = new Date().toDateString();
+    const lastLogin = localStorage.getItem('lol_last_login_date');
+    let loginStreak = parseInt(localStorage.getItem('lol_login_streak') || '0', 10);
+    if (lastLogin !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        if (lastLogin === yesterday) { loginStreak = Math.min(loginStreak + 1, 5); }
+        else if (lastLogin) { loginStreak = 1; }
+        else { loginStreak = 1; }
+        const rewards = [100, 200, 500, 1000, 2000];
+        const reward = rewards[Math.min(loginStreak - 1, 4)];
+        blueEssence += reward;
+        localStorage.setItem('lol_last_login_date', today);
+        localStorage.setItem('lol_login_streak', loginStreak);
+        saveGame();
+        setTimeout(() => showToast(`Daily Login Bonus! Day ${loginStreak}: +${reward} BE${loginStreak >= 5 ? ' (MAX)' : ''}`, 'success'), 1500);
+    }
+
+    // Seasonal Event System init
+    eventData = JSON.parse(localStorage.getItem('lol_event_v1') || 'null');
+    if (!getActiveEvent()) startFirstStand2026Event();
+    renderEventBanner();
+
     switchTab('welcome');
 };
 
 function saveGame() {
     localStorage.setItem("lol_be_v7_pro", blueEssence);
-    localStorage.setItem("lol_loans_v7_pro", activeLoans);
     localStorage.setItem("lol_club_v7_pro", JSON.stringify(club));
     localStorage.setItem("lol_squad_v7_pro", JSON.stringify(squad));
     localStorage.setItem("lol_starter_v7_pro", hasBoughtStarter);
@@ -1397,7 +1417,6 @@ function renderSkillsUI() {
     const container = document.getElementById("skills-container"); if (!container) return;
     const skillDefs = [
         { key: "scouting",     name: "Scouting Network",      desc: "Adds +0.25% to the drop-tier RNG roll per level (max +1.25 at level 5) on every pack you open — Standard, Elite, Supreme, and the milestone-quality packs — improving your odds of pulling higher-tier cards.",                       color: "blue"   },
-        { key: "negotiation",  name: "Corporate Negotiation",  desc: "Reduces the BE inflation penalty charged per active loan by 20 BE per level — from a 150 BE base down to 50 BE at level 5.",                                                                          color: "amber"  },
         { key: "tactics",      name: "Tactical Acumen",        desc: "Grants a guaranteed +3 flat power bonus per level (max +15 at level 5) to your squad during the Tactical Draft phase of tournament matches.",                                                          color: "emerald"},
         { key: "transfer",      name: "Transfer Window",        desc: "Lv1: 25% chance per trade offer to land a Transfer Window Discount (~25% off asset cost). Lv2: +4 trade offers. Lv3: unlocks Role Filter in Exchange Hub. Lv4: +5 offers. Lv5: Force Refresh locks the market to your chosen role.",  color: "orange" },
         { key: "conditioning",  name: "Team Conditioning",      desc: "Reduces the cooldown between Season Matches (60s base). Lv1: 45s. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown — play matches back to back.",                                                       color: "rose"   },
@@ -1497,12 +1516,53 @@ function startTrainingVisualCountdown() {
 function getTrainingBonus() { return (Date.now() < trainingActiveUntil) ? (5 + (skills.bootcamp || 0) * 2) : 0; }
 function getClubCapacity() { return 100 + (skills.clubhouse || 0) * 50; }
 function isClubFull() { return club.length >= getClubCapacity(); }
-function getLoanPremium() { let basePremium = 150 - (skills.negotiation * 20); return activeLoans * Math.max(0, basePremium); }
-function takeLoan() { activeLoans++; blueEssence += 500; saveGame(); showToast("Credit allocated!", "success"); }
-function payLoan() {
-    if (blueEssence < 500) { showToast("Insufficient liquidity.", "error"); return; }
-    if (activeLoans <= 0) { showToast("No active debt.", "error"); return; }
-    activeLoans--; blueEssence -= 500; saveGame(); showToast("Loan amortized!", "success");
+
+// === SEASONAL EVENT SYSTEM ===
+let eventData = JSON.parse(localStorage.getItem('lol_event_v1') || 'null');
+
+function getActiveEvent() {
+    if (!eventData) return null;
+    if (Date.now() > eventData.endsAt) return null;
+    return eventData;
+}
+
+function startFirstStand2026Event() {
+    eventData = {
+        name: 'First Stand 2026 Drop Rate Up',
+        type: 'firststand2026',
+        endsAt: Date.now() + (24 * 60 * 60 * 1000),
+        pullsSinceDrop: 0,
+        pityThreshold: 60,
+        active: true
+    };
+    localStorage.setItem('lol_event_v1', JSON.stringify(eventData));
+    renderEventBanner();
+}
+
+function renderEventBanner() {
+    const container = document.getElementById('event-banner-area');
+    if (!container) return;
+    const evt = getActiveEvent();
+    if (!evt) {
+        container.innerHTML = '<div class="bg-slate-800/60 p-6 rounded-2xl border border-slate-700 text-center"><p class="text-slate-500 text-sm font-mono">No active event. Check back later!</p></div>';
+        return;
+    }
+    const remaining = Math.max(0, evt.endsAt - Date.now());
+    const hours = Math.floor(remaining / 3600000);
+    const mins = Math.floor((remaining % 3600000) / 60000);
+    const progress = evt.pullsSinceDrop || 0;
+    const pity = evt.pityThreshold || 60;
+    container.innerHTML = `
+        <div class="bg-gradient-to-r from-orange-950 via-slate-900 to-orange-950 p-6 rounded-2xl border border-orange-500/50 text-center shadow-[0_0_30px_rgba(249,115,22,0.2)] relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 opacity-10 text-[150px]">🔥</div>
+            <div class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Limited Event</div>
+            <h3 class="text-xl font-black text-orange-300 mb-2">${evt.name}</h3>
+            <p class="text-slate-300 text-sm mb-3">Boosted First Stand 2026 drop rates on all packs! Guaranteed First Stand 2026 card within <strong class="text-orange-200">${pity}</strong> pulls.</p>
+            <div class="flex justify-center gap-4 mb-3 text-xs font-mono">
+                <span class="bg-black/40 px-3 py-1.5 rounded-lg border border-orange-800/50 text-orange-200">⏱ ${hours}h ${mins}m remaining</span>
+                <span class="bg-black/40 px-3 py-1.5 rounded-lg border border-emerald-800/50 text-emerald-300">Pity: ${progress}/${pity} pulls</span>
+            </div>
+        </div>`;
 }
 
 function checkProgressionUnlocks() {
@@ -1671,7 +1731,7 @@ function recalculateRegionalPrice() {
     if(tierSelect.value === "Diamond") price = 2500;
     if(tierSelect.value === "Master") price = 4500;
     regBtn.setAttribute("data-cost", price);
-    const premium = getLoanPremium(); regBtn.innerText = `${price + premium} BE`;
+    regBtn.innerText = `${price} BE`;
 }
 
 function getPrestigeTitle() {
@@ -1691,12 +1751,9 @@ function updateDisplays() {
     document.getElementById("club-count-val").innerText = `${club.length}/${getClubCapacity()}`;
     const titleEl = document.getElementById('prestige-title-display');
     if (titleEl) { const t = getPrestigeTitle(); titleEl.innerHTML = `<span class="${t.color}">${t.emoji} ${t.title}</span>`; }
-    const premium = getLoanPremium(); document.getElementById("inflation-premium-display").innerText = `+${premium} BE`;
-    if (activeLoans > 0) { document.getElementById("debt-warning").classList.remove("hidden"); document.getElementById("debt-display").innerText = activeLoans * 500; }
-    else { document.getElementById("debt-warning").classList.add("hidden"); }
     document.querySelectorAll(".store-pack-btn").forEach(btn => {
         let basePrice = parseInt(btn.getAttribute("data-cost"));
-        if (!isNaN(basePrice)) { btn.innerText = `${basePrice + premium} BE`; }
+        if (!isNaN(basePrice)) { btn.innerText = `${basePrice} BE`; }
     });
     const starterBtn = document.getElementById("starter-pack-container");
     if (hasBoughtStarter) starterBtn.classList.add("hidden"); else starterBtn.classList.remove("hidden");
@@ -1737,7 +1794,7 @@ function buyStarterPack() {
 function buyPack(baseCost, type) {
     let db = getDB(); if(!db) return;
     if (isClubFull()) { showToast(`Club is full (${club.length}/${getClubCapacity()}). Sell or upgrade cards, or level up Club House Capacity.`, "error"); return; }
-    let actualCost = baseCost + getLoanPremium(); if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
+    let actualCost = baseCost; if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     blueEssence -= actualCost; trackStats.packs++; addXP(50); let pulled = [];
     const _packTypeKey = { Standard: 'standardPacksOpened', Elite: 'elitePacksOpened', Supreme: 'supremePacksOpened', FirstStand: 'firstStandPacksOpened', MSI: 'msiPacksOpened', Champion: 'champPacksOpened', MVP: 'mvpPacksOpened' }[type];
     if (_packTypeKey) trackStats[_packTypeKey] = (trackStats[_packTypeKey] || 0) + 1;
@@ -1843,6 +1900,25 @@ function buyPack(baseCost, type) {
         });
     }
     pulled.forEach(c => { if (c.quality === 'Challenger') trackStats.challengerPulled = (trackStats.challengerPulled || 0) + 1; });
+    // Event pity system
+    const evt = getActiveEvent();
+    if (evt && evt.type === 'firststand2026') {
+        evt.pullsSinceDrop += pulled.length;
+        const hasFS2026 = pulled.some(c => c.quality === 'FirstStand' && c.year === 2026);
+        if (hasFS2026) { evt.pullsSinceDrop = 0; }
+        else if (evt.pullsSinceDrop >= evt.pityThreshold) {
+            const db2 = getDB();
+            const fs2026pool = db2.filter(p => p.quality === 'FirstStand' && p.year === 2026);
+            if (fs2026pool.length) {
+                const pityCard = fs2026pool[Math.floor(Math.random() * fs2026pool.length)];
+                const pityInst = { ...pityCard, uniqueId: 'pity_' + Date.now() + '_' + Math.random().toString(36).substring(2) };
+                pulled.push(pityInst); club.push(pityInst);
+                evt.pullsSinceDrop = 0;
+                showToast('PITY BREAKER! Guaranteed First Stand 2026 card!', 'success');
+            }
+        }
+        localStorage.setItem('lol_event_v1', JSON.stringify(evt));
+    }
     processNewCards(pulled); saveGame(); showPulls(pulled, `${type} Package Opened`);
 }
 
@@ -1850,7 +1926,7 @@ function buyTargetPack(targetType) {
     let db = getDB(); if(!db) return;
     const selectorCost = document.getElementById("btn-buy-regional");
     let baseCost = selectorCost ? parseInt(selectorCost.getAttribute("data-cost")) : 800;
-    let actualCost = baseCost + getLoanPremium();
+    let actualCost = baseCost;
     if (blueEssence < actualCost) { showToast("Insufficient BE reserves.", "error"); return; }
     
     let regionVal = document.getElementById("region-select").value;
@@ -1877,6 +1953,7 @@ function renderClubGrid() {
     const grid = document.getElementById("club-grid"); if(!grid) return; grid.innerHTML = "";
     let q = document.getElementById("club-search-input").value.toLowerCase();
     let filtered = club.filter(c => c.name.toLowerCase().includes(q));
+    filtered.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
 
     filtered.forEach((card) => {
         let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1.5 transform transition hover:-translate-y-1";
@@ -1903,6 +1980,13 @@ function renderClubGrid() {
         } else {
             const btnRow = document.createElement("div"); btnRow.className = "flex gap-1 w-full";
             const inSquad = Object.values(squad).some(s => s && s.uniqueId === card.uniqueId);
+            // Favorite toggle
+            const favBtn = document.createElement("button");
+            favBtn.className = `text-xs px-2 py-1.5 rounded-lg font-bold cursor-pointer transition shadow-md ${card.favorite ? 'bg-yellow-900/60 text-yellow-300 hover:bg-yellow-800' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
+            favBtn.innerHTML = card.favorite ? '★' : '☆';
+            favBtn.title = card.favorite ? 'Unfavorite' : 'Favorite (pin to top)';
+            favBtn.onclick = () => { card.favorite = !card.favorite; saveGame(); renderClubGrid(); };
+            btnRow.appendChild(favBtn);
             // Lock/unlock toggle
             const lockBtn = document.createElement("button");
             lockBtn.className = `text-xs px-2 py-1.5 rounded-lg font-bold cursor-pointer transition shadow-md ${card.locked ? 'bg-amber-900/60 text-amber-300 hover:bg-amber-800' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
@@ -5131,7 +5215,7 @@ function cloudSave() {
     if (!currentUser) { showToast('Sign in first.', 'error'); return; }
     saveGame(); // ensure localStorage is current
     const data = {};
-    const keys = ['lol_be_v7_pro','lol_loans_v7_pro','lol_club_v7_pro','lol_squad_v7_pro','lol_starter_v7_pro',
+    const keys = ['lol_be_v7_pro','lol_club_v7_pro','lol_squad_v7_pro','lol_starter_v7_pro',
         'lol_identity_v7_pro','lol_stats_v7_pro','lol_new_items_v7_pro','lol_prog_v7_pro','lol_collection_v7_pro',
         'lol_archive_seen_v1','lol_trade_v7_pro','lol_team_complete_v8','lol_season_v1','lol_quests_v8_pro',
         'lol_achievements_v1','lol_unlocks_v1','lol_training_expiry','lol_training_tier',
@@ -5195,6 +5279,7 @@ function pushToLeaderboard() {
 function renderLeaderboard() {
     const container = document.getElementById('leaderboard-content');
     if (!container) return;
+    renderFriendsList();
     container.innerHTML = '<div class="text-slate-500 text-center py-8 font-mono">Loading...</div>';
 
     fbDb.collection('leaderboard').orderBy('trophies', 'desc').limit(50).get().then(snapshot => {
@@ -5228,7 +5313,7 @@ function renderLeaderboard() {
                 <div class="flex-1 flex items-center gap-2 min-w-0">
                     <img src="${d.photoURL}" class="w-6 h-6 rounded-full" onerror="this.style.display='none'">
                     <div class="min-w-0">
-                        <div class="font-bold text-slate-200 truncate">${d.teamLogo} ${d.teamName}${isMe ? ' (You)' : ''}</div>
+                        <div class="font-bold text-slate-200 truncate cursor-pointer hover:text-indigo-300" onclick="viewProfile('${doc.id}')">${d.teamLogo} ${d.teamName}${isMe ? ' (You)' : ''}</div>
                         <div class="text-[10px] text-slate-500 truncate">${d.displayName}</div>
                     </div>
                 </div>
@@ -5247,4 +5332,113 @@ function renderLeaderboard() {
     }).catch(err => {
         container.innerHTML = `<div class="text-red-400 text-center py-8 font-mono">Failed to load leaderboard: ${err.message}</div>`;
     });
+}
+
+function viewProfile(uid) {
+    fbDb.collection('leaderboard').doc(uid).get().then(doc => {
+        if (!doc.exists) { showToast('Profile not found.', 'error'); return; }
+        const d = doc.data();
+        const modal = document.getElementById('profile-modal');
+        if (!modal) return;
+        document.getElementById('profile-content').innerHTML = `
+            <div class="flex items-center gap-4 mb-4">
+                <img src="${d.photoURL || ''}" class="w-14 h-14 rounded-full border-2 border-indigo-500" onerror="this.style.display='none'">
+                <div>
+                    <div class="text-2xl font-black text-slate-200">${d.teamLogo || '🛡️'} ${d.teamName || 'Unknown'}</div>
+                    <div class="text-sm text-slate-400">${d.displayName || 'Anonymous'}</div>
+                    <div class="text-xs text-indigo-400 font-bold">${d.prestigeTitle || 'Scout'}</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-2xl font-black text-emerald-400">${d.trophies != null ? d.trophies : (d.totalWins || 0)}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Trophies</div></div>
+                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-2xl font-black text-yellow-400">${d.goldenRoads || 0}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Golden Roads</div></div>
+                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-2xl font-black text-indigo-400">${d.splitsCompleted || 0}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Splits</div></div>
+                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-2xl font-black text-red-400">${d.towerBest || 0}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Tower Best</div></div>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-xl font-black text-blue-300">${d.rawPower || '—'}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Raw Power</div></div>
+                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-xl font-black text-green-400">${d.totalPower || '—'}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Total Power</div></div>
+                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-xl font-black text-blue-400">${d.totalBE != null ? d.totalBE.toLocaleString() : '—'}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Blue Essence</div></div>
+            </div>
+            ${currentUser ? `<button onclick="addFriend('${uid}','${(d.displayName||'').replace(/'/g,'')}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">➕ Add Friend</button>` : ''}
+            <button onclick="document.getElementById('profile-modal').classList.add('hidden')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-xl font-bold cursor-pointer transition text-sm">Close</button>`;
+        modal.classList.remove('hidden');
+    }).catch(err => showToast('Failed to load profile.', 'error'));
+}
+
+// === FRIEND SYSTEM ===
+function addFriend(uid, name) {
+    if (!currentUser) { showToast('Sign in first.', 'error'); return; }
+    if (uid === currentUser.uid) { showToast("You can't add yourself!", 'info'); return; }
+    fbDb.collection('friends').doc(currentUser.uid).get().then(doc => {
+        const data = doc.exists ? doc.data() : { list: [] };
+        if (data.list.some(f => f.uid === uid)) { showToast(`${name || 'Player'} is already your friend.`, 'info'); return; }
+        data.list.push({ uid, name: name || 'Unknown', addedAt: Date.now() });
+        return fbDb.collection('friends').doc(currentUser.uid).set(data);
+    }).then(() => {
+        if (typeof arguments !== 'undefined') showToast(`${name || 'Player'} added as friend!`, 'success');
+    }).catch(err => showToast('Failed to add friend.', 'error'));
+}
+
+function removeFriend(uid) {
+    if (!currentUser) return;
+    fbDb.collection('friends').doc(currentUser.uid).get().then(doc => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        data.list = (data.list || []).filter(f => f.uid !== uid);
+        return fbDb.collection('friends').doc(currentUser.uid).set(data);
+    }).then(() => {
+        showToast('Friend removed.', 'info');
+        renderFriendsList();
+    });
+}
+
+function renderFriendsList() {
+    const container = document.getElementById('friends-list');
+    if (!container) return;
+    if (!currentUser) { container.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">Sign in to see friends.</p>'; return; }
+    container.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">Loading...</p>';
+    fbDb.collection('friends').doc(currentUser.uid).get().then(doc => {
+        const friends = doc.exists ? (doc.data().list || []) : [];
+        if (!friends.length) { container.innerHTML = '<p class="text-slate-500 text-sm text-center py-8">No friends yet. Click a player name on the leaderboard to add them!</p>'; return; }
+        // Fetch leaderboard data for each friend
+        const uids = friends.map(f => f.uid);
+        fbDb.collection('leaderboard').where(firebase.firestore.FieldPath.documentId(), 'in', uids.slice(0, 10)).get().then(snap => {
+            const lbData = {};
+            snap.forEach(d => { lbData[d.id] = d.data(); });
+            let html = '';
+            friends.forEach(f => {
+                const lb = lbData[f.uid] || {};
+                html += `<div class="flex items-center gap-3 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 mb-2">
+                    <div class="flex-1 min-w-0 cursor-pointer" onclick="viewProfile('${f.uid}')">
+                        <div class="font-bold text-slate-200 truncate hover:text-indigo-300">${lb.teamLogo || '🛡️'} ${lb.teamName || f.name}</div>
+                        <div class="text-[10px] text-slate-500">${lb.prestigeTitle || 'Scout'} · Trophies: ${lb.trophies != null ? lb.trophies : '?'} · Power: ${lb.totalPower || '?'}</div>
+                    </div>
+                    <button onclick="challengeFriend('${f.uid}')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer transition">⚔️ Challenge</button>
+                    <button onclick="removeFriend('${f.uid}')" class="bg-red-950/60 hover:bg-red-900 text-red-300 text-xs font-bold px-2 py-1.5 rounded-lg cursor-pointer transition">✕</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        });
+    }).catch(() => { container.innerHTML = '<p class="text-red-400 text-sm text-center py-4">Failed to load friends.</p>'; });
+}
+
+function challengeFriend(uid) {
+    if (!currentUser) { showToast('Sign in first.', 'error'); return; }
+    if (['TOP','JNG','MID','ADC','SUP'].some(r => !squad[r])) { showToast('Fill all 5 squad positions first.', 'error'); return; }
+    // Load friend's saved squad from their cloud save
+    fbDb.collection('saves').doc(uid).get().then(doc => {
+        if (!doc.exists) { showToast("This player hasn't saved to the cloud yet.", 'error'); return; }
+        const saveData = doc.data();
+        const friendSquad = saveData['lol_squad_v7_pro'] ? JSON.parse(saveData['lol_squad_v7_pro']) : null;
+        if (!friendSquad || !friendSquad.TOP) { showToast("This player doesn't have a squad set up.", 'error'); return; }
+        // Set up a salary-cap-style combat using the friend's squad as CPU
+        draftPickRoles = { ...squad };
+        draftCpuTeam = { ...friendSquad };
+        _salaryCapReward = 0; // No reward for friend battles
+        draftModeActive = true;
+        window._salaryCapMode = false;
+        _scStartCombat();
+        showToast('Friend challenge started!', 'success');
+    }).catch(err => showToast('Failed to load friend data.', 'error'));
 }
