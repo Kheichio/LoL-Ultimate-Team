@@ -5269,6 +5269,8 @@ function pushToLeaderboard() {
         rawPower: rawPower,
         totalPower: chemData.totalPower || 0,
         totalBE: blueEssence || 0,
+        archiveCards: Object.keys(collectionRegistry).length,
+        signatureCards: Object.values(collectionRegistry).filter(r => r.signature).length,
         updatedAt: Date.now(),
     };
     fbDb.collection('leaderboard').doc(currentUser.uid).set(entry).then(() => {
@@ -5299,6 +5301,8 @@ function renderLeaderboard() {
                 <span class="w-12 text-center">GR</span>
                 <span class="w-14 text-center">Tower</span>
                 <span class="w-16 text-center">BE</span>
+                <span class="w-12 text-center">Cards</span>
+                <span class="w-10 text-center">Sig</span>
                 <span class="w-16 text-center">Title</span>
             </div>`;
         let rank = 0;
@@ -5325,6 +5329,8 @@ function renderLeaderboard() {
                 <span class="w-12 text-center text-yellow-400">${d.goldenRoads}</span>
                 <span class="w-14 text-center text-red-400">${d.towerBest}</span>
                 <span class="w-16 text-center text-blue-300 text-xs font-mono">${d.totalBE != null ? (d.totalBE >= 1000 ? Math.floor(d.totalBE/1000) + 'k' : d.totalBE) : '—'}</span>
+                <span class="w-12 text-center text-yellow-200 text-xs">${d.archiveCards || '—'}</span>
+                <span class="w-10 text-center text-purple-300 text-xs font-bold">${d.signatureCards || 0}</span>
                 <span class="w-16 text-center text-xs text-slate-400">${d.prestigeTitle}</span>
             </div>`;
         });
