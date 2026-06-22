@@ -830,8 +830,13 @@
         </section>
 
         <section id="tab-leaderboard" class="tab-content hidden max-w-4xl mx-auto">
-            <h2 class="text-3xl font-black text-amber-400 mb-2 tracking-wide">Global Leaderboard</h2>
-            <p class="mb-4 text-slate-400 text-sm">See how you stack up against other managers worldwide. Sign in to appear on the board.</p>
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-3xl font-black text-amber-400 tracking-wide">Global Leaderboard</h2>
+                    <p class="text-slate-400 text-sm">See how you stack up against other managers worldwide.</p>
+                </div>
+                <button onclick="pushToLeaderboard()" class="bg-amber-600 hover:bg-amber-500 text-slate-900 font-black px-5 py-2.5 rounded-xl cursor-pointer transition text-sm uppercase tracking-wide shadow-md">Update My Stats</button>
+            </div>
             <div class="bg-slate-800 p-5 rounded-2xl border border-indigo-700/40 mb-6">
                 <h3 class="text-lg font-black text-indigo-300 mb-3 uppercase tracking-wider">Friends</h3>
                 <div id="friends-list"></div>
