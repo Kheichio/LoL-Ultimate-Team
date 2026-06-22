@@ -1557,7 +1557,7 @@ function renderEventBanner() {
             <div class="absolute -right-10 -top-10 opacity-10 text-[150px]">🔥</div>
             <div class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Limited Event</div>
             <h3 class="text-xl font-black text-orange-300 mb-2">${evt.name}</h3>
-            <p class="text-slate-300 text-sm mb-3">Boosted First Stand 2026 drop rates on all packs! Guaranteed First Stand 2026 card within <strong class="text-orange-200">${pity}</strong> pulls.</p>
+            <p class="text-slate-300 text-sm mb-3">Open <strong class="text-orange-200">First Stand Packs</strong> for boosted 2026 drop rates! Guaranteed First Stand 2026 card within <strong class="text-orange-200">${pity}</strong> pulls of this pack type. Other packs are not affected.</p>
             <div class="flex justify-center gap-4 mb-3 text-xs font-mono">
                 <span class="bg-black/40 px-3 py-1.5 rounded-lg border border-orange-800/50 text-orange-200">⏱ ${hours}h ${mins}m remaining</span>
                 <span class="bg-black/40 px-3 py-1.5 rounded-lg border border-emerald-800/50 text-emerald-300">Pity: ${progress}/${pity} pulls</span>
@@ -1900,9 +1900,9 @@ function buyPack(baseCost, type) {
         });
     }
     pulled.forEach(c => { if (c.quality === 'Challenger') trackStats.challengerPulled = (trackStats.challengerPulled || 0) + 1; });
-    // Event pity system
+    // Event pity system — only triggers on First Stand Pack purchases
     const evt = getActiveEvent();
-    if (evt && evt.type === 'firststand2026') {
+    if (evt && evt.type === 'firststand2026' && type === 'FirstStand') {
         evt.pullsSinceDrop += pulled.length;
         const hasFS2026 = pulled.some(c => c.quality === 'FirstStand' && c.year === 2026);
         if (hasFS2026) { evt.pullsSinceDrop = 0; }
@@ -1918,6 +1918,7 @@ function buyPack(baseCost, type) {
             }
         }
         localStorage.setItem('lol_event_v1', JSON.stringify(evt));
+        renderEventBanner();
     }
     processNewCards(pulled); saveGame(); showPulls(pulled, `${type} Package Opened`);
 }
@@ -5335,12 +5336,28 @@ function renderLeaderboard() {
 }
 
 function viewProfile(uid) {
-    fbDb.collection('leaderboard').doc(uid).get().then(doc => {
-        if (!doc.exists) { showToast('Profile not found.', 'error'); return; }
-        const d = doc.data();
+    Promise.all([
+        fbDb.collection('leaderboard').doc(uid).get(),
+        fbDb.collection('saves').doc(uid).get()
+    ]).then(([lbDoc, saveDoc]) => {
+        if (!lbDoc.exists) { showToast('Profile not found.', 'error'); return; }
+        const d = lbDoc.data();
         const modal = document.getElementById('profile-modal');
         if (!modal) return;
-        document.getElementById('profile-content').innerHTML = `
+        const content = document.getElementById('profile-content');
+
+        // Parse their squad and club from cloud save
+        let theirSquad = null, favCard = null;
+        if (saveDoc.exists) {
+            const saveData = saveDoc.data();
+            try { theirSquad = JSON.parse(saveData['lol_squad_v7_pro'] || 'null'); } catch(e) {}
+            try {
+                const theirClub = JSON.parse(saveData['lol_club_v7_pro'] || '[]');
+                favCard = theirClub.find(c => c.favorite) || null;
+            } catch(e) {}
+        }
+
+        content.innerHTML = `
             <div class="flex items-center gap-4 mb-4">
                 <img src="${d.photoURL || ''}" class="w-14 h-14 rounded-full border-2 border-indigo-500" onerror="this.style.display='none'">
                 <div>
@@ -5349,19 +5366,45 @@ function viewProfile(uid) {
                     <div class="text-xs text-indigo-400 font-bold">${d.prestigeTitle || 'Scout'}</div>
                 </div>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-2xl font-black text-emerald-400">${d.trophies != null ? d.trophies : (d.totalWins || 0)}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Trophies</div></div>
-                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-2xl font-black text-yellow-400">${d.goldenRoads || 0}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Golden Roads</div></div>
-                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-2xl font-black text-indigo-400">${d.splitsCompleted || 0}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Splits</div></div>
-                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-2xl font-black text-red-400">${d.towerBest || 0}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Tower Best</div></div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                <div class="bg-slate-900 p-2 rounded-xl text-center"><div class="text-xl font-black text-emerald-400">${d.trophies != null ? d.trophies : (d.totalWins || 0)}</div><div class="text-[9px] text-slate-500 uppercase font-bold">Trophies</div></div>
+                <div class="bg-slate-900 p-2 rounded-xl text-center"><div class="text-xl font-black text-yellow-400">${d.goldenRoads || 0}</div><div class="text-[9px] text-slate-500 uppercase font-bold">Golden Roads</div></div>
+                <div class="bg-slate-900 p-2 rounded-xl text-center"><div class="text-xl font-black text-indigo-400">${d.splitsCompleted || 0}</div><div class="text-[9px] text-slate-500 uppercase font-bold">Splits</div></div>
+                <div class="bg-slate-900 p-2 rounded-xl text-center"><div class="text-xl font-black text-red-400">${d.towerBest || 0}</div><div class="text-[9px] text-slate-500 uppercase font-bold">Tower Best</div></div>
             </div>
-            <div class="grid grid-cols-3 gap-3 mb-4">
-                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-xl font-black text-blue-300">${d.rawPower || '—'}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Raw Power</div></div>
-                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-xl font-black text-green-400">${d.totalPower || '—'}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Total Power</div></div>
-                <div class="bg-slate-900 p-3 rounded-xl text-center"><div class="text-xl font-black text-blue-400">${d.totalBE != null ? d.totalBE.toLocaleString() : '—'}</div><div class="text-[10px] text-slate-500 uppercase font-bold">Blue Essence</div></div>
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <div class="bg-slate-900 p-2 rounded-xl text-center"><div class="text-lg font-black text-blue-300">${d.rawPower || '—'}</div><div class="text-[9px] text-slate-500 uppercase font-bold">Raw Power</div></div>
+                <div class="bg-slate-900 p-2 rounded-xl text-center"><div class="text-lg font-black text-green-400">${d.totalPower || '—'}</div><div class="text-[9px] text-slate-500 uppercase font-bold">Total Power</div></div>
+                <div class="bg-slate-900 p-2 rounded-xl text-center"><div class="text-lg font-black text-blue-400">${d.totalBE != null ? d.totalBE.toLocaleString() : '—'}</div><div class="text-[9px] text-slate-500 uppercase font-bold">BE</div></div>
             </div>
+            ${theirSquad ? '<div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Starting Roster</div><div id="profile-squad" class="flex flex-wrap gap-2 justify-center mb-4"></div>' : '<div class="text-slate-600 text-xs text-center mb-4 font-mono">No squad data (player hasn\'t saved to cloud)</div>'}
+            ${favCard ? '<div class="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-2">★ Favorite Card</div><div id="profile-fav" class="flex justify-center mb-4"></div>' : ''}
             ${currentUser ? `<button onclick="addFriend('${uid}','${(d.displayName||'').replace(/'/g,'')}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">➕ Add Friend</button>` : ''}
             <button onclick="document.getElementById('profile-modal').classList.add('hidden')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-xl font-bold cursor-pointer transition text-sm">Close</button>`;
+
+        // Render squad cards
+        if (theirSquad) {
+            const squadEl = document.getElementById('profile-squad');
+            if (squadEl) {
+                ['TOP','JNG','MID','ADC','SUP','COACH'].forEach(role => {
+                    const card = theirSquad[role];
+                    if (card) {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'relative';
+                        wrap.appendChild(createCardElement(card, true, null, null));
+                        wrap.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 bg-indigo-900/90 text-indigo-200 text-[8px] font-black px-1 py-0.5 rounded-tl-xl rounded-br-xl z-10">${role}</div>`);
+                        squadEl.appendChild(wrap);
+                    }
+                });
+            }
+        }
+
+        // Render favorite card (full size)
+        if (favCard) {
+            const favEl = document.getElementById('profile-fav');
+            if (favEl) favEl.appendChild(createCardElement(favCard, false, null, null));
+        }
+
         modal.classList.remove('hidden');
     }).catch(err => showToast('Failed to load profile.', 'error'));
 }
