@@ -1400,7 +1400,7 @@ function _skillCost(skillName, currentLvl) {
     return _SKILL_DOUBLE_COST.has(skillName) ? base * 2 : base;
 }
 
-function _skillMaxLvl(skillName) { return skillName === 'clubhouse' ? 10 : 5; }
+function _skillMaxLvl(skillName) { return skillName === 'clubhouse' ? 20 : 5; }
 function upgradeSkill(skillName) {
     let currentLvl = skills[skillName]; let cost = _skillCost(skillName, currentLvl);
     if (skillPoints >= cost && currentLvl < _skillMaxLvl(skillName)) { skillPoints -= cost; skills[skillName]++; saveGame(); renderSkillsUI(); updateBadges(); }
@@ -1422,7 +1422,7 @@ function renderSkillsUI() {
         { key: "conditioning",  name: "Team Conditioning",      desc: "Reduces the cooldown between Season Matches (60s base). Lv1: 45s. Lv2: 30s. Lv3: 20s. Lv4: 10s. Lv5: No cooldown — play matches back to back.",                                                       color: "rose"   },
         { key: "mentorship",    name: "Mentorship Program",     desc: "Multiplies all XP gains. Lv1: ×1.5 (+50%). Lv2: ×2 (double). Lv3: ×2.5. Lv4: ×3 (triple). Lv5: ×4 — massively accelerates manager level progression.",                                           color: "violet" },
         { key: "bootcamp",      name: "Bootcamp Director",      desc: "Costs double SP per level. Increases the Bootcamp power bonus by +2 per level — from +5 base up to +15 at level 5.",                                       color: "lime"   },
-        { key: "clubhouse",    name: "Club House Capacity",    desc: "Increases max club size by 50 per level. Base: 100. Lv10: 600 cards. Costs only 1 SP per level. Max level: 10.",                                                                  color: "sky", maxLvl: 10 },
+        { key: "clubhouse",    name: "Club House Capacity",    desc: "Increases max club size by 50 per level. Base: 100. Lv20: 1100 cards. Costs only 1 SP per level. Max level: 20.",                                                                  color: "sky", maxLvl: 20 },
     ];
     container.innerHTML = "";
     skillDefs.forEach(def => {
@@ -1780,7 +1780,9 @@ function updateDisplays() {
 }
 
 function buyStarterPack() {
-    let db = getDB(); if (!db || hasBoughtStarter) return; hasBoughtStarter = true; trackStats.packs++;
+    let db = getDB(); if (!db || hasBoughtStarter) return;
+    if (isClubFull()) { showToast(`Club is full (${club.length}/${getClubCapacity()}).`, "error"); return; }
+    hasBoughtStarter = true; trackStats.packs++;
     const roles = ["TOP", "JNG", "MID", "ADC", "SUP"]; let pulled = [];
     roles.forEach(role => {
         let pool = db.filter(p => p.role === role && p.rating <= 84);
@@ -1925,6 +1927,7 @@ function buyPack(baseCost, type) {
 
 function buyTargetPack(targetType) {
     let db = getDB(); if(!db) return;
+    if (isClubFull()) { showToast(`Club is full (${club.length}/${getClubCapacity()}). Sell or upgrade cards, or level up Club House Capacity.`, "error"); return; }
     const selectorCost = document.getElementById("btn-buy-regional");
     let baseCost = selectorCost ? parseInt(selectorCost.getAttribute("data-cost")) : 800;
     let actualCost = baseCost;
