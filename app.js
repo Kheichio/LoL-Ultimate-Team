@@ -1568,10 +1568,13 @@ function getActiveEvent() {
 }
 
 function startFirstStand2026Event() {
+    // Global synchronized timer — event ends at next midnight UTC for ALL players
+    const now = new Date();
+    const nextMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
     eventData = {
         name: 'First Stand 2026 Drop Rate Up',
         type: 'firststand2026',
-        endsAt: Date.now() + (24 * 60 * 60 * 1000),
+        endsAt: nextMidnight.getTime(),
         pullsSinceDrop: 0,
         pityThreshold: 60,
         active: true
