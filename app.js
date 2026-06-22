@@ -51,12 +51,14 @@ let trackStats = {
     packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {},
     cafeWins: 0, regionalSplitWon: 0, firstStandWon: 0, msiWon: 0, worldsWon: 0,
     losses: 0, draftModesPlayed: 0, draftModesWon: 0, upgradesPerformed: 0,
-    splitsCompleted: 0, undefeatedSplits: 0, splitsWithDebuffedWin: 0, splitsWithoutMeta: 0, eliteSplitsCompleted: 0
+    splitsCompleted: 0, undefeatedSplits: 0, splitsWithDebuffedWin: 0, splitsWithoutMeta: 0, eliteSplitsCompleted: 0,
+    simWins: 0, simGames: 0
 };
 
 let seasonData = { currentSplit: 1, splitWins: 0, splitLosses: 0, gamesPerSplit: 10, trophyCase: [], opponents: [], matchResults: [], lastMatchTs: 0, splitComplete: false, metaTeams: [], metaPlaysUsedThisSplit: 0, slumpTeams: [], eliteMode: false, eliteTeams: [] };
 let _smState = null; // active season match game state
 let _smCdInterval = null; // cooldown countdown interval
+let simState = null; // Summoner's Rift simulation state
 let compareMode = false;
 let compareSlots = [];
 
@@ -3838,11 +3840,12 @@ function emergencyResetSim() {
     draftActivePickRole = null; draftCpuTeam = {}; draftHybridScore1 = null; draft1v1Cards = { my: null, cpu: null };
     _scState = null;
     document.querySelectorAll('.sc-floating-panel').forEach(el => el.remove());
-    ['tournament-active','tournament-results','draft-screen','draft-combat','tower-screen','salary-combat-screen'].forEach(id => {
+    ['tournament-active','tournament-results','draft-screen','draft-combat','tower-screen','salary-combat-screen','sim-screen'].forEach(id => {
         const el = document.getElementById(id); if(el) el.classList.add('hidden');
     });
     document.getElementById("tournament-lobby").classList.remove("hidden");
     towerState = null;
+    simState = null;
 }
 function finishTournamentUI() { window._salaryCapMode = false; document.getElementById("tournament-results").classList.add("hidden"); document.getElementById("tournament-lobby").classList.remove("hidden"); updateDisplays(); }
 function setupBracketUI() {
@@ -5126,6 +5129,801 @@ function upgradeCards(role, fromTier) {
 }
 
 const ROLE_ICONS = { TOP: 'icons/Top_icon.png', JNG: 'icons/Jungle_icon.png', MID: 'icons/Middle_icon.png', ADC: 'icons/Bottom_icon.png', SUP: 'icons/Support_icon.png' };
+
+// ============================================================
+// SUMMONER'S RIFT SIMULATION
+// ============================================================
+
+const _SIM_ACTIONS = {
+    // id: { label, short, stats (for check), phases, roles (allowed), desc, multiRole (min roles needed if team action) }
+    farm:       { label: 'Farm Lane',       short: 'FRM',  stats: ['frm'],           phases: ['early','mid','late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'CS safely for gold' },
+    gank:       { label: 'Gank',            short: 'GNK',  stats: ['mec','map'],      phases: ['early','mid','late'], roles: ['JNG','MID','SUP'], desc: 'Gank an enemy lane' },
+    grubs:      { label: 'Void Grubs',      short: 'GRB',  stats: ['map'],            phases: ['early','mid'],        roles: ['JNG'], desc: 'Contest Void Grubs' },
+    herald:     { label: 'Rift Herald',     short: 'HLD',  stats: ['tmf','map'],      phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Contest Rift Herald', multiRole: 2 },
+    ward:       { label: 'Ward / Vision',   short: 'VIS',  stats: ['map'],            phases: ['early','mid','late'], roles: ['SUP','JNG'], desc: 'Place deep wards for info advantage' },
+    dragon:     { label: 'Take Dragon',     short: 'DRG',  stats: ['tmf','map'],      phases: ['mid','late'],         roles: ['JNG','MID','ADC','SUP'], desc: 'Team contest for dragon', multiRole: 2 },
+    teamfight:  { label: 'Teamfight',       short: 'TF5',  stats: ['tmf','mec','ldr'],phases: ['mid','late'],         roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'All-in 5v5 team fight', multiRole: 3 },
+    rotate:     { label: 'Rotate',          short: 'ROT',  stats: ['cmp','map'],      phases: ['mid','late'],         roles: ['MID','SUP','JNG'], desc: 'Rotate to help a lane' },
+    splitpush:  { label: 'Split Push',      short: 'SPL',  stats: ['mec','frm'],      phases: ['mid','late'],         roles: ['TOP','MID'], desc: 'Solo pressure a side lane' },
+    baron:      { label: 'Take Baron',      short: 'BAR',  stats: ['tmf','map','ldr'],phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Team contest for Baron', multiRole: 3 },
+    elder:      { label: 'Elder Dragon',    short: 'ELD',  stats: ['tmf','map'],      phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Team fight for Elder buff', multiRole: 3 },
+    siege:      { label: 'Siege',           short: 'SGE',  stats: ['tmf','mec','map','frm','cmp','ldr'], phases: ['late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Group as 5 to push', multiRole: 4 },
+    backdoor:   { label: 'Backdoor',        short: 'BD',   stats: ['mec'],            phases: ['late'],               roles: ['TOP','MID','ADC'], desc: 'Risky solo nexus rush' }
+};
+
+const _SIM_CPU_NAMES = [
+    "Shadowstrike","Hexflare","Runeguard","Voidmaw","Ironbark",
+    "Frostfang","Blazeclaw","Thornveil","Stormweave","Nightshade",
+    "Darkhelm","Embertide","Glacialshard","Venomfist","Starforge"
+];
+
+function _simGetAvailableActions(role) {
+    if (!simState) return [];
+    return Object.entries(_SIM_ACTIONS)
+        .filter(([, a]) => a.phases.includes(simState.phase) && a.roles.includes(role))
+        .map(([id, a]) => ({ id, ...a }));
+}
+
+function _simAvgStat(card, statKeys) {
+    if (!card || !card.stats) return 60;
+    const sum = statKeys.reduce((s, k) => s + (card.stats[k] || 60), 0);
+    return sum / statKeys.length;
+}
+
+function _simPlayerPower(roles, statKeys) {
+    let total = 0, count = 0;
+    roles.forEach(r => {
+        const card = squad[r];
+        if (card) { total += _simAvgStat(card, statKeys); count++; }
+    });
+    return count > 0 ? total / count : 60;
+}
+
+function _simGoldBonus(side) {
+    const diff = side === 'my' ? (simState.myGold - simState.cpuGold) : (simState.cpuGold - simState.myGold);
+    return diff / 10;
+}
+
+function _simBuffBonus(side) {
+    let b = 0;
+    const drg = side === 'my' ? simState.dragons : simState.cpuDragons;
+    const grb = side === 'my' ? simState.grubs : simState.cpuGrubs;
+    const baron = side === 'my' ? simState.baron : simState.cpuBaron;
+    b += drg >= 4 ? 8 : drg * 3;
+    if (grb > 0) b += 5;
+    if (baron > 0) b += 15;
+    return b;
+}
+
+function _simBigGoldBonus(side) {
+    const diff = side === 'my' ? (simState.myGold - simState.cpuGold) : (simState.cpuGold - simState.myGold);
+    return diff > 5000 ? 10 : 0;
+}
+
+function _simResolveAction(role, action) {
+    const act = _SIM_ACTIONS[action];
+    if (!act) return { success: false, msg: `${role}: Unknown action`, gold: 0, towerDmg: 0, lane: null };
+
+    const statKeys = act.stats;
+    const card = squad[role];
+    let myVal = card ? _simAvgStat(card, statKeys) : 60;
+    myVal += _simGoldBonus('my') + _simBuffBonus('my') + _simBigGoldBonus('my');
+    myVal += (Math.random() * 20) - 10; // ±10 variance
+
+    let cpuVal = simState.cpuRating + (Math.random() * 20) - 10;
+    cpuVal += _simGoldBonus('cpu') + _simBuffBonus('cpu') + _simBigGoldBonus('cpu');
+
+    // Ward bonus from last turn
+    if (simState.wardBonus > 0) { myVal += 5; }
+
+    const success = myVal > cpuVal;
+    const cardName = card ? card.name : role;
+    let msg = '', gold = 0, towerDmg = 0, lane = null, objective = null;
+
+    switch (action) {
+        case 'farm':
+            gold = success ? (200 + Math.floor(Math.random() * 150)) : 100;
+            msg = success
+                ? `${cardName} farmed well — FRM ${Math.round(myVal)} vs ${Math.round(cpuVal)}, +${gold}g`
+                : `${cardName} farmed under pressure — FRM ${Math.round(myVal)} vs ${Math.round(cpuVal)}, +${gold}g`;
+            break;
+        case 'gank':
+            if (success) {
+                gold = 300 + Math.floor(Math.random() * 200);
+                const gankLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
+                lane = gankLanes.length ? gankLanes[Math.floor(Math.random() * gankLanes.length)] : null;
+                towerDmg = lane && (myVal - cpuVal > 12) ? 1 : 0;
+                msg = `${cardName} ganked ${lane ? lane.toUpperCase() : 'a lane'} — ${Math.round(myVal)} vs ${Math.round(cpuVal)}, SUCCESS! +${gold}g${towerDmg ? ' + tower destroyed!' : ''}`;
+            } else {
+                msg = `${cardName} gank failed — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        case 'grubs':
+            if (success) {
+                simState.grubs = Math.min(simState.grubs + 1, 6);
+                gold = 150;
+                msg = `${cardName} secured Void Grubs (${simState.grubs}/6) — MAP ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            } else {
+                simState.cpuGrubs = Math.min(simState.cpuGrubs + 1, 6);
+                msg = `${cardName} lost Grubs to enemy — MAP ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        case 'herald':
+            if (success) {
+                simState.herald = 1;
+                // Herald does instant tower damage
+                const hLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
+                if (hLanes.length) {
+                    lane = hLanes[Math.floor(Math.random() * hLanes.length)];
+                    towerDmg = 1;
+                }
+                gold = 200;
+                msg = `Team secured Rift Herald! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${lane ? `, charged ${lane.toUpperCase()} tower!` : ''}`;
+            } else {
+                msg = `Herald contest lost — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        case 'ward':
+            simState.wardBonus = 2; // lasts 2 turns
+            gold = 50;
+            msg = `${cardName} placed deep wards — vision advantage for next turn`;
+            // Ward always "succeeds" for the bonus
+            return { success: true, msg, gold, towerDmg: 0, lane: null };
+        case 'dragon':
+            if (success) {
+                simState.dragons++;
+                gold = 250;
+                const soulMsg = simState.dragons >= 4 ? ' DRAGON SOUL!' : '';
+                msg = `Team took Dragon (${simState.dragons}/4)! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${soulMsg}`;
+            } else {
+                simState.cpuDragons++;
+                const cpuSoul = simState.cpuDragons >= 4 ? ' CPU has DRAGON SOUL!' : '';
+                msg = `Enemy stole Dragon (enemy: ${simState.cpuDragons}/4) — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${cpuSoul}`;
+            }
+            break;
+        case 'teamfight':
+            if (success) {
+                gold = 500 + Math.floor(Math.random() * 300);
+                // Teamfight win = push towers
+                const tfLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
+                if (tfLanes.length) {
+                    lane = tfLanes[Math.floor(Math.random() * tfLanes.length)];
+                    towerDmg = 1;
+                }
+                msg = `TEAMFIGHT WON! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}, +${gold}g${towerDmg ? ` + ${lane.toUpperCase()} tower falls!` : ''}`;
+            } else {
+                msg = `Teamfight LOST — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        case 'rotate':
+            if (success) {
+                gold = 200;
+                const rLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
+                lane = rLanes.length ? rLanes[Math.floor(Math.random() * rLanes.length)] : null;
+                towerDmg = lane ? 1 : 0;
+                msg = `${cardName} rotated successfully — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${towerDmg ? `, ${lane.toUpperCase()} tower destroyed!` : ', lane pressure gained'}`;
+            } else {
+                msg = `${cardName} rotation read by enemy — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        case 'splitpush':
+            if (success) {
+                gold = 250;
+                const spLanes = ['top','bot'].filter(l => simState.cpuTowers[l] > 0);
+                lane = spLanes.length ? spLanes[Math.floor(Math.random() * spLanes.length)] : null;
+                towerDmg = lane ? 1 : 0;
+                msg = `${cardName} split push success — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${towerDmg ? `, ${lane.toUpperCase()} tower destroyed!` : ''}`;
+            } else {
+                msg = `${cardName} split push collapsed on — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        case 'baron':
+            if (success) {
+                simState.baron = 3; // 3 turns of baron buff
+                gold = 400;
+                msg = `BARON NASHOR secured! Buff active for 3 turns — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            } else {
+                simState.cpuBaron = 3;
+                msg = `Enemy took BARON! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        case 'elder':
+            if (success) {
+                simState.dragons = Math.max(simState.dragons, 4); // elder = soul equivalent
+                gold = 500;
+                msg = `ELDER DRAGON secured! Execute buff active — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            } else {
+                simState.cpuDragons = Math.max(simState.cpuDragons, 4);
+                msg = `Enemy took ELDER DRAGON — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        case 'siege': {
+            const baronActive = simState.baron > 0;
+            if (success) {
+                gold = 350;
+                towerDmg = baronActive ? 2 : 1;
+                // Siege targets exposed structures
+                const siegeTarget = _simGetSiegeTarget('cpu');
+                lane = siegeTarget;
+                msg = `SIEGE succeeds! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}, +${gold}g, ${towerDmg} structure${towerDmg > 1 ? 's' : ''} destroyed!${baronActive ? ' (Baron empowered!)' : ''}`;
+            } else {
+                msg = `Siege repelled — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        }
+        case 'backdoor': {
+            // Backdoor needs very high check — but if all inhibs down + nexus towers, can end game
+            const nexusExposed = _simNexusExposed('cpu');
+            const threshold = nexusExposed ? 0 : 25; // much harder if nexus not exposed
+            if (success && (myVal - cpuVal) > threshold) {
+                gold = 0;
+                // Direct nexus damage
+                if (nexusExposed) {
+                    simState.cpuTowers.nexus = Math.max(0, simState.cpuTowers.nexus - 2);
+                    msg = `BACKDOOR! ${cardName} rushes the nexus! — MEC ${Math.round(myVal)} vs ${Math.round(cpuVal)}, NEXUS HIT!`;
+                } else {
+                    // Still does tower damage on a side lane
+                    const bdLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
+                    lane = bdLanes.length ? bdLanes[Math.floor(Math.random() * bdLanes.length)] : null;
+                    towerDmg = lane ? 1 : 0;
+                    msg = `${cardName} backdoor attempt — destroyed a tower but nexus not exposed — MEC ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                }
+            } else {
+                msg = `${cardName} backdoor FAILED — caught and killed! MEC ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+            }
+            break;
+        }
+    }
+
+    return { success, msg, gold: success ? gold : 0, towerDmg: success ? towerDmg : 0, lane };
+}
+
+function _simGetSiegeTarget(side) {
+    const towers = side === 'cpu' ? simState.cpuTowers : simState.myTowers;
+    // Priority: lane towers > inhibs > nexus towers > nexus
+    for (const l of ['mid','top','bot']) {
+        if (towers[l] > 0) return l;
+    }
+    if (towers.inhib > 0) return 'inhib';
+    if (towers.nexus > 0) return 'nexus';
+    return null;
+}
+
+function _simNexusExposed(side) {
+    const t = side === 'cpu' ? simState.cpuTowers : simState.myTowers;
+    return t.top === 0 && t.mid === 0 && t.bot === 0 && t.inhib === 0 && t.nexus <= 2;
+}
+
+function _simApplyTowerDamage(side, towerDmg, lane) {
+    if (towerDmg <= 0) return;
+    const t = side === 'cpu' ? simState.cpuTowers : simState.myTowers;
+    let remaining = towerDmg;
+
+    // If lane specified, hit that lane first
+    if (lane && lane !== 'inhib' && lane !== 'nexus' && t[lane] !== undefined && t[lane] > 0) {
+        const dmg = Math.min(remaining, t[lane]);
+        t[lane] -= dmg;
+        remaining -= dmg;
+    }
+
+    // Overflow or non-lane targets
+    if (remaining > 0) {
+        // Try other lanes
+        for (const l of ['top','mid','bot']) {
+            if (remaining <= 0) break;
+            if (t[l] > 0) { const dmg = Math.min(remaining, t[l]); t[l] -= dmg; remaining -= dmg; }
+        }
+    }
+
+    // If all lane towers down, inhibs become vulnerable
+    if (t.top === 0 && t.mid === 0 && t.bot === 0 && remaining > 0 && t.inhib > 0) {
+        const dmg = Math.min(remaining, t.inhib);
+        t.inhib -= dmg;
+        remaining -= dmg;
+    }
+
+    // If all inhibs down, nexus towers
+    if (t.top === 0 && t.mid === 0 && t.bot === 0 && t.inhib === 0 && remaining > 0 && t.nexus > 0) {
+        const dmg = Math.min(remaining, t.nexus);
+        t.nexus -= dmg;
+        remaining -= dmg;
+    }
+}
+
+function _simCpuTurn() {
+    const phase = simState.phase;
+    const roles = ['TOP','JNG','MID','ADC','SUP'];
+    const cpuActions = {};
+
+    // Weighted CPU action selection per phase
+    const weights = {
+        early: { farm: 60, gank: 20, grubs: 10, ward: 10 },
+        mid:   { farm: 30, dragon: 20, teamfight: 20, rotate: 15, splitpush: 15 },
+        late:  { teamfight: 30, baron: 25, siege: 20, elder: 15, splitpush: 10 }
+    };
+    const w = weights[phase];
+    const pool = Object.entries(w);
+    const totalW = pool.reduce((s, [, v]) => s + v, 0);
+
+    function pickWeighted() {
+        let r = Math.random() * totalW;
+        for (const [act, weight] of pool) {
+            r -= weight;
+            if (r <= 0) return act;
+        }
+        return pool[0][0];
+    }
+
+    roles.forEach(role => {
+        let action = pickWeighted();
+        // Validate the action is allowed for this role
+        const act = _SIM_ACTIONS[action];
+        if (!act || !act.roles.includes(role) || !act.phases.includes(phase)) {
+            action = 'farm'; // fallback
+        }
+        cpuActions[role] = action;
+    });
+
+    // Resolve CPU actions
+    const cpuResults = [];
+    let cpuTotalGold = 0;
+    roles.forEach(role => {
+        const action = cpuActions[role];
+        const act = _SIM_ACTIONS[action];
+        const statKeys = act ? act.stats : ['frm'];
+
+        let cpuStatVal = simState.cpuRating + (Math.random() * 20) - 10;
+        cpuStatVal += _simGoldBonus('cpu') + _simBuffBonus('cpu') + _simBigGoldBonus('cpu');
+
+        // CPU defense against player is already handled in player resolution
+        // Here we check CPU offense vs player defense
+        let defVal = _simPlayerPower(roles, statKeys);
+        defVal += _simGoldBonus('my') + _simBuffBonus('my') + _simBigGoldBonus('my');
+        defVal += (Math.random() * 20) - 10;
+
+        if (simState.cpuWardBonus > 0) cpuStatVal += 5;
+
+        const success = cpuStatVal > defVal;
+
+        if (success) {
+            switch (action) {
+                case 'farm':
+                    cpuTotalGold += 200;
+                    break;
+                case 'gank': case 'rotate': case 'splitpush': {
+                    cpuTotalGold += 300;
+                    const pLanes = ['top','mid','bot'].filter(l => simState.myTowers[l] > 0);
+                    if (pLanes.length) {
+                        const pl = pLanes[Math.floor(Math.random() * pLanes.length)];
+                        _simApplyTowerDamage('my', 1, pl);
+                        cpuResults.push(`Enemy ${action} on ${pl.toUpperCase()} — tower destroyed!`);
+                    } else {
+                        _simApplyTowerDamage('my', 1, null);
+                        cpuResults.push(`Enemy ${action} succeeded — structure damage!`);
+                    }
+                    break;
+                }
+                case 'dragon':
+                    simState.cpuDragons++;
+                    cpuTotalGold += 200;
+                    cpuResults.push(`Enemy secured Dragon (${simState.cpuDragons}/4)${simState.cpuDragons >= 4 ? ' — DRAGON SOUL!' : ''}`);
+                    break;
+                case 'baron':
+                    simState.cpuBaron = 3;
+                    cpuTotalGold += 300;
+                    cpuResults.push('Enemy secured BARON NASHOR!');
+                    break;
+                case 'elder':
+                    simState.cpuDragons = Math.max(simState.cpuDragons, 4);
+                    cpuTotalGold += 400;
+                    cpuResults.push('Enemy secured ELDER DRAGON!');
+                    break;
+                case 'teamfight': {
+                    cpuTotalGold += 500;
+                    const tfL = ['top','mid','bot'].filter(l => simState.myTowers[l] > 0);
+                    if (tfL.length) {
+                        const tl = tfL[Math.floor(Math.random() * tfL.length)];
+                        _simApplyTowerDamage('my', 1, tl);
+                        cpuResults.push(`Enemy won a teamfight — ${tl.toUpperCase()} tower falls!`);
+                    } else {
+                        _simApplyTowerDamage('my', 1, null);
+                        cpuResults.push('Enemy won a teamfight — structure damaged!');
+                    }
+                    break;
+                }
+                case 'siege': {
+                    cpuTotalGold += 300;
+                    const baronBuff = simState.cpuBaron > 0;
+                    const dmg = baronBuff ? 2 : 1;
+                    _simApplyTowerDamage('my', dmg, _simGetSiegeTarget('my'));
+                    cpuResults.push(`Enemy siege — ${dmg} structure${dmg > 1 ? 's' : ''} destroyed!${baronBuff ? ' (Baron empowered!)' : ''}`);
+                    break;
+                }
+                case 'grubs':
+                    simState.cpuGrubs = Math.min(simState.cpuGrubs + 1, 6);
+                    cpuResults.push(`Enemy secured Void Grubs (${simState.cpuGrubs}/6)`);
+                    break;
+                case 'ward':
+                    simState.cpuWardBonus = 2;
+                    cpuResults.push('Enemy placed deep wards');
+                    break;
+                default:
+                    cpuTotalGold += 100;
+                    break;
+            }
+        } else {
+            cpuTotalGold += (action === 'farm') ? 100 : 0;
+        }
+    });
+
+    simState.cpuGold += cpuTotalGold;
+    return cpuResults;
+}
+
+function _simCheckGameEnd() {
+    // Check if either nexus is destroyed (all structures gone)
+    const cpuT = simState.cpuTowers;
+    const myT = simState.myTowers;
+
+    const cpuNexusDead = cpuT.top === 0 && cpuT.mid === 0 && cpuT.bot === 0 && cpuT.inhib === 0 && cpuT.nexus === 0;
+    const myNexusDead = myT.top === 0 && myT.mid === 0 && myT.bot === 0 && myT.inhib === 0 && myT.nexus === 0;
+
+    if (cpuNexusDead && myNexusDead) return 'win'; // tie goes to player
+    if (cpuNexusDead) return 'win';
+    if (myNexusDead) return 'loss';
+    return null;
+}
+
+function startSimulation() {
+    const roles = ['TOP','JNG','MID','ADC','SUP'];
+    const missing = roles.filter(r => !squad[r]);
+    if (missing.length > 0) {
+        showToast(`Squad incomplete! Missing: ${missing.join(', ')}`, 'error');
+        return;
+    }
+
+    // Calculate player avg rating
+    let totalRating = 0;
+    roles.forEach(r => { totalRating += (squad[r].rating || 70); });
+    const avgRating = totalRating / 5;
+
+    // CPU rating based on player avg ± 3
+    const cpuRating = Math.round(avgRating + (Math.random() * 6 - 3));
+
+    // Generate CPU team names
+    const cpuTeam = {};
+    const usedNames = new Set();
+    roles.forEach(r => {
+        let name;
+        do { name = _SIM_CPU_NAMES[Math.floor(Math.random() * _SIM_CPU_NAMES.length)]; } while (usedNames.has(name));
+        usedNames.add(name);
+        cpuTeam[r] = name;
+    });
+
+    simState = {
+        turn: 1,
+        phase: 'early',
+        myGold: 0,
+        cpuGold: 0,
+        myTowers: { top: 3, mid: 3, bot: 3, inhib: 3, nexus: 2 },
+        cpuTowers: { top: 3, mid: 3, bot: 3, inhib: 3, nexus: 2 },
+        dragons: 0, cpuDragons: 0,
+        herald: 0, cpuHerald: 0,
+        baron: 0, cpuBaron: 0,
+        grubs: 0, cpuGrubs: 0,
+        log: [],
+        actionPhase: true,
+        assignments: {},
+        cpuRating: cpuRating,
+        cpuTeam: cpuTeam,
+        wardBonus: 0,
+        cpuWardBonus: 0
+    };
+
+    document.getElementById('tournament-lobby').classList.add('hidden');
+    document.getElementById('sim-screen').classList.remove('hidden');
+    renderSimulation();
+    showToast('Summoner\'s Rift simulation started! Assign actions and execute turns.', 'info');
+}
+
+function closeSimulation() {
+    showConfirm('Forfeit Simulation?', 'You will lose all progress in this match.', () => {
+        document.getElementById('sim-screen').classList.add('hidden');
+        document.getElementById('tournament-lobby').classList.remove('hidden');
+        simState = null;
+    });
+}
+
+function renderSimulation() {
+    if (!simState) return;
+    const container = document.getElementById('sim-content');
+    const roles = ['TOP','JNG','MID','ADC','SUP'];
+
+    // Update turn label
+    document.getElementById('sim-turn-label').innerText = `Turn ${simState.turn} | ${simState.phase.toUpperCase()}`;
+
+    // Gold diff
+    const goldDiff = simState.myGold - simState.cpuGold;
+    const goldColor = goldDiff > 0 ? 'text-emerald-400' : goldDiff < 0 ? 'text-red-400' : 'text-slate-400';
+    const goldSign = goldDiff > 0 ? '+' : '';
+
+    // Tower emoji builder
+    function towerStr(count) {
+        return count > 0 ? '<span class="text-amber-400">' + '&#127984;'.repeat(count) + '</span>' : '<span class="text-slate-600">---</span>';
+    }
+
+    // Structure display for inhibs/nexus
+    function inhibStr(count) {
+        return count > 0 ? '<span class="text-purple-400">' + '&#9823;'.repeat(count) + '</span>' : '<span class="text-slate-600">---</span>';
+    }
+    function nexusStr(count) {
+        return count > 0 ? '<span class="text-red-400">' + '&#10084;&#65039;'.repeat(count) + '</span>' : '<span class="text-slate-600 line-through">DESTROYED</span>';
+    }
+
+    // Objective status
+    function objIcon(val, maxLabel) {
+        return val > 0 ? `<span class="text-emerald-400 font-black">${val}${maxLabel ? '/'+maxLabel : ''}</span>` : '<span class="text-slate-600">0</span>';
+    }
+
+    // Buff indicators
+    const myBuffs = [];
+    if (simState.dragons >= 4) myBuffs.push('<span class="text-orange-400 font-black">Dragon Soul</span>');
+    else if (simState.dragons > 0) myBuffs.push(`<span class="text-blue-400">Dragons: ${simState.dragons}/4</span>`);
+    if (simState.baron > 0) myBuffs.push(`<span class="text-purple-400 font-black">Baron (${simState.baron}t)</span>`);
+    if (simState.grubs > 0) myBuffs.push(`<span class="text-emerald-300">Grubs: ${simState.grubs}</span>`);
+    if (simState.wardBonus > 0) myBuffs.push('<span class="text-cyan-400">Vision</span>');
+
+    const cpuBuffs = [];
+    if (simState.cpuDragons >= 4) cpuBuffs.push('<span class="text-orange-400 font-black">Dragon Soul</span>');
+    else if (simState.cpuDragons > 0) cpuBuffs.push(`<span class="text-red-400">Dragons: ${simState.cpuDragons}/4</span>`);
+    if (simState.cpuBaron > 0) cpuBuffs.push(`<span class="text-purple-400 font-black">Baron (${simState.cpuBaron}t)</span>`);
+    if (simState.cpuGrubs > 0) cpuBuffs.push(`<span class="text-red-300">Grubs: ${simState.cpuGrubs}</span>`);
+
+    // Phase badge color
+    const phaseColors = { early: 'bg-green-900/60 text-green-300 border-green-700/50', mid: 'bg-yellow-900/60 text-yellow-300 border-yellow-700/50', late: 'bg-red-900/60 text-red-300 border-red-700/50' };
+    const phaseClass = phaseColors[simState.phase] || phaseColors.early;
+
+    let html = '';
+
+    // ---- STATUS BAR ----
+    html += `<div class="flex flex-wrap items-center gap-3 mb-4">
+        <span class="px-3 py-1.5 rounded-lg border font-black text-xs uppercase tracking-widest ${phaseClass}">Phase: ${simState.phase}</span>
+        <span class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs text-slate-300">Turn ${simState.turn}</span>
+        <span class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs ${goldColor}">Gold Diff: ${goldSign}${goldDiff}</span>
+        <span class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs text-amber-300">My Gold: ${simState.myGold}</span>
+        <span class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs text-red-300">CPU Gold: ${simState.cpuGold}</span>
+    </div>`;
+
+    // ---- MAP DISPLAY ----
+    html += `<div class="bg-slate-800/80 rounded-2xl border border-violet-700/30 p-5 mb-4 font-mono text-sm">
+        <div class="text-center text-xs font-black text-violet-400 uppercase tracking-widest mb-3">Summoner's Rift Map</div>
+        <div class="grid grid-cols-3 gap-2 text-center mb-3">
+            <div class="text-xs font-black text-blue-400 uppercase">Your Base</div>
+            <div class="text-xs font-black text-slate-500 uppercase">Lane</div>
+            <div class="text-xs font-black text-red-400 uppercase">Enemy Base</div>
+        </div>
+        <div class="space-y-1.5">
+            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/50 py-1.5 px-2 rounded-lg">
+                <div>${towerStr(simState.myTowers.top)}</div>
+                <div class="text-xs font-bold text-slate-400">TOP</div>
+                <div>${towerStr(simState.cpuTowers.top)}</div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/50 py-1.5 px-2 rounded-lg">
+                <div>${towerStr(simState.myTowers.mid)}</div>
+                <div class="text-xs font-bold text-slate-400">MID</div>
+                <div>${towerStr(simState.cpuTowers.mid)}</div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/50 py-1.5 px-2 rounded-lg">
+                <div>${towerStr(simState.myTowers.bot)}</div>
+                <div class="text-xs font-bold text-slate-400">BOT</div>
+                <div>${towerStr(simState.cpuTowers.bot)}</div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/30 py-1.5 px-2 rounded-lg border-t border-slate-700/50">
+                <div>${inhibStr(simState.myTowers.inhib)}</div>
+                <div class="text-xs font-bold text-purple-400">INHIBS</div>
+                <div>${inhibStr(simState.cpuTowers.inhib)}</div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/30 py-1.5 px-2 rounded-lg">
+                <div>${nexusStr(simState.myTowers.nexus)}</div>
+                <div class="text-xs font-bold text-red-400">NEXUS</div>
+                <div>${nexusStr(simState.cpuTowers.nexus)}</div>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-3 text-xs">
+            <div class="bg-blue-950/40 p-2 rounded-lg border border-blue-800/30">
+                <div class="font-black text-blue-400 mb-1 uppercase tracking-wide text-[10px]">Your Buffs</div>
+                ${myBuffs.length ? myBuffs.join(' | ') : '<span class="text-slate-600">None</span>'}
+            </div>
+            <div class="bg-red-950/40 p-2 rounded-lg border border-red-800/30">
+                <div class="font-black text-red-400 mb-1 uppercase tracking-wide text-[10px]">Enemy Buffs</div>
+                ${cpuBuffs.length ? cpuBuffs.join(' | ') : '<span class="text-slate-600">None</span>'}
+            </div>
+        </div>
+    </div>`;
+
+    // ---- ACTION ASSIGNMENT ----
+    if (simState.actionPhase) {
+        html += `<div class="bg-slate-800/80 rounded-2xl border border-violet-700/30 p-5 mb-4">
+            <div class="text-xs font-black text-violet-400 uppercase tracking-widest mb-3">Assign Actions</div>
+            <div class="space-y-3">`;
+
+        roles.forEach(r => {
+            const card = squad[r];
+            const name = card ? card.name : '???';
+            const rating = card ? card.rating : 0;
+            const actions = _simGetAvailableActions(r);
+            const current = simState.assignments[r] || '';
+            const roleColors = { TOP: 'text-amber-400', JNG: 'text-green-400', MID: 'text-blue-400', ADC: 'text-red-400', SUP: 'text-teal-400' };
+
+            html += `<div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-xl">
+                <div class="w-16 text-center">
+                    <div class="text-xs font-black ${roleColors[r] || 'text-slate-300'} uppercase">${r}</div>
+                    <div class="text-[10px] text-slate-500">${rating} OVR</div>
+                </div>
+                <div class="flex-1">
+                    <div class="text-sm font-bold text-slate-200 mb-1">${name}</div>
+                    <select onchange="simState.assignments['${r}']=this.value" class="w-full bg-slate-800 text-slate-200 px-3 py-2 rounded-lg border border-slate-600 text-xs font-mono focus:outline-none focus:border-violet-500">
+                        <option value="">-- Select Action --</option>
+                        ${actions.map(a => `<option value="${a.id}" ${current === a.id ? 'selected' : ''}>${a.label} (${a.short}) — ${a.desc}</option>`).join('')}
+                    </select>
+                </div>
+            </div>`;
+        });
+
+        html += `</div>
+            <div class="mt-4 text-center">
+                <button onclick="executeSimTurn()" class="bg-violet-600 hover:bg-violet-500 text-white px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.5)] transition">Execute Turn</button>
+            </div>
+        </div>`;
+    }
+
+    // ---- BATTLE LOG ----
+    html += `<div class="bg-slate-800/80 rounded-2xl border border-slate-700/30 p-4">
+        <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Battle Log</div>
+        <div class="max-h-64 overflow-y-auto space-y-1 text-xs font-mono" id="sim-log">`;
+
+    // Show log in reverse (newest first)
+    for (let i = simState.log.length - 1; i >= 0; i--) {
+        const entry = simState.log[i];
+        const colorClass = entry.type === 'player' ? 'text-blue-300' : entry.type === 'cpu' ? 'text-red-300' : entry.type === 'phase' ? 'text-yellow-300 font-black' : entry.type === 'end' ? 'text-emerald-300 font-black text-base' : 'text-slate-400';
+        html += `<div class="py-0.5 ${colorClass}"><span class="text-slate-600 mr-2">T${entry.turn}:</span>${entry.msg}</div>`;
+    }
+
+    if (simState.log.length === 0) {
+        html += '<div class="text-slate-600 italic">No actions yet. Assign actions and execute your first turn.</div>';
+    }
+
+    html += `</div></div>`;
+
+    container.innerHTML = html;
+}
+
+function executeSimTurn() {
+    if (!simState || !simState.actionPhase) return;
+
+    const roles = ['TOP','JNG','MID','ADC','SUP'];
+    const unassigned = roles.filter(r => !simState.assignments[r]);
+    if (unassigned.length > 0) {
+        showToast(`Assign actions to all roles! Missing: ${unassigned.join(', ')}`, 'error');
+        return;
+    }
+
+    simState.actionPhase = false;
+    const turn = simState.turn;
+
+    // ---- Validate multi-role actions ----
+    const actionCounts = {};
+    roles.forEach(r => {
+        const a = simState.assignments[r];
+        actionCounts[a] = (actionCounts[a] || 0) + 1;
+    });
+
+    // Check multi-role requirements
+    for (const [actionId, count] of Object.entries(actionCounts)) {
+        const act = _SIM_ACTIONS[actionId];
+        if (act && act.multiRole && count < act.multiRole) {
+            showToast(`${act.label} requires at least ${act.multiRole} roles assigned! Only ${count} assigned.`, 'error');
+            simState.actionPhase = true;
+            return;
+        }
+    }
+
+    // ---- Resolve player actions ----
+    let totalGold = 0;
+    roles.forEach(r => {
+        const action = simState.assignments[r];
+        const result = _simResolveAction(r, action);
+
+        totalGold += result.gold;
+
+        // Apply tower damage
+        if (result.towerDmg > 0) {
+            _simApplyTowerDamage('cpu', result.towerDmg, result.lane);
+        }
+
+        simState.log.push({ turn, msg: result.msg, type: result.success ? 'player' : 'cpu' });
+    });
+
+    simState.myGold += totalGold;
+
+    // ---- CPU turn ----
+    const cpuResults = _simCpuTurn();
+    cpuResults.forEach(msg => {
+        simState.log.push({ turn, msg, type: 'cpu' });
+    });
+
+    // ---- Decay buffs ----
+    if (simState.baron > 0) simState.baron--;
+    if (simState.cpuBaron > 0) simState.cpuBaron--;
+    if (simState.wardBonus > 0) simState.wardBonus--;
+    if (simState.cpuWardBonus > 0) simState.cpuWardBonus--;
+
+    // ---- Check game end ----
+    const endResult = _simCheckGameEnd();
+    if (endResult) {
+        _simEndGame(endResult);
+        return;
+    }
+
+    // ---- Advance turn ----
+    simState.turn++;
+    const newPhase = simState.turn <= 8 ? 'early' : simState.turn <= 16 ? 'mid' : 'late';
+    if (newPhase !== simState.phase) {
+        simState.log.push({ turn: simState.turn, msg: `=== Phase transition: ${simState.phase.toUpperCase()} -> ${newPhase.toUpperCase()} ===`, type: 'phase' });
+        simState.phase = newPhase;
+    }
+
+    // Reset for next turn
+    simState.assignments = {};
+    simState.actionPhase = true;
+
+    renderSimulation();
+}
+
+function _simEndGame(result) {
+    const isWin = result === 'win';
+    const beReward = isWin ? 1500 : 500;
+    const xpReward = isWin ? 200 : 50;
+
+    blueEssence += beReward;
+    addXP(xpReward);
+    trackStats.simGames = (trackStats.simGames || 0) + 1;
+    if (isWin) trackStats.simWins = (trackStats.simWins || 0) + 1;
+
+    simState.log.push({
+        turn: simState.turn,
+        msg: isWin
+            ? `VICTORY! Enemy nexus destroyed in ${simState.turn} turns! +${beReward} BE, +${xpReward} XP`
+            : `DEFEAT! Your nexus has fallen after ${simState.turn} turns. +${beReward} BE, +${xpReward} XP`,
+        type: 'end'
+    });
+
+    simState.actionPhase = false;
+    saveGame();
+    updateDisplays();
+    renderSimulation();
+
+    // Show result overlay
+    const container = document.getElementById('sim-content');
+    const overlayColor = isWin ? 'from-emerald-900/90 to-blue-900/90 border-emerald-500/50' : 'from-red-900/90 to-slate-900/90 border-red-500/50';
+    const overlay = document.createElement('div');
+    overlay.className = `mt-4 bg-gradient-to-br ${overlayColor} p-8 rounded-2xl border text-center shadow-2xl`;
+    overlay.innerHTML = `
+        <div class="text-6xl mb-4">${isWin ? '🏆' : '💀'}</div>
+        <h2 class="text-3xl font-black ${isWin ? 'text-emerald-300' : 'text-red-300'} uppercase tracking-widest mb-2">${isWin ? 'VICTORY' : 'DEFEAT'}</h2>
+        <p class="text-slate-300 mb-1">Turns: ${simState.turn} | Phase: ${simState.phase.toUpperCase()}</p>
+        <p class="text-slate-300 mb-1">Gold earned: ${simState.myGold} | Gold diff: ${simState.myGold - simState.cpuGold > 0 ? '+' : ''}${simState.myGold - simState.cpuGold}</p>
+        <p class="text-slate-300 mb-4">Dragons: ${simState.dragons} | Grubs: ${simState.grubs}</p>
+        <div class="flex justify-center gap-4 text-sm">
+            <span class="bg-black/40 px-4 py-2 rounded-lg border border-blue-700/50 text-blue-300 font-bold">+${beReward} BE</span>
+            <span class="bg-black/40 px-4 py-2 rounded-lg border border-yellow-700/50 text-yellow-300 font-bold">+${xpReward} XP</span>
+        </div>
+        <button onclick="document.getElementById('sim-screen').classList.add('hidden');document.getElementById('tournament-lobby').classList.remove('hidden');simState=null;" class="mt-6 bg-violet-600 hover:bg-violet-500 text-white px-8 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-lg transition">Return to Play Hub</button>
+    `;
+    container.appendChild(overlay);
+
+    showToast(isWin ? 'Victory! Nexus destroyed!' : 'Defeat! Your nexus has fallen.', isWin ? 'success' : 'error');
+}
 const TIER_COLORS = { Silver: 'text-slate-300', Gold: 'text-amber-400', Platinum: 'text-emerald-400', Diamond: 'text-blue-400', Master: 'text-purple-400', Grandmaster: 'text-red-400', Challenger: 'text-yellow-300' };
 
 function renderUpgradeLab() {

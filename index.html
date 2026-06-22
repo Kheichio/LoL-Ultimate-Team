@@ -1216,6 +1216,28 @@
                 </div>
 
                 <!-- Infinite Tower moved into the 4-mode grid above -->
+
+                <!-- Summoner's Rift Simulation -->
+                <div class="mt-8 bg-gradient-to-br from-violet-950 via-slate-900 to-blue-950 p-6 rounded-2xl border border-violet-700/50 text-center shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 opacity-10 text-[120px]">⚔️</div>
+                    <h3 class="text-2xl font-black text-violet-300 mb-1 drop-shadow-lg tracking-widest uppercase">Summoner's Rift</h3>
+                    <p class="text-slate-300 text-sm max-w-2xl mx-auto mb-3">Turn-based tactical simulation of a full League match. Assign your players to lanes, contest objectives, and destroy the enemy nexus.</p>
+                    <div class="flex justify-center items-center gap-4 mb-4 text-xs font-mono">
+                        <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-violet-800/60 text-violet-200">Free Entry</span>
+                        <span class="bg-black/30 px-3 py-1.5 rounded-lg border border-emerald-800/60 text-emerald-300">Win: 1,500 BE</span>
+                    </div>
+                    <button onclick="startSimulation()" class="bg-violet-600 hover:bg-violet-500 text-white px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.5)]">Enter the Rift</button>
+                </div>
+            </div>
+
+            <!-- SUMMONER'S RIFT SIMULATION SCREEN -->
+            <div id="sim-screen" class="hidden space-y-4">
+                <div class="flex items-center gap-4 mb-2">
+                    <button onclick="closeSimulation()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg font-bold text-sm cursor-pointer transition uppercase tracking-wide">← Forfeit</button>
+                    <h3 class="text-xl font-black text-violet-300 uppercase tracking-widest">Summoner's Rift</h3>
+                    <span class="ml-auto font-mono text-sm text-violet-400 font-black" id="sim-turn-label">Turn 1</span>
+                </div>
+                <div id="sim-content"></div>
             </div>
 
             <!-- SALARY CAP COMBAT SCREEN -->
