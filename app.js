@@ -1561,20 +1561,33 @@ function isClubFull() { return club.length >= getClubCapacity(); }
 // === SEASONAL EVENT SYSTEM ===
 let eventData = JSON.parse(localStorage.getItem('lol_event_v1') || 'null');
 
+// Global event schedule — all players share the same window based on UTC day
+function _getGlobalEventWindow() {
+    const now = new Date();
+    const todayMidnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0);
+    const tomorrowMidnight = todayMidnight + 86400000;
+    return { start: todayMidnight, end: tomorrowMidnight };
+}
+
 function getActiveEvent() {
+    const window = _getGlobalEventWindow();
+    // If stored event doesn't match today's window, reset it
+    if (eventData && eventData.endsAt !== window.end) {
+        eventData.endsAt = window.end;
+        eventData.pullsSinceDrop = 0;
+        localStorage.setItem('lol_event_v1', JSON.stringify(eventData));
+    }
     if (!eventData) return null;
     if (Date.now() > eventData.endsAt) return null;
     return eventData;
 }
 
 function startFirstStand2026Event() {
-    // Global synchronized timer — event ends at next midnight UTC for ALL players
-    const now = new Date();
-    const nextMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+    const window = _getGlobalEventWindow();
     eventData = {
         name: 'First Stand 2026 Drop Rate Up',
         type: 'firststand2026',
-        endsAt: nextMidnight.getTime(),
+        endsAt: window.end,
         pullsSinceDrop: 0,
         pityThreshold: 60,
         active: true
