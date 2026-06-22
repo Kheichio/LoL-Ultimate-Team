@@ -5469,19 +5469,26 @@ function renderFriendsList() {
 function challengeFriend(uid) {
     if (!currentUser) { showToast('Sign in first.', 'error'); return; }
     if (['TOP','JNG','MID','ADC','SUP'].some(r => !squad[r])) { showToast('Fill all 5 squad positions first.', 'error'); return; }
-    // Load friend's saved squad from their cloud save
     fbDb.collection('saves').doc(uid).get().then(doc => {
         if (!doc.exists) { showToast("This player hasn't saved to the cloud yet.", 'error'); return; }
         const saveData = doc.data();
         const friendSquad = saveData['lol_squad_v7_pro'] ? JSON.parse(saveData['lol_squad_v7_pro']) : null;
         if (!friendSquad || !friendSquad.TOP) { showToast("This player doesn't have a squad set up.", 'error'); return; }
-        // Set up a salary-cap-style combat using the friend's squad as CPU
-        draftPickRoles = { ...squad };
-        draftCpuTeam = { ...friendSquad };
-        _salaryCapReward = 0; // No reward for friend battles
+
+        // Copy current squad into draft roles, friend's squad as CPU
+        draftPickRoles = {};
+        ['TOP','JNG','MID','ADC','SUP','COACH'].forEach(r => { if (squad[r]) draftPickRoles[r] = { ...squad[r] }; });
+        draftCpuTeam = {};
+        ['TOP','JNG','MID','ADC','SUP','COACH'].forEach(r => { if (friendSquad[r]) draftCpuTeam[r] = { ...friendSquad[r] }; });
+
+        _salaryCapReward = 0;
         draftModeActive = true;
         window._salaryCapMode = false;
+
+        // Switch to tournament tab and show combat screen
+        switchTab('tournament');
+        document.getElementById('tournament-lobby').classList.add('hidden');
         _scStartCombat();
         showToast('Friend challenge started!', 'success');
-    }).catch(err => showToast('Failed to load friend data.', 'error'));
+    }).catch(err => showToast('Failed to load friend data: ' + err.message, 'error'));
 }
