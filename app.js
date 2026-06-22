@@ -5160,7 +5160,19 @@ const _SIM_CPU_NAMES = [
 function _simGetAvailableActions(role) {
     if (!simState) return [];
     return Object.entries(_SIM_ACTIONS)
-        .filter(([, a]) => a.phases.includes(simState.phase) && a.roles.includes(role))
+        .filter(([id, a]) => {
+            if (!a.phases.includes(simState.phase)) return false;
+            if (!a.roles.includes(role)) return false;
+            // Objective gating: logical progression
+            if (id === 'herald' && simState.grubs === 0) return false; // must take grubs before herald
+            if (id === 'baron' && simState.herald === 0) return false; // must take herald before baron
+            if (id === 'elder' && simState.dragons < 2) return false; // need 2+ dragons for elder
+            if (id === 'dragon' && simState.dragons >= 4) return false; // already have soul
+            if (id === 'grubs' && simState.grubs >= 6) return false; // all grubs taken
+            if (id === 'siege' && simState.cpuTowers.top + simState.cpuTowers.mid + simState.cpuTowers.bot > 6) return false; // need some towers down first
+            if (id === 'backdoor' && simState.cpuTowers.inhib > 1) return false; // need most inhibs down
+            return true;
+        })
         .map(([id, a]) => ({ id, ...a }));
 }
 
@@ -5456,11 +5468,15 @@ function _simCpuTurn() {
 
     roles.forEach(role => {
         let action = pickWeighted();
-        // Validate the action is allowed for this role
         const act = _SIM_ACTIONS[action];
-        if (!act || !act.roles.includes(role) || !act.phases.includes(phase)) {
-            action = 'farm'; // fallback
-        }
+        // Validate action is allowed for role/phase + objective gating
+        const invalid = !act || !act.roles.includes(role) || !act.phases.includes(phase)
+            || (action === 'herald' && simState.cpuGrubs === 0)
+            || (action === 'baron' && simState.cpuHerald === 0)
+            || (action === 'elder' && simState.cpuDragons < 2)
+            || (action === 'dragon' && simState.cpuDragons >= 4)
+            || (action === 'grubs' && simState.cpuGrubs >= 6);
+        if (invalid) action = 'farm';
         cpuActions[role] = action;
     });
 
@@ -5472,7 +5488,9 @@ function _simCpuTurn() {
         const act = _SIM_ACTIONS[action];
         const statKeys = act ? act.stats : ['frm'];
 
-        let cpuStatVal = simState.cpuRating + (Math.random() * 20) - 10;
+        const cpuCard = simState.cpuTeam[role];
+        let cpuStatVal = cpuCard ? _simAvgStat(cpuCard, statKeys) : simState.cpuRating;
+        cpuStatVal += (Math.random() * 20) - 10;
         cpuStatVal += _simGoldBonus('cpu') + _simBuffBonus('cpu') + _simBigGoldBonus('cpu');
 
         // CPU defense against player is already handled in player resolution
@@ -5590,14 +5608,16 @@ function startSimulation() {
     // CPU rating based on player avg ± 3
     const cpuRating = Math.round(avgRating + (Math.random() * 6 - 3));
 
-    // Generate CPU team names
+    // Generate CPU team from real database cards
+    const db = getDB();
     const cpuTeam = {};
-    const usedNames = new Set();
+    const usedIds = new Set();
     roles.forEach(r => {
-        let name;
-        do { name = _SIM_CPU_NAMES[Math.floor(Math.random() * _SIM_CPU_NAMES.length)]; } while (usedNames.has(name));
-        usedNames.add(name);
-        cpuTeam[r] = name;
+        const pool = db ? db.filter(p => p.role === r && !usedIds.has(p.id)) : [];
+        const sorted = pool.sort((a, b) => Math.abs(a.rating - cpuRating) - Math.abs(b.rating - cpuRating));
+        const pick = sorted.slice(0, 5)[Math.floor(Math.random() * Math.min(5, sorted.length))];
+        if (pick) { cpuTeam[r] = { ...pick }; usedIds.add(pick.id); }
+        else { cpuTeam[r] = { name: _SIM_CPU_NAMES[Math.floor(Math.random() * _SIM_CPU_NAMES.length)], rating: cpuRating, stats: { mec: cpuRating, tmf: cpuRating, frm: cpuRating, cmp: cpuRating, map: cpuRating, ldr: cpuRating } }; }
     });
 
     simState = {
@@ -5694,6 +5714,46 @@ function renderSimulation() {
         <span class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs text-red-300">CPU Gold: ${simState.cpuGold}</span>
     </div>`;
 
+    // ---- TEAM ROSTERS ----
+    html += `<div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="bg-blue-950/30 rounded-2xl border border-blue-700/30 p-4">
+            <div class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Your Team</div>
+            <div class="space-y-1.5">
+                ${roles.map(r => {
+                    const c = squad[r];
+                    if (!c) return '';
+                    return `<div class="flex items-center gap-2 bg-slate-900/50 p-2 rounded-lg">
+                        <span class="text-[10px] font-black w-7 ${({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r]}">${r}</span>
+                        <span class="text-slate-200 font-bold text-xs flex-1 truncate">${c.name}</span>
+                        <span class="text-[9px] font-mono text-slate-500">${c.rating}</span>
+                        <span class="text-[9px] font-mono text-cyan-400">M${c.stats.mec}</span>
+                        <span class="text-[9px] font-mono text-purple-400">T${c.stats.tmf}</span>
+                        <span class="text-[9px] font-mono text-green-400">F${c.stats.frm}</span>
+                        <span class="text-[9px] font-mono text-emerald-400">P${c.stats.map}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>
+        <div class="bg-red-950/30 rounded-2xl border border-red-700/30 p-4">
+            <div class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Enemy Team (Avg ${simState.cpuRating})</div>
+            <div class="space-y-1.5">
+                ${roles.map(r => {
+                    const c = simState.cpuTeam[r];
+                    if (!c) return '';
+                    return `<div class="flex items-center gap-2 bg-slate-900/50 p-2 rounded-lg">
+                        <span class="text-[10px] font-black w-7 ${({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r]}">${r}</span>
+                        <span class="text-slate-200 font-bold text-xs flex-1 truncate">${c.name}</span>
+                        <span class="text-[9px] font-mono text-slate-500">${c.rating}</span>
+                        <span class="text-[9px] font-mono text-cyan-400">M${c.stats.mec}</span>
+                        <span class="text-[9px] font-mono text-purple-400">T${c.stats.tmf}</span>
+                        <span class="text-[9px] font-mono text-green-400">F${c.stats.frm}</span>
+                        <span class="text-[9px] font-mono text-emerald-400">P${c.stats.map}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>
+    </div>`;
+
     // ---- MAP DISPLAY ----
     html += `<div class="bg-slate-800/80 rounded-2xl border border-violet-700/30 p-5 mb-4 font-mono text-sm">
         <div class="text-center text-xs font-black text-violet-400 uppercase tracking-widest mb-3">Summoner's Rift Map</div>
@@ -5764,7 +5824,12 @@ function renderSimulation() {
                     <div class="text-sm font-bold text-slate-200 mb-1">${name}</div>
                     <select onchange="simState.assignments['${r}']=this.value" class="w-full bg-slate-800 text-slate-200 px-3 py-2 rounded-lg border border-slate-600 text-xs font-mono focus:outline-none focus:border-violet-500">
                         <option value="">-- Select Action --</option>
-                        ${actions.map(a => `<option value="${a.id}" ${current === a.id ? 'selected' : ''}>${a.label} (${a.short}) — ${a.desc}</option>`).join('')}
+                        ${actions.map(a => {
+                            const statNames = a.stats.map(s => s.toUpperCase()).join('+');
+                            const myVal = squad[r] ? _simAvgStat(squad[r], a.stats) : 0;
+                            const multi = a.multiRole ? ` [${a.multiRole}+ roles]` : '';
+                            return `<option value="${a.id}" ${current === a.id ? 'selected' : ''}>${a.label} — ${statNames} (${myVal})${multi}</option>`;
+                        }).join('')}
                     </select>
                 </div>
             </div>`;
