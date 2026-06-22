@@ -517,7 +517,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_8', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_8c', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -693,7 +693,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_8';
+    const patchKey = 'lol_patch_seen_v0_5_8c';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -859,16 +859,48 @@ function updateBadges() {
     if (collBadge && archiveDb) {
         const totalUnseen = ['regular','firststand','msi','finalists','champion','mvp']
             .reduce((sum, cat) => sum + _archiveNewCount(archiveDb, cat, null), 0);
-        if (totalUnseen > 0) {
+        const unclaimedCompletions = _countUnclaimedCompletions(archiveDb);
+        const totalNotifs = totalUnseen + unclaimedCompletions;
+        if (totalNotifs > 0) {
             collBadge.classList.remove('hidden');
             const countEl = document.getElementById('badge-collection-count');
-            if (countEl) countEl.innerText = totalUnseen > 99 ? '99+' : totalUnseen;
+            if (countEl) countEl.innerText = totalNotifs > 99 ? '99+' : totalNotifs;
         } else {
             collBadge.classList.add('hidden');
         }
     } else if (collBadge) {
         collBadge.classList.add('hidden');
     }
+}
+
+function _countUnclaimedCompletions(db) {
+    if (!db) return 0;
+    let count = 0;
+    const categories = ['regular','firststand','msi','finalists','champion','mvp'];
+    const SPECIAL_Q = ['Champion','MVP','Finalist','MSI','FirstStand'];
+    const qualMap = { firststand:'FirstStand', msi:'MSI', finalists:'Finalist', champion:'Champion', mvp:'MVP' };
+    categories.forEach(cat => {
+        let catCards;
+        if (cat === 'regular') {
+            const regions = [...new Set(db.filter(c => !SPECIAL_Q.includes(c.quality)).map(c => c.region))];
+            regions.forEach(region => {
+                catCards = db.filter(c => c.region === region && !SPECIAL_Q.includes(c.quality));
+                const grouped = {};
+                catCards.forEach(c => { const t = window.teamLineageBridges[c.team] || c.team; if (!grouped[t]) grouped[t] = { total: 0, owned: 0 }; grouped[t].total++; if (collectionRegistry[c.id]) grouped[t].owned++; });
+                Object.entries(grouped).forEach(([team, g]) => {
+                    if (g.total >= 4 && g.owned === g.total && !teamCompletionRewards[`${cat}_${team}`]?.claimed) count++;
+                });
+            });
+        } else {
+            catCards = db.filter(c => c.quality === qualMap[cat]);
+            const grouped = {};
+            catCards.forEach(c => { const t = window.teamLineageBridges[c.team] || c.team; if (!grouped[t]) grouped[t] = { total: 0, owned: 0 }; grouped[t].total++; if (collectionRegistry[c.id]) grouped[t].owned++; });
+            Object.entries(grouped).forEach(([team, g]) => {
+                if (g.total >= 4 && g.owned === g.total && !teamCompletionRewards[`${cat}_${team}`]?.claimed) count++;
+            });
+        }
+    });
+    return count;
 }
 
 // Dev console — type the secret phrase in the browser console to unlock: devUnlock('your-phrase-here')
@@ -1264,6 +1296,14 @@ function renderCollection() {
     });
 
     let dbCards = _getArchiveCards(db);
+
+    // Search filter
+    const searchEl = document.getElementById('archive-search');
+    const searchQ = searchEl ? searchEl.value.toLowerCase().trim() : '';
+    if (searchQ) {
+        dbCards = dbCards.filter(c => c.name.toLowerCase().includes(searchQ) || c.team.toLowerCase().includes(searchQ) || (window.teamLineageBridges[c.team] || '').toLowerCase().includes(searchQ));
+    }
+
     let claimableBE = 0;
     dbCards.forEach(c => { let rec = collectionRegistry[c.id]; if (rec && !rec.claimed) claimableBE += (collectionRewards[c.quality] || 10); });
     let claimBtn = document.getElementById("btn-claim-collection");
@@ -1339,14 +1379,15 @@ function renderCollection() {
         header.appendChild(countEl);
         section.appendChild(header);
 
-        // Roster completion bonus (all-year view only)
+        // Roster completion bonus (all-year view only) — keyed per category so regular/legacy are independent
         if (!selectedYear && group.owned === group.total && group.total >= 4) {
-            let alreadyClaimed = teamCompletionRewards[group.team]?.claimed;
+            const rewardKey = `${currentArchiveCategory}_${group.team}`;
+            let alreadyClaimed = teamCompletionRewards[rewardKey]?.claimed;
             let bonusBtn = document.createElement("button");
-            bonusBtn.className = alreadyClaimed ? "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-slate-700 text-slate-500 border border-slate-600 cursor-not-allowed" : "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-600/40 transition cursor-pointer";
+            bonusBtn.className = alreadyClaimed ? "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-slate-700 text-slate-500 border border-slate-600 cursor-not-allowed" : "w-full mb-3 py-1.5 px-3 rounded-lg text-xs font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-600/40 transition cursor-pointer animate-pulse";
             bonusBtn.textContent = alreadyClaimed ? "Roster Bonus Claimed" : "Claim Roster Bonus +5000 BE";
             bonusBtn.disabled = alreadyClaimed;
-            if (!alreadyClaimed) bonusBtn.onclick = () => claimTeamCompletion(group.team);
+            if (!alreadyClaimed) bonusBtn.onclick = () => claimTeamCompletion(rewardKey);
             section.appendChild(bonusBtn);
         }
 
