@@ -5137,17 +5137,17 @@ const ROLE_ICONS = { TOP: 'icons/Top_icon.png', JNG: 'icons/Jungle_icon.png', MI
 const _SIM_ACTIONS = {
     farm:       { label: 'Farm Lane',       short: 'FRM',  stats: ['frm'],            phases: ['early','mid','late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'CS safely for gold' },
     gank:       { label: 'Gank',            short: 'GNK',  stats: ['mec','map'],      phases: ['early','mid','late'], roles: ['JNG','MID','SUP'], desc: 'Gank an enemy lane' },
-    grubs:      { label: 'Void Grubs',      short: 'GRB',  stats: ['map'],            phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Contest Void Grubs — laners can assist', multiRole: 1 },
-    herald:     { label: 'Rift Herald',     short: 'HLD',  stats: ['tmf','map'],      phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Contest Herald (need grubs first)', multiRole: 2 },
-    ward:       { label: 'Ward / Vision',   short: 'VIS',  stats: ['map'],            phases: ['early','mid','late'], roles: ['SUP','JNG'], desc: 'Place deep wards for info advantage' },
-    dragon:     { label: 'Take Dragon',     short: 'DRG',  stats: ['tmf','map'],      phases: ['mid','late'],         roles: ['JNG','TOP','MID','ADC','SUP'], desc: 'Team dragon — laners can assist', multiRole: 2 },
-    teamfight:  { label: 'Teamfight',       short: 'TF5',  stats: ['tmf','mec','ldr'],phases: ['mid','late'],         roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'All-in 5v5 team fight', multiRole: 3 },
+    grubs:      { label: 'Void Grubs',      short: 'GRB',  stats: ['map'],            phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Take 3 Void Grubs (+5 siege)', multiRole: 1 },
+    herald:     { label: 'Rift Herald',     short: 'HLD',  stats: ['tmf','map'],      phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Take Herald — charges a tower (+3 siege)', multiRole: 2 },
+    ward:       { label: 'Ward / Vision',   short: 'VIS',  stats: ['map'],            phases: ['early','mid','late'], roles: ['SUP','JNG'], desc: '+5 all checks next turn' },
+    dragon:     { label: 'Take Dragon',     short: 'DRG',  stats: ['tmf','map'],      phases: ['early','mid','late'], roles: ['JNG','TOP','MID','ADC','SUP'], desc: 'Stack drakes — 5 = Dragon Soul', multiRole: 2 },
+    teamfight:  { label: 'Teamfight',       short: 'TF5',  stats: ['tmf','mec','ldr'],phases: ['mid','late'],         roles: ['TOP','JNG','MID','ADC','SUP'], desc: '5v5 brawl — big gold swing', multiRole: 3 },
     rotate:     { label: 'Rotate',          short: 'ROT',  stats: ['cmp','map'],      phases: ['mid','late'],         roles: ['TOP','MID','SUP','JNG'], desc: 'Rotate to pressure a lane' },
-    splitpush:  { label: 'Split Push',      short: 'SPL',  stats: ['mec','frm'],      phases: ['mid','late'],         roles: ['TOP','MID','ADC'], desc: 'Solo pressure a side lane' },
-    baron:      { label: 'Take Baron',      short: 'BAR',  stats: ['tmf','map','ldr'],phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Team Baron (need herald first)', multiRole: 3 },
-    elder:      { label: 'Elder Dragon',    short: 'ELD',  stats: ['tmf','map'],      phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Team Elder (need 2+ drakes)', multiRole: 3 },
-    siege:      { label: 'Siege',           short: 'SGE',  stats: ['tmf','mec','map','frm','cmp','ldr'], phases: ['late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Group as 5 to push towers', multiRole: 4 },
-    backdoor:   { label: 'Backdoor',        short: 'BD',   stats: ['mec'],            phases: ['late'],               roles: ['TOP','MID','ADC'], desc: 'Risky solo nexus rush (need inhibs down)' }
+    splitpush:  { label: 'Split Push',      short: 'SPL',  stats: ['mec','frm'],      phases: ['mid','late'],         roles: ['TOP','MID','ADC'], desc: 'Solo side lane pressure' },
+    baron:      { label: 'Take Baron',      short: 'BAR',  stats: ['tmf','map','ldr'],phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Baron buff — +15 siege for 3 turns', multiRole: 3 },
+    elder:      { label: 'Elder Dragon',    short: 'ELD',  stats: ['tmf','map','ldr'],phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Elder buff — +20 to all fights', multiRole: 3 },
+    siege:      { label: 'Siege',           short: 'SGE',  stats: ['tmf','mec','map','frm','cmp','ldr'], phases: ['mid','late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Group push — destroy structures', multiRole: 3 },
+    backdoor:   { label: 'Backdoor',        short: 'BD',   stats: ['mec'],            phases: ['late'],               roles: ['TOP','MID','ADC'], desc: 'Solo nexus rush (need inhib down)' }
 };
 
 const _SIM_CPU_NAMES = [
@@ -5162,14 +5162,15 @@ function _simGetAvailableActions(role) {
         .filter(([id, a]) => {
             if (!a.phases.includes(simState.phase)) return false;
             if (!a.roles.includes(role)) return false;
-            // Objective gating: logical progression
-            if (id === 'herald' && simState.grubs === 0) return false; // must take grubs before herald
-            if (id === 'baron' && simState.herald === 0) return false; // must take herald before baron
-            if (id === 'elder' && simState.dragons < 2) return false; // need 2+ dragons for elder
-            if (id === 'dragon' && simState.dragons >= 4) return false; // already have soul
-            if (id === 'grubs' && simState.grubs >= 6) return false; // all grubs taken
-            if (id === 'siege' && simState.cpuTowers.top + simState.cpuTowers.mid + simState.cpuTowers.bot > 6) return false; // need some towers down first
-            if (id === 'backdoor' && simState.cpuTowers.inhib > 1) return false; // need most inhibs down
+            // Objective gating
+            if (id === 'grubs' && simState.grubs >= 3) return false; // 3 grubs total, one-time
+            if (id === 'herald' && simState.grubs < 3) return false; // grubs must be taken first
+            if (id === 'herald' && simState.herald >= 1) return false; // herald is one-time
+            if (id === 'baron' && simState.herald < 1) return false; // herald before baron
+            if (id === 'dragon' && simState.dragons >= 5) return false; // 5 = soul, no more drakes
+            if (id === 'elder' && simState.dragons < 5 && simState.cpuDragons < 5) return false; // elder only after a team gets soul
+            if (id === 'siege' && simState.cpuTowers.top + simState.cpuTowers.mid + simState.cpuTowers.bot > 7) return false; // need some towers down
+            if (id === 'backdoor' && simState.cpuTowers.inhib > 2) return false; // need at least 1 inhib down
             return true;
         })
         .map(([id, a]) => ({ id, ...a }));
@@ -5200,9 +5201,13 @@ function _simBuffBonus(side) {
     const drg = side === 'my' ? simState.dragons : simState.cpuDragons;
     const grb = side === 'my' ? simState.grubs : simState.cpuGrubs;
     const baron = side === 'my' ? simState.baron : simState.cpuBaron;
-    b += drg >= 4 ? 8 : drg * 3;
-    if (grb > 0) b += 5;
-    if (baron > 0) b += 15;
+    const herald = side === 'my' ? simState.herald : simState.cpuHerald;
+    const elder = side === 'my' ? simState.elderBuff : simState.cpuElderBuff;
+    b += drg >= 5 ? 10 : drg * 2; // soul = +10, each drake = +2
+    if (grb >= 3) b += 5; // grubs buff to siege/push
+    if (herald > 0) b += 3; // herald taken gives small persistent siege buff
+    if (baron > 0) b += 15; // baron = big siege
+    if (elder > 0) b += 20; // elder = massive fight buff
     return b;
 }
 
@@ -5255,12 +5260,12 @@ function _simResolveAction(role, action) {
             break;
         case 'grubs':
             if (success) {
-                simState.grubs = Math.min(simState.grubs + 1, 6);
+                simState.grubs = 3;
                 gold = 150;
-                msg = `✅ ${cardName} secured Void Grubs (${simState.grubs}/6) — ${vsStr}`;
+                msg = `✅ ${cardName} secured all 3 Void Grubs! +5 siege buff — ${vsStr}`;
             } else {
-                simState.cpuGrubs = Math.min(simState.cpuGrubs + 1, 6);
-                msg = `❌ ${cpuName} stole Grubs — ${vsStr}`;
+                simState.cpuGrubs = 3;
+                msg = `❌ ${cpuName} took Void Grubs — ${vsStr}`;
             }
             break;
         case 'herald':
@@ -5284,12 +5289,12 @@ function _simResolveAction(role, action) {
             if (success) {
                 simState.dragons++;
                 gold = 250;
-                const soulMsg = simState.dragons >= 4 ? ' 🐉 DRAGON SOUL!' : '';
-                msg = `✅ Dragon secured (${simState.dragons}/4)! — ${vsStr}${soulMsg}`;
+                const soulMsg = simState.dragons >= 5 ? ' 🐉 DRAGON SOUL! Elder spawns next!' : '';
+                msg = `✅ Dragon secured (${simState.dragons}/5)! — ${vsStr}${soulMsg}`;
             } else {
                 simState.cpuDragons++;
-                const cpuSoul = simState.cpuDragons >= 4 ? ' 🐉 CPU DRAGON SOUL!' : '';
-                msg = `❌ Enemy took Dragon (${simState.cpuDragons}/4) — ${vsStr}${cpuSoul}`;
+                const cpuSoul = simState.cpuDragons >= 5 ? ' 🐉 CPU DRAGON SOUL!' : '';
+                msg = `❌ Enemy took Dragon (${simState.cpuDragons}/5) — ${vsStr}${cpuSoul}`;
             }
             break;
         case 'teamfight':
@@ -5336,12 +5341,12 @@ function _simResolveAction(role, action) {
             break;
         case 'elder':
             if (success) {
-                simState.dragons = Math.max(simState.dragons, 4);
+                simState.elderBuff = 4; // 4 turns of elder buff (+20 to all fights)
                 gold = 500;
-                msg = `🐉✅ ELDER DRAGON secured! — ${vsStr}`;
+                msg = `🐉✅ ELDER DRAGON secured! +20 to ALL checks for 4 turns — ${vsStr}`;
             } else {
-                simState.cpuDragons = Math.max(simState.cpuDragons, 4);
-                msg = `🐉❌ Enemy took ELDER — ${vsStr}`;
+                simState.cpuElderBuff = 4;
+                msg = `🐉❌ Enemy took ELDER! +20 to all CPU checks — ${vsStr}`;
             }
             break;
         case 'siege': {
@@ -5385,19 +5390,23 @@ function _simResolveAction(role, action) {
 }
 
 function _simGetSiegeTarget(side) {
-    const towers = side === 'cpu' ? simState.cpuTowers : simState.myTowers;
-    // Priority: lane towers > inhibs > nexus towers > nexus
-    for (const l of ['mid','top','bot']) {
-        if (towers[l] > 0) return l;
-    }
-    if (towers.inhib > 0) return 'inhib';
-    if (towers.nexus > 0) return 'nexus';
+    const t = side === 'cpu' ? simState.cpuTowers : simState.myTowers;
+    for (const l of ['mid','top','bot']) { if (t[l] > 0) return l; }
+    for (const l of ['mid','top','bot']) { if (t[l] === 0 && t[l + 'Inhib'] > 0) return l; }
+    if (t.nexusTowers > 0) return 'mid';
+    if (t.nexus > 0) return 'mid';
     return null;
 }
 
 function _simNexusExposed(side) {
     const t = side === 'cpu' ? simState.cpuTowers : simState.myTowers;
-    return t.top === 0 && t.mid === 0 && t.bot === 0 && t.inhib === 0 && t.nexus <= 2;
+    // Nexus exposed when all 3 lane inhibs are down AND nexus towers are down
+    return t.topInhib === 0 && t.midInhib === 0 && t.botInhib === 0 && t.nexusTowers === 0;
+}
+
+function _simInhibExposed(side, lane) {
+    const t = side === 'cpu' ? simState.cpuTowers : simState.myTowers;
+    return t[lane] === 0; // all 3 lane towers gone = inhib exposed
 }
 
 function _simApplyTowerDamage(side, towerDmg, lane) {
@@ -5405,34 +5414,41 @@ function _simApplyTowerDamage(side, towerDmg, lane) {
     const t = side === 'cpu' ? simState.cpuTowers : simState.myTowers;
     let remaining = towerDmg;
 
-    // If lane specified, hit that lane first
-    if (lane && lane !== 'inhib' && lane !== 'nexus' && t[lane] !== undefined && t[lane] > 0) {
+    // Hit specified lane towers first
+    if (lane && t[lane] !== undefined && t[lane] > 0) {
         const dmg = Math.min(remaining, t[lane]);
         t[lane] -= dmg;
         remaining -= dmg;
     }
 
-    // Overflow or non-lane targets
-    if (remaining > 0) {
-        // Try other lanes
-        for (const l of ['top','mid','bot']) {
-            if (remaining <= 0) break;
-            if (t[l] > 0) { const dmg = Math.min(remaining, t[l]); t[l] -= dmg; remaining -= dmg; }
+    // If lane towers gone, hit that lane's inhib
+    if (lane && remaining > 0) {
+        const inhibKey = lane + 'Inhib';
+        if (t[lane] === 0 && t[inhibKey] !== undefined && t[inhibKey] > 0) {
+            t[inhibKey] -= Math.min(remaining, t[inhibKey]);
+            remaining -= 1;
         }
     }
 
-    // If all lane towers down, inhibs become vulnerable
-    if (t.top === 0 && t.mid === 0 && t.bot === 0 && remaining > 0 && t.inhib > 0) {
-        const dmg = Math.min(remaining, t.inhib);
-        t.inhib -= dmg;
+    // Overflow: try other lanes
+    if (remaining > 0) {
+        for (const l of ['top','mid','bot']) {
+            if (remaining <= 0) break;
+            if (t[l] > 0) { const dmg = Math.min(remaining, t[l]); t[l] -= dmg; remaining -= dmg; }
+            else if (t[l + 'Inhib'] > 0) { t[l + 'Inhib']--; remaining--; }
+        }
+    }
+
+    // All 3 inhibs down → nexus towers exposed
+    if (t.topInhib === 0 && t.midInhib === 0 && t.botInhib === 0 && remaining > 0 && t.nexusTowers > 0) {
+        const dmg = Math.min(remaining, t.nexusTowers);
+        t.nexusTowers -= dmg;
         remaining -= dmg;
     }
 
-    // If all inhibs down, nexus towers
-    if (t.top === 0 && t.mid === 0 && t.bot === 0 && t.inhib === 0 && remaining > 0 && t.nexus > 0) {
-        const dmg = Math.min(remaining, t.nexus);
-        t.nexus -= dmg;
-        remaining -= dmg;
+    // Nexus towers down → nexus exposed
+    if (t.topInhib === 0 && t.midInhib === 0 && t.botInhib === 0 && t.nexusTowers === 0 && remaining > 0 && t.nexus > 0) {
+        t.nexus -= Math.min(remaining, t.nexus);
     }
 }
 
@@ -5465,11 +5481,12 @@ function _simCpuTurn() {
         const act = _SIM_ACTIONS[action];
         // Validate action is allowed for role/phase + objective gating
         const invalid = !act || !act.roles.includes(role) || !act.phases.includes(phase)
-            || (action === 'herald' && simState.cpuGrubs === 0)
-            || (action === 'baron' && simState.cpuHerald === 0)
-            || (action === 'elder' && simState.cpuDragons < 2)
-            || (action === 'dragon' && simState.cpuDragons >= 4)
-            || (action === 'grubs' && simState.cpuGrubs >= 6);
+            || (action === 'grubs' && simState.cpuGrubs >= 3)
+            || (action === 'herald' && simState.cpuGrubs < 3)
+            || (action === 'herald' && simState.cpuHerald >= 1)
+            || (action === 'baron' && simState.cpuHerald < 1)
+            || (action === 'dragon' && simState.cpuDragons >= 5)
+            || (action === 'elder' && simState.cpuDragons < 5 && simState.dragons < 5);
         if (invalid) action = 'farm';
         cpuActions[role] = action;
     });
@@ -5552,7 +5569,7 @@ function _simCpuTurn() {
                     break;
                 }
                 case 'grubs':
-                    simState.cpuGrubs = Math.min(simState.cpuGrubs + 1, 6);
+                    simState.cpuGrubs = 3;
                     cpuResults.push(`Enemy secured Void Grubs (${simState.cpuGrubs}/6)`);
                     break;
                 case 'ward':
@@ -5577,8 +5594,8 @@ function _simCheckGameEnd() {
     const cpuT = simState.cpuTowers;
     const myT = simState.myTowers;
 
-    const cpuNexusDead = cpuT.top === 0 && cpuT.mid === 0 && cpuT.bot === 0 && cpuT.inhib === 0 && cpuT.nexus === 0;
-    const myNexusDead = myT.top === 0 && myT.mid === 0 && myT.bot === 0 && myT.inhib === 0 && myT.nexus === 0;
+    const cpuNexusDead = cpuT.nexus === 0;
+    const myNexusDead = myT.nexus === 0;
 
     if (cpuNexusDead && myNexusDead) return 'win'; // tie goes to player
     if (cpuNexusDead) return 'win';
@@ -5619,12 +5636,13 @@ function startSimulation() {
         phase: 'early',
         myGold: 0,
         cpuGold: 0,
-        myTowers: { top: 3, mid: 3, bot: 3, inhib: 3, nexus: 2 },
-        cpuTowers: { top: 3, mid: 3, bot: 3, inhib: 3, nexus: 2 },
+        myTowers: { top: 3, mid: 3, bot: 3, topInhib: 1, midInhib: 1, botInhib: 1, nexusTowers: 2, nexus: 1 },
+        cpuTowers: { top: 3, mid: 3, bot: 3, topInhib: 1, midInhib: 1, botInhib: 1, nexusTowers: 2, nexus: 1 },
         dragons: 0, cpuDragons: 0,
         herald: 0, cpuHerald: 0,
         baron: 0, cpuBaron: 0,
         grubs: 0, cpuGrubs: 0,
+        elderBuff: 0, cpuElderBuff: 0,
         log: [],
         actionPhase: true,
         assignments: {},
@@ -5681,15 +5699,17 @@ function renderSimulation() {
 
     // Buff indicators
     const myBuffs = [];
-    if (simState.dragons >= 4) myBuffs.push('<span class="text-orange-400 font-black">Dragon Soul</span>');
-    else if (simState.dragons > 0) myBuffs.push(`<span class="text-blue-400">Dragons: ${simState.dragons}/4</span>`);
+    if (simState.elderBuff > 0) myBuffs.push(`<span class="text-orange-400 font-black">Elder Buff (${simState.elderBuff}t) +20 ALL</span>`);
+    if (simState.dragons >= 5) myBuffs.push('<span class="text-orange-400 font-black">Dragon Soul (+10)</span>');
+    else if (simState.dragons > 0) myBuffs.push(`<span class="text-blue-400">Dragons: ${simState.dragons}/5</span>`);
     if (simState.baron > 0) myBuffs.push(`<span class="text-purple-400 font-black">Baron (${simState.baron}t)</span>`);
     if (simState.grubs > 0) myBuffs.push(`<span class="text-emerald-300">Grubs: ${simState.grubs}</span>`);
     if (simState.wardBonus > 0) myBuffs.push('<span class="text-cyan-400">Vision</span>');
 
     const cpuBuffs = [];
-    if (simState.cpuDragons >= 4) cpuBuffs.push('<span class="text-orange-400 font-black">Dragon Soul</span>');
-    else if (simState.cpuDragons > 0) cpuBuffs.push(`<span class="text-red-400">Dragons: ${simState.cpuDragons}/4</span>`);
+    if (simState.cpuElderBuff > 0) cpuBuffs.push(`<span class="text-orange-400 font-black">Elder Buff (${simState.cpuElderBuff}t)</span>`);
+    if (simState.cpuDragons >= 5) cpuBuffs.push('<span class="text-orange-400 font-black">Dragon Soul</span>');
+    else if (simState.cpuDragons > 0) cpuBuffs.push(`<span class="text-red-400">Dragons: ${simState.cpuDragons}/5</span>`);
     if (simState.cpuBaron > 0) cpuBuffs.push(`<span class="text-purple-400 font-black">Baron (${simState.cpuBaron}t)</span>`);
     if (simState.cpuGrubs > 0) cpuBuffs.push(`<span class="text-red-300">Grubs: ${simState.cpuGrubs}</span>`);
 
@@ -5777,14 +5797,14 @@ function renderSimulation() {
                 <div>${towerStr(simState.cpuTowers.bot)}</div>
             </div>
             <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/30 py-1.5 px-2 rounded-lg border-t border-slate-700/50">
-                <div>${inhibStr(simState.myTowers.inhib)}</div>
-                <div class="text-xs font-bold text-purple-400">INHIBS</div>
-                <div>${inhibStr(simState.cpuTowers.inhib)}</div>
+                <div>${inhibStr(simState.myTowers.topInhib)} ${inhibStr(simState.myTowers.midInhib)} ${inhibStr(simState.myTowers.botInhib)}</div>
+                <div class="text-xs font-bold text-purple-400">INHIBS (T/M/B)</div>
+                <div>${inhibStr(simState.cpuTowers.topInhib)} ${inhibStr(simState.cpuTowers.midInhib)} ${inhibStr(simState.cpuTowers.botInhib)}</div>
             </div>
             <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/30 py-1.5 px-2 rounded-lg">
-                <div>${nexusStr(simState.myTowers.nexus)}</div>
+                <div>${towerStr(simState.myTowers.nexusTowers)} ${nexusStr(simState.myTowers.nexus)}</div>
                 <div class="text-xs font-bold text-red-400">NEXUS</div>
-                <div>${nexusStr(simState.cpuTowers.nexus)}</div>
+                <div>${towerStr(simState.cpuTowers.nexusTowers)} ${nexusStr(simState.cpuTowers.nexus)}</div>
             </div>
         </div>
         <div class="grid grid-cols-2 gap-4 mt-3 text-xs">
@@ -5922,6 +5942,8 @@ function executeSimTurn() {
     // ---- Decay buffs ----
     if (simState.baron > 0) simState.baron--;
     if (simState.cpuBaron > 0) simState.cpuBaron--;
+    if (simState.elderBuff > 0) simState.elderBuff--;
+    if (simState.cpuElderBuff > 0) simState.cpuElderBuff--;
     if (simState.wardBonus > 0) simState.wardBonus--;
     if (simState.cpuWardBonus > 0) simState.cpuWardBonus--;
 
