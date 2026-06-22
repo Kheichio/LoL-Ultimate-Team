@@ -517,7 +517,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_7', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_8', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -693,7 +693,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_7';
+    const patchKey = 'lol_patch_seen_v0_5_8';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1155,7 +1155,7 @@ function executeTrade(offerId) {
     processNewCards([newCard]);
     offer.completed = true;
     hasNewClubItems = true;
-    saveGame();
+    saveGame(); autoCloudSave();
     renderTradeMarket();
     showToast(`${rewardDef.name} securely extracted to Club!`, "success");
 }
@@ -1920,7 +1920,7 @@ function buyPack(baseCost, type) {
         localStorage.setItem('lol_event_v1', JSON.stringify(evt));
         renderEventBanner();
     }
-    processNewCards(pulled); saveGame(); showPulls(pulled, `${type} Package Opened`);
+    processNewCards(pulled); saveGame(); autoCloudSave(); showPulls(pulled, `${type} Package Opened`);
 }
 
 function buyTargetPack(targetType) {
@@ -2396,6 +2396,7 @@ function _finishSeasonGame() {
     }
 
     saveGame();
+    autoCloudSave();
 }
 
 function _smBackToList() {
@@ -3717,6 +3718,7 @@ function handleTournamentWin() {
     else if (stageName === 'MSI Arena' || stageName === 'MSI') trackStats.msiWon = (trackStats.msiWon || 0) + 1;
     else if (stageName === 'World Championship' || stageName === 'Worlds') trackStats.worldsWon = (trackStats.worldsWon || 0) + 1;
     checkProgressionUnlocks();
+    autoCloudSave();
 
     // Notify any newly claimable milestone quests
     quests.filter(q => !q.repeatable && !q.claimed).forEach(q => {
@@ -5229,6 +5231,26 @@ function cloudSave() {
         showToast('Game saved to cloud!', 'success');
         pushToLeaderboard();
     }).catch(err => showToast(`Cloud save failed: ${err.message}`, 'error'));
+}
+
+// Auto-cloud-save — silently syncs after significant actions (no toast spam)
+let _autoSaveTimeout = null;
+function autoCloudSave() {
+    if (!currentUser) return;
+    if (_autoSaveTimeout) clearTimeout(_autoSaveTimeout);
+    _autoSaveTimeout = setTimeout(() => {
+        saveGame();
+        const data = {};
+        const keys = ['lol_be_v7_pro','lol_club_v7_pro','lol_squad_v7_pro','lol_starter_v7_pro',
+            'lol_identity_v7_pro','lol_stats_v7_pro','lol_new_items_v7_pro','lol_prog_v7_pro','lol_collection_v7_pro',
+            'lol_archive_seen_v1','lol_trade_v7_pro','lol_team_complete_v8','lol_season_v1','lol_quests_v8_pro',
+            'lol_achievements_v1','lol_unlocks_v1','lol_training_expiry','lol_training_tier',
+            'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode'];
+        keys.forEach(k => { const v = localStorage.getItem(k); if (v !== null) data[k] = v; });
+        data.savedAt = Date.now();
+        data.teamName = teamIdentity.name || 'My Team';
+        fbDb.collection('saves').doc(currentUser.uid).set(data).catch(() => {});
+    }, 3000);
 }
 
 // Cloud Load — pull from Firestore into localStorage, then reload
