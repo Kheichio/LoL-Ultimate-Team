@@ -5279,6 +5279,15 @@ function pushToLeaderboard() {
 }
 
 // Render leaderboard
+let _lbCache = null;
+let _lbSortBy = 'trophies';
+
+function setLbSort(field) {
+    _lbSortBy = field;
+    if (_lbCache) _renderLbFromCache();
+    else renderLeaderboard();
+}
+
 function renderLeaderboard() {
     const container = document.getElementById('leaderboard-content');
     if (!container) return;
@@ -5290,55 +5299,86 @@ function renderLeaderboard() {
             container.innerHTML = '<div class="text-slate-500 text-center py-12 font-mono">No players on the leaderboard yet. Sign in and click "Update Leaderboard" to be first!</div>';
             return;
         }
-        let html = `<div class="bg-slate-800 rounded-xl border border-amber-700/40 overflow-hidden">
-            <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-700 bg-slate-900/60 text-xs font-black uppercase tracking-widest text-slate-400">
-                <span class="w-8 text-center">#</span>
-                <span class="flex-1">Manager</span>
-                <span class="w-14 text-center">Raw</span>
-                <span class="w-14 text-center">Power</span>
-                <span class="w-16 text-center">Trophies</span>
-                <span class="w-14 text-center">Splits</span>
-                <span class="w-12 text-center">GR</span>
-                <span class="w-14 text-center">Tower</span>
-                <span class="w-16 text-center">BE</span>
-                <span class="w-12 text-center">Cards</span>
-                <span class="w-10 text-center">Sig</span>
-                <span class="w-16 text-center">Title</span>
-            </div>`;
-        let rank = 0;
-        snapshot.forEach(doc => {
-            rank++;
-            const d = doc.data();
-            const isMe = currentUser && doc.id === currentUser.uid;
-            const rowBg = isMe ? 'bg-indigo-900/40 border-l-4 border-indigo-400' : rank <= 3 ? 'bg-amber-950/20' : '';
-            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
-            const rankColor = rank <= 3 ? 'text-amber-400 font-black' : 'text-slate-500';
-            html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/50 text-sm ${rowBg}">
-                <span class="w-8 text-center ${rankColor}">${medal || rank}</span>
-                <div class="flex-1 flex items-center gap-2 min-w-0">
-                    <img src="${d.photoURL}" class="w-6 h-6 rounded-full" onerror="this.style.display='none'">
-                    <div class="min-w-0">
-                        <div class="font-bold text-slate-200 truncate cursor-pointer hover:text-indigo-300" onclick="viewProfile('${doc.id}')">${d.teamLogo} ${d.teamName}${isMe ? ' (You)' : ''}</div>
-                        <div class="text-[10px] text-slate-500 truncate">${d.displayName}</div>
-                    </div>
-                </div>
-                <span class="w-14 text-center text-blue-300 font-bold">${d.rawPower || '—'}</span>
-                <span class="w-14 text-center text-green-400 font-black">${d.totalPower || '—'}</span>
-                <span class="w-16 text-center font-bold text-emerald-400">${d.trophies != null ? d.trophies : (d.totalWins || 0)}</span>
-                <span class="w-14 text-center text-slate-300">${d.splitsCompleted}</span>
-                <span class="w-12 text-center text-yellow-400">${d.goldenRoads}</span>
-                <span class="w-14 text-center text-red-400">${d.towerBest}</span>
-                <span class="w-16 text-center text-blue-300 text-xs font-mono">${d.totalBE != null ? (d.totalBE >= 1000 ? Math.floor(d.totalBE/1000) + 'k' : d.totalBE) : '—'}</span>
-                <span class="w-12 text-center text-yellow-200 text-xs">${d.archiveCards || '—'}</span>
-                <span class="w-10 text-center text-purple-300 text-xs font-bold">${d.signatureCards || 0}</span>
-                <span class="w-16 text-center text-xs text-slate-400">${d.prestigeTitle}</span>
-            </div>`;
-        });
-        html += '</div>';
-        container.innerHTML = html;
+        _lbCache = [];
+        snapshot.forEach(doc => { _lbCache.push({ id: doc.id, ...doc.data() }); });
+        _renderLbFromCache();
     }).catch(err => {
         container.innerHTML = `<div class="text-red-400 text-center py-8 font-mono">Failed to load leaderboard: ${err.message}</div>`;
     });
+}
+
+function _renderLbFromCache() {
+    const container = document.getElementById('leaderboard-content');
+    if (!container || !_lbCache) return;
+
+    const sortFields = [
+        { key: 'trophies', label: 'Trophies' },
+        { key: 'totalPower', label: 'Power' },
+        { key: 'rawPower', label: 'Raw' },
+        { key: 'splitsCompleted', label: 'Splits' },
+        { key: 'goldenRoads', label: 'GR' },
+        { key: 'towerBest', label: 'Tower' },
+        { key: 'totalBE', label: 'BE' },
+        { key: 'archiveCards', label: 'Cards' },
+        { key: 'signatureCards', label: 'Sig' },
+    ];
+
+    const sorted = [..._lbCache].sort((a, b) => (b[_lbSortBy] || 0) - (a[_lbSortBy] || 0));
+
+    const sortBtns = sortFields.map(f =>
+        `<button onclick="setLbSort('${f.key}')" class="px-2 py-1 rounded text-[10px] font-black cursor-pointer transition ${_lbSortBy === f.key ? 'bg-amber-600 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}">${f.label}</button>`
+    ).join('');
+
+    function colCls(key) { return _lbSortBy === key ? 'text-amber-300 font-black' : ''; }
+
+    let html = `<div class="flex flex-wrap gap-1.5 mb-3 items-center">
+        <span class="text-[10px] text-slate-500 font-black uppercase tracking-widest mr-1">Sort by:</span>${sortBtns}
+    </div>
+    <div class="bg-slate-800 rounded-xl border border-amber-700/40 overflow-hidden">
+        <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-700 bg-slate-900/60 text-xs font-black uppercase tracking-widest text-slate-400">
+            <span class="w-8 text-center">#</span>
+            <span class="flex-1">Manager</span>
+            <span class="w-14 text-center ${colCls('rawPower')}">Raw</span>
+            <span class="w-14 text-center ${colCls('totalPower')}">Power</span>
+            <span class="w-16 text-center ${colCls('trophies')}">Trophies</span>
+            <span class="w-14 text-center ${colCls('splitsCompleted')}">Splits</span>
+            <span class="w-12 text-center ${colCls('goldenRoads')}">GR</span>
+            <span class="w-14 text-center ${colCls('towerBest')}">Tower</span>
+            <span class="w-16 text-center ${colCls('totalBE')}">BE</span>
+            <span class="w-12 text-center ${colCls('archiveCards')}">Cards</span>
+            <span class="w-10 text-center ${colCls('signatureCards')}">Sig</span>
+            <span class="w-16 text-center">Title</span>
+        </div>`;
+
+    sorted.forEach((d, i) => {
+        const rank = i + 1;
+        const isMe = currentUser && d.id === currentUser.uid;
+        const rowBg = isMe ? 'bg-indigo-900/40 border-l-4 border-indigo-400' : rank <= 3 ? 'bg-amber-950/20' : '';
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+        const rankColor = rank <= 3 ? 'text-amber-400 font-black' : 'text-slate-500';
+        html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/50 text-sm ${rowBg}">
+            <span class="w-8 text-center ${rankColor}">${medal || rank}</span>
+            <div class="flex-1 flex items-center gap-2 min-w-0">
+                <img src="${d.photoURL || ''}" class="w-6 h-6 rounded-full" onerror="this.style.display='none'">
+                <div class="min-w-0">
+                    <div class="font-bold text-slate-200 truncate cursor-pointer hover:text-indigo-300" onclick="viewProfile('${d.id}')">${d.teamLogo || ''} ${d.teamName || ''}${isMe ? ' (You)' : ''}</div>
+                    <div class="text-[10px] text-slate-500 truncate">${d.displayName || ''}</div>
+                </div>
+            </div>
+            <span class="w-14 text-center text-blue-300 font-bold ${colCls('rawPower')}">${d.rawPower || '—'}</span>
+            <span class="w-14 text-center text-green-400 font-black ${colCls('totalPower')}">${d.totalPower || '—'}</span>
+            <span class="w-16 text-center font-bold text-emerald-400 ${colCls('trophies')}">${d.trophies != null ? d.trophies : (d.totalWins || 0)}</span>
+            <span class="w-14 text-center text-slate-300 ${colCls('splitsCompleted')}">${d.splitsCompleted || 0}</span>
+            <span class="w-12 text-center text-yellow-400 ${colCls('goldenRoads')}">${d.goldenRoads || 0}</span>
+            <span class="w-14 text-center text-red-400 ${colCls('towerBest')}">${d.towerBest || 0}</span>
+            <span class="w-16 text-center text-blue-300 text-xs font-mono ${colCls('totalBE')}">${d.totalBE != null ? (d.totalBE >= 1000 ? Math.floor(d.totalBE/1000) + 'k' : d.totalBE) : '—'}</span>
+            <span class="w-12 text-center text-yellow-200 text-xs ${colCls('archiveCards')}">${d.archiveCards || '—'}</span>
+            <span class="w-10 text-center text-purple-300 text-xs font-bold ${colCls('signatureCards')}">${d.signatureCards || 0}</span>
+            <span class="w-16 text-center text-xs text-slate-400">${d.prestigeTitle || ''}</span>
+        </div>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
 }
 
 function viewProfile(uid) {
