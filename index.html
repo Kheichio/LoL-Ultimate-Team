@@ -323,7 +323,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-6">
-            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.5.9</h2>
+            <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-widest mb-2 border-b border-cyan-900/50 pb-2">Director's Manual — Alpha Patch 0.6.0</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -777,6 +777,18 @@
                 </div>
             </div>
 
+            <div class="bg-violet-950/20 p-5 rounded-2xl border border-violet-700/40">
+                <h3 class="text-lg font-bold text-violet-400 mb-3">⚔️ Summoner's Rift Simulation Guide</h3>
+                <p class="text-slate-400 text-xs mb-3">A turn-based tactical simulation of a full League of Legends match. Assign your 5 players to actions each turn, contest objectives, and destroy the enemy nexus.</p>
+                <div class="space-y-2 text-xs font-mono text-slate-400">
+                    <div class="bg-slate-900/60 p-2 rounded-lg"><span class="text-violet-300 font-bold">How It Works</span> — Each turn, assign actions to your 5 roles via dropdowns (Farm, Gank, Dragon, Teamfight, etc.). Click "Execute Turn" to resolve all actions via stat checks. Map state updates: towers fall, gold accumulates, objectives are taken. Win by destroying the enemy nexus.</div>
+                    <div class="bg-violet-950/30 p-2 rounded-lg border border-violet-900/30"><span class="text-violet-400 font-bold">Phases</span> — <strong class="text-slate-200">Early</strong> (turns 1-8): Farm, Gank, Void Grubs, Herald, Ward. <strong class="text-slate-200">Mid</strong> (turns 9-16): + Dragon, Teamfight, Rotate, Split Push. <strong class="text-slate-200">Late</strong> (turn 17+): + Baron, Elder Dragon, Siege, Backdoor.</div>
+                    <div class="bg-violet-950/30 p-2 rounded-lg border border-violet-900/30"><span class="text-violet-400 font-bold">Stat Checks</span> — Farm uses FRM. Ganks use MEC+MAP. Teamfights use TMF. Split Push uses MEC+FRM. Objectives use MAP+TMF. Siege uses all stats. Gold advantage and buffs add bonuses.</div>
+                    <div class="bg-violet-950/30 p-2 rounded-lg border border-violet-900/30"><span class="text-violet-400 font-bold">Objectives</span> — 🐉 Dragons: +3 stats each, 4 = Soul (+8 all). 🟣 Baron: +15 siege for 3 turns. 👁️ Herald: instant tower damage. 🪲 Grubs: +5 push power. Multi-role actions (Teamfight, Baron) need 3+ roles assigned.</div>
+                    <div class="bg-slate-900/60 p-2 rounded-lg"><span class="text-emerald-400 font-bold">Rewards</span> — Win: 1,500 BE + 200 XP. Loss: 500 BE + 50 XP. Free entry. ~15-25 turns per game.</div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                     <h3 class="text-lg font-bold text-blue-400 mb-3">📚 Player Archive</h3>
@@ -797,17 +809,18 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.5.9)</h3>
+                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.6.0 — Major Update)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-cyan-400 font-bold">NA LCS 2015 Summer (50 cards)</span> — All 10 teams: TSM (Bjergsen/WildTurtle/Dyrus/Santorin/Lustboy), CLG (Doublelift/Aphromoo/ZionSpartan/Pobelter), Cloud9 (Sneaky/Hai/Incarnati0n), Team Liquid (Piglet/FeniX/Xpecial), Team Impulse (Impact/Rush), Gravity (Hauntzer/Altec), Dignitas (CoreJJ/Gamsu), Enemy, Team 8, Team Dragon Knights (Smoothie/Emperor). 8 new team codes added. LCS now has 2015 coverage.</li>
-                    <li><span class="text-cyan-400 font-bold">LCP 2025 Mid Season (40 cards)</span> — All 8 teams: TALON (Karsa/FoFo/Betty), GAM (Levi/Kiaya), Fukuoka HAWKS (Evi/FATE), CTBC Flying Oyster (Doggo/Kaiwing), DetonatioN FocusMe, Chiefs, MGN Vikings, Team Secret Whales. LCP now has both 2025 and 2026 coverage.</li>
-                    <li><span class="text-cyan-400 font-bold">PCS 2024 Summer — New Region (35 cards)</span> — 7 teams in a brand-new PCS region: PSG Talon (Maple/Betty/JunJia), CTBC Flying Oyster (Karsa/SwordArt/Gori), Frank Esports (Kaiwing), J Team, Deep Cross Gaming, HELL PIGS, West Point Esports. PCS is separate from LCP in the Archive with its own region tab.</li>
-                    <li><span class="text-orange-400 font-bold">2015 Worlds Finalists — KOO Tigers (6 cards)</span> — Smeb (97), PraY (98), Kuro (96), GorillA (95), Hojin (94), coach NoFe (95). Finalist-quality Legacy cards upgraded from their 2015 LCK base versions using real Worlds stats.</li>
-                    <li><span class="text-orange-400 font-bold">2016 Worlds Finalists — Samsung Galaxy (5 cards)</span> — CuVee (93), Ambition (93), Crown (94), Ruler (94), CoreJJ (92). Finalist-quality Legacy cards upgraded from their 2016 LCK base versions. Ruler and CoreJJ's breakout Worlds performances reflected.</li>
-                    <li><span class="text-yellow-400 font-bold">Archive Overhaul</span> — Completion rewards now independent per category (regular/FirstStand/Champion/etc). Unclaimed completions show in badge count. New search bar filters by player or team name. Claim buttons pulse when available.</li>
-                    <li><span class="text-amber-400 font-bold">Leaderboard Improvements</span> — "Update My Stats" button on the Board tab. Sortable by any stat column. Archive Cards and Signature Count columns added.</li>
-                    <li><span class="text-sky-400 font-bold">Club Capacity 20 Levels</span> — Max 1,100 cards at Lv20. All pack types check capacity.</li>
-                    <li><span class="text-emerald-400 font-bold">Global Event Timer</span> — Seasonal events now sync to midnight UTC for all players worldwide. Everyone sees the same countdown.</li>
+                    <li><span class="text-violet-400 font-bold">Summoner's Rift Simulation (New Game Mode)</span> — The biggest addition yet: a turn-based tactical simulation of a full League of Legends match. Assign your 5 players to actions each turn — farm lanes, gank, contest dragons/baron/herald/grubs, teamfight, split push, siege, or backdoor. Actions resolve via stat checks against a CPU opponent. Map tracks tower states across 3 lanes, inhibitors, and nexus. Game phases (Early/Mid/Late) unlock new actions. Objectives grant persistent buffs: dragons (+3 stats each, soul = +8 all), baron (+15 siege for 3 turns), herald (instant tower damage), grubs (+5 push). Multi-role actions like Teamfight and Baron require 3+ roles committed. Gold advantage from successful actions adds bonus to all checks. Win by destroying the enemy nexus. Free entry, ~15-25 turns per game, 1,500 BE + 200 XP on win.</li>
+                    <li><span class="text-cyan-400 font-bold">NA LCS 2015 Summer (50 cards)</span> — All 10 teams: TSM (Bjergsen/Santorin/WildTurtle/Dyrus/Lustboy), CLG (Doublelift/Aphromoo/Pobelter), Cloud9 (Sneaky/Hai/Incarnati0n), Team Liquid (Piglet 96 GM/FeniX/Xpecial), Team Impulse (Impact/Rush), Gravity (Hauntzer/Altec), Dignitas (CoreJJ/Gamsu), Enemy, Team 8, TDK. 8 new team codes.</li>
+                    <li><span class="text-cyan-400 font-bold">LCP 2025 Mid Season (40 cards)</span> — All 8 teams: TALON (Karsa/FoFo/Betty), GAM (Levi), SHG (Evi/FATE), CFO (Doggo/Kaiwing), DFM, Chiefs, MGN Vikings, TSW.</li>
+                    <li><span class="text-cyan-400 font-bold">PCS 2024 Summer — New Region (35 cards)</span> — 7 teams in a brand-new PCS region with its own Archive tab: PSG Talon (Maple/Betty), CFO (Karsa/SwordArt), Frank Esports, J Team, DCG, HELL PIGS, West Point.</li>
+                    <li><span class="text-orange-400 font-bold">2015 Worlds Finalists — KOO Tigers (6 cards)</span> — Smeb 97, PraY 98, Kuro 96, GorillA 95, Hojin 94, NoFe 95. Finalist Legacy cards upgraded from 2015 base stats.</li>
+                    <li><span class="text-orange-400 font-bold">2016 Worlds Finalists — Samsung Galaxy (5 cards)</span> — CuVee 93, Ambition 93, Crown 94, Ruler 94, CoreJJ 92. Breakout Worlds performances reflected.</li>
+                    <li><span class="text-yellow-400 font-bold">Archive Overhaul</span> — Independent completion rewards per category. Search bar. Pulsing claim notifications. Badge includes unclaimed completions.</li>
+                    <li><span class="text-amber-400 font-bold">Leaderboard</span> — Sortable by any column. "Update My Stats" button. Archive Cards + Signature Count columns.</li>
+                    <li><span class="text-sky-400 font-bold">Club Capacity 20 Levels</span> — Max 1,100 cards. All packs check capacity.</li>
+                    <li><span class="text-emerald-400 font-bold">Global Event Timer</span> — Events sync to midnight UTC worldwide.</li>
                 </ul>
                 <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.5.8): 2016 Summer Rosters (160 cards, LCK/LPL/EU LCS) · Auto-Cloud-Save · Leaderboard Sorting · Enhanced Profiles · Friend Challenge Fix</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.7): Player Profiles · Friend System · Seasonal Events · Card Favorites · Daily Login Bonus · Loan System Removed · Trophy Count Reworked · Draft Combat Reskin · Signature Cinematic</p>
@@ -1675,26 +1688,25 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.5.9 — What's New</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.6.0 — Major Update</p>
 
-            <div class="bg-cyan-950/60 border border-cyan-500/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-cyan-200">
-                <span class="text-lg shrink-0">🌍</span>
-                <span><strong class="text-cyan-100">Massive roster expansion!</strong> 136 new cards across 4 regions + 11 Worlds Finalist Legacy cards. Database now holds 1,306 cards. New PCS region added. NA LCS joins the 2015 classic era.</span>
+            <div class="bg-violet-950/60 border border-violet-500/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-violet-200">
+                <span class="text-lg shrink-0">⚔️</span>
+                <span><strong class="text-violet-100">Summoner's Rift Simulation is here!</strong> A brand-new turn-based tactical game mode — assign your players to lanes, contest objectives, teamfight, and destroy the enemy nexus. Plus 136 new cards, 11 Worlds Finalist Legacy cards, and a new PCS region. 1,306 cards in the database.</span>
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-cyan-400 font-bold">NA LCS 2015 Summer</span> — 50 cards, 10 teams. TSM (Bjergsen), CLG (Doublelift/Aphromoo), C9 (Sneaky/Hai), TL (Piglet 96), TIP (Impact/Rush), and 5 more.</li>
-                <li><span class="text-cyan-400 font-bold">LCP 2025 Mid Season</span> — 40 cards, 8 teams. TALON (Karsa/FoFo/Betty), GAM (Levi), SHG (Evi/FATE), and 5 more.</li>
-                <li><span class="text-cyan-400 font-bold">PCS 2024 — New Region</span> — 35 cards, 7 teams. PSG Talon (Maple/Betty), CFO (Karsa/SwordArt), and 5 more. Own Archive tab.</li>
-                <li><span class="text-orange-400 font-bold">2015 Worlds Finalists</span> — KOO Tigers: Smeb (97), PraY (98), Kuro (96), GorillA (95), Hojin (94).</li>
-                <li><span class="text-orange-400 font-bold">2016 Worlds Finalists</span> — Samsung Galaxy: Crown (94), Ruler (94), CuVee (93), Ambition (93), CoreJJ (92).</li>
-                <li><span class="text-yellow-400 font-bold">Archive Overhaul</span> — Independent completion rewards per category, search bar, pulsing claim notifications.</li>
-                <li><span class="text-emerald-400 font-bold">Global Event Timer</span> — Events sync to midnight UTC worldwide. Leaderboard sorting + update button.</li>
+                <li><span class="text-violet-400 font-bold">Summoner's Rift (New Mode)</span> — Turn-based LoL match simulation. Farm, gank, teamfight, take dragons/baron, siege towers, destroy the nexus. Actions resolve via your card stats. ~15-25 turns per game. Free entry, 1,500 BE win.</li>
+                <li><span class="text-cyan-400 font-bold">NA LCS 2015</span> — 50 cards, 10 teams. TSM (Bjergsen), CLG (Doublelift), C9 (Sneaky/Hai), TL (Piglet 96), TIP (Impact/Rush).</li>
+                <li><span class="text-cyan-400 font-bold">LCP 2025 + PCS 2024</span> — 75 cards. LCP gets 2025 coverage (8 teams). New PCS region with 7 teams and its own Archive tab.</li>
+                <li><span class="text-orange-400 font-bold">Worlds Finalists</span> — KOO Tigers 2015 (Smeb 97, PraY 98) and Samsung Galaxy 2016 (Ruler 94, CoreJJ 92). 11 Legacy cards.</li>
+                <li><span class="text-yellow-400 font-bold">Archive Overhaul</span> — Independent rewards per category, search bar, completion notifications.</li>
+                <li><span class="text-emerald-400 font-bold">QoL</span> — Global event timer (midnight UTC), leaderboard sorting, Club Capacity 20 levels (1,100 max).</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.5.9</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.6.0</button>
             </div>
         </div>
     </div>
