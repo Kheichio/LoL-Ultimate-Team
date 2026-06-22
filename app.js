@@ -5135,20 +5135,19 @@ const ROLE_ICONS = { TOP: 'icons/Top_icon.png', JNG: 'icons/Jungle_icon.png', MI
 // ============================================================
 
 const _SIM_ACTIONS = {
-    // id: { label, short, stats (for check), phases, roles (allowed), desc, multiRole (min roles needed if team action) }
-    farm:       { label: 'Farm Lane',       short: 'FRM',  stats: ['frm'],           phases: ['early','mid','late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'CS safely for gold' },
+    farm:       { label: 'Farm Lane',       short: 'FRM',  stats: ['frm'],            phases: ['early','mid','late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'CS safely for gold' },
     gank:       { label: 'Gank',            short: 'GNK',  stats: ['mec','map'],      phases: ['early','mid','late'], roles: ['JNG','MID','SUP'], desc: 'Gank an enemy lane' },
-    grubs:      { label: 'Void Grubs',      short: 'GRB',  stats: ['map'],            phases: ['early','mid'],        roles: ['JNG'], desc: 'Contest Void Grubs' },
-    herald:     { label: 'Rift Herald',     short: 'HLD',  stats: ['tmf','map'],      phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Contest Rift Herald', multiRole: 2 },
+    grubs:      { label: 'Void Grubs',      short: 'GRB',  stats: ['map'],            phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Contest Void Grubs — laners can assist', multiRole: 1 },
+    herald:     { label: 'Rift Herald',     short: 'HLD',  stats: ['tmf','map'],      phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Contest Herald (need grubs first)', multiRole: 2 },
     ward:       { label: 'Ward / Vision',   short: 'VIS',  stats: ['map'],            phases: ['early','mid','late'], roles: ['SUP','JNG'], desc: 'Place deep wards for info advantage' },
-    dragon:     { label: 'Take Dragon',     short: 'DRG',  stats: ['tmf','map'],      phases: ['mid','late'],         roles: ['JNG','MID','ADC','SUP'], desc: 'Team contest for dragon', multiRole: 2 },
+    dragon:     { label: 'Take Dragon',     short: 'DRG',  stats: ['tmf','map'],      phases: ['mid','late'],         roles: ['JNG','TOP','MID','ADC','SUP'], desc: 'Team dragon — laners can assist', multiRole: 2 },
     teamfight:  { label: 'Teamfight',       short: 'TF5',  stats: ['tmf','mec','ldr'],phases: ['mid','late'],         roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'All-in 5v5 team fight', multiRole: 3 },
-    rotate:     { label: 'Rotate',          short: 'ROT',  stats: ['cmp','map'],      phases: ['mid','late'],         roles: ['MID','SUP','JNG'], desc: 'Rotate to help a lane' },
-    splitpush:  { label: 'Split Push',      short: 'SPL',  stats: ['mec','frm'],      phases: ['mid','late'],         roles: ['TOP','MID'], desc: 'Solo pressure a side lane' },
-    baron:      { label: 'Take Baron',      short: 'BAR',  stats: ['tmf','map','ldr'],phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Team contest for Baron', multiRole: 3 },
-    elder:      { label: 'Elder Dragon',    short: 'ELD',  stats: ['tmf','map'],      phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Team fight for Elder buff', multiRole: 3 },
-    siege:      { label: 'Siege',           short: 'SGE',  stats: ['tmf','mec','map','frm','cmp','ldr'], phases: ['late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Group as 5 to push', multiRole: 4 },
-    backdoor:   { label: 'Backdoor',        short: 'BD',   stats: ['mec'],            phases: ['late'],               roles: ['TOP','MID','ADC'], desc: 'Risky solo nexus rush' }
+    rotate:     { label: 'Rotate',          short: 'ROT',  stats: ['cmp','map'],      phases: ['mid','late'],         roles: ['TOP','MID','SUP','JNG'], desc: 'Rotate to pressure a lane' },
+    splitpush:  { label: 'Split Push',      short: 'SPL',  stats: ['mec','frm'],      phases: ['mid','late'],         roles: ['TOP','MID','ADC'], desc: 'Solo pressure a side lane' },
+    baron:      { label: 'Take Baron',      short: 'BAR',  stats: ['tmf','map','ldr'],phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Team Baron (need herald first)', multiRole: 3 },
+    elder:      { label: 'Elder Dragon',    short: 'ELD',  stats: ['tmf','map'],      phases: ['late'],               roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Team Elder (need 2+ drakes)', multiRole: 3 },
+    siege:      { label: 'Siege',           short: 'SGE',  stats: ['tmf','mec','map','frm','cmp','ldr'], phases: ['late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'Group as 5 to push towers', multiRole: 4 },
+    backdoor:   { label: 'Backdoor',        short: 'BD',   stats: ['mec'],            phases: ['late'],               roles: ['TOP','MID','ADC'], desc: 'Risky solo nexus rush (need inhibs down)' }
 };
 
 const _SIM_CPU_NAMES = [
@@ -5222,22 +5221,26 @@ function _simResolveAction(role, action) {
     myVal += _simGoldBonus('my') + _simBuffBonus('my') + _simBigGoldBonus('my');
     myVal += (Math.random() * 20) - 10; // ±10 variance
 
-    let cpuVal = simState.cpuRating + (Math.random() * 20) - 10;
+    const cpuCard = simState.cpuTeam[role];
+    let cpuVal = cpuCard ? _simAvgStat(cpuCard, statKeys) : simState.cpuRating;
+    cpuVal += (Math.random() * 20) - 10;
     cpuVal += _simGoldBonus('cpu') + _simBuffBonus('cpu') + _simBigGoldBonus('cpu');
 
-    // Ward bonus from last turn
     if (simState.wardBonus > 0) { myVal += 5; }
 
     const success = myVal > cpuVal;
     const cardName = card ? card.name : role;
+    const cpuName = cpuCard ? cpuCard.name : 'CPU ' + role;
+    const statLabel = statKeys.map(s => s.toUpperCase()).join('+');
+    const vsStr = `${statLabel} ${Math.round(myVal)} vs ${Math.round(cpuVal)} (${cpuName})`;
     let msg = '', gold = 0, towerDmg = 0, lane = null, objective = null;
 
     switch (action) {
         case 'farm':
             gold = success ? (200 + Math.floor(Math.random() * 150)) : 100;
             msg = success
-                ? `${cardName} farmed well — FRM ${Math.round(myVal)} vs ${Math.round(cpuVal)}, +${gold}g`
-                : `${cardName} farmed under pressure — FRM ${Math.round(myVal)} vs ${Math.round(cpuVal)}, +${gold}g`;
+                ? `✅ ${cardName} outfarmed ${cpuName} — ${vsStr}, +${gold}g`
+                : `❌ ${cardName} zoned by ${cpuName} — ${vsStr}, +${gold}g`;
             break;
         case 'gank':
             if (success) {
@@ -5245,66 +5248,58 @@ function _simResolveAction(role, action) {
                 const gankLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
                 lane = gankLanes.length ? gankLanes[Math.floor(Math.random() * gankLanes.length)] : null;
                 towerDmg = lane && (myVal - cpuVal > 12) ? 1 : 0;
-                msg = `${cardName} ganked ${lane ? lane.toUpperCase() : 'a lane'} — ${Math.round(myVal)} vs ${Math.round(cpuVal)}, SUCCESS! +${gold}g${towerDmg ? ' + tower destroyed!' : ''}`;
+                msg = `✅ ${cardName} ganked ${lane ? lane.toUpperCase() : 'a lane'} — ${vsStr}, +${gold}g${towerDmg ? ' + tower destroyed!' : ''}`;
             } else {
-                msg = `${cardName} gank failed — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `❌ ${cardName} gank failed vs ${cpuName} — ${vsStr}`;
             }
             break;
         case 'grubs':
             if (success) {
                 simState.grubs = Math.min(simState.grubs + 1, 6);
                 gold = 150;
-                msg = `${cardName} secured Void Grubs (${simState.grubs}/6) — MAP ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `✅ ${cardName} secured Void Grubs (${simState.grubs}/6) — ${vsStr}`;
             } else {
                 simState.cpuGrubs = Math.min(simState.cpuGrubs + 1, 6);
-                msg = `${cardName} lost Grubs to enemy — MAP ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `❌ ${cpuName} stole Grubs — ${vsStr}`;
             }
             break;
         case 'herald':
             if (success) {
                 simState.herald = 1;
-                // Herald does instant tower damage
                 const hLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
-                if (hLanes.length) {
-                    lane = hLanes[Math.floor(Math.random() * hLanes.length)];
-                    towerDmg = 1;
-                }
+                if (hLanes.length) { lane = hLanes[Math.floor(Math.random() * hLanes.length)]; towerDmg = 1; }
                 gold = 200;
-                msg = `Team secured Rift Herald! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${lane ? `, charged ${lane.toUpperCase()} tower!` : ''}`;
+                msg = `✅ RIFT HERALD secured! — ${vsStr}${lane ? `, charged ${lane.toUpperCase()} tower!` : ''}`;
             } else {
-                msg = `Herald contest lost — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                simState.cpuHerald = 1;
+                msg = `❌ Enemy took Herald — ${vsStr}`;
             }
             break;
         case 'ward':
-            simState.wardBonus = 2; // lasts 2 turns
+            simState.wardBonus = 2;
             gold = 50;
-            msg = `${cardName} placed deep wards — vision advantage for next turn`;
-            // Ward always "succeeds" for the bonus
+            msg = `👁️ ${cardName} placed deep wards — +5 bonus to all checks next turn`;
             return { success: true, msg, gold, towerDmg: 0, lane: null };
         case 'dragon':
             if (success) {
                 simState.dragons++;
                 gold = 250;
-                const soulMsg = simState.dragons >= 4 ? ' DRAGON SOUL!' : '';
-                msg = `Team took Dragon (${simState.dragons}/4)! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${soulMsg}`;
+                const soulMsg = simState.dragons >= 4 ? ' 🐉 DRAGON SOUL!' : '';
+                msg = `✅ Dragon secured (${simState.dragons}/4)! — ${vsStr}${soulMsg}`;
             } else {
                 simState.cpuDragons++;
-                const cpuSoul = simState.cpuDragons >= 4 ? ' CPU has DRAGON SOUL!' : '';
-                msg = `Enemy stole Dragon (enemy: ${simState.cpuDragons}/4) — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${cpuSoul}`;
+                const cpuSoul = simState.cpuDragons >= 4 ? ' 🐉 CPU DRAGON SOUL!' : '';
+                msg = `❌ Enemy took Dragon (${simState.cpuDragons}/4) — ${vsStr}${cpuSoul}`;
             }
             break;
         case 'teamfight':
             if (success) {
                 gold = 500 + Math.floor(Math.random() * 300);
-                // Teamfight win = push towers
                 const tfLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
-                if (tfLanes.length) {
-                    lane = tfLanes[Math.floor(Math.random() * tfLanes.length)];
-                    towerDmg = 1;
-                }
-                msg = `TEAMFIGHT WON! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}, +${gold}g${towerDmg ? ` + ${lane.toUpperCase()} tower falls!` : ''}`;
+                if (tfLanes.length) { lane = tfLanes[Math.floor(Math.random() * tfLanes.length)]; towerDmg = 1; }
+                msg = `⚔️✅ TEAMFIGHT WON! — ${vsStr}, +${gold}g${towerDmg ? ` + ${lane.toUpperCase()} tower falls!` : ''}`;
             } else {
-                msg = `Teamfight LOST — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `⚔️❌ TEAMFIGHT LOST — ${vsStr}`;
             }
             break;
         case 'rotate':
@@ -5313,9 +5308,9 @@ function _simResolveAction(role, action) {
                 const rLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
                 lane = rLanes.length ? rLanes[Math.floor(Math.random() * rLanes.length)] : null;
                 towerDmg = lane ? 1 : 0;
-                msg = `${cardName} rotated successfully — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${towerDmg ? `, ${lane.toUpperCase()} tower destroyed!` : ', lane pressure gained'}`;
+                msg = `✅ ${cardName} rotated — ${vsStr}${towerDmg ? `, ${lane.toUpperCase()} tower destroyed!` : ', lane pressure gained'}`;
             } else {
-                msg = `${cardName} rotation read by enemy — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `❌ ${cardName} rotation read by ${cpuName} — ${vsStr}`;
             }
             break;
         case 'splitpush':
@@ -5324,29 +5319,29 @@ function _simResolveAction(role, action) {
                 const spLanes = ['top','bot'].filter(l => simState.cpuTowers[l] > 0);
                 lane = spLanes.length ? spLanes[Math.floor(Math.random() * spLanes.length)] : null;
                 towerDmg = lane ? 1 : 0;
-                msg = `${cardName} split push success — ${Math.round(myVal)} vs ${Math.round(cpuVal)}${towerDmg ? `, ${lane.toUpperCase()} tower destroyed!` : ''}`;
+                msg = `✅ ${cardName} split pushed past ${cpuName} — ${vsStr}${towerDmg ? `, ${lane.toUpperCase()} tower destroyed!` : ''}`;
             } else {
-                msg = `${cardName} split push collapsed on — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `❌ ${cardName} collapsed on by ${cpuName} — ${vsStr}`;
             }
             break;
         case 'baron':
             if (success) {
-                simState.baron = 3; // 3 turns of baron buff
+                simState.baron = 3;
                 gold = 400;
-                msg = `BARON NASHOR secured! Buff active for 3 turns — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `🟣✅ BARON NASHOR secured! Buff 3 turns — ${vsStr}`;
             } else {
                 simState.cpuBaron = 3;
-                msg = `Enemy took BARON! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `🟣❌ Enemy took BARON — ${vsStr}`;
             }
             break;
         case 'elder':
             if (success) {
-                simState.dragons = Math.max(simState.dragons, 4); // elder = soul equivalent
+                simState.dragons = Math.max(simState.dragons, 4);
                 gold = 500;
-                msg = `ELDER DRAGON secured! Execute buff active — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `🐉✅ ELDER DRAGON secured! — ${vsStr}`;
             } else {
                 simState.cpuDragons = Math.max(simState.cpuDragons, 4);
-                msg = `Enemy took ELDER DRAGON — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `🐉❌ Enemy took ELDER — ${vsStr}`;
             }
             break;
         case 'siege': {
@@ -5354,12 +5349,11 @@ function _simResolveAction(role, action) {
             if (success) {
                 gold = 350;
                 towerDmg = baronActive ? 2 : 1;
-                // Siege targets exposed structures
                 const siegeTarget = _simGetSiegeTarget('cpu');
                 lane = siegeTarget;
-                msg = `SIEGE succeeds! — ${Math.round(myVal)} vs ${Math.round(cpuVal)}, +${gold}g, ${towerDmg} structure${towerDmg > 1 ? 's' : ''} destroyed!${baronActive ? ' (Baron empowered!)' : ''}`;
+                msg = `🏰✅ SIEGE succeeds! — ${vsStr}, ${towerDmg} structure${towerDmg > 1 ? 's' : ''} down!${baronActive ? ' (Baron empowered!)' : ''}`;
             } else {
-                msg = `Siege repelled — ${Math.round(myVal)} vs ${Math.round(cpuVal)}`;
+                msg = `🏰❌ Siege repelled — ${vsStr}`;
             }
             break;
         }
@@ -5722,32 +5716,36 @@ function renderSimulation() {
                 ${roles.map(r => {
                     const c = squad[r];
                     if (!c) return '';
-                    return `<div class="flex items-center gap-2 bg-slate-900/50 p-2 rounded-lg">
-                        <span class="text-[10px] font-black w-7 ${({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r]}">${r}</span>
-                        <span class="text-slate-200 font-bold text-xs flex-1 truncate">${c.name}</span>
-                        <span class="text-[9px] font-mono text-slate-500">${c.rating}</span>
-                        <span class="text-[9px] font-mono text-cyan-400">M${c.stats.mec}</span>
-                        <span class="text-[9px] font-mono text-purple-400">T${c.stats.tmf}</span>
-                        <span class="text-[9px] font-mono text-green-400">F${c.stats.frm}</span>
-                        <span class="text-[9px] font-mono text-emerald-400">P${c.stats.map}</span>
+                    return `<div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-lg">
+                        <span class="text-sm font-black w-10 ${({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r]}">${r}</span>
+                        <span class="text-slate-200 font-bold text-sm flex-1 truncate">${c.name}</span>
+                        <span class="text-xs font-black font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded">${c.rating}</span>
+                        <span class="text-xs font-mono font-bold text-cyan-400">MEC ${c.stats.mec}</span>
+                        <span class="text-xs font-mono font-bold text-purple-400">TMF ${c.stats.tmf}</span>
+                        <span class="text-xs font-mono font-bold text-green-400">FRM ${c.stats.frm}</span>
+                        <span class="text-xs font-mono font-bold text-orange-400">CMP ${c.stats.cmp}</span>
+                        <span class="text-xs font-mono font-bold text-emerald-400">MAP ${c.stats.map}</span>
+                        <span class="text-xs font-mono font-bold text-yellow-400">LDR ${c.stats.ldr}</span>
                     </div>`;
                 }).join('')}
             </div>
         </div>
         <div class="bg-red-950/30 rounded-2xl border border-red-700/30 p-4">
-            <div class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Enemy Team (Avg ${simState.cpuRating})</div>
+            <div class="text-xs font-black text-red-400 uppercase tracking-widest mb-2">Enemy Team (Avg ${simState.cpuRating})</div>
             <div class="space-y-1.5">
                 ${roles.map(r => {
                     const c = simState.cpuTeam[r];
                     if (!c) return '';
-                    return `<div class="flex items-center gap-2 bg-slate-900/50 p-2 rounded-lg">
-                        <span class="text-[10px] font-black w-7 ${({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r]}">${r}</span>
-                        <span class="text-slate-200 font-bold text-xs flex-1 truncate">${c.name}</span>
-                        <span class="text-[9px] font-mono text-slate-500">${c.rating}</span>
-                        <span class="text-[9px] font-mono text-cyan-400">M${c.stats.mec}</span>
-                        <span class="text-[9px] font-mono text-purple-400">T${c.stats.tmf}</span>
-                        <span class="text-[9px] font-mono text-green-400">F${c.stats.frm}</span>
-                        <span class="text-[9px] font-mono text-emerald-400">P${c.stats.map}</span>
+                    return `<div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-lg">
+                        <span class="text-sm font-black w-10 ${({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r]}">${r}</span>
+                        <span class="text-slate-200 font-bold text-sm flex-1 truncate">${c.name}</span>
+                        <span class="text-xs font-black font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded">${c.rating}</span>
+                        <span class="text-xs font-mono font-bold text-cyan-400">MEC ${c.stats.mec}</span>
+                        <span class="text-xs font-mono font-bold text-purple-400">TMF ${c.stats.tmf}</span>
+                        <span class="text-xs font-mono font-bold text-green-400">FRM ${c.stats.frm}</span>
+                        <span class="text-xs font-mono font-bold text-orange-400">CMP ${c.stats.cmp}</span>
+                        <span class="text-xs font-mono font-bold text-emerald-400">MAP ${c.stats.map}</span>
+                        <span class="text-xs font-mono font-bold text-yellow-400">LDR ${c.stats.ldr}</span>
                     </div>`;
                 }).join('')}
             </div>
@@ -5816,19 +5814,23 @@ function renderSimulation() {
             const roleColors = { TOP: 'text-amber-400', JNG: 'text-green-400', MID: 'text-blue-400', ADC: 'text-red-400', SUP: 'text-teal-400' };
 
             html += `<div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-xl">
-                <div class="w-16 text-center">
-                    <div class="text-xs font-black ${roleColors[r] || 'text-slate-300'} uppercase">${r}</div>
-                    <div class="text-[10px] text-slate-500">${rating} OVR</div>
+                <div class="w-20 text-center">
+                    <div class="text-sm font-black ${roleColors[r] || 'text-slate-300'} uppercase">${r}</div>
+                    <div class="text-xs text-slate-400 font-bold">${rating} OVR</div>
                 </div>
                 <div class="flex-1">
-                    <div class="text-sm font-bold text-slate-200 mb-1">${name}</div>
-                    <select onchange="simState.assignments['${r}']=this.value" class="w-full bg-slate-800 text-slate-200 px-3 py-2 rounded-lg border border-slate-600 text-xs font-mono focus:outline-none focus:border-violet-500">
+                    <div class="text-base font-bold text-slate-200 mb-1">${name}</div>
+                    <select onchange="simState.assignments['${r}']=this.value" class="w-full bg-slate-800 text-slate-200 px-3 py-2.5 rounded-lg border border-slate-600 text-sm font-mono focus:outline-none focus:border-violet-500">
                         <option value="">-- Select Action --</option>
                         ${actions.map(a => {
                             const statNames = a.stats.map(s => s.toUpperCase()).join('+');
-                            const myVal = squad[r] ? _simAvgStat(squad[r], a.stats) : 0;
-                            const multi = a.multiRole ? ` [${a.multiRole}+ roles]` : '';
-                            return `<option value="${a.id}" ${current === a.id ? 'selected' : ''}>${a.label} — ${statNames} (${myVal})${multi}</option>`;
+                            const myVal = Math.round(squad[r] ? _simAvgStat(squad[r], a.stats) : 0);
+                            const cpuCard = simState.cpuTeam[r];
+                            const cpuVal = Math.round(cpuCard ? _simAvgStat(cpuCard, a.stats) : simState.cpuRating);
+                            const edge = myVal - cpuVal;
+                            const edgeStr = edge > 0 ? `+${edge} EDGE` : edge < 0 ? `${edge} RISK` : 'EVEN';
+                            const multi = a.multiRole ? ` [${a.multiRole}+]` : '';
+                            return `<option value="${a.id}" ${current === a.id ? 'selected' : ''}>${a.label} — ${statNames}: You ${myVal} vs ${cpuVal} (${edgeStr})${multi}</option>`;
                         }).join('')}
                     </select>
                 </div>
@@ -5845,7 +5847,7 @@ function renderSimulation() {
     // ---- BATTLE LOG ----
     html += `<div class="bg-slate-800/80 rounded-2xl border border-slate-700/30 p-4">
         <div class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Battle Log</div>
-        <div class="max-h-64 overflow-y-auto space-y-1 text-xs font-mono" id="sim-log">`;
+        <div class="max-h-80 overflow-y-auto space-y-1.5 text-sm font-mono" id="sim-log">`;
 
     // Show log in reverse (newest first)
     for (let i = simState.log.length - 1; i >= 0; i--) {
