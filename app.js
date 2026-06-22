@@ -492,7 +492,7 @@ function _squadAvgRating() {
 
 function _hasFullRegionArchive() {
     const db = getDB(); if (!db) return false;
-    return ['LCK', 'LPL', 'LEC', 'LCS', 'LCP'].some(region => {
+    return ['LCK', 'LPL', 'LEC', 'LCS', 'LCP', 'PCS'].some(region => {
         const regionCards = db.filter(c => c.region === region && !_SPECIAL_QUALITIES.has(c.quality));
         return regionCards.length > 0 && regionCards.every(c => collectionRegistry[c.id]);
     });
@@ -517,7 +517,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_8c', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_5_9', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -693,7 +693,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_5_8c';
+    const patchKey = 'lol_patch_seen_v0_5_9';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1269,8 +1269,8 @@ function renderCollection() {
 
     // Region button styles
     if (currentArchiveCategory === 'regular') {
-        const regionLabels = { LCK: '🇰🇷 LCK', LPL: '🇨🇳 LPL', LEC: '🇪🇺 LEC', LCS: '🇺🇸 LCS', LCP: '🌏 LCP' };
-        ['LCK', 'LPL', 'LEC', 'LCS', 'LCP'].forEach(r => {
+        const regionLabels = { LCK: '🇰🇷 LCK', LPL: '🇨🇳 LPL', LEC: '🇪🇺 LEC', LCS: '🇺🇸 LCS', LCP: '🌏 LCP', PCS: '🌏 PCS' };
+        ['LCK', 'LPL', 'LEC', 'LCS', 'LCP', 'PCS'].forEach(r => {
             let btn = document.getElementById(`col-reg-${r}`); if (!btn) return;
             let hasClaimable = db.filter(c => c.region === r).some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
             btn.className = r === currentCollectionRegion
