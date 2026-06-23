@@ -346,7 +346,7 @@ button, a, .nav-btn {
 .tab-content { animation: pageEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes pageEnter { from { opacity: 0; transform: translateY(16px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-body { color: #cbd5e1; max-width: 1920px; margin: 0 auto; }
+body { color: #cbd5e1; }
 h1, h2, h3, h4 { color: #f1f5f9; }
 
 /* Player Picker Drawer filter buttons */
