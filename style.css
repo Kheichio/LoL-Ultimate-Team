@@ -776,3 +776,242 @@ html[data-scale="4k"] .squad-slot-inner { width: 240px !important; height: 330px
     html:not([data-scale]) { font-size: 16px; }
     html:not([data-scale]) .nav-btn { padding: 8px 16px !important; font-size: 14px !important; min-width: 100px !important; }
 }
+
+/* ======= MOBILE RESPONSIVE ======= */
+
+/* Mobile nav drawer slide-in */
+.mobile-nav-drawer {
+    transform: translateX(-100%);
+    animation: mobileNavSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes mobileNavSlide {
+    to { transform: translateX(0); }
+}
+
+/* Mobile nav items */
+.mobile-nav-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #cbd5e1;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.mobile-nav-item:hover, .mobile-nav-item:active {
+    background: rgba(51, 65, 85, 0.6);
+}
+
+/* Hide mobile-only elements on desktop */
+.mobile-only { display: none !important; }
+.desktop-only { display: inline-flex; }
+
+@media (max-width: 768px) {
+    /* Show mobile elements, hide desktop nav */
+    .mobile-only { display: inline-flex !important; }
+    .desktop-only { display: none !important; }
+    #desktop-nav { display: none !important; }
+
+    /* Header — compact mobile bar */
+    header {
+        padding: 0.4rem 0.6rem !important;
+        gap: 0.4rem !important;
+    }
+
+    /* Main content — tighter padding */
+    main {
+        padding: 0.5rem !important;
+        max-width: 100% !important;
+    }
+
+    /* All tab sections — full width, no max-w constraint */
+    .tab-content {
+        max-width: 100% !important;
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+
+    /* Typography — scale down */
+    .tab-content h2 { font-size: 1.2rem !important; }
+    .tab-content h3 { font-size: 0.9rem !important; }
+
+    /* Grids — collapse to fewer columns */
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .sm\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .sm\:grid-cols-8 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    .lg\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .lg\:grid-cols-5 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .md\:grid-cols-2 { grid-template-columns: 1fr !important; }
+
+    /* Card sizes — smaller for mobile */
+    .squad-slot-inner {
+        width: 150px !important;
+        height: 210px !important;
+    }
+    #tab-squad .squad-slot-inner > div,
+    #tab-squad [id^="squad-"] > div {
+        width: 150px !important;
+    }
+    #tab-squad .squad-slot-inner img,
+    #tab-squad [id^="squad-"] img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+
+    /* Club grid — 2 cards per row */
+    #club-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        justify-content: center !important;
+    }
+
+    /* Cards in pickers/club — scale down */
+    #picker-cards {
+        gap: 8px !important;
+        justify-content: center !important;
+    }
+
+    /* Modals — full screen on mobile */
+    #confirm-modal-box,
+    #auth-panel > div,
+    #profile-modal > div,
+    #bench-swap-modal > div {
+        max-width: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Auth panel — fill screen */
+    #auth-panel {
+        padding: 0 !important;
+    }
+    #auth-panel > div {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* Player picker — full screen drawer */
+    #player-picker {
+        height: 100vh !important;
+        border-radius: 0 !important;
+    }
+
+    /* Tournament lobby — stack vertically */
+    #tournament-lobby .grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Leaderboard — horizontal scroll for table */
+    #leaderboard-content > div {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    #leaderboard-content .flex.items-center.gap-3 {
+        min-width: 700px;
+    }
+
+    /* Season tab / Rewards tab — full width */
+    #tab-season, #tab-rewards {
+        max-width: 100% !important;
+        padding: 0.5rem !important;
+    }
+
+    /* Store packs — wrap nicely */
+    #tab-store .flex-wrap {
+        gap: 8px !important;
+    }
+
+    /* Welcome hero — smaller */
+    #tab-welcome h1 { font-size: 1.4rem !important; }
+    #tab-welcome .text-5xl { font-size: 2.5rem !important; }
+    #tab-welcome .flex.gap-4 {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+    #tab-welcome .flex.gap-4 > div:first-child {
+        align-self: flex-start;
+    }
+
+    /* Guide — tighter */
+    #tab-guide {
+        max-width: 100% !important;
+        padding: 0.5rem !important;
+    }
+    #tab-guide .grid { grid-template-columns: 1fr !important; }
+
+    /* Archive — horizontal scroll cards */
+    #collection-grid .flex.gap-3,
+    #collection-grid .flex.gap-4 {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+
+    /* Quests — full width */
+    #tab-quests { max-width: 100% !important; }
+
+    /* Confirm modal buttons — stacked */
+    #confirm-modal-box .flex.gap-3,
+    #confirm-modal-box .flex.gap-2\.5 {
+        flex-direction: column !important;
+    }
+
+    /* Toast — wider on mobile */
+    #toast-container {
+        left: 1rem !important;
+        right: 1rem !important;
+        bottom: 1rem !important;
+    }
+    #toast-container > div {
+        width: 100% !important;
+    }
+
+    /* Patch modal — full width */
+    #patch-modal > div {
+        max-width: 100% !important;
+        margin: 0.5rem !important;
+        max-height: 95vh !important;
+    }
+
+    /* Battle pass grid — 5 cols on mobile */
+    .grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    .sm\:grid-cols-10 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+
+    /* Touch-friendly: larger tap targets */
+    button { min-height: 36px; }
+    .tab-content button { min-height: 40px; }
+    select, input[type="text"], input[type="email"], input[type="password"] {
+        min-height: 42px !important;
+        font-size: 16px !important; /* prevents iOS zoom */
+    }
+
+    /* Hide wipe button on mobile (accessible via menu) */
+    /* Reduce box shadows for performance */
+    .card-bg-Grandmaster::before,
+    .card-bg-MVP::before,
+    .card-bg-MSI::before {
+        filter: blur(2px) !important;
+    }
+}
+
+/* Extra small phones (under 380px) */
+@media (max-width: 380px) {
+    header { padding: 0.3rem 0.4rem !important; }
+    .mobile-nav-item { padding: 10px 12px; font-size: 12px; }
+    #mobile-nav .w-64 { width: 220px; }
+    .tab-content h2 { font-size: 1rem !important; }
+    .squad-slot-inner {
+        width: 130px !important;
+        height: 185px !important;
+    }
+    .grid-cols-5 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}

@@ -3402,6 +3402,32 @@ function toggleDarkMode() {
     if (btn) btn.textContent = isLight ? "🌙" : "☀️";
 }
 
+// --- Mobile Navigation ---
+function toggleMobileNav() {
+    const nav = document.getElementById('mobile-nav');
+    if (nav) {
+        nav.classList.toggle('hidden');
+        document.body.style.overflow = nav.classList.contains('hidden') ? '' : 'hidden';
+    }
+}
+function mobileNavTo(tabId) {
+    toggleMobileNav();
+    switchTab(tabId);
+    if (tabId === 'rewards') renderRewardsTab();
+    if (tabId === 'quests') renderQuests();
+    if (tabId === 'trade') renderTradeMarket();
+    if (tabId === 'season') renderSeasonTab();
+    if (tabId === 'leaderboard') renderLeaderboard();
+    if (tabId === 'skills') renderSkillsUI();
+    if (tabId === 'collection') renderCollection();
+}
+window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        const nav = document.getElementById('mobile-nav');
+        if (nav && !nav.classList.contains('hidden')) toggleMobileNav();
+    }
+});
+
 // --- Display Scale System ---
 function setDisplayScale(scale) {
     if (scale === 'auto') {
