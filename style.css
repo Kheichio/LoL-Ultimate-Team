@@ -712,13 +712,67 @@ input:focus, select:focus {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
 }
 
-/* ======= 1080p Scale Constraints ======= */
-@media (max-height: 900px) {
-    header { padding: 0.4rem 0.75rem !important; }
-    .nav-btn { padding: 4px 10px !important; font-size: 11px !important; min-width: 70px !important; }
-    main { padding: 0.75rem 1rem !important; }
+/* Scale selector buttons */
+.scale-btn {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
+}
+.scale-btn:hover {
+    background: #334155;
+    color: #e2e8f0;
+    border-color: #475569;
+}
+.scale-btn.scale-active {
+    background: #1e3a5f !important;
+    color: #93c5fd !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
 }
 
-@media (max-width: 1400px) {
-    .nav-btn { min-width: 65px !important; padding: 5px 8px !important; font-size: 11px !important; }
+/* ======= DISPLAY SCALE SYSTEM ======= */
+
+/* --- 720p / Laptop (compact) --- */
+html[data-scale="720p"] { font-size: 13px; }
+html[data-scale="720p"] header { padding: 0.3rem 0.5rem !important; }
+html[data-scale="720p"] .nav-btn { padding: 3px 7px !important; font-size: 10px !important; min-width: 55px !important; }
+html[data-scale="720p"] main { padding: 0.5rem 0.75rem !important; }
+html[data-scale="720p"] .tab-content h2 { font-size: 1.15rem !important; }
+html[data-scale="720p"] .tab-content h3 { font-size: 0.85rem !important; }
+html[data-scale="720p"] #be-display { font-size: 11px; }
+html[data-scale="720p"] .squad-slot-inner { width: 170px !important; height: 240px !important; }
+
+/* --- 1080p (default — no overrides needed, base styles are 1080p) --- */
+html[data-scale="1080p"] { font-size: 14px; }
+
+/* --- 1440p --- */
+html[data-scale="1440p"] { font-size: 15px; }
+html[data-scale="1440p"] header { padding: 0.7rem 1.25rem !important; }
+html[data-scale="1440p"] .nav-btn { padding: 7px 14px !important; font-size: 13px !important; min-width: 90px !important; }
+html[data-scale="1440p"] main { padding: 1.25rem 1.5rem !important; }
+html[data-scale="1440p"] .tab-content h2 { font-size: 1.65rem !important; }
+html[data-scale="1440p"] .tab-content h3 { font-size: 1.1rem !important; }
+html[data-scale="1440p"] .tab-content p, html[data-scale="1440p"] .tab-content li { font-size: 0.9rem !important; }
+html[data-scale="1440p"] .tab-content button { font-size: 0.85rem !important; }
+
+/* --- 4K / Ultrawide --- */
+html[data-scale="4k"] { font-size: 17px; }
+html[data-scale="4k"] header { padding: 0.85rem 1.5rem !important; }
+html[data-scale="4k"] .nav-btn { padding: 8px 16px !important; font-size: 14px !important; min-width: 100px !important; }
+html[data-scale="4k"] main { padding: 1.5rem 2rem !important; max-width: 1800px !important; }
+html[data-scale="4k"] .tab-content h2 { font-size: 1.85rem !important; }
+html[data-scale="4k"] .tab-content h3 { font-size: 1.2rem !important; }
+html[data-scale="4k"] .tab-content p, html[data-scale="4k"] .tab-content li { font-size: 1rem !important; }
+html[data-scale="4k"] .tab-content button { font-size: 0.9rem !important; }
+html[data-scale="4k"] .squad-slot-inner { width: 240px !important; height: 330px !important; }
+
+/* Fallback media queries — auto-detect if no manual scale set */
+@media (max-height: 800px) {
+    html:not([data-scale]) header { padding: 0.35rem 0.6rem !important; }
+    html:not([data-scale]) .nav-btn { padding: 3px 8px !important; font-size: 10px !important; min-width: 60px !important; }
+    html:not([data-scale]) main { padding: 0.5rem 0.75rem !important; }
+}
+@media (min-height: 1200px) and (min-width: 2400px) {
+    html:not([data-scale]) { font-size: 16px; }
+    html:not([data-scale]) .nav-btn { padding: 8px 16px !important; font-size: 14px !important; min-width: 100px !important; }
 }

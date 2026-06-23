@@ -3402,6 +3402,36 @@ function toggleDarkMode() {
     if (btn) btn.textContent = isLight ? "🌙" : "☀️";
 }
 
+// --- Display Scale System ---
+function setDisplayScale(scale) {
+    if (scale === 'auto') {
+        document.documentElement.removeAttribute('data-scale');
+        localStorage.removeItem('lol_display_scale');
+    } else {
+        document.documentElement.setAttribute('data-scale', scale);
+        localStorage.setItem('lol_display_scale', scale);
+    }
+    _updateScaleButtons();
+    showToast(`Display set to ${scale === 'auto' ? 'Auto-Detect' : scale}`, 'success');
+}
+
+function _updateScaleButtons() {
+    const current = document.documentElement.getAttribute('data-scale') || 'auto';
+    document.querySelectorAll('.scale-btn').forEach(btn => {
+        const val = btn.getAttribute('data-scale-btn');
+        btn.classList.toggle('scale-active', val === current);
+    });
+}
+
+function _initDisplayScale() {
+    const saved = localStorage.getItem('lol_display_scale');
+    if (saved) {
+        document.documentElement.setAttribute('data-scale', saved);
+    }
+    _updateScaleButtons();
+}
+_initDisplayScale();
+
 // --- Player Picker Drawer ---
 let _pickerFilters = { region: 'ALL', sort: 'rating' };
 
@@ -6709,7 +6739,10 @@ let currentUser = null;
 
 function toggleAuthPanel() {
     const panel = document.getElementById('auth-panel');
-    if (panel) panel.classList.toggle('hidden');
+    if (panel) {
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) _updateScaleButtons();
+    }
 }
 
 function updateAuthUI(user) {
