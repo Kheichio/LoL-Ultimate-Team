@@ -45,7 +45,7 @@ let collectionRegistry = {};
 let archiveLastSeen = {};
 let tradeMarket = { expires: 0, offers: [] };
 let teamCompletionRewards = {};
-let unlocks = { firstStand: false, msi: false, worlds: false, draftMode: false };
+let unlocks = { firstStand: false, msi: false, worlds: false, draftMode: false, salaryCap: false, tower: false };
 
 let trackStats = {
     packs: 0, tournamentsWon: 0, goldenRoads: 0, soldCount: 0, soldBE: 0, matchesPlayed: {},
@@ -555,7 +555,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_6', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_7', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -726,15 +726,19 @@ window.onload = () => {
     if (unlocks.worlds === undefined) unlocks.worlds = false;
     if (unlocks.draftMode === undefined) unlocks.draftMode = false;
     if (unlocks.goldenRoad === undefined) unlocks.goldenRoad = false;
+    if (unlocks.salaryCap === undefined) unlocks.salaryCap = false;
+    if (unlocks.tower === undefined) unlocks.tower = false;
     // Grandfather in players who already met the criteria before this patch
     if (trackStats.firstStandWon >= 1 || seasonData.trophyCase.some(t => t.wins >= 6)) unlocks.firstStand = true;
     if (trackStats.msiWon >= 1) unlocks.msi = true;
     if (trackStats.worldsWon >= 1) unlocks.worlds = true;
     if (trackStats.worldsWon >= 1 || (trackStats.regionalSplitWon >= 1 && seasonData.trophyCase.some(t => t.wins >= 6))) unlocks.draftMode = true;
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
+    if (unlocks.draftMode && (trackStats.draftModesWon || 0) >= 1) unlocks.salaryCap = true;
+    if ((trackStats.regionalSplitWon || 0) >= 1 && (trackStats.firstStandWon || 0) >= 1) unlocks.tower = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_6_6';
+    const patchKey = 'lol_patch_seen_v0_6_7';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -804,6 +808,19 @@ window.onload = () => {
         Object.keys(squad).forEach(slot => {
             if (squad[slot] && !validIds.has(squad[slot].id)) squad[slot] = null;
         });
+        const _flexQualities = ["Champion", "Finalist", "MSI", "FirstStand"];
+        ['TOP','JNG','MID','ADC','SUP'].forEach(slot => {
+            if (!squad[slot]) return;
+            const base = db.find(p => p.id === squad[slot].id);
+            if (base && base.role !== slot && !_flexQualities.includes(base.quality)) {
+                console.log(`Removed ${squad[slot].name} from ${slot} — role mismatch (actual: ${base.role})`);
+                squad[slot] = null;
+            }
+        });
+        if (squad.COACH) {
+            const base = db.find(p => p.id === squad.COACH.id);
+            if (base && base.role !== 'COACH') { squad.COACH = null; }
+        }
 
         saveGame();
     }
@@ -1000,7 +1017,7 @@ function devMaxCards() {
 
 function devUnlockAll() {
     if (!_devUnlocked) { console.log('Dev mode not active.'); return; }
-    unlocks.firstStand = true; unlocks.msi = true; unlocks.worlds = true; unlocks.draftMode = true; unlocks.goldenRoad = true;
+    unlocks.firstStand = true; unlocks.msi = true; unlocks.worlds = true; unlocks.draftMode = true; unlocks.goldenRoad = true; unlocks.salaryCap = true; unlocks.tower = true;
     saveGame(); updateTournamentLocks();
     console.log('All modes unlocked.');
 }
@@ -1607,6 +1624,33 @@ function resetBattlePass() {
     showToast(`Battle Pass Season ${battlePass.season} started!`, 'success');
 }
 
+function renderRewardsTab() {
+    const loginContainer = document.getElementById('daily-login-tracker');
+    if (loginContainer) {
+        const streak = parseInt(localStorage.getItem('lol_login_streak') || '0', 10);
+        const today = new Date().toDateString();
+        const lastLogin = localStorage.getItem('lol_last_login_date');
+        const collectedToday = lastLogin === today;
+        const rewards = [100, 200, 500, 1000, 2000];
+        const dayLabels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
+        let html = `<div class="grid grid-cols-5 gap-2 mb-3">`;
+        for (let i = 0; i < 5; i++) {
+            const completed = collectedToday ? i < streak : i < streak;
+            const isNext = collectedToday ? false : i === streak;
+            const bg = completed ? 'bg-emerald-900/50 border-emerald-500/60' : isNext ? 'bg-amber-900/50 border-amber-500/60 animate-pulse' : 'bg-slate-800/60 border-slate-700/50';
+            html += `<div class="p-3 rounded-xl border text-center ${bg}">
+                <div class="text-[10px] font-black text-slate-400 uppercase mb-1">${dayLabels[i]}</div>
+                <div class="text-lg font-black ${completed ? 'text-emerald-400' : 'text-slate-500'}">${completed ? '✓' : '💎'}</div>
+                <div class="text-xs font-bold ${completed ? 'text-emerald-300' : 'text-slate-400'}">${rewards[i]} BE</div>
+            </div>`;
+        }
+        html += `</div>`;
+        html += `<div class="text-xs text-slate-400 text-center">${collectedToday ? `<span class="text-emerald-400 font-bold">Collected today! Streak: ${streak}/5</span>` : streak > 0 ? `Come back tomorrow for Day ${Math.min(streak + 1, 5)} reward!` : 'Log in each day for increasing rewards!'}</div>`;
+        loginContainer.innerHTML = html;
+    }
+    renderBattlePass();
+}
+
 const _SKILL_DOUBLE_COST = new Set(['bootcamp']);
 const _SKILL_FLAT_COST = new Set(['clubhouse']);
 function _skillCost(skillName, currentLvl) {
@@ -1819,6 +1863,14 @@ function checkProgressionUnlocks() {
         unlocks.goldenRoad = true; changed = true;
         showToast("🔓 The Golden Road unlocked!", "success");
     }
+    if (!unlocks.salaryCap && unlocks.draftMode && (trackStats.draftModesWon || 0) >= 1) {
+        unlocks.salaryCap = true; changed = true;
+        showToast("🔓 Salary Cap Draft unlocked!", "success");
+    }
+    if (!unlocks.tower && (trackStats.regionalSplitWon || 0) >= 1 && (trackStats.firstStandWon || 0) >= 1) {
+        unlocks.tower = true; changed = true;
+        showToast("🔓 Infinite Tower unlocked!", "success");
+    }
     updateTournamentLocks();
     if (changed) saveGame();
 }
@@ -1838,6 +1890,8 @@ function updateTournamentLocks() {
     applyLock("lock-msi", "btn-msi", unlocks.msi);
     applyLock("lock-worlds", "btn-worlds", unlocks.worlds);
     applyLock("lock-draftmode", "btn-draftmode", unlocks.draftMode);
+    applyLock("lock-salarycap", "btn-salarycap", unlocks.salaryCap);
+    applyLock("lock-tower", "btn-tower", unlocks.tower);
     applyLock("lock-goldenroad", "btn-goldenroad", unlocks.goldenRoad);
     _grRenderCooldown(); // re-assert cooldown-disabled state in case it was just overwritten above
 }
@@ -3267,10 +3321,6 @@ function renderSeasonTab() {
         : `<div class="text-slate-500 text-center py-8 text-sm">No completed splits yet.<br>Play Season Matches in the <strong class="text-indigo-400">Play</strong> tab to get started.</div>`;
 
     tab.innerHTML = `<div class="space-y-5 pb-10 pt-2">
-        <div class="bg-gradient-to-r from-amber-950/30 to-slate-900 p-5 rounded-2xl border border-amber-700/40 mb-6">
-            <h3 class="text-lg font-black text-amber-400 uppercase tracking-widest mb-3">\u{1F396}\u{FE0F} Battle Pass</h3>
-            <div id="battlepass-content"></div>
-        </div>
         <div class="bg-gradient-to-br from-indigo-900/30 to-slate-900 p-5 rounded-2xl border border-indigo-700/40 shadow-xl flex flex-wrap gap-4 items-center justify-between">
             <div>
                 <div class="text-xs text-indigo-400 font-black uppercase tracking-widest mb-1">Current Season</div>
@@ -3298,7 +3348,6 @@ function renderSeasonTab() {
             <div class="space-y-2">${trophyHTML}</div>
         </div>
     </div>`;
-    renderBattlePass();
 }
 
 function toggleDarkMode() {
@@ -3488,6 +3537,14 @@ function renderPickerCards() {
     // Team dropdown
     const teamVal = document.getElementById('picker-team').value;
     if (teamVal !== 'ALL') pool = pool.filter(p => p.team === teamVal);
+
+    // Tier dropdown
+    const tierVal = document.getElementById('picker-tier')?.value || 'ALL';
+    if (tierVal === 'Signature') {
+        pool = pool.filter(p => p.signature);
+    } else if (tierVal !== 'ALL') {
+        pool = pool.filter(p => p.quality === tierVal);
+    }
 
     // Sort
     if (_pickerFilters.sort === 'rating') pool.sort((a,b) => b.rating - a.rating);
@@ -4606,6 +4663,7 @@ function endDraftMode() {
     }
 
     addXP(won ? 150 : 50);
+    checkProgressionUnlocks();
     saveGame(); updateDisplays();
 }
 
@@ -4621,6 +4679,7 @@ let SALARY_CAP = 350;
 let _salaryCapReward = 2500;
 
 function startSalaryCapDraft() {
+    if (!unlocks.salaryCap) { showToast("Unlock Draft Mode and win 1 Draft to unlock Salary Cap Draft.", "error"); return; }
     if (club.length < 15) { showToast("Need at least 15 cards in your Club.", "error"); return; }
     if (blueEssence < 1500) { showToast("Need 1,500 BE to enter Salary Cap Draft.", "error"); return; }
     const modal = document.getElementById('confirm-modal');
@@ -4930,6 +4989,7 @@ function renderSalaryCombat() {
 let towerState = null;
 
 function startInfiniteTower() {
+    if (!unlocks.tower) { showToast("Win 1 Season Split and beat First Stand to unlock Infinite Tower.", "error"); return; }
     if (['TOP','JNG','MID','ADC','SUP'].some(r => !squad[r])) { showToast("Assign all 5 positions first.", "error"); return; }
 
     const saved = localStorage.getItem("lol_tower_v1");
@@ -6746,7 +6806,7 @@ function pushToLeaderboard() {
         teamName: teamIdentity.name || 'My Team',
         teamLogo: teamIdentity.logo || '🛡️',
         teamColor: teamIdentity.color || '#3b82f6',
-        trophies: trackStats.tournamentsWon || 0,
+        trophies: ((trackStats.worldsWon || 0) * 10) + ((trackStats.msiWon || 0) * 7) + ((trackStats.firstStandWon || 0) * 5) + ((trackStats.regionalSplitWon || 0) * 3) + ((trackStats.cafeWins || 0) * 1) + ((trackStats.goldenRoads || 0) * 15),
         splitsCompleted: trackStats.splitsCompleted || 0,
         goldenRoads: trackStats.goldenRoads || 0,
         towerBest: trackStats.towerHighestFloor || 0,
@@ -6840,8 +6900,10 @@ function _renderLbFromCache() {
         const rank = i + 1;
         const isMe = currentUser && d.id === currentUser.uid;
         const teamColor = d.teamColor || '#3b82f6';
-        const rowBg = isMe ? `border-l-4` : rank <= 3 ? 'bg-amber-950/20' : '';
-        const rowStyle = isMe ? `border-color: ${teamColor}; background: ${teamColor}15;` : '';
+        const rowBg = isMe ? 'border-l-4' : '';
+        const rowStyle = isMe
+            ? `border-color: ${teamColor}; background: linear-gradient(90deg, ${teamColor}22 0%, ${teamColor}0A 100%);`
+            : `background: linear-gradient(90deg, ${teamColor}12 0%, transparent 60%);`;
         const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
         const rankColor = rank <= 3 ? 'text-amber-400 font-black' : 'text-slate-500';
         html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/50 text-sm ${rowBg}" style="${rowStyle}">
@@ -6892,6 +6954,9 @@ function viewProfile(uid) {
         }
 
         const profileColor = d.teamColor || '#3b82f6';
+        const profileContainer = content.parentElement;
+        profileContainer.style.background = `linear-gradient(135deg, ${profileColor}25 0%, #1e293b 35%)`;
+        profileContainer.style.borderColor = `${profileColor}60`;
         content.innerHTML = `
             <div class="flex items-center gap-4 mb-4 pl-3 border-l-4 rounded-l" style="border-color: ${profileColor};">
                 <img src="${d.photoURL || ''}" class="w-14 h-14 rounded-full border-2" style="border-color: ${profileColor};" onerror="this.style.display='none'">
@@ -6917,19 +6982,36 @@ function viewProfile(uid) {
             ${currentUser ? `<button onclick="addFriend('${uid}','${(d.displayName||'').replace(/'/g,'')}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">➕ Add Friend</button>` : ''}
             <button onclick="document.getElementById('profile-modal').classList.add('hidden')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-xl font-bold cursor-pointer transition text-sm">Close</button>`;
 
-        // Render squad cards
+        // Render squad cards (validated against database)
         if (theirSquad) {
             const squadEl = document.getElementById('profile-squad');
             if (squadEl) {
+                const db = getDB();
+                const validIds = db ? new Set(db.map(p => p.id)) : null;
+                const _flexQ = ["Champion", "Finalist", "MSI", "FirstStand"];
                 ['TOP','JNG','MID','ADC','SUP','COACH'].forEach(role => {
                     const card = theirSquad[role];
-                    if (card) {
-                        const wrap = document.createElement('div');
-                        wrap.className = 'relative';
-                        wrap.appendChild(createCardElement(card, true, null, null));
-                        wrap.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 bg-indigo-900/90 text-indigo-200 text-[8px] font-black px-1 py-0.5 rounded-tl-xl rounded-br-xl z-10">${role}</div>`);
-                        squadEl.appendChild(wrap);
+                    if (!card) return;
+                    if (validIds && !validIds.has(card.id)) return;
+                    if (db) {
+                        const base = db.find(p => p.id === card.id);
+                        if (base) {
+                            if (role === 'COACH' && base.role !== 'COACH') return;
+                            if (role !== 'COACH' && base.role !== role && !_flexQ.includes(base.quality)) return;
+                            card.rating = base.rating;
+                            card.stats = { ...base.stats };
+                            card.quality = base.quality;
+                            card.name = base.name;
+                            card.team = base.team;
+                            card.role = base.role;
+                            card.region = base.region;
+                        }
                     }
+                    const wrap = document.createElement('div');
+                    wrap.className = 'relative';
+                    wrap.appendChild(createCardElement(card, true, null, null));
+                    wrap.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 bg-indigo-900/90 text-indigo-200 text-[8px] font-black px-1 py-0.5 rounded-tl-xl rounded-br-xl z-10">${role}</div>`);
+                    squadEl.appendChild(wrap);
                 });
             }
         }
