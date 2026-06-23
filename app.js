@@ -519,7 +519,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_0', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_4', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -695,7 +695,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_6_0';
+    const patchKey = 'lol_patch_seen_v0_6_4';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -5586,6 +5586,7 @@ function _simCpuTurn() {
     });
 
     simState.cpuGold += cpuTotalGold;
+    simState._lastCpuActions = cpuActions;
     return cpuResults;
 }
 
@@ -5649,7 +5650,11 @@ function startSimulation() {
         cpuRating: cpuRating,
         cpuTeam: cpuTeam,
         wardBonus: 0,
-        cpuWardBonus: 0
+        cpuWardBonus: 0,
+        playerPositions: { TOP: 'topLane', JNG: 'jungle', MID: 'midLane', ADC: 'botLane', SUP: 'botLane' },
+        cpuPositions: { TOP: 'enemyTop', JNG: 'enemyJungle', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' },
+        selectedPlayer: null,
+        visionAreas: []
     };
 
     document.getElementById('tournament-lobby').classList.add('hidden');
@@ -5666,6 +5671,289 @@ function closeSimulation() {
     });
 }
 
+// ---- VISUAL MAP SIMULATION SYSTEM ----
+
+const _SIM_MAP_LOCATIONS = {
+    myBase:       { label: 'Base',           emoji: '&#127984;', type: 'base-blue',   col: 0 },
+    topLane:      { label: 'TOP Lane',       emoji: '',          type: 'lane',         col: 1, lane: 'top' },
+    jungle:       { label: 'Jungle',         emoji: '&#127795;', type: 'jungle',       col: 1 },
+    midLane:      { label: 'MID Lane',       emoji: '',          type: 'lane',         col: 1, lane: 'mid' },
+    botLane:      { label: 'BOT Lane',       emoji: '',          type: 'lane',         col: 1, lane: 'bot' },
+    heraldPit:    { label: 'Herald / Baron', emoji: '',          type: 'river',        col: 2 },
+    grubPit:      { label: 'Grubs',          emoji: '',          type: 'river',        col: 2 },
+    dragonPit:    { label: 'Dragon',         emoji: '',          type: 'river',        col: 2 },
+    wardSpot:     { label: 'Ward Spot',      emoji: '&#128065;', type: 'river',        col: 2 },
+    enemyTop:     { label: 'Enemy TOP',      emoji: '',          type: 'lane-enemy',   col: 3, lane: 'top' },
+    enemyJungle:  { label: 'Enemy JNG',      emoji: '',          type: 'jungle-enemy', col: 3 },
+    enemyMid:     { label: 'Enemy MID',      emoji: '',          type: 'lane-enemy',   col: 3, lane: 'mid' },
+    enemyBot:     { label: 'Enemy BOT',      emoji: '',          type: 'lane-enemy',   col: 3, lane: 'bot' },
+    enemyBase:    { label: 'Enemy Base',     emoji: '&#128128;', type: 'base-red',     col: 4 }
+};
+
+function _simLocationToAction(role, location) {
+    if (!simState) return null;
+    const phase = simState.phase;
+    const avail = _simGetAvailableActions(role).map(a => a.id);
+    function pick(first) {
+        for (const a of first) { if (avail.includes(a)) return a; }
+        return null;
+    }
+    switch (location) {
+        case 'myBase':      return null;
+        case 'topLane':
+            return role === 'TOP' ? pick(['farm']) : pick(['rotate','farm']);
+        case 'midLane':
+            return role === 'MID' ? pick(['farm']) : pick(['rotate','farm']);
+        case 'botLane':
+            return role === 'ADC' || role === 'SUP' ? pick(['farm']) : pick(['rotate','farm']);
+        case 'jungle':
+            return role === 'JNG' ? pick(['farm']) : pick(['rotate','farm']);
+        case 'dragonPit':   return pick(['elder','dragon']);
+        case 'heraldPit': {
+            if (avail.includes('baron')) return 'baron';
+            if (avail.includes('elder')) return 'elder';
+            return pick(['herald']);
+        }
+        case 'grubPit':     return pick(['grubs']);
+        case 'wardSpot':    return pick(['ward']);
+        case 'enemyTop':    return pick(['gank','splitpush','rotate']);
+        case 'enemyMid':    return pick(['teamfight','gank','splitpush','rotate']);
+        case 'enemyBot':    return pick(['gank','splitpush','rotate']);
+        case 'enemyJungle': return pick(['teamfight','gank','rotate']);
+        case 'enemyBase':   return pick(['backdoor','siege']);
+        default: return null;
+    }
+}
+
+function _simGetValidMoves(role) {
+    if (!simState || !simState.actionPhase) return [];
+    const allLocs = Object.keys(_SIM_MAP_LOCATIONS);
+    return allLocs.filter(loc => {
+        const action = _simLocationToAction(role, loc);
+        return action !== null;
+    });
+}
+
+function selectSimPlayer(role) {
+    if (!simState || !simState.actionPhase) return;
+    if (simState.selectedPlayer === role) {
+        simState.selectedPlayer = null;
+    } else {
+        simState.selectedPlayer = role;
+    }
+    renderSimulation();
+}
+
+function moveSimPlayer(role, location) {
+    if (!simState || !role || !simState.actionPhase) return;
+    const action = _simLocationToAction(role, location);
+    if (!action) {
+        showToast('Cannot move there — no valid action available.', 'error');
+        return;
+    }
+    simState.playerPositions[role] = location;
+    simState.assignments[role] = action;
+    simState.selectedPlayer = null;
+    renderSimulation();
+}
+
+function _simHasVision(location) {
+    if (!simState) return false;
+    // Always have vision on own side
+    const ownSideLocs = ['myBase','topLane','midLane','botLane','jungle','dragonPit','heraldPit','grubPit','wardSpot'];
+    if (ownSideLocs.includes(location)) return true;
+    // Vision from wards
+    if (simState.visionAreas.includes(location)) return true;
+    // Vision from player positions (can see adjacent enemy areas)
+    const adjacency = {
+        topLane: ['enemyTop'], midLane: ['enemyMid'], botLane: ['enemyBot'],
+        jungle: ['enemyJungle'], heraldPit: ['enemyTop','enemyJungle'], dragonPit: ['enemyBot','enemyJungle'],
+        wardSpot: ['enemyTop','enemyMid','enemyBot','enemyJungle','enemyBase']
+    };
+    for (const r of ['TOP','JNG','MID','ADC','SUP']) {
+        const pos = simState.playerPositions[r];
+        const adj = adjacency[pos];
+        if (adj && adj.includes(location)) return true;
+        if (pos === location) return true; // player IS there
+    }
+    return false;
+}
+
+function _simUpdatePositionsAfterTurn() {
+    if (!simState) return;
+    // Map CPU actions to positions on the map
+    const actionToCpuPos = {
+        farm:      { TOP: 'enemyTop', JNG: 'enemyJungle', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' },
+        gank:      { TOP: 'midLane',  JNG: 'topLane',     MID: 'botLane',  ADC: 'midLane',  SUP: 'midLane' },
+        dragon:    { TOP: 'dragonPit', JNG: 'dragonPit', MID: 'dragonPit', ADC: 'dragonPit', SUP: 'dragonPit' },
+        baron:     { TOP: 'heraldPit', JNG: 'heraldPit', MID: 'heraldPit', ADC: 'heraldPit', SUP: 'heraldPit' },
+        elder:     { TOP: 'dragonPit', JNG: 'dragonPit', MID: 'dragonPit', ADC: 'dragonPit', SUP: 'dragonPit' },
+        herald:    { TOP: 'heraldPit', JNG: 'heraldPit', MID: 'heraldPit', ADC: 'heraldPit', SUP: 'heraldPit' },
+        grubs:     { TOP: 'grubPit', JNG: 'grubPit', MID: 'grubPit', ADC: 'grubPit', SUP: 'grubPit' },
+        ward:      { TOP: 'enemyJungle', JNG: 'enemyJungle', MID: 'enemyJungle', ADC: 'enemyJungle', SUP: 'enemyJungle' },
+        teamfight: { TOP: 'midLane', JNG: 'midLane', MID: 'midLane', ADC: 'midLane', SUP: 'midLane' },
+        rotate:    { TOP: 'enemyMid', JNG: 'enemyJungle', MID: 'enemyTop', ADC: 'enemyBot', SUP: 'enemyMid' },
+        splitpush: { TOP: 'topLane', JNG: 'enemyJungle', MID: 'enemyMid', ADC: 'botLane', SUP: 'enemyBot' },
+        siege:     { TOP: 'myBase', JNG: 'myBase', MID: 'myBase', ADC: 'myBase', SUP: 'myBase' },
+        backdoor:  { TOP: 'myBase', JNG: 'myBase', MID: 'myBase', ADC: 'myBase', SUP: 'myBase' }
+    };
+
+    const roles = ['TOP','JNG','MID','ADC','SUP'];
+    const cpuActions = simState._lastCpuActions || {};
+
+    // Update CPU positions from their resolved actions
+    roles.forEach(r => {
+        const action = cpuActions[r];
+        if (action && actionToCpuPos[action] && actionToCpuPos[action][r]) {
+            simState.cpuPositions[r] = actionToCpuPos[action][r];
+        } else {
+            const defaultCpu = { TOP: 'enemyTop', JNG: 'enemyJungle', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' };
+            simState.cpuPositions[r] = defaultCpu[r];
+        }
+    });
+
+    // Update vision areas from ward action
+    if (simState.wardBonus > 0) {
+        const enemyAreas = ['enemyTop','enemyMid','enemyBot','enemyJungle','enemyBase'];
+        enemyAreas.forEach(a => {
+            if (!simState.visionAreas.includes(a)) simState.visionAreas.push(a);
+        });
+    } else {
+        simState.visionAreas = [];
+    }
+}
+
+function _simRenderToken(role, side, fogged) {
+    const isBlue = side === 'blue';
+    const card = isBlue ? squad[role] : (simState.cpuTeam ? simState.cpuTeam[role] : null);
+    const name = card ? card.name : role;
+    const rating = card ? card.rating : '?';
+    const isSelected = isBlue && simState.selectedPlayer === role;
+    const assigned = isBlue && simState.assignments[role];
+    const actionLabel = assigned ? (_SIM_ACTIONS[assigned] ? _SIM_ACTIONS[assigned].short : '') : '';
+
+    const roleColorMap = { TOP: '#fbbf24', JNG: '#4ade80', MID: '#60a5fa', ADC: '#f87171', SUP: '#2dd4bf' };
+    const roleColor = roleColorMap[role] || '#94a3b8';
+
+    if (fogged) {
+        return `<div class="sim-token sim-token-red sim-token-fogged" title="Enemy ${role} (no vision)">
+            <div style="font-size:10px;font-weight:900;color:${roleColor}">?</div>
+            <div style="font-size:9px;color:#94a3b8">${role}</div>
+        </div>`;
+    }
+
+    const tokenClass = isBlue ? 'sim-token-blue' : 'sim-token-red';
+    const selectedClass = isSelected ? ' sim-token-selected' : '';
+    const clickHandler = isBlue && simState.actionPhase ? ` onclick="selectSimPlayer('${role}')"` : '';
+
+    return `<div class="sim-token ${tokenClass}${selectedClass}" style="cursor:${isBlue && simState.actionPhase ? 'pointer' : 'default'}"${clickHandler} title="${name} (${rating})${actionLabel ? ' -> ' + actionLabel : ''}">
+        <div style="font-size:10px;font-weight:900;color:${roleColor}">${role}</div>
+        <div style="font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px">${name.length > 8 ? name.substring(0,7) + '..' : name}</div>
+        <div style="font-size:8px;color:#94a3b8">${rating}${actionLabel ? ' <span style="color:#a78bfa">' + actionLabel + '</span>' : ''}</div>
+    </div>`;
+}
+
+function _simRenderMapCell(locId, locInfo, rowSpan) {
+    if (!simState) return '';
+    const isHighlight = simState.selectedPlayer && _simGetValidMoves(simState.selectedPlayer).includes(locId);
+    const highlightClass = isHighlight ? ' sim-highlight' : '';
+    const clickAction = isHighlight ? ` onclick="moveSimPlayer('${simState.selectedPlayer}','${locId}')"` : '';
+    const cellType = 'sim-' + locInfo.type;
+
+    // Gather player tokens at this location
+    const blueTokens = [];
+    const redTokens = [];
+    const roles = ['TOP','JNG','MID','ADC','SUP'];
+    roles.forEach(r => {
+        if (simState.playerPositions[r] === locId) {
+            blueTokens.push(_simRenderToken(r, 'blue', false));
+        }
+        if (simState.cpuPositions[r] === locId) {
+            const fogged = !_simHasVision(locId);
+            redTokens.push(_simRenderToken(r, 'red', fogged));
+        }
+    });
+
+    // Cell content — structures
+    let structureInfo = '';
+    if (locId === 'topLane') {
+        const t = simState.myTowers.top;
+        const inh = simState.myTowers.topInhib;
+        structureInfo = `<div class="sim-cell-structures"><span class="text-amber-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
+    } else if (locId === 'midLane') {
+        const t = simState.myTowers.mid;
+        const inh = simState.myTowers.midInhib;
+        structureInfo = `<div class="sim-cell-structures"><span class="text-amber-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
+    } else if (locId === 'botLane') {
+        const t = simState.myTowers.bot;
+        const inh = simState.myTowers.botInhib;
+        structureInfo = `<div class="sim-cell-structures"><span class="text-amber-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
+    } else if (locId === 'enemyTop') {
+        const t = simState.cpuTowers.top;
+        const inh = simState.cpuTowers.topInhib;
+        structureInfo = `<div class="sim-cell-structures"><span class="text-red-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
+    } else if (locId === 'enemyMid') {
+        const t = simState.cpuTowers.mid;
+        const inh = simState.cpuTowers.midInhib;
+        structureInfo = `<div class="sim-cell-structures"><span class="text-red-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
+    } else if (locId === 'enemyBot') {
+        const t = simState.cpuTowers.bot;
+        const inh = simState.cpuTowers.botInhib;
+        structureInfo = `<div class="sim-cell-structures"><span class="text-red-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
+    } else if (locId === 'myBase') {
+        const nt = simState.myTowers.nexusTowers;
+        const nx = simState.myTowers.nexus;
+        structureInfo = `<div class="sim-cell-structures"><span class="text-amber-400">${'&#127984;'.repeat(nt)}</span> ${nx > 0 ? '<span class="text-blue-400">&#10084;&#65039;</span>' : '<span class="text-slate-600 line-through">NEXUS</span>'}</div>`;
+    } else if (locId === 'enemyBase') {
+        const nt = simState.cpuTowers.nexusTowers;
+        const nx = simState.cpuTowers.nexus;
+        structureInfo = `<div class="sim-cell-structures"><span class="text-red-400">${'&#127984;'.repeat(nt)}</span> ${nx > 0 ? '<span class="text-red-400">&#10084;&#65039;</span>' : '<span class="text-slate-600 line-through">NEXUS</span>'}</div>`;
+    } else if (locId === 'dragonPit') {
+        const myD = simState.dragons;
+        const cpuD = simState.cpuDragons;
+        const soulReady = myD >= 5 || cpuD >= 5;
+        const elderAvail = soulReady && (simState.elderBuff === 0 && simState.cpuElderBuff === 0);
+        structureInfo = `<div class="sim-cell-structures"><span class="text-orange-400">&#128009; ${myD}/5</span>${soulReady ? (elderAvail ? ' <span class="text-yellow-300">ELDER!</span>' : ' <span class="text-emerald-400">SOUL</span>') : ''}</div>`;
+    } else if (locId === 'heraldPit') {
+        const grubsDone = simState.grubs >= 3 || simState.cpuGrubs >= 3;
+        const heraldDone = simState.herald >= 1 || simState.cpuHerald >= 1;
+        const baronAvail = heraldDone;
+        if (baronAvail && simState.phase === 'late') {
+            structureInfo = `<div class="sim-cell-structures"><span class="text-purple-400">&#128126; BARON</span>${simState.baron > 0 ? ' <span class="text-purple-300">(' + simState.baron + 't)</span>' : ''}</div>`;
+        } else if (grubsDone && !heraldDone) {
+            structureInfo = `<div class="sim-cell-structures"><span class="text-teal-400">&#128026; HERALD</span></div>`;
+        } else if (!grubsDone) {
+            structureInfo = `<div class="sim-cell-structures"><span class="text-slate-500">Locked</span></div>`;
+        } else {
+            structureInfo = `<div class="sim-cell-structures"><span class="text-slate-500">Taken</span></div>`;
+        }
+    } else if (locId === 'grubPit') {
+        const grubsDone = simState.grubs >= 3 || simState.cpuGrubs >= 3;
+        structureInfo = `<div class="sim-cell-structures">${grubsDone ? '<span class="text-emerald-400">&#9989; Grubs Taken</span>' : '<span class="text-teal-400">&#128375; Grubs</span>'}</div>`;
+    } else if (locId === 'wardSpot') {
+        const hasVision = simState.wardBonus > 0;
+        structureInfo = `<div class="sim-cell-structures">${hasVision ? '<span class="text-cyan-400">&#128065; Vision Active</span>' : '<span class="text-slate-500">&#128065; Ward Here</span>'}</div>`;
+    }
+
+    const rowSpanAttr = rowSpan ? ` style="grid-row: span ${rowSpan}"` : '';
+
+    // Action hint when highlighted
+    let actionHint = '';
+    if (isHighlight && simState.selectedPlayer) {
+        const act = _simLocationToAction(simState.selectedPlayer, locId);
+        if (act && _SIM_ACTIONS[act]) {
+            actionHint = `<div class="sim-cell-action-hint">${_SIM_ACTIONS[act].label}</div>`;
+        }
+    }
+
+    return `<div class="sim-cell ${cellType}${highlightClass}"${clickAction}${rowSpanAttr}>
+        <div class="sim-cell-label">${locInfo.label}</div>
+        ${structureInfo}
+        <div class="sim-cell-tokens">${blueTokens.join('')}${redTokens.join('')}</div>
+        ${actionHint}
+    </div>`;
+}
+
 function renderSimulation() {
     if (!simState) return;
     const container = document.getElementById('sim-content');
@@ -5679,39 +5967,21 @@ function renderSimulation() {
     const goldColor = goldDiff > 0 ? 'text-emerald-400' : goldDiff < 0 ? 'text-red-400' : 'text-slate-400';
     const goldSign = goldDiff > 0 ? '+' : '';
 
-    // Tower emoji builder
-    function towerStr(count) {
-        return count > 0 ? '<span class="text-amber-400">' + '&#127984;'.repeat(count) + '</span>' : '<span class="text-slate-600">---</span>';
-    }
-
-    // Structure display for inhibs/nexus
-    function inhibStr(count) {
-        return count > 0 ? '<span class="text-purple-400">' + '&#9823;'.repeat(count) + '</span>' : '<span class="text-slate-600">---</span>';
-    }
-    function nexusStr(count) {
-        return count > 0 ? '<span class="text-red-400">' + '&#10084;&#65039;'.repeat(count) + '</span>' : '<span class="text-slate-600 line-through">DESTROYED</span>';
-    }
-
-    // Objective status
-    function objIcon(val, maxLabel) {
-        return val > 0 ? `<span class="text-emerald-400 font-black">${val}${maxLabel ? '/'+maxLabel : ''}</span>` : '<span class="text-slate-600">0</span>';
-    }
-
     // Buff indicators
     const myBuffs = [];
-    if (simState.elderBuff > 0) myBuffs.push(`<span class="text-orange-400 font-black">Elder Buff (${simState.elderBuff}t) +20 ALL</span>`);
-    if (simState.dragons >= 5) myBuffs.push('<span class="text-orange-400 font-black">Dragon Soul (+10)</span>');
-    else if (simState.dragons > 0) myBuffs.push(`<span class="text-blue-400">Dragons: ${simState.dragons}/5</span>`);
+    if (simState.elderBuff > 0) myBuffs.push(`<span class="text-orange-400 font-black">Elder (${simState.elderBuff}t)</span>`);
+    if (simState.dragons >= 5) myBuffs.push('<span class="text-orange-400 font-black">Soul</span>');
+    else if (simState.dragons > 0) myBuffs.push(`<span class="text-blue-400">Drakes ${simState.dragons}/5</span>`);
     if (simState.baron > 0) myBuffs.push(`<span class="text-purple-400 font-black">Baron (${simState.baron}t)</span>`);
-    if (simState.grubs > 0) myBuffs.push(`<span class="text-emerald-300">Grubs: ${simState.grubs}</span>`);
+    if (simState.grubs >= 3) myBuffs.push(`<span class="text-emerald-300">Grubs</span>`);
     if (simState.wardBonus > 0) myBuffs.push('<span class="text-cyan-400">Vision</span>');
 
     const cpuBuffs = [];
-    if (simState.cpuElderBuff > 0) cpuBuffs.push(`<span class="text-orange-400 font-black">Elder Buff (${simState.cpuElderBuff}t)</span>`);
-    if (simState.cpuDragons >= 5) cpuBuffs.push('<span class="text-orange-400 font-black">Dragon Soul</span>');
-    else if (simState.cpuDragons > 0) cpuBuffs.push(`<span class="text-red-400">Dragons: ${simState.cpuDragons}/5</span>`);
+    if (simState.cpuElderBuff > 0) cpuBuffs.push(`<span class="text-orange-400 font-black">Elder (${simState.cpuElderBuff}t)</span>`);
+    if (simState.cpuDragons >= 5) cpuBuffs.push('<span class="text-orange-400 font-black">Soul</span>');
+    else if (simState.cpuDragons > 0) cpuBuffs.push(`<span class="text-red-400">Drakes ${simState.cpuDragons}/5</span>`);
     if (simState.cpuBaron > 0) cpuBuffs.push(`<span class="text-purple-400 font-black">Baron (${simState.cpuBaron}t)</span>`);
-    if (simState.cpuGrubs > 0) cpuBuffs.push(`<span class="text-red-300">Grubs: ${simState.cpuGrubs}</span>`);
+    if (simState.cpuGrubs >= 3) cpuBuffs.push(`<span class="text-red-300">Grubs</span>`);
 
     // Phase badge color
     const phaseColors = { early: 'bg-green-900/60 text-green-300 border-green-700/50', mid: 'bg-yellow-900/60 text-yellow-300 border-yellow-700/50', late: 'bg-red-900/60 text-red-300 border-red-700/50' };
@@ -5728,141 +5998,120 @@ function renderSimulation() {
         <span class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs text-red-300">CPU Gold: ${simState.cpuGold}</span>
     </div>`;
 
-    // ---- TEAM ROSTERS ----
-    html += `<div class="grid grid-cols-2 gap-4 mb-4">
-        <div class="bg-blue-950/30 rounded-2xl border border-blue-700/30 p-4">
-            <div class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Your Team</div>
-            <div class="space-y-1.5">
+    // ---- BUFF BAR ----
+    html += `<div class="grid grid-cols-2 gap-3 mb-4 text-xs">
+        <div class="bg-blue-950/40 px-3 py-2 rounded-lg border border-blue-800/30 flex items-center gap-2">
+            <span class="font-black text-blue-400 uppercase text-[10px]">Buffs:</span>
+            ${myBuffs.length ? myBuffs.join(' <span class="text-slate-700">|</span> ') : '<span class="text-slate-600">None</span>'}
+        </div>
+        <div class="bg-red-950/40 px-3 py-2 rounded-lg border border-red-800/30 flex items-center gap-2">
+            <span class="font-black text-red-400 uppercase text-[10px]">Enemy:</span>
+            ${cpuBuffs.length ? cpuBuffs.join(' <span class="text-slate-700">|</span> ') : '<span class="text-slate-600">None</span>'}
+        </div>
+    </div>`;
+
+    // ---- INTERACTIVE MAP ----
+    html += `<div class="bg-slate-950 p-3 rounded-2xl border border-violet-700/30 mb-4">
+        <div class="text-center text-xs font-black text-violet-400 uppercase tracking-widest mb-3">
+            ${simState.actionPhase ? (simState.selectedPlayer ? `Moving <span class="text-yellow-300">${simState.selectedPlayer}</span> — click a highlighted cell` : 'Click a player token to select, then click a map location') : 'Actions resolving...'}
+        </div>
+        <div class="sim-map-grid">`;
+
+    // Row 1: TOP lane
+    html += _simRenderMapCell('myBase', _SIM_MAP_LOCATIONS.myBase, 0);
+    html += _simRenderMapCell('topLane', _SIM_MAP_LOCATIONS.topLane, 0);
+    html += _simRenderMapCell('heraldPit', _SIM_MAP_LOCATIONS.heraldPit, 0);
+    html += _simRenderMapCell('enemyTop', _SIM_MAP_LOCATIONS.enemyTop, 0);
+    html += _simRenderMapCell('enemyBase', _SIM_MAP_LOCATIONS.enemyBase, 0);
+
+    // Row 2: Jungle / Grubs
+    html += `<div class="sim-cell sim-jungle sim-cell-spacer"></div>`;
+    html += _simRenderMapCell('jungle', _SIM_MAP_LOCATIONS.jungle, 0);
+    html += _simRenderMapCell('grubPit', _SIM_MAP_LOCATIONS.grubPit, 0);
+    html += _simRenderMapCell('enemyJungle', _SIM_MAP_LOCATIONS.enemyJungle, 0);
+    html += `<div class="sim-cell sim-jungle-enemy sim-cell-spacer"></div>`;
+
+    // Row 3: MID lane
+    html += `<div class="sim-cell sim-base-blue sim-cell-spacer"></div>`;
+    html += _simRenderMapCell('midLane', _SIM_MAP_LOCATIONS.midLane, 0);
+    html += _simRenderMapCell('dragonPit', _SIM_MAP_LOCATIONS.dragonPit, 0);
+    html += _simRenderMapCell('enemyMid', _SIM_MAP_LOCATIONS.enemyMid, 0);
+    html += `<div class="sim-cell sim-base-red sim-cell-spacer"></div>`;
+
+    // Row 4: Jungle / Ward
+    html += `<div class="sim-cell sim-jungle sim-cell-spacer"></div>`;
+    html += `<div class="sim-cell sim-jungle sim-cell-spacer"></div>`;
+    html += _simRenderMapCell('wardSpot', _SIM_MAP_LOCATIONS.wardSpot, 0);
+    html += `<div class="sim-cell sim-jungle-enemy sim-cell-spacer"></div>`;
+    html += `<div class="sim-cell sim-jungle-enemy sim-cell-spacer"></div>`;
+
+    // Row 5: BOT lane
+    html += `<div class="sim-cell sim-base-blue sim-cell-spacer"></div>`;
+    html += _simRenderMapCell('botLane', _SIM_MAP_LOCATIONS.botLane, 0);
+    html += `<div class="sim-cell sim-river sim-cell-spacer"></div>`;
+    html += _simRenderMapCell('enemyBot', _SIM_MAP_LOCATIONS.enemyBot, 0);
+    html += `<div class="sim-cell sim-base-red sim-cell-spacer"></div>`;
+
+    html += `</div>`;
+
+    // ---- ASSIGNMENT SUMMARY + EXECUTE BUTTON ----
+    if (simState.actionPhase) {
+        const assignedCount = roles.filter(r => simState.assignments[r]).length;
+        html += `<div class="mt-3 flex flex-wrap items-center gap-2">`;
+        const roleColorMap = { TOP: 'text-amber-400', JNG: 'text-green-400', MID: 'text-blue-400', ADC: 'text-red-400', SUP: 'text-teal-400' };
+        roles.forEach(r => {
+            const action = simState.assignments[r];
+            const card = squad[r];
+            const name = card ? (card.name.length > 8 ? card.name.substring(0,7) + '..' : card.name) : r;
+            const actLabel = action ? (_SIM_ACTIONS[action] ? _SIM_ACTIONS[action].short : action) : '---';
+            const bg = action ? 'bg-slate-800 border-violet-700/50' : 'bg-slate-900/50 border-slate-700/50';
+            html += `<div class="px-3 py-1.5 rounded-lg border ${bg} text-xs font-mono cursor-pointer" onclick="selectSimPlayer('${r}')">
+                <span class="${roleColorMap[r]} font-black">${r}</span> <span class="text-slate-400">${name}</span> <span class="text-violet-400 font-bold">${actLabel}</span>
+            </div>`;
+        });
+        html += `</div>`;
+        html += `<div class="mt-3 flex items-center gap-4">
+            <button onclick="executeSimTurn()" class="bg-violet-600 hover:bg-violet-500 text-white px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.5)] transition ${assignedCount < 5 ? 'opacity-50' : ''}" ${assignedCount < 5 ? 'title="Assign all 5 roles first"' : ''}>Execute Turn</button>
+            <span class="text-xs text-slate-500 font-mono">${assignedCount}/5 assigned</span>
+            ${assignedCount > 0 ? `<button onclick="simState.assignments={};Object.keys(simState.playerPositions).forEach(r=>{var d={TOP:'topLane',JNG:'jungle',MID:'midLane',ADC:'botLane',SUP:'botLane'};simState.playerPositions[r]=d[r]});simState.selectedPlayer=null;renderSimulation()" class="text-xs text-slate-500 hover:text-red-400 underline cursor-pointer transition">Reset All</button>` : ''}
+        </div>`;
+    }
+
+    html += `</div>`;
+
+    // ---- TEAM ROSTERS (compact) ----
+    html += `<div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="bg-blue-950/30 rounded-xl border border-blue-700/30 p-3">
+            <div class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1.5">Your Team</div>
+            <div class="space-y-1">
                 ${roles.map(r => {
                     const c = squad[r];
                     if (!c) return '';
-                    return `<div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-lg">
-                        <span class="text-sm font-black w-10 ${({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r]}">${r}</span>
-                        <span class="text-slate-200 font-bold text-sm flex-1 truncate">${c.name}</span>
-                        <span class="text-xs font-black font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded">${c.rating}</span>
-                        <span class="text-xs font-mono font-bold text-cyan-400">MEC ${c.stats.mec}</span>
-                        <span class="text-xs font-mono font-bold text-purple-400">TMF ${c.stats.tmf}</span>
-                        <span class="text-xs font-mono font-bold text-green-400">FRM ${c.stats.frm}</span>
-                        <span class="text-xs font-mono font-bold text-orange-400">CMP ${c.stats.cmp}</span>
-                        <span class="text-xs font-mono font-bold text-emerald-400">MAP ${c.stats.map}</span>
-                        <span class="text-xs font-mono font-bold text-yellow-400">LDR ${c.stats.ldr}</span>
+                    const rc = ({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r];
+                    return `<div class="flex items-center gap-2 text-xs">
+                        <span class="font-black w-8 ${rc}">${r}</span>
+                        <span class="text-slate-200 font-bold flex-1 truncate">${c.name}</span>
+                        <span class="font-black font-mono text-slate-400">${c.rating}</span>
                     </div>`;
                 }).join('')}
             </div>
         </div>
-        <div class="bg-red-950/30 rounded-2xl border border-red-700/30 p-4">
-            <div class="text-xs font-black text-red-400 uppercase tracking-widest mb-2">Enemy Team (Avg ${simState.cpuRating})</div>
-            <div class="space-y-1.5">
+        <div class="bg-red-950/30 rounded-xl border border-red-700/30 p-3">
+            <div class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1.5">Enemy Team (Avg ${simState.cpuRating})</div>
+            <div class="space-y-1">
                 ${roles.map(r => {
                     const c = simState.cpuTeam[r];
                     if (!c) return '';
-                    return `<div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-lg">
-                        <span class="text-sm font-black w-10 ${({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r]}">${r}</span>
-                        <span class="text-slate-200 font-bold text-sm flex-1 truncate">${c.name}</span>
-                        <span class="text-xs font-black font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded">${c.rating}</span>
-                        <span class="text-xs font-mono font-bold text-cyan-400">MEC ${c.stats.mec}</span>
-                        <span class="text-xs font-mono font-bold text-purple-400">TMF ${c.stats.tmf}</span>
-                        <span class="text-xs font-mono font-bold text-green-400">FRM ${c.stats.frm}</span>
-                        <span class="text-xs font-mono font-bold text-orange-400">CMP ${c.stats.cmp}</span>
-                        <span class="text-xs font-mono font-bold text-emerald-400">MAP ${c.stats.map}</span>
-                        <span class="text-xs font-mono font-bold text-yellow-400">LDR ${c.stats.ldr}</span>
+                    const rc = ({TOP:'text-amber-400',JNG:'text-green-400',MID:'text-blue-400',ADC:'text-red-400',SUP:'text-teal-400'})[r];
+                    return `<div class="flex items-center gap-2 text-xs">
+                        <span class="font-black w-8 ${rc}">${r}</span>
+                        <span class="text-slate-200 font-bold flex-1 truncate">${c.name}</span>
+                        <span class="font-black font-mono text-slate-400">${c.rating}</span>
                     </div>`;
                 }).join('')}
             </div>
         </div>
     </div>`;
-
-    // ---- MAP DISPLAY ----
-    html += `<div class="bg-slate-800/80 rounded-2xl border border-violet-700/30 p-5 mb-4 font-mono text-sm">
-        <div class="text-center text-xs font-black text-violet-400 uppercase tracking-widest mb-3">Summoner's Rift Map</div>
-        <div class="grid grid-cols-3 gap-2 text-center mb-3">
-            <div class="text-xs font-black text-blue-400 uppercase">Your Base</div>
-            <div class="text-xs font-black text-slate-500 uppercase">Lane</div>
-            <div class="text-xs font-black text-red-400 uppercase">Enemy Base</div>
-        </div>
-        <div class="space-y-1.5">
-            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/50 py-1.5 px-2 rounded-lg">
-                <div>${towerStr(simState.myTowers.top)}</div>
-                <div class="text-xs font-bold text-slate-400">TOP</div>
-                <div>${towerStr(simState.cpuTowers.top)}</div>
-            </div>
-            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/50 py-1.5 px-2 rounded-lg">
-                <div>${towerStr(simState.myTowers.mid)}</div>
-                <div class="text-xs font-bold text-slate-400">MID</div>
-                <div>${towerStr(simState.cpuTowers.mid)}</div>
-            </div>
-            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/50 py-1.5 px-2 rounded-lg">
-                <div>${towerStr(simState.myTowers.bot)}</div>
-                <div class="text-xs font-bold text-slate-400">BOT</div>
-                <div>${towerStr(simState.cpuTowers.bot)}</div>
-            </div>
-            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/30 py-1.5 px-2 rounded-lg border-t border-slate-700/50">
-                <div>${inhibStr(simState.myTowers.topInhib)} ${inhibStr(simState.myTowers.midInhib)} ${inhibStr(simState.myTowers.botInhib)}</div>
-                <div class="text-xs font-bold text-purple-400">INHIBS (T/M/B)</div>
-                <div>${inhibStr(simState.cpuTowers.topInhib)} ${inhibStr(simState.cpuTowers.midInhib)} ${inhibStr(simState.cpuTowers.botInhib)}</div>
-            </div>
-            <div class="grid grid-cols-3 gap-2 items-center text-center bg-slate-900/30 py-1.5 px-2 rounded-lg">
-                <div>${towerStr(simState.myTowers.nexusTowers)} ${nexusStr(simState.myTowers.nexus)}</div>
-                <div class="text-xs font-bold text-red-400">NEXUS</div>
-                <div>${towerStr(simState.cpuTowers.nexusTowers)} ${nexusStr(simState.cpuTowers.nexus)}</div>
-            </div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 mt-3 text-xs">
-            <div class="bg-blue-950/40 p-2 rounded-lg border border-blue-800/30">
-                <div class="font-black text-blue-400 mb-1 uppercase tracking-wide text-[10px]">Your Buffs</div>
-                ${myBuffs.length ? myBuffs.join(' | ') : '<span class="text-slate-600">None</span>'}
-            </div>
-            <div class="bg-red-950/40 p-2 rounded-lg border border-red-800/30">
-                <div class="font-black text-red-400 mb-1 uppercase tracking-wide text-[10px]">Enemy Buffs</div>
-                ${cpuBuffs.length ? cpuBuffs.join(' | ') : '<span class="text-slate-600">None</span>'}
-            </div>
-        </div>
-    </div>`;
-
-    // ---- ACTION ASSIGNMENT ----
-    if (simState.actionPhase) {
-        html += `<div class="bg-slate-800/80 rounded-2xl border border-violet-700/30 p-5 mb-4">
-            <div class="text-xs font-black text-violet-400 uppercase tracking-widest mb-3">Assign Actions</div>
-            <div class="space-y-3">`;
-
-        roles.forEach(r => {
-            const card = squad[r];
-            const name = card ? card.name : '???';
-            const rating = card ? card.rating : 0;
-            const actions = _simGetAvailableActions(r);
-            const current = simState.assignments[r] || '';
-            const roleColors = { TOP: 'text-amber-400', JNG: 'text-green-400', MID: 'text-blue-400', ADC: 'text-red-400', SUP: 'text-teal-400' };
-
-            html += `<div class="flex items-center gap-3 bg-slate-900/50 p-3 rounded-xl">
-                <div class="w-20 text-center">
-                    <div class="text-sm font-black ${roleColors[r] || 'text-slate-300'} uppercase">${r}</div>
-                    <div class="text-xs text-slate-400 font-bold">${rating} OVR</div>
-                </div>
-                <div class="flex-1">
-                    <div class="text-base font-bold text-slate-200 mb-1">${name}</div>
-                    <select onchange="simState.assignments['${r}']=this.value" class="w-full bg-slate-800 text-slate-200 px-3 py-2.5 rounded-lg border border-slate-600 text-sm font-mono focus:outline-none focus:border-violet-500">
-                        <option value="">-- Select Action --</option>
-                        ${actions.map(a => {
-                            const statNames = a.stats.map(s => s.toUpperCase()).join('+');
-                            const myVal = Math.round(squad[r] ? _simAvgStat(squad[r], a.stats) : 0);
-                            const cpuCard = simState.cpuTeam[r];
-                            const cpuVal = Math.round(cpuCard ? _simAvgStat(cpuCard, a.stats) : simState.cpuRating);
-                            const edge = myVal - cpuVal;
-                            const edgeStr = edge > 0 ? `+${edge} EDGE` : edge < 0 ? `${edge} RISK` : 'EVEN';
-                            const multi = a.multiRole ? ` [${a.multiRole}+]` : '';
-                            return `<option value="${a.id}" ${current === a.id ? 'selected' : ''}>${a.label} — ${statNames}: You ${myVal} vs ${cpuVal} (${edgeStr})${multi}</option>`;
-                        }).join('')}
-                    </select>
-                </div>
-            </div>`;
-        });
-
-        html += `</div>
-            <div class="mt-4 text-center">
-                <button onclick="executeSimTurn()" class="bg-violet-600 hover:bg-violet-500 text-white px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.5)] transition">Execute Turn</button>
-            </div>
-        </div>`;
-    }
 
     // ---- BATTLE LOG ----
     html += `<div class="bg-slate-800/80 rounded-2xl border border-slate-700/30 p-4">
@@ -5877,7 +6126,7 @@ function renderSimulation() {
     }
 
     if (simState.log.length === 0) {
-        html += '<div class="text-slate-600 italic">No actions yet. Assign actions and execute your first turn.</div>';
+        html += '<div class="text-slate-600 italic">No actions yet. Click a player token on the map, then click where to send them.</div>';
     }
 
     html += `</div></div>`;
@@ -5962,9 +6211,16 @@ function executeSimTurn() {
         simState.phase = newPhase;
     }
 
+    // Update positions based on resolved actions
+    _simUpdatePositionsAfterTurn();
+
+    // Reset player positions to default lanes for next turn
+    simState.playerPositions = { TOP: 'topLane', JNG: 'jungle', MID: 'midLane', ADC: 'botLane', SUP: 'botLane' };
+
     // Reset for next turn
     simState.assignments = {};
     simState.actionPhase = true;
+    simState.selectedPlayer = null;
 
     renderSimulation();
 }
