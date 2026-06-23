@@ -465,6 +465,7 @@ html.light-mode .card-face-down {
 .sim-map-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, auto);
     gap: 4px;
 }
 .sim-cell {
@@ -508,6 +509,10 @@ html.light-mode .card-face-down {
 .sim-river {
     background: linear-gradient(135deg, #1a2a3a, #1e2e4a);
     border: 1px solid #2d3a5a;
+}
+.sim-river-obj {
+    background: linear-gradient(135deg, #1a2a3a, #2a1e3a);
+    border: 1px solid #3d3a5a;
 }
 .sim-jungle {
     background: linear-gradient(135deg, #1a2a1a, #0f1f0f);
