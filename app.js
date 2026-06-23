@@ -203,9 +203,61 @@ const grStages = [
     { name: "World Championship", diff: 96, rounds: 4, r1: 3000, r2: 800 }
 ];
 
+// === SOUND SYSTEM ===
+let _audioCtx = null;
+let _soundMuted = localStorage.getItem('lol_sound_muted') === '1';
+function _getAudioCtx() {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return _audioCtx;
+}
+function playSound(type) {
+    if (_soundMuted) return;
+    try {
+        const ctx = _getAudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        const t = ctx.currentTime;
+        if (type === 'pack') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(440, t); osc.frequency.exponentialRampToValueAtTime(880, t + 0.15);
+            gain.gain.setValueAtTime(0.15, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+            osc.start(t); osc.stop(t + 0.3);
+        } else if (type === 'win') {
+            osc.type = 'square'; osc.frequency.setValueAtTime(523, t); osc.frequency.setValueAtTime(659, t + 0.1); osc.frequency.setValueAtTime(784, t + 0.2);
+            gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+            osc.start(t); osc.stop(t + 0.4);
+        } else if (type === 'lose') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, t); osc.frequency.exponentialRampToValueAtTime(150, t + 0.3);
+            gain.gain.setValueAtTime(0.08, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+            osc.start(t); osc.stop(t + 0.4);
+        } else if (type === 'click') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
+            gain.gain.setValueAtTime(0.06, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+            osc.start(t); osc.stop(t + 0.08);
+        } else if (type === 'rare') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(660, t); osc.frequency.setValueAtTime(880, t + 0.1); osc.frequency.setValueAtTime(1100, t + 0.2); osc.frequency.setValueAtTime(1320, t + 0.3);
+            gain.gain.setValueAtTime(0.12, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+            osc.start(t); osc.stop(t + 0.5);
+        } else if (type === 'claim') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(500, t); osc.frequency.setValueAtTime(700, t + 0.08);
+            gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+            osc.start(t); osc.stop(t + 0.15);
+        }
+    } catch(e) {}
+}
+function toggleSoundMute() {
+    _soundMuted = !_soundMuted;
+    localStorage.setItem('lol_sound_muted', _soundMuted ? '1' : '0');
+    const btn = document.getElementById('sound-toggle-btn');
+    if (btn) btn.textContent = _soundMuted ? '🔇' : '🔊';
+    showToast(_soundMuted ? 'Sound muted' : 'Sound enabled', 'info');
+}
+
 let tourActive = false;
-let tourData = null; 
-let tourRound = 0; 
+let tourData = null;
+let tourRound = 0;
 let enemies = []; 
 let simIntervalId = null;
 let tacticalBonus = 0;
@@ -486,10 +538,42 @@ function renderQuests() {
         </div>`;
     }
 
-    const milestoneHTML = milestones.map(q => {
-        const progress = trackStats[q.type] || 0;
-        return questRow(q.desc, progress, q.target, q.reward, q.claimed, q.id, 'yellow');
-    }).join("");
+    const categories = [
+        { name: 'Tournament Victories', icon: '⚔️', color: 'amber', types: ['tournamentsWon','cafeWins','regionalSplitWon','firstStandWon','msiWon','worldsWon','goldenRoads'] },
+        { name: 'Competitive Modes', icon: '🎯', color: 'cyan', types: ['draftModesWon','salaryCapWon','towerHighestFloor','towerNewRecord','splitsCompleted','undefeatedSplits','eliteSplitsCompleted','splitsWithDebuffedWin','splitsWithoutMeta','seasonMatchesPlayed'] },
+        { name: 'Collection', icon: '📦', color: 'blue', types: ['packs','standardPacksOpened','elitePacksOpened','supremePacksOpened','firstStandPacksOpened','msiPacksOpened','champPacksOpened','mvpPacksOpened','signaturesPulled','challengerPulled'] },
+        { name: 'Economy', icon: '💰', color: 'emerald', types: ['soldCount','gmSoldCount','upgradesPerformed'] },
+    ];
+
+    function renderCategory(cat, catQuests) {
+        const total = catQuests.length;
+        const done = catQuests.filter(q => q.claimed).length;
+        const allDone = done === total && total > 0;
+        const badge = allDone ? `<span class="text-emerald-400 text-[9px] font-black bg-emerald-900/40 px-2 py-0.5 rounded-full">✓ COMPLETE</span>` : `<span class="text-slate-500 text-[9px] font-mono">${done}/${total}</span>`;
+        const rows = catQuests.map(q => {
+            const progress = trackStats[q.type] || 0;
+            return questRow(q.desc, progress, q.target, q.reward, q.claimed, q.id, cat.color);
+        }).join('');
+        return `<div class="bg-slate-800/40 rounded-xl border border-slate-700/40 p-3 mb-3">
+            <div class="flex items-center justify-between mb-2 cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <h4 class="text-xs font-black text-${cat.color}-400 uppercase tracking-widest flex items-center gap-1.5">${cat.icon} ${cat.name}</h4>
+                ${badge}
+            </div>
+            <div class="space-y-1.5 ${allDone ? 'hidden' : ''}">${rows}</div>
+        </div>`;
+    }
+
+    let milestoneHTML = '';
+    const usedIds = new Set();
+    categories.forEach(cat => {
+        const catQuests = milestones.filter(q => cat.types.includes(q.type));
+        catQuests.forEach(q => usedIds.add(q.id));
+        if (catQuests.length > 0) milestoneHTML += renderCategory(cat, catQuests);
+    });
+    const uncategorized = milestones.filter(q => !usedIds.has(q.id));
+    if (uncategorized.length > 0) {
+        milestoneHTML += renderCategory({ name: 'Other', icon: '📌', color: 'slate' }, uncategorized);
+    }
 
     const repeatableHTML = repeatables.map(q => {
         const progress = Math.max(0, (trackStats[q.type] || 0) - (q.baselineAtReset || 0));
@@ -502,22 +586,35 @@ function renderQuests() {
         return questRow(a.desc, progress, a.target, a.reward, a.claimed, a.id, 'violet', '', 'claimAchievement');
     }).join("");
 
+    const totalMilestones = milestones.length;
+    const doneMilestones = milestones.filter(q => q.claimed).length;
+    const totalAchievements = achievements.length;
+    const doneAchievements = achievements.filter(a => a.claimed).length;
+
     container.innerHTML = `
-        <div class="grid grid-cols-1 xl:grid-cols-4 gap-5 items-start">
-            <div class="xl:col-span-1">
-                <h3 class="text-xs font-black text-cyan-400 uppercase tracking-widest mb-1 flex items-center gap-2">🔄 Repeatable Contracts</h3>
-                <p class="text-[10px] text-slate-500 mb-3">Infinite · progress resets after each claim</p>
-                <div class="space-y-1.5">${repeatableHTML}</div>
-            </div>
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 items-start">
             <div class="xl:col-span-2">
-                <h3 class="text-xs font-black text-yellow-400 uppercase tracking-widest mb-1">🏆 Milestone Quests</h3>
-                <p class="text-[10px] text-slate-500 mb-3">One-time · claimed forever once complete</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5">${milestoneHTML}</div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-black text-yellow-400 uppercase tracking-widest">🏆 Milestone Quests</h3>
+                    <span class="text-xs font-mono ${doneMilestones === totalMilestones ? 'text-emerald-400' : 'text-slate-500'}">${doneMilestones}/${totalMilestones} complete</span>
+                </div>
+                ${milestoneHTML}
             </div>
-            <div class="xl:col-span-1">
-                <h3 class="text-xs font-black text-violet-400 uppercase tracking-widest mb-1">🎖️ Achievements</h3>
-                <p class="text-[10px] text-slate-500 mb-3">Squad rating &amp; archive milestones</p>
-                <div class="space-y-1.5">${achievementHTML}</div>
+            <div class="xl:col-span-1 space-y-5">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-black text-cyan-400 uppercase tracking-widest">🔄 Contracts</h3>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mb-2">Infinite · resets after claim</p>
+                    <div class="space-y-1.5">${repeatableHTML}</div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-black text-violet-400 uppercase tracking-widest">🎖️ Achievements</h3>
+                        <span class="text-xs font-mono ${doneAchievements === totalAchievements ? 'text-emerald-400' : 'text-slate-500'}">${doneAchievements}/${totalAchievements}</span>
+                    </div>
+                    <div class="space-y-1.5">${achievementHTML}</div>
+                </div>
             </div>
         </div>`;
 }
@@ -590,7 +687,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_8', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_9', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -773,7 +870,7 @@ window.onload = () => {
     if ((trackStats.regionalSplitWon || 0) >= 1 && (trackStats.firstStandWon || 0) >= 1) unlocks.tower = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_6_8';
+    const patchKey = 'lol_patch_seen_v0_6_9';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -903,6 +1000,9 @@ window.onload = () => {
     eventData = JSON.parse(localStorage.getItem('lol_event_v1') || 'null');
     if (!getActiveEvent()) startFirstStand2026Event();
     renderEventBanner();
+
+    const _sndBtn = document.getElementById('sound-toggle-btn');
+    if (_sndBtn) _sndBtn.textContent = _soundMuted ? '🔇' : '🔊';
 
     switchTab('welcome');
 
@@ -1116,6 +1216,10 @@ function processNewCards(cards) {
         }
         if (c.signature) collectionRegistry[c.id].signature = true;
         if (c.signature) c.locked = true;
+        if (!c.signature && !c.holographic && Math.random() < 0.02) {
+            c.holographic = true;
+            trackStats.holographicPulled = (trackStats.holographicPulled || 0) + 1;
+        }
     });
 }
 
@@ -1570,6 +1674,7 @@ function saveBattlePass() {
 }
 
 function claimBattlePassReward(tier) {
+    playSound('claim');
     if (battlePass.claimed.includes(tier)) return;
     if (tier > battlePass.tier) return;
     const reward = _BP_REWARDS.find(r => r.tier === tier);
@@ -1623,37 +1728,53 @@ function renderBattlePass() {
     const container = document.getElementById('battlepass-content');
     if (!container) return;
     const xpPerTier = 500;
+    const isCompleted = battlePass.season > 1 || (battlePass.tier >= 30 && battlePass.claimed.length >= 30);
     const progress = battlePass.tier >= 30 ? 100 : Math.round((battlePass.xp / xpPerTier) * 100);
+    const claimedCount = battlePass.claimed.length;
 
-    let html = `<div class="flex items-center justify-between mb-3">
+    if (isCompleted && battlePass.season > 1) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-5xl mb-3">🏆</div>
+                <h3 class="text-xl font-black text-amber-400 mb-2">Battle Pass Complete!</h3>
+                <p class="text-slate-400 text-sm mb-1">You've completed Season 1 of the Battle Pass.</p>
+                <p class="text-slate-500 text-xs">All 30 tiers claimed. New seasons coming soon.</p>
+                <div class="mt-4 inline-block bg-emerald-900/40 border border-emerald-700/40 px-4 py-2 rounded-xl text-emerald-400 font-black text-sm">✓ All Rewards Collected</div>
+            </div>`;
+        return;
+    }
+
+    let html = `<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div>
-            <span class="text-amber-400 font-black text-lg">Season ${battlePass.season}</span>
-            <span class="text-slate-500 text-xs ml-2">Tier ${battlePass.tier}/30</span>
+            <span class="text-amber-400 font-black text-xl">Season 1</span>
+            <span class="text-slate-500 text-sm ml-2">Tier ${battlePass.tier}/30</span>
+            <span class="text-slate-600 text-xs ml-2">(${claimedCount}/30 claimed)</span>
         </div>
-        <div class="text-xs font-mono text-slate-400">${battlePass.xp}/${xpPerTier} XP to next tier</div>
+        <div class="text-xs font-mono text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg">${battlePass.tier >= 30 ? 'MAX TIER' : `${battlePass.xp}/${xpPerTier} XP`}</div>
     </div>
-    <div class="w-full bg-slate-700 rounded-full h-2 mb-4"><div class="bg-amber-500 h-2 rounded-full" style="width:${progress}%"></div></div>
-    <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">`;
+    <div class="w-full bg-slate-700 rounded-full h-3 mb-5 overflow-hidden"><div class="bg-gradient-to-r from-amber-600 to-amber-400 h-3 rounded-full transition-all duration-500" style="width:${progress}%"></div></div>
+    <div class="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-10 gap-2.5">`;
 
     _BP_REWARDS.forEach(r => {
         const unlocked = r.tier <= battlePass.tier;
         const claimed = battlePass.claimed.includes(r.tier);
         const canClaim = unlocked && !claimed;
-        const icon = r.type === 'be' ? '\u{1F48E}' : r.type === 'sp' ? '\u{2B50}' : r.type === 'card' ? '\u{1F0CF}' : '\u{1F3A8}';
-        const label = r.type === 'be' ? `${r.amount}` : r.type === 'sp' ? `${r.amount} SP` : r.type === 'card' ? r.tier_min : r.icon;
-        const bg = claimed ? 'bg-emerald-900/40 border-emerald-700/50' : canClaim ? 'bg-amber-900/40 border-amber-500/60 animate-pulse cursor-pointer' : 'bg-slate-800/60 border-slate-700/50';
-        html += `<div class="p-2 rounded-lg border text-center text-[10px] ${bg}" ${canClaim ? `onclick="claimBattlePassReward(${r.tier})"` : ''}>
-            <div class="font-black text-slate-400 mb-0.5">${r.tier}</div>
-            <div class="text-lg">${icon}</div>
-            <div class="text-slate-300 font-bold truncate">${label}</div>
-            ${claimed ? '<div class="text-emerald-400 text-[8px] font-black">✓</div>' : canClaim ? '<div class="text-amber-300 text-[8px] font-black">CLAIM</div>' : '<div class="text-slate-600 text-[8px]">\u{1F512}</div>'}
+        const icon = r.type === 'be' ? '💎' : r.type === 'sp' ? '⭐' : r.type === 'card' ? '🃏' : '🎨';
+        const label = r.type === 'be' ? `${r.amount} BE` : r.type === 'sp' ? `${r.amount} SP` : r.type === 'card' ? r.tier_min : r.icon;
+        const bg = claimed ? 'bg-emerald-900/50 border-emerald-600/60' : canClaim ? 'bg-amber-900/50 border-amber-500/70 animate-pulse cursor-pointer' : 'bg-slate-800/60 border-slate-700/50';
+        html += `<div class="p-2.5 rounded-xl border-2 text-center ${bg} flex flex-col items-center justify-center min-h-[80px]" ${canClaim ? `onclick="claimBattlePassReward(${r.tier})"` : ''}>
+            <div class="font-black text-slate-500 text-[10px] mb-1">T${r.tier}</div>
+            <div class="text-xl mb-1">${icon}</div>
+            <div class="text-slate-300 font-bold text-[11px] leading-tight">${label}</div>
+            ${claimed ? '<div class="text-emerald-400 text-[9px] font-black mt-1">✓ CLAIMED</div>' : canClaim ? '<div class="text-amber-300 text-[9px] font-black mt-1">CLAIM</div>' : '<div class="text-slate-600 text-[9px] mt-1">🔒</div>'}
         </div>`;
     });
 
     html += '</div>';
-    if (battlePass.tier >= 30 && battlePass.claimed.length >= 30) {
-        html += `<div class="mt-4 text-center">
-            <button onclick="resetBattlePass()" class="bg-amber-600 hover:bg-amber-500 text-slate-900 font-black px-6 py-2 rounded-xl cursor-pointer transition text-sm">Start Season ${battlePass.season + 1} →</button>
+    if (battlePass.tier >= 30 && claimedCount >= 30) {
+        html += `<div class="mt-5 text-center bg-emerald-950/30 border border-emerald-700/30 p-4 rounded-xl">
+            <div class="text-lg font-black text-emerald-400 mb-1">🎉 Season 1 Complete!</div>
+            <p class="text-slate-400 text-xs">All rewards claimed. Stay tuned for future seasons.</p>
         </div>`;
     }
     container.innerHTML = html;
@@ -1825,32 +1946,20 @@ function isClubFull() { return club.length >= getClubCapacity(); }
 let eventData = JSON.parse(localStorage.getItem('lol_event_v1') || 'null');
 
 // Global event schedule — all players share the same window based on UTC day
-function _getGlobalEventWindow() {
-    const now = new Date();
-    const todayMidnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0);
-    const tomorrowMidnight = todayMidnight + 86400000;
-    return { start: todayMidnight, end: tomorrowMidnight };
-}
-
 function getActiveEvent() {
-    const window = _getGlobalEventWindow();
-    // If stored event doesn't match today's window, reset it
-    if (eventData && eventData.endsAt !== window.end) {
-        eventData.endsAt = window.end;
-        eventData.pullsSinceDrop = 0;
-        localStorage.setItem('lol_event_v1', JSON.stringify(eventData));
-    }
     if (!eventData) return null;
     if (Date.now() > eventData.endsAt) return null;
     return eventData;
 }
 
 function startFirstStand2026Event() {
-    const window = _getGlobalEventWindow();
+    if (eventData && eventData.endsAt > Date.now()) return;
+    const endDate = Date.UTC(2026, 6, 31, 23, 59, 59);
+    if (Date.now() > endDate) return;
     eventData = {
         name: 'First Stand 2026 Drop Rate Up',
         type: 'firststand2026',
-        endsAt: window.end,
+        endsAt: endDate,
         pullsSinceDrop: 0,
         pityThreshold: 60,
         active: true
@@ -1864,23 +1973,29 @@ function renderEventBanner() {
     if (!container) return;
     const evt = getActiveEvent();
     if (!evt) {
-        container.innerHTML = '<div class="bg-slate-800/60 p-6 rounded-2xl border border-slate-700 text-center"><p class="text-slate-500 text-sm font-mono">No active event. Check back later!</p></div>';
+        container.innerHTML = `<div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50 text-center">
+            <div class="text-2xl mb-2">🏁</div>
+            <p class="text-slate-500 text-sm font-bold">Event Ended</p>
+            <p class="text-slate-600 text-xs">No active event. Check back for future events!</p>
+        </div>`;
         return;
     }
     const remaining = Math.max(0, evt.endsAt - Date.now());
-    const hours = Math.floor(remaining / 3600000);
+    const days = Math.floor(remaining / 86400000);
+    const hours = Math.floor((remaining % 86400000) / 3600000);
     const mins = Math.floor((remaining % 3600000) / 60000);
+    const timeStr = days > 0 ? `${days}d ${hours}h` : `${hours}h ${mins}m`;
     const progress = evt.pullsSinceDrop || 0;
     const pity = evt.pityThreshold || 60;
     container.innerHTML = `
-        <div class="bg-gradient-to-r from-orange-950 via-slate-900 to-orange-950 p-6 rounded-2xl border border-orange-500/50 text-center shadow-[0_0_30px_rgba(249,115,22,0.2)] relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 opacity-10 text-[150px]">🔥</div>
+        <div class="bg-gradient-to-r from-orange-950 via-slate-900 to-orange-950 p-5 rounded-2xl border border-orange-500/40 text-center shadow-[0_0_20px_rgba(249,115,22,0.15)] relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 opacity-5 text-[120px]">🔥</div>
             <div class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Limited Event</div>
-            <h3 class="text-xl font-black text-orange-300 mb-2">${evt.name}</h3>
-            <p class="text-slate-300 text-sm mb-3">Open <strong class="text-orange-200">First Stand Packs</strong> for boosted 2026 drop rates! Guaranteed First Stand 2026 card within <strong class="text-orange-200">${pity}</strong> pulls of this pack type. Other packs are not affected.</p>
-            <div class="flex justify-center gap-4 mb-3 text-xs font-mono">
-                <span class="bg-black/40 px-3 py-1.5 rounded-lg border border-orange-800/50 text-orange-200">⏱ ${hours}h ${mins}m remaining</span>
-                <span class="bg-black/40 px-3 py-1.5 rounded-lg border border-emerald-800/50 text-emerald-300">Pity: ${progress}/${pity} pulls</span>
+            <h3 class="text-lg font-black text-orange-300 mb-2">${evt.name}</h3>
+            <p class="text-slate-400 text-xs mb-3">Open <strong class="text-orange-200">First Stand Packs</strong> for boosted 2026 drop rates! Guaranteed card within <strong class="text-orange-200">${pity}</strong> pulls.</p>
+            <div class="flex justify-center gap-3 text-[10px] font-mono">
+                <span class="bg-black/40 px-2.5 py-1.5 rounded-lg border border-orange-800/40 text-orange-200">⏱ ${timeStr} remaining</span>
+                <span class="bg-black/40 px-2.5 py-1.5 rounded-lg border border-emerald-800/40 text-emerald-300">Pity: ${progress}/${pity}</span>
             </div>
         </div>`;
 }
@@ -2052,6 +2167,41 @@ function updateClubStatsUI() {
     setEl("stat-tower-best", trackStats.towerHighestFloor || 0);
     setEl("stat-salary-wins", trackStats.salaryCapWon || 0);
     renderPrestigeTitlePanel();
+    _renderStatsDashboard();
+}
+
+function _renderStatsDashboard() {
+    const totalWins = (trackStats.tournamentsWon || 0) + (trackStats.goldenRoads || 0) + (trackStats.draftModesWon || 0) + (trackStats.salaryCapWon || 0);
+    const totalLosses = trackStats.losses || 0;
+    const totalMatches = totalWins + totalLosses;
+    const winRate = totalMatches > 0 ? Math.round((totalWins / totalMatches) * 100) : 0;
+    const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    setEl('stat-winrate', winRate + '%');
+    setEl('stat-total-matches', totalMatches);
+    setEl('stat-be-earned', ((trackStats.soldBE || 0) + blueEssence).toLocaleString());
+    setEl('stat-be-spent', (trackStats.packs || 0) > 0 ? (trackStats.packs * 200).toLocaleString() + '+' : '0');
+
+    const tierRates = document.getElementById('stat-tier-rates');
+    if (tierRates) {
+        const tiers = [
+            { name: 'Cafe', w: trackStats.cafeWins || 0, color: 'text-green-400' },
+            { name: 'Regional', w: trackStats.regionalSplitWon || 0, color: 'text-slate-300' },
+            { name: 'First Stand', w: trackStats.firstStandWon || 0, color: 'text-teal-400' },
+            { name: 'MSI', w: trackStats.msiWon || 0, color: 'text-purple-400' },
+            { name: 'Worlds', w: trackStats.worldsWon || 0, color: 'text-amber-400' },
+        ];
+        tierRates.innerHTML = tiers.map(t =>
+            `<div class="flex justify-between"><span class="${t.color}">${t.name}</span><span class="text-slate-300">${t.w} wins</span></div>`
+        ).join('');
+    }
+
+    const mostUsed = document.getElementById('stat-most-used');
+    if (mostUsed) {
+        const entries = Object.entries(trackStats.matchesPlayed || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        mostUsed.innerHTML = entries.length > 0
+            ? entries.map(([name, count], i) => `<div class="flex justify-between"><span class="text-slate-300">${i + 1}. ${name}</span><span class="text-blue-300">${count}m</span></div>`).join('')
+            : '<div class="text-slate-600">No match data yet</div>';
+    }
 }
 
 function recalculateRegionalPrice() {
@@ -2252,7 +2402,7 @@ function buyPack(baseCost, type) {
         localStorage.setItem('lol_event_v1', JSON.stringify(evt));
         renderEventBanner();
     }
-    processNewCards(pulled); saveGame(); autoCloudSave(); showPulls(pulled, `${type} Package Opened`);
+    processNewCards(pulled); saveGame(); autoCloudSave(); playSound(pulled.some(c => c.holographic || c.signature) ? 'rare' : 'pack'); showPulls(pulled, `${type} Package Opened`);
 }
 
 function buyTargetPack(targetType) {
@@ -3904,8 +4054,9 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     const roleIconHtml = (window.roleIcons && window.roleIcons[card.role]) || '';
 
     // Tier header — always inside the card (no clipping bugs)
-    const tierLabel = card.signature ? '✦ SIGNATURE ✦' : (card.role === "COACH" ? "COACH STAFF" : card.quality);
+    const tierLabel = card.holographic ? '◆ HOLOGRAPHIC ◆' : card.signature ? '✦ SIGNATURE ✦' : (card.role === "COACH" ? "COACH STAFF" : card.quality);
     if (card.signature) cardDiv.classList.add('card-signature');
+    if (card.holographic) cardDiv.classList.add('card-holographic');
 
     cardDiv.innerHTML = `
         <div class="w-full text-center py-1.5 px-3 bg-black/25 border-b ${dividerColor} text-[10px] font-black uppercase tracking-widest ${textBase} rounded-t-xl">${tierLabel}</div>
@@ -4111,6 +4262,7 @@ function playMatchStep() {
 }
 
 function handleTournamentWin() {
+    playSound('win');
     blueEssence += tourData.reward1; addXP(200);
 
     // Track stage-specific wins for quests — applies to both standalone and Golden Road
@@ -4141,6 +4293,7 @@ function handleTournamentWin() {
 }
 
 function handleTournamentLoss() {
+    playSound('lose');
     trackStats.losses = (trackStats.losses || 0) + 1;
     let reachedFinals = (tourRound === tourData.maxRounds - 1);
     if (reachedFinals) { blueEssence += tourData.reward2; if(isGoldenRoad) grAccruedEssence += tourData.reward2; }
@@ -6972,6 +7125,11 @@ function pushToLeaderboard() {
         totalBE: blueEssence || 0,
         archiveCards: Object.keys(collectionRegistry).length,
         signatureCards: Object.values(collectionRegistry).filter(r => r.signature).length,
+        showcaseCards: [...club].sort((a, b) => {
+            const aScore = (a.signature ? 1000 : 0) + (a.holographic ? 500 : 0) + a.rating;
+            const bScore = (b.signature ? 1000 : 0) + (b.holographic ? 500 : 0) + b.rating;
+            return bScore - aScore;
+        }).slice(0, 3).map(c => ({ id: c.id, name: c.name, team: c.team, year: c.year, rating: c.rating, quality: c.quality, role: c.role, region: c.region, stats: c.stats, signature: c.signature || false, holographic: c.holographic || false })),
         updatedAt: Date.now(),
     };
     fbDb.collection('leaderboard').doc(currentUser.uid).set(entry).then(() => {
@@ -7133,6 +7291,7 @@ function viewProfile(uid) {
                 <div class="bg-slate-900 p-2 rounded-xl text-center"><div class="text-lg font-black text-blue-400">${d.totalBE != null ? d.totalBE.toLocaleString() : '—'}</div><div class="text-[9px] text-slate-500 uppercase font-bold">BE</div></div>
             </div>
             ${theirSquad ? '<div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Starting Roster</div><div id="profile-squad" class="flex flex-wrap gap-2 justify-center mb-4"></div>' : '<div class="text-slate-600 text-xs text-center mb-4 font-mono">No squad data (player hasn\'t saved to cloud)</div>'}
+            ${d.showcaseCards && d.showcaseCards.length > 0 ? '<div class="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-2">🏅 Card Showcase</div><div id="profile-showcase" class="flex flex-wrap gap-2 justify-center mb-4"></div>' : ''}
             ${favCard ? '<div class="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-2">★ Favorite Card</div><div id="profile-fav" class="flex justify-center mb-4"></div>' : ''}
             ${currentUser ? `<button onclick="addFriend('${uid}','${(d.displayName||'').replace(/'/g,'')}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">➕ Add Friend</button>` : ''}
             <button onclick="document.getElementById('profile-modal').classList.add('hidden')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-xl font-bold cursor-pointer transition text-sm">Close</button>`;
@@ -7167,6 +7326,16 @@ function viewProfile(uid) {
                     wrap.appendChild(createCardElement(card, true, null, null));
                     wrap.insertAdjacentHTML('beforeend', `<div class="absolute top-0 left-0 bg-indigo-900/90 text-indigo-200 text-[8px] font-black px-1 py-0.5 rounded-tl-xl rounded-br-xl z-10">${role}</div>`);
                     squadEl.appendChild(wrap);
+                });
+            }
+        }
+
+        // Render showcase cards
+        if (d.showcaseCards && d.showcaseCards.length > 0) {
+            const scEl = document.getElementById('profile-showcase');
+            if (scEl) {
+                d.showcaseCards.forEach(c => {
+                    scEl.appendChild(createCardElement(c, true, null, null));
                 });
             }
         }

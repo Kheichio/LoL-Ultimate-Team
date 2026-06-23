@@ -54,6 +54,7 @@
 
         <div id="desktop-nav" class="flex items-center justify-center flex-wrap gap-1.5 flex-grow">
             <button id="dark-mode-btn" onclick="toggleDarkMode()" class="nav-btn bg-slate-700/60 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-slate-400 whitespace-nowrap" title="Toggle light/dark mode">☀️</button>
+            <button id="sound-toggle-btn" onclick="toggleSoundMute()" class="nav-btn bg-slate-700/60 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-slate-400 whitespace-nowrap" title="Toggle sound">🔊</button>
             <button onclick="switchTab('welcome')" data-tab="welcome" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-green-400 whitespace-nowrap text-sm">Welcome</button>
             <button onclick="switchTab('guide')" data-tab="guide" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-cyan-400 whitespace-nowrap text-sm">Guide</button>
             <button onclick="switchTab('rewards'); renderRewardsTab();" data-tab="rewards" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-amber-300 whitespace-nowrap text-sm relative">
@@ -374,7 +375,7 @@
         </section>
 
         <section id="tab-guide" class="tab-content hidden max-w-5xl mx-auto space-y-5 pt-2">
-            <h2 class="text-2xl font-black text-cyan-400 uppercase tracking-widest mb-1 border-b border-cyan-900/30 pb-2">Director's Manual — Alpha Patch 0.6.8</h2>
+            <h2 class="text-2xl font-black text-cyan-400 uppercase tracking-widest mb-1 border-b border-cyan-900/30 pb-2">Director's Manual — Alpha Patch 0.6.9</h2>
             
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg">
                 <h3 class="text-xl font-bold text-slate-200 mb-3">🎮 Core Concept</h3>
@@ -866,18 +867,18 @@
             </div>
 
             <div class="bg-slate-950 p-6 rounded-2xl border border-slate-700 shadow-inner">
-                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.6.8)</h3>
+                <h3 class="text-lg font-bold text-amber-400 mb-3">📋 System Patch Notes (Alpha Patch 0.6.9)</h3>
                 <ul class="text-sm font-mono text-slate-400 space-y-1.5 list-disc pl-5">
-                    <li><span class="text-red-400 font-bold">Full Inventory Validation</span> — Card integrity checks now apply to the entire club inventory, not just squad. All cards are synced with the database on every load — invalid IDs, tampered roles, and fabricated stats are removed. Profile views also enforce real database data for viewed players.</li>
-                    <li><span class="text-amber-300 font-bold">Rewards Tab Moved</span> — Rewards tab repositioned between Guide and Quests. Leaderboard moved between Season and Upgrade. Cleaner navigation flow.</li>
-                    <li><span class="text-emerald-400 font-bold">Leaderboard Team Colors</span> — Increased gradient visibility for all players on the leaderboard. Every row now shows a clear team color tint, not just your own.</li>
-                    <li><span class="text-yellow-400 font-bold">Rewards Notifications</span> — Badge on Rewards tab pulses when Battle Pass tiers are ready to claim.</li>
-                    <li><span class="text-cyan-400 font-bold">16 New Quests</span> — Deep progression milestones: Win 3 Worlds, Win 5 MSI, 25 Regional Splits, Floor 100 Tower, 10 Salary Caps, 25 Drafts, 100 Packs, 50 Upgrades, and repeatable contracts (3 Tournament wins, Tower records).</li>
-                    <li><span class="text-purple-400 font-bold">9 New Achievements</span> — Earn 100/500 Trophy Points, own 500/1000 cards, archive 600/1000 cards, complete Battle Pass seasons, own 3 Signature cards.</li>
-                    <li><span class="text-amber-400 font-bold">Clubhouse Trophy Score</span> — Club stats now display weighted Trophy Score matching the leaderboard formula. Each tournament shows its point weight (×1 to ×15) for clarity.</li>
-                    <li><span class="text-blue-400 font-bold">Guide: Trophy Weights</span> — Full weighted scoring breakdown added to the Guide's Trophies &amp; Leaderboard section with visual weight grid and example calculation.</li>
+                    <li><span class="text-yellow-300 font-bold">Holographic Cards</span> — 2% chance on any pack pull. Visual-only variant with animated rainbow prismatic border. Tracked in stats. Signature and holographic are independent flags.</li>
+                    <li><span class="text-blue-400 font-bold">Sound Effects</span> — Web Audio tones for pack opening, tournament win/loss, rare pulls, and reward claims. 🔊 mute toggle in the header. Generates procedural synth sounds, no external files.</li>
+                    <li><span class="text-amber-400 font-bold">Card Showcase</span> — Your 3 best cards (by rating, signature/holo priority) are automatically shown on your leaderboard profile. Click "Update My Stats" to sync.</li>
+                    <li><span class="text-emerald-400 font-bold">Statistics Dashboard</span> — Collapsible panel in Club tab showing win rate, total matches, BE earned/spent, win rates by tournament tier, and top 5 most-used cards.</li>
+                    <li><span class="text-purple-400 font-bold">Battle Pass Rework</span> — Larger tier cards (min 80px), thicker progress bar, season 1 only. Once all 30 tiers are claimed, shows a permanent "Complete" banner. No more season resets.</li>
+                    <li><span class="text-cyan-400 font-bold">Quest UI Overhaul</span> — Quests grouped into categories (Tournament, Competitive, Collection, Economy) with collapsible sections. Each category shows completion count and auto-hides when fully claimed. Achievements and Contracts in their own panel.</li>
+                    <li><span class="text-red-400 font-bold">Event Banner Fix</span> — Limited events now have a fixed end date (July 31, 2026) instead of resetting daily. Shows "Event Ended" when expired. Timer displays days remaining.</li>
                 </ul>
-                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.6.7): Rewards Tab · Weighted Trophies · Squad Validation · Profile Colors · Salary Cap/Tower Locks · Squad Tier Filter</p>
+                <p class="text-xs text-slate-600 font-mono mt-3">— Previous patch (0.6.8): Full Validation · Nav Reorder · Team Colors · Rewards Badge · 16 Quests · 9 Achievements · Trophy Weights · Stats Dashboard</p>
+                <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.6.7): Rewards Tab · Weighted Trophies · Squad Validation · Profile Colors · Salary Cap/Tower Locks · Squad Tier Filter</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.6.6): Battle Pass · 32 Coach Cards · Starter Pack · Card Integrity · Signature Protection · Club Search · Archive Show All · PCS→LCP · Club Customization</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.6.5c): Summoner's Rift → Legacy Gamemode · NA LCS 2015 · LCP 2025 · PCS 2024 · KOO/SSG Finalists · Archive Overhaul · Leaderboard sorting</p>
                 <p class="text-xs text-slate-600 font-mono mt-1">— Previous patch (0.5.8): 2016 Summer Rosters (160 cards) · Auto-Cloud-Save · Enhanced Profiles · Friend Challenge Fix</p>
@@ -1049,6 +1050,44 @@
             </div>
 
             <div id="prestige-panel" class="bg-purple-950/20 p-4 rounded-xl border border-purple-800/40 mb-4"></div>
+
+            <!-- Statistics Dashboard -->
+            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50 mb-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Statistics Dashboard</h3>
+                    <button onclick="document.getElementById('stats-dashboard').classList.toggle('hidden')" class="text-[10px] text-slate-500 hover:text-slate-300 cursor-pointer font-bold">Toggle ▾</button>
+                </div>
+                <div id="stats-dashboard" class="space-y-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                        <div class="bg-slate-900/60 p-2 rounded-lg">
+                            <div class="text-slate-500 font-bold uppercase text-[9px] mb-1">Win Rate</div>
+                            <div class="text-lg font-black text-emerald-400" id="stat-winrate">0%</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-2 rounded-lg">
+                            <div class="text-slate-500 font-bold uppercase text-[9px] mb-1">Total Matches</div>
+                            <div class="text-lg font-black text-blue-300" id="stat-total-matches">0</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-2 rounded-lg">
+                            <div class="text-slate-500 font-bold uppercase text-[9px] mb-1">BE Earned</div>
+                            <div class="text-lg font-black text-amber-400" id="stat-be-earned">0</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-2 rounded-lg">
+                            <div class="text-slate-500 font-bold uppercase text-[9px] mb-1">BE Spent</div>
+                            <div class="text-lg font-black text-red-400" id="stat-be-spent">0</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div class="bg-slate-900/60 p-3 rounded-lg">
+                            <div class="text-slate-500 font-bold uppercase text-[9px] mb-2">Win Rate by Tier</div>
+                            <div id="stat-tier-rates" class="space-y-1 text-xs font-mono"></div>
+                        </div>
+                        <div class="bg-slate-900/60 p-3 rounded-lg">
+                            <div class="text-slate-500 font-bold uppercase text-[9px] mb-2">Most Used Cards</div>
+                            <div id="stat-most-used" class="space-y-1 text-xs font-mono"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-4 flex flex-wrap items-center gap-3 shadow-md">
                 <input type="text" id="club-search-input" oninput="renderClubGrid()" placeholder="Filter by pro name..." class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 w-full max-w-sm text-sm focus:outline-none text-slate-200">
@@ -1868,25 +1907,26 @@
                 <img src="icons/Specialist_icon.png" class="w-8 h-8 rounded" onerror="this.style.display='none'">
                 <h2 class="text-xl font-black text-cyan-400 tracking-wide">LoL Ultimate Team</h2>
             </div>
-            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.6.8</p>
+            <p class="text-xs text-slate-500 font-mono mb-4">Alpha Patch 0.6.9</p>
 
-            <div class="bg-emerald-950/60 border border-emerald-500/50 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-emerald-200">
-                <span class="text-lg shrink-0">🏆</span>
-                <span><strong class="text-emerald-100">Progression overhaul!</strong> Full inventory validation, weighted trophy scoring in clubhouse + leaderboard, 16 new quests, 9 new achievements, Rewards tab notifications, and improved team color visibility across the board.</span>
+            <div class="bg-yellow-950/60 border border-yellow-500/40 rounded-xl p-3 mb-5 flex gap-2 items-start text-xs text-yellow-200">
+                <span class="text-lg shrink-0">✨</span>
+                <span><strong class="text-yellow-100">Content &amp; polish update!</strong> Holographic card variants, sound effects, card showcase on profiles, statistics dashboard, battle pass rework, categorized quests, and event timer fix.</span>
             </div>
 
             <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 font-mono mb-6">
-                <li><span class="text-red-400 font-bold">Full Validation</span> — All club + squad cards checked against database on load. Fabricated cards removed entirely.</li>
-                <li><span class="text-emerald-400 font-bold">Team Color Rows</span> — Leaderboard gradient now visible for every player, stronger tint for clarity.</li>
-                <li><span class="text-amber-300 font-bold">Nav Reorder</span> — Rewards between Guide/Quests. Board between Season/Upgrade.</li>
-                <li><span class="text-cyan-400 font-bold">16 Quests + 9 Achievements</span> — Win 3 Worlds, Floor 100 Tower, 500 Trophy pts, own 1000 cards, and more.</li>
-                <li><span class="text-amber-400 font-bold">Trophy Score</span> — Clubhouse uses weighted math (W×6, M×4, FS×2, R×1, GR×10). Cafe wins excluded. Weights shown per tournament.</li>
-                <li><span class="text-yellow-400 font-bold">Rewards Badge</span> — Notification pulse on Rewards tab when Battle Pass tiers are claimable.</li>
+                <li><span class="text-yellow-300 font-bold">Holographic Cards</span> — 2% chance on pulls. Animated rainbow border. Visual-only variant.</li>
+                <li><span class="text-blue-400 font-bold">Sound Effects</span> — Pack open, win/loss, rare pulls, claims. Mute toggle 🔊 in header.</li>
+                <li><span class="text-amber-400 font-bold">Card Showcase</span> — Top 3 cards shown on your leaderboard profile automatically.</li>
+                <li><span class="text-emerald-400 font-bold">Stats Dashboard</span> — Win rates, matches, BE flow, most-used cards — in Club tab.</li>
+                <li><span class="text-purple-400 font-bold">Battle Pass</span> — Bigger tiles, season 1 only, permanent "Complete" state.</li>
+                <li><span class="text-cyan-400 font-bold">Quest Categories</span> — Organized by type, collapsible, completion badges per group.</li>
+                <li><span class="text-red-400 font-bold">Event Fix</span> — Fixed end date, shows "Ended" when expired.</li>
             </ul>
 
             <div class="flex gap-3">
                 <button onclick="closePatchModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Got it</button>
-                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.6.8</button>
+                <button onclick="closePatchModal(true)" class="flex-1 bg-blue-800 hover:bg-blue-700 text-blue-100 px-4 py-2.5 rounded-xl font-bold cursor-pointer transition text-sm">Don't show again for v0.6.9</button>
             </div>
         </div>
     </div>
