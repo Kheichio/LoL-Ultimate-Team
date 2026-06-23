@@ -18,9 +18,11 @@ function getDB() {
     return raw.map(c => _SPECIAL_QUALITIES.has(c.quality) ? c : { ...c, quality: ratingToQuality(c.rating) });
 }
 
-function getSellValue(quality) {
+function getSellValue(quality, card) {
     const vals = { Silver: 5, Gold: 15, Platinum: 30, Diamond: 50, Master: 90, Grandmaster: 150, MVP: 175, Challenger: 300, Champion: 250, Finalist: 200, MSI: 220, FirstStand: 180, Coach: 20 };
-    return vals[quality] || 5;
+    let base = vals[quality] || 5;
+    if (card && card.holographic) base = Math.floor(base * 1.5);
+    return base;
 }
 
 const collectionRewards = { Silver: 10, Gold: 20, Platinum: 40, Diamond: 80, Master: 150, Grandmaster: 300, Challenger: 500, Champion: 500, MVP: 500, Finalist: 400, MSI: 420, FirstStand: 350 };
@@ -2485,7 +2487,7 @@ function renderClubGrid() {
             lockBtn.onclick = () => { card.locked = !card.locked; saveGame(); renderClubGrid(); };
             btnRow.appendChild(lockBtn);
             // Sell button
-            let btn = document.createElement("button"); let price = getSellValue(card.quality);
+            let btn = document.createElement("button"); let price = getSellValue(card.quality, card);
             if (inSquad) {
                 btn.className = "text-xs bg-slate-700 text-slate-400 px-3 py-1.5 rounded-lg flex-1 font-bold cursor-not-allowed shadow-md"; btn.innerText = "In Squad"; btn.disabled = true;
             } else if (card.locked) {
@@ -4054,7 +4056,7 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     const roleIconHtml = (window.roleIcons && window.roleIcons[card.role]) || '';
 
     // Tier header — always inside the card (no clipping bugs)
-    const tierLabel = card.holographic ? '◆ HOLOGRAPHIC ◆' : card.signature ? '✦ SIGNATURE ✦' : (card.role === "COACH" ? "COACH STAFF" : card.quality);
+    const tierLabel = card.signature ? '✦ SIGNATURE ✦' : (card.role === "COACH" ? "COACH STAFF" : card.quality);
     if (card.signature) cardDiv.classList.add('card-signature');
     if (card.holographic) cardDiv.classList.add('card-holographic');
 
@@ -4364,7 +4366,7 @@ function triggerForfeit() { showConfirm("Forfeit Tournament?", "Lose your bracke
 function sellAllLowTier(tier) {
     let sold = 0; let val = 0; let activeIds = Object.values(squad).filter(s=>s).map(s=>s.uniqueId);
     let toSell = club.filter(c => c.quality === tier && !activeIds.includes(c.uniqueId) && !c.locked);
-    toSell.forEach(c => { sold++; val += getSellValue(c.quality); club = club.filter(cl => cl.uniqueId !== c.uniqueId); });
+    toSell.forEach(c => { sold++; val += getSellValue(c.quality, c); club = club.filter(cl => cl.uniqueId !== c.uniqueId); });
     if(sold > 0) { blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (['Grandmaster','Challenger','Champion','Finalist','MSI','FirstStand'].includes(tier)) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+sold; showToast(`Purged ${sold} ${tier}s for ${val} BE!`, "success"); saveGame(); }
     else showToast(`No unassigned ${tier}s found.`, "info");
 }
@@ -4376,7 +4378,7 @@ function purgeUnderTier(keepTier) {
     let sold = 0, val = 0, gmSold = 0;
     let activeIds = Object.values(squad).filter(s => s).map(s => s.uniqueId);
     let toSell = club.filter(c => toPurge.includes(c.quality) && !activeIds.includes(c.uniqueId) && !c.locked);
-    toSell.forEach(c => { sold++; val += getSellValue(c.quality); if (['Grandmaster','Challenger'].includes(c.quality)) gmSold++; });
+    toSell.forEach(c => { sold++; val += getSellValue(c.quality, c); if (['Grandmaster','Challenger'].includes(c.quality)) gmSold++; });
     club = club.filter(c => !toSell.some(s => s.uniqueId === c.uniqueId));
     if (sold > 0) {
         blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val;
@@ -4391,7 +4393,7 @@ function purgeCoachesUnder(ratingThreshold) {
     const toSell = club.filter(c => c.role === 'COACH' && c.rating < ratingThreshold && !activeIds.includes(c.uniqueId) && !c.locked);
     if (toSell.length === 0) { showToast(`No coaches under ${ratingThreshold} rating to purge.`, 'info'); return; }
     let val = 0;
-    toSell.forEach(c => { val += getSellValue(c.quality); });
+    toSell.forEach(c => { val += getSellValue(c.quality, c); });
     showConfirm(`Purge ${toSell.length} Coaches?`, `Sell all ${toSell.length} coaches rated below ${ratingThreshold} for ${val} BE total.`, () => {
         club = club.filter(c => !toSell.some(s => s.uniqueId === c.uniqueId));
         blueEssence += val; trackStats.soldCount += toSell.length; trackStats.soldBE += val;
@@ -6905,7 +6907,7 @@ function quickSellDuplicates() {
     let gmSold = 0;
     club.forEach(c => {
         let isAct = activeIds.includes(c.uniqueId);
-        if(!isAct && seen.has(c.id)) { sold++; val += getSellValue(c.quality); if (['Grandmaster','Challenger'].includes(c.quality)) gmSold++; }
+        if(!isAct && seen.has(c.id)) { sold++; val += getSellValue(c.quality, c); if (['Grandmaster','Challenger'].includes(c.quality)) gmSold++; }
         else { seen.add(c.id); toKeep.push(c); }
     });
     if(sold > 0) { club = toKeep; blueEssence += val; trackStats.soldCount += sold; trackStats.soldBE += val; if (gmSold > 0) trackStats.gmSoldCount = (trackStats.gmSoldCount||0)+gmSold; showToast(`Purged ${sold} Duplicates for ${val} BE!`, "success"); saveGame(); }
