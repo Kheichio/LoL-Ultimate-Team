@@ -464,8 +464,8 @@ html.light-mode .card-face-down {
 /* ======= SUMMONER'S RIFT VISUAL MAP ======= */
 .sim-map-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(3, auto);
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, auto);
     gap: 4px;
 }
 .sim-cell {

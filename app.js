@@ -5679,8 +5679,8 @@ function startSimulation() {
         cpuTeam: cpuTeam,
         wardBonus: 0,
         cpuWardBonus: 0,
-        playerPositions: { TOP: 'topLane', JNG: 'myTopJng', MID: 'midLane', ADC: 'botLane', SUP: 'botLane' },
-        cpuPositions: { TOP: 'enemyTop', JNG: 'myBotJng', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' },
+        playerPositions: { TOP: 'topLane', JNG: 'myJungle1', MID: 'midLane', ADC: 'botLane', SUP: 'botLane' },
+        cpuPositions: { TOP: 'enemyTop', JNG: 'enemyJungle', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' },
         selectedPlayer: null,
         visionAreas: []
     };
@@ -5702,21 +5702,26 @@ function closeSimulation() {
 // ---- VISUAL MAP SIMULATION SYSTEM ----
 
 const _SIM_MAP_LOCATIONS = {
-    enemyTop:    { label: 'Enemy TOP',   type: 'lane-enemy',   row: 0, col: 0, lane: 'top' },
-    heraldPit:   { label: 'Herald Pit',  type: 'river-obj',    row: 0, col: 1 },
-    enemyMid:    { label: 'Enemy MID',   type: 'lane-enemy',   row: 0, col: 2, lane: 'mid' },
-    dragonPit:   { label: 'Dragon Pit',  type: 'river-obj',    row: 0, col: 3 },
-    enemyBot:    { label: 'Enemy BOT',   type: 'lane-enemy',   row: 0, col: 4, lane: 'bot' },
-    topLane:     { label: 'TOP Lane',    type: 'lane',         row: 1, col: 0, lane: 'top' },
-    grubPit:     { label: 'Grub Pit',    type: 'river-obj',    row: 1, col: 1 },
-    midLane:     { label: 'MID Lane',    type: 'lane',         row: 1, col: 2, lane: 'mid' },
-    river:       { label: 'River',       type: 'river',        row: 1, col: 3 },
-    botLane:     { label: 'BOT Lane',    type: 'lane',         row: 1, col: 4, lane: 'bot' },
-    myTopJng:    { label: 'Jungle',      type: 'jungle',       row: 2, col: 0 },
-    wardSpot:    { label: 'Ward Spot',   type: 'river',        row: 2, col: 1 },
-    myBase:      { label: 'Base',        type: 'base-blue',    row: 2, col: 2 },
-    myBotJng:    { label: 'Jungle',      type: 'jungle',       row: 2, col: 3 },
-    enemyBase:   { label: 'Enemy Base',  type: 'base-red',     row: 2, col: 4 }
+    // Row 0: Enemy side + objectives
+    baronPit:    { label: 'Baron Pit',     type: 'river-obj',    row: 0, col: 0 },
+    enemyTop:    { label: 'Enemy TOP',     type: 'lane-enemy',   row: 0, col: 1, lane: 'top' },
+    enemyBase:   { label: 'Enemy Base',    type: 'base-red',     row: 0, col: 2 },
+    enemyBot:    { label: 'Enemy BOT',     type: 'lane-enemy',   row: 0, col: 3, lane: 'bot' },
+    // Row 1: Lanes + enemy jungle
+    topLane:     { label: 'TOP Lane',      type: 'lane',         row: 1, col: 0, lane: 'top' },
+    enemyJungle: { label: 'Enemy Jungle',  type: 'jungle-enemy', row: 1, col: 1 },
+    enemyMid:    { label: 'Enemy MID',     type: 'lane-enemy',   row: 1, col: 2, lane: 'mid' },
+    dragonPit:   { label: 'Dragon Pit',    type: 'river-obj',    row: 1, col: 3 },
+    // Row 2: Your towers + mid + bot
+    myTop:       { label: 'Your TOP',      type: 'lane',         row: 2, col: 0, lane: 'top' },
+    myJungle1:   { label: 'Your Jungle',   type: 'jungle',       row: 2, col: 1 },
+    midLane:     { label: 'MID Lane',      type: 'lane',         row: 2, col: 2, lane: 'mid' },
+    botLane:     { label: 'BOT Lane',      type: 'lane',         row: 2, col: 3, lane: 'bot' },
+    // Row 3: Your base side
+    grubWard:    { label: 'Grub Pit',      type: 'river-obj',    row: 3, col: 0 },
+    myBase:      { label: 'Your Base',     type: 'base-blue',    row: 3, col: 1 },
+    myJungle2:   { label: 'Your Jungle',   type: 'jungle',       row: 3, col: 2 },
+    myBot:       { label: 'Your BOT',      type: 'lane',         row: 3, col: 3, lane: 'bot' },
 };
 
 function _simLocationToAction(role, location) {
@@ -5725,40 +5730,48 @@ function _simLocationToAction(role, location) {
     function pick(list) { for (const a of list) { if (avail.includes(a)) return a; } return null; }
 
     const nativeLane = { TOP: 'topLane', JNG: null, MID: 'midLane', ADC: 'botLane', SUP: 'botLane' };
-    const nativeEnemy = { TOP: 'enemyTop', JNG: null, MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' };
-    const isOwnLane = nativeLane[role] === location;
-    const isOwnEnemyLane = nativeEnemy[role] === location;
 
     switch (location) {
-        case 'myBase':                          return null;
-        case 'myTopJng': case 'myBotJng':       return role === 'JNG' ? pick(['farm']) : null;
-        case 'topLane':                         return isOwnLane ? pick(['farm']) : pick(['farm']);
-        case 'midLane':                         return isOwnLane ? pick(['farm']) : pick(['farm']);
-        case 'botLane':                         return isOwnLane ? pick(['farm']) : pick(['farm']);
-        case 'enemyTop':                        return isOwnEnemyLane ? pick(['push']) : pick(['gank','splitpush']);
-        case 'enemyMid':                        return isOwnEnemyLane ? pick(['push']) : pick(['gank','splitpush','teamfight']);
-        case 'enemyBot':                        return isOwnEnemyLane ? pick(['push']) : pick(['gank','splitpush']);
-        case 'dragonPit':                       return pick(['elder','dragon']);
-        case 'heraldPit': {
-            if (avail.includes('baron')) return 'baron';
-            if (avail.includes('elder')) return 'elder';
-            return pick(['herald']);
-        }
-        case 'grubPit':                         return pick(['grubs','ward']);
-        case 'wardSpot':                        return pick(['ward']);
-        case 'river':                           return pick(['teamfight','skirmish','ward']);
-        case 'enemyBase':                       return pick(['backdoor','siege']);
+        // Your side — safe zones
+        case 'myBase': return null;
+        case 'myTop': return role === 'TOP' ? pick(['farm']) : null;
+        case 'myBot': return (role === 'ADC' || role === 'SUP') ? pick(['farm']) : null;
+        case 'myJungle1': case 'myJungle2': return role === 'JNG' ? pick(['farm']) : null;
+
+        // Lanes — farm your own, rotate to others
+        case 'topLane': return pick(['farm']);
+        case 'midLane': return pick(['farm']);
+        case 'botLane': return pick(['farm']);
+
+        // Enemy lane areas — push YOUR lane, gank OTHERS
+        case 'enemyTop':
+            return nativeLane[role] === 'topLane' ? pick(['push']) : pick(['gank','splitpush']);
+        case 'enemyMid':
+            return nativeLane[role] === 'midLane' ? pick(['push']) : pick(['gank','splitpush','teamfight']);
+        case 'enemyBot':
+            return nativeLane[role] === 'botLane' ? pick(['push']) : pick(['gank','splitpush']);
+
+        // Objectives
+        case 'baronPit': return pick(['baron','elder','herald']);
+        case 'dragonPit': return pick(['elder','dragon']);
+        case 'grubWard': return pick(['grubs','ward']);
+
+        // Enemy territory
+        case 'enemyJungle': return pick(['teamfight','skirmish','ward','gank']);
+        case 'enemyBase': return pick(['backdoor','siege']);
+
         default: return null;
     }
 }
 
 function _simGetValidMoves(role) {
-    if (!simState || !simState.actionPhase) return [];
-    const allLocs = Object.keys(_SIM_MAP_LOCATIONS);
-    return allLocs.filter(loc => {
-        const action = _simLocationToAction(role, loc);
-        return action !== null;
+    if (!simState) return [];
+    const valid = [];
+    Object.keys(_SIM_MAP_LOCATIONS).forEach(locId => {
+        const action = _simLocationToAction(role, locId);
+        if (action) valid.push(locId);
     });
+    return valid;
 }
 
 function selectSimPlayer(role) {
@@ -5786,44 +5799,41 @@ function moveSimPlayer(role, location) {
 
 function _simHasVision(location) {
     if (!simState) return false;
-    // Always have vision on own side
-    const ownSideLocs = ['myBase','topLane','midLane','botLane','myTopJng','myBotJng','dragonPit','heraldPit','grubPit','wardSpot','river'];
-    if (ownSideLocs.includes(location)) return true;
-    // Vision from wards
-    if (simState.visionAreas.includes(location)) return true;
-    // Vision from player positions (can see adjacent enemy areas)
-    const adjacency = {
-        topLane: ['enemyTop'], midLane: ['enemyMid'], botLane: ['enemyBot'],
-        myTopJng: ['enemyTop'], myBotJng: ['enemyBot'],
-        heraldPit: ['enemyTop','enemyMid'], dragonPit: ['enemyBot','enemyMid'],
-        river: ['enemyMid','enemyTop','enemyBot'],
-        wardSpot: ['enemyTop','enemyMid','enemyBot','enemyBase']
+    // Your side always visible
+    const mySide = ['myBase','myTop','myBot','myJungle1','myJungle2','topLane','midLane','botLane','grubWard'];
+    if (mySide.includes(location)) return true;
+    // Vision wards
+    if ((simState.visionAreas || []).includes(location)) return true;
+    // Player adjacency
+    const adj = {
+        enemyTop: ['topLane','baronPit','enemyJungle'],
+        enemyMid: ['midLane','enemyJungle','enemyBase'],
+        enemyBot: ['botLane','dragonPit','enemyBase'],
+        enemyJungle: ['enemyTop','enemyMid','baronPit'],
+        enemyBase: ['enemyMid','enemyBot','enemyJungle'],
+        baronPit: ['topLane','enemyTop','enemyJungle','grubWard'],
+        dragonPit: ['botLane','enemyBot','midLane'],
     };
-    for (const r of ['TOP','JNG','MID','ADC','SUP']) {
-        const pos = simState.playerPositions[r];
-        const adj = adjacency[pos];
-        if (adj && adj.includes(location)) return true;
-        if (pos === location) return true; // player IS there
-    }
-    return false;
+    const nearby = adj[location] || [];
+    return Object.entries(simState.playerPositions || {}).some(([, pos]) => nearby.includes(pos) || pos === location);
 }
 
 function _simUpdatePositionsAfterTurn() {
     if (!simState) return;
-    // Map CPU actions to positions on the map
+    // Map CPU actions to positions on the new map
     const actionToCpuPos = {
-        farm:      { TOP: 'enemyTop', JNG: 'myBotJng', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' },
-        push:      { TOP: 'topLane',  JNG: 'myTopJng', MID: 'midLane',  ADC: 'botLane',  SUP: 'botLane' },
-        gank:      { TOP: 'midLane',  JNG: 'topLane',  MID: 'botLane',  ADC: 'midLane',  SUP: 'midLane' },
+        farm:      { TOP: 'enemyTop', JNG: 'enemyJungle', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' },
+        push:      { TOP: 'topLane',  JNG: 'myJungle1',   MID: 'midLane',  ADC: 'botLane',  SUP: 'botLane' },
+        gank:      { TOP: 'midLane',  JNG: 'topLane',     MID: 'botLane',  ADC: 'midLane',  SUP: 'midLane' },
         dragon:    { TOP: 'dragonPit', JNG: 'dragonPit', MID: 'dragonPit', ADC: 'dragonPit', SUP: 'dragonPit' },
-        baron:     { TOP: 'heraldPit', JNG: 'heraldPit', MID: 'heraldPit', ADC: 'heraldPit', SUP: 'heraldPit' },
+        baron:     { TOP: 'baronPit', JNG: 'baronPit', MID: 'baronPit', ADC: 'baronPit', SUP: 'baronPit' },
         elder:     { TOP: 'dragonPit', JNG: 'dragonPit', MID: 'dragonPit', ADC: 'dragonPit', SUP: 'dragonPit' },
-        herald:    { TOP: 'heraldPit', JNG: 'heraldPit', MID: 'heraldPit', ADC: 'heraldPit', SUP: 'heraldPit' },
-        grubs:     { TOP: 'grubPit', JNG: 'grubPit', MID: 'grubPit', ADC: 'grubPit', SUP: 'grubPit' },
-        ward:      { TOP: 'wardSpot', JNG: 'wardSpot', MID: 'wardSpot', ADC: 'wardSpot', SUP: 'wardSpot' },
-        teamfight: { TOP: 'river', JNG: 'river', MID: 'river', ADC: 'river', SUP: 'river' },
-        skirmish:  { TOP: 'river', JNG: 'river', MID: 'river', ADC: 'river', SUP: 'river' },
-        splitpush: { TOP: 'enemyTop', JNG: 'myTopJng', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' },
+        herald:    { TOP: 'baronPit', JNG: 'baronPit', MID: 'baronPit', ADC: 'baronPit', SUP: 'baronPit' },
+        grubs:     { TOP: 'grubWard', JNG: 'grubWard', MID: 'grubWard', ADC: 'grubWard', SUP: 'grubWard' },
+        ward:      { TOP: 'grubWard', JNG: 'grubWard', MID: 'grubWard', ADC: 'grubWard', SUP: 'grubWard' },
+        teamfight: { TOP: 'enemyJungle', JNG: 'enemyJungle', MID: 'enemyJungle', ADC: 'enemyJungle', SUP: 'enemyJungle' },
+        skirmish:  { TOP: 'enemyJungle', JNG: 'enemyJungle', MID: 'enemyJungle', ADC: 'enemyJungle', SUP: 'enemyJungle' },
+        splitpush: { TOP: 'enemyTop', JNG: 'enemyJungle', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' },
         siege:     { TOP: 'enemyBase', JNG: 'enemyBase', MID: 'enemyBase', ADC: 'enemyBase', SUP: 'enemyBase' },
         backdoor:  { TOP: 'enemyBase', JNG: 'enemyBase', MID: 'enemyBase', ADC: 'enemyBase', SUP: 'enemyBase' }
     };
@@ -5837,14 +5847,14 @@ function _simUpdatePositionsAfterTurn() {
         if (action && actionToCpuPos[action] && actionToCpuPos[action][r]) {
             simState.cpuPositions[r] = actionToCpuPos[action][r];
         } else {
-            const defaultCpu = { TOP: 'enemyTop', JNG: 'myBotJng', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' };
+            const defaultCpu = { TOP: 'enemyTop', JNG: 'enemyJungle', MID: 'enemyMid', ADC: 'enemyBot', SUP: 'enemyBot' };
             simState.cpuPositions[r] = defaultCpu[r];
         }
     });
 
     // Update vision areas from ward action
     if (simState.wardBonus > 0) {
-        const enemyAreas = ['enemyTop','enemyMid','enemyBot','enemyBase'];
+        const enemyAreas = ['enemyTop','enemyMid','enemyBot','enemyBase','enemyJungle'];
         enemyAreas.forEach(a => {
             if (!simState.visionAreas.includes(a)) simState.visionAreas.push(a);
         });
@@ -5910,15 +5920,19 @@ function _simRenderMapCell(locId, locInfo, rowSpan) {
     // Cell content — structures + dynamic label
     let structureInfo = '';
     let dynamicLabel = locInfo.label;
-    if (locId === 'topLane') {
+    if (locId === 'myTop') {
         const t = simState.myTowers.top;
         const inh = simState.myTowers.topInhib;
         structureInfo = `<div class="sim-cell-structures"><span class="text-amber-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
+    } else if (locId === 'topLane') {
+        structureInfo = `<div class="sim-cell-structures"><span class="text-green-500">&#9876;&#65039; Lane</span></div>`;
     } else if (locId === 'midLane') {
         const t = simState.myTowers.mid;
         const inh = simState.myTowers.midInhib;
         structureInfo = `<div class="sim-cell-structures"><span class="text-amber-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
     } else if (locId === 'botLane') {
+        structureInfo = `<div class="sim-cell-structures"><span class="text-green-500">&#9876;&#65039; Lane</span></div>`;
+    } else if (locId === 'myBot') {
         const t = simState.myTowers.bot;
         const inh = simState.myTowers.botInhib;
         structureInfo = `<div class="sim-cell-structures"><span class="text-amber-400">${'&#127984;'.repeat(t)}</span>${t===0 ? (inh > 0 ? '<span class="text-purple-400">&#9823;</span>' : '<span class="text-slate-600">&#10060;</span>') : ''}</div>`;
@@ -5948,7 +5962,7 @@ function _simRenderMapCell(locId, locInfo, rowSpan) {
         const soulReady = myD >= 5 || cpuD >= 5;
         const elderAvail = soulReady && (simState.elderBuff === 0 && simState.cpuElderBuff === 0);
         structureInfo = `<div class="sim-cell-structures"><span class="text-orange-400">&#128009; ${myD}/5</span>${soulReady ? (elderAvail ? ' <span class="text-yellow-300">ELDER!</span>' : ' <span class="text-emerald-400">SOUL</span>') : ''}</div>`;
-    } else if (locId === 'heraldPit') {
+    } else if (locId === 'baronPit') {
         const grubsDone = simState.grubs >= 3 || simState.cpuGrubs >= 3;
         const heraldDone = simState.herald >= 1 || simState.cpuHerald >= 1;
         const baronAvail = heraldDone;
@@ -5965,7 +5979,7 @@ function _simRenderMapCell(locId, locInfo, rowSpan) {
             dynamicLabel = 'Baron Pit';
             structureInfo = `<div class="sim-cell-structures"><span class="text-slate-500">Taken</span></div>`;
         }
-    } else if (locId === 'grubPit') {
+    } else if (locId === 'grubWard') {
         const grubsDone = simState.grubs >= 3 || simState.cpuGrubs >= 3;
         if (grubsDone) {
             dynamicLabel = 'Ward Spot';
@@ -5973,12 +5987,9 @@ function _simRenderMapCell(locId, locInfo, rowSpan) {
         } else {
             structureInfo = `<div class="sim-cell-structures"><span class="text-teal-400">&#128375; Grubs</span></div>`;
         }
-    } else if (locId === 'wardSpot') {
-        const hasVision = simState.wardBonus > 0;
-        structureInfo = `<div class="sim-cell-structures">${hasVision ? '<span class="text-cyan-400">&#128065; Vision Active</span>' : '<span class="text-slate-500">&#128065; Ward Here</span>'}</div>`;
-    } else if (locId === 'river') {
-        structureInfo = `<div class="sim-cell-structures"><span class="text-cyan-300">&#9876;&#65039; Fight Zone</span></div>`;
-    } else if (locId === 'myTopJng' || locId === 'myBotJng') {
+    } else if (locId === 'enemyJungle') {
+        structureInfo = `<div class="sim-cell-structures"><span class="text-red-700">&#127795; &#9876;&#65039;</span></div>`;
+    } else if (locId === 'myJungle1' || locId === 'myJungle2') {
         structureInfo = `<div class="sim-cell-structures"><span class="text-green-700">&#127795;</span></div>`;
     }
 
@@ -6060,32 +6071,35 @@ function renderSimulation() {
         <div class="text-center text-xs font-black text-violet-400 uppercase tracking-widest mb-3">
             ${simState.actionPhase ? (simState.selectedPlayer ? `Moving <span class="text-yellow-300">${simState.selectedPlayer}</span> — click a highlighted cell` : 'Click a player token to select, then click a map location') : 'Actions resolving...'}
         </div>
-        <div class="text-center text-[9px] text-red-400 font-black uppercase tracking-widest mb-1">Enemy Side</div>
+        <div class="text-center text-[9px] text-red-400 font-black uppercase tracking-widest mb-1">Enemy Side (Top-Right)</div>
         <div class="sim-map-grid">`;
 
-    // Row 0 (enemy side): enemyTop, heraldPit, enemyMid, dragonPit, enemyBot
+    // Row 0: Baron/Herald Pit, Enemy TOP, Enemy Base, Enemy BOT
+    html += _simRenderMapCell('baronPit', _SIM_MAP_LOCATIONS.baronPit, 0);
     html += _simRenderMapCell('enemyTop', _SIM_MAP_LOCATIONS.enemyTop, 0);
-    html += _simRenderMapCell('heraldPit', _SIM_MAP_LOCATIONS.heraldPit, 0);
-    html += _simRenderMapCell('enemyMid', _SIM_MAP_LOCATIONS.enemyMid, 0);
-    html += _simRenderMapCell('dragonPit', _SIM_MAP_LOCATIONS.dragonPit, 0);
+    html += _simRenderMapCell('enemyBase', _SIM_MAP_LOCATIONS.enemyBase, 0);
     html += _simRenderMapCell('enemyBot', _SIM_MAP_LOCATIONS.enemyBot, 0);
 
-    // Row 1 (neutral): topLane, grubPit, midLane, river, botLane
+    // Row 1: TOP Lane, Enemy Jungle, Enemy MID, Dragon Pit
     html += _simRenderMapCell('topLane', _SIM_MAP_LOCATIONS.topLane, 0);
-    html += _simRenderMapCell('grubPit', _SIM_MAP_LOCATIONS.grubPit, 0);
+    html += _simRenderMapCell('enemyJungle', _SIM_MAP_LOCATIONS.enemyJungle, 0);
+    html += _simRenderMapCell('enemyMid', _SIM_MAP_LOCATIONS.enemyMid, 0);
+    html += _simRenderMapCell('dragonPit', _SIM_MAP_LOCATIONS.dragonPit, 0);
+
+    // Row 2: Your TOP, Your Jungle, MID Lane, BOT Lane
+    html += _simRenderMapCell('myTop', _SIM_MAP_LOCATIONS.myTop, 0);
+    html += _simRenderMapCell('myJungle1', _SIM_MAP_LOCATIONS.myJungle1, 0);
     html += _simRenderMapCell('midLane', _SIM_MAP_LOCATIONS.midLane, 0);
-    html += _simRenderMapCell('river', _SIM_MAP_LOCATIONS.river, 0);
     html += _simRenderMapCell('botLane', _SIM_MAP_LOCATIONS.botLane, 0);
 
-    // Row 2 (your side): myTopJng, wardSpot, myBase, myBotJng, enemyBase
-    html += _simRenderMapCell('myTopJng', _SIM_MAP_LOCATIONS.myTopJng, 0);
-    html += _simRenderMapCell('wardSpot', _SIM_MAP_LOCATIONS.wardSpot, 0);
+    // Row 3: Grub/Ward Spot, Your Base, Your Jungle, Your BOT
+    html += _simRenderMapCell('grubWard', _SIM_MAP_LOCATIONS.grubWard, 0);
     html += _simRenderMapCell('myBase', _SIM_MAP_LOCATIONS.myBase, 0);
-    html += _simRenderMapCell('myBotJng', _SIM_MAP_LOCATIONS.myBotJng, 0);
-    html += _simRenderMapCell('enemyBase', _SIM_MAP_LOCATIONS.enemyBase, 0);
+    html += _simRenderMapCell('myJungle2', _SIM_MAP_LOCATIONS.myJungle2, 0);
+    html += _simRenderMapCell('myBot', _SIM_MAP_LOCATIONS.myBot, 0);
 
     html += `</div>
-        <div class="text-center text-[9px] text-blue-400 font-black uppercase tracking-widest mt-1">Your Side</div>`;
+        <div class="text-center text-[9px] text-blue-400 font-black uppercase tracking-widest mt-1">Your Side (Bottom-Left)</div>`;
 
     // ---- ASSIGNMENT SUMMARY + EXECUTE BUTTON ----
     if (simState.actionPhase) {
@@ -6106,7 +6120,7 @@ function renderSimulation() {
         html += `<div class="mt-3 flex items-center gap-4">
             <button onclick="executeSimTurn()" class="bg-violet-600 hover:bg-violet-500 text-white px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.5)] transition ${assignedCount < 5 ? 'opacity-50' : ''}" ${assignedCount < 5 ? 'title="Assign all 5 roles first"' : ''}>Execute Turn</button>
             <span class="text-xs text-slate-500 font-mono">${assignedCount}/5 assigned</span>
-            ${assignedCount > 0 ? `<button onclick="simState.assignments={};Object.keys(simState.playerPositions).forEach(r=>{var d={TOP:'topLane',JNG:'myTopJng',MID:'midLane',ADC:'botLane',SUP:'botLane'};simState.playerPositions[r]=d[r]});simState.selectedPlayer=null;renderSimulation()" class="text-xs text-slate-500 hover:text-red-400 underline cursor-pointer transition">Reset All</button>` : ''}
+            ${assignedCount > 0 ? `<button onclick="simState.assignments={};Object.keys(simState.playerPositions).forEach(r=>{var d={TOP:'topLane',JNG:'myJungle1',MID:'midLane',ADC:'botLane',SUP:'botLane'};simState.playerPositions[r]=d[r]});simState.selectedPlayer=null;renderSimulation()" class="text-xs text-slate-500 hover:text-red-400 underline cursor-pointer transition">Reset All</button>` : ''}
         </div>`;
     }
 
@@ -6256,7 +6270,7 @@ function executeSimTurn() {
     _simUpdatePositionsAfterTurn();
 
     // Reset player positions to default lanes for next turn
-    simState.playerPositions = { TOP: 'topLane', JNG: 'myTopJng', MID: 'midLane', ADC: 'botLane', SUP: 'botLane' };
+    simState.playerPositions = { TOP: 'topLane', JNG: 'myJungle1', MID: 'midLane', ADC: 'botLane', SUP: 'botLane' };
 
     // Reset for next turn
     simState.assignments = {};
