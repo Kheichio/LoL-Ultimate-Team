@@ -5135,8 +5135,9 @@ const ROLE_ICONS = { TOP: 'icons/Top_icon.png', JNG: 'icons/Jungle_icon.png', MI
 // ============================================================
 
 const _SIM_ACTIONS = {
-    farm:       { label: 'Farm Lane',       short: 'FRM',  stats: ['frm'],            phases: ['early','mid','late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'CS safely for gold' },
-    gank:       { label: 'Gank',            short: 'GNK',  stats: ['mec','map'],      phases: ['early','mid','late'], roles: ['JNG','MID','SUP'], desc: 'Gank an enemy lane' },
+    farm:       { label: 'Farm (Safe)',     short: 'FRM',  stats: ['frm'],            phases: ['early','mid','late'], roles: ['TOP','JNG','MID','ADC','SUP'], desc: 'CS safely under tower — gold only, no pressure' },
+    push:       { label: 'Push Lane',       short: 'PSH',  stats: ['frm','mec'],      phases: ['early','mid','late'], roles: ['TOP','MID','ADC','SUP'], desc: 'Push wave forward — enables ganks + can hit tower' },
+    gank:       { label: 'Gank',            short: 'GNK',  stats: ['mec','map'],      phases: ['early','mid','late'], roles: ['JNG','MID','SUP'], desc: 'Gank a lane (laner must be PUSHING that lane)' },
     grubs:      { label: 'Void Grubs',      short: 'GRB',  stats: ['map'],            phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Take 3 Void Grubs (+5 siege)', multiRole: 1 },
     herald:     { label: 'Rift Herald',     short: 'HLD',  stats: ['tmf','map'],      phases: ['early','mid'],        roles: ['JNG','TOP','MID','SUP'], desc: 'Take Herald — charges a tower (+3 siege)', multiRole: 2 },
     ward:       { label: 'Ward / Vision',   short: 'VIS',  stats: ['map'],            phases: ['early','mid','late'], roles: ['SUP','JNG'], desc: '+5 all checks next turn' },
@@ -5244,13 +5245,35 @@ function _simResolveAction(role, action) {
         case 'farm':
             gold = success ? (200 + Math.floor(Math.random() * 150)) : 100;
             msg = success
-                ? `✅ ${cardName} outfarmed ${cpuName} — ${vsStr}, +${gold}g`
+                ? `✅ ${cardName} farmed safely — ${vsStr}, +${gold}g`
                 : `❌ ${cardName} zoned by ${cpuName} — ${vsStr}, +${gold}g`;
             break;
-        case 'gank':
+        case 'push':
             if (success) {
-                gold = 300 + Math.floor(Math.random() * 200);
-                const gankLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
+                gold = 250 + Math.floor(Math.random() * 100);
+                const pushLanes = ['top','mid','bot'].filter(l => simState.cpuTowers[l] > 0);
+                lane = pushLanes.length ? pushLanes[Math.floor(Math.random() * pushLanes.length)] : null;
+                towerDmg = (myVal - cpuVal > 15) ? 1 : 0;
+                msg = `✅ ${cardName} pushed lane hard — ${vsStr}, +${gold}g${towerDmg ? ` + ${lane ? lane.toUpperCase() : ''} tower hit!` : ''}`;
+            } else {
+                gold = 100;
+                msg = `❌ ${cardName} pushed too far, punished by ${cpuName} — ${vsStr}, +${gold}g`;
+            }
+            break;
+        case 'gank': {
+            // Gank requires a laner to be PUSHING that lane — check assignments
+            const gankTargetRoles = { TOP: 'top', MID: 'mid', ADC: 'bot', SUP: 'bot' };
+            const pushingLanes = [];
+            Object.entries(simState.assignments).forEach(([r, a]) => {
+                if (a === 'push' && gankTargetRoles[r]) pushingLanes.push(gankTargetRoles[r]);
+            });
+            if (pushingLanes.length === 0) {
+                msg = `⚠️ ${cardName} tried to gank but no laner is pushing — gank cancelled! Assign a laner to PUSH first.`;
+                return { success: false, msg, gold: 0, towerDmg: 0, lane: null };
+            }
+            if (success) {
+                gold = 400 + Math.floor(Math.random() * 200);
+                const gankLanes = pushingLanes.filter(l => simState.cpuTowers[l] > 0);
                 lane = gankLanes.length ? gankLanes[Math.floor(Math.random() * gankLanes.length)] : null;
                 towerDmg = lane && (myVal - cpuVal > 12) ? 1 : 0;
                 msg = `✅ ${cardName} ganked ${lane ? lane.toUpperCase() : 'a lane'} — ${vsStr}, +${gold}g${towerDmg ? ' + tower destroyed!' : ''}`;
@@ -5258,6 +5281,7 @@ function _simResolveAction(role, action) {
                 msg = `❌ ${cardName} gank failed vs ${cpuName} — ${vsStr}`;
             }
             break;
+        }
         case 'grubs':
             if (success) {
                 simState.grubs = 3;
@@ -5459,9 +5483,9 @@ function _simCpuTurn() {
 
     // Weighted CPU action selection per phase
     const weights = {
-        early: { farm: 60, gank: 20, grubs: 10, ward: 10 },
-        mid:   { farm: 30, dragon: 20, teamfight: 20, rotate: 15, splitpush: 15 },
-        late:  { teamfight: 30, baron: 25, siege: 20, elder: 15, splitpush: 10 }
+        early: { farm: 35, push: 25, gank: 20, grubs: 10, ward: 10 },
+        mid:   { farm: 15, push: 20, dragon: 20, teamfight: 20, rotate: 10, splitpush: 15 },
+        late:  { teamfight: 30, baron: 20, siege: 20, elder: 15, push: 10, splitpush: 5 }
     };
     const w = weights[phase];
     const pool = Object.entries(w);
@@ -5518,6 +5542,13 @@ function _simCpuTurn() {
             switch (action) {
                 case 'farm':
                     cpuTotalGold += 200;
+                    break;
+                case 'push':
+                    cpuTotalGold += 250;
+                    if (success) {
+                        const pushL = ['top','mid','bot'].filter(l => simState.myTowers[l] > 0);
+                        if (pushL.length && cpuStatVal - defVal > 15) _simApplyTowerDamage('my', 1, pushL[Math.floor(Math.random() * pushL.length)]);
+                    }
                     break;
                 case 'gank': case 'rotate': case 'splitpush': {
                     cpuTotalGold += 300;
@@ -5698,14 +5729,16 @@ function _simLocationToAction(role, location) {
         for (const a of first) { if (avail.includes(a)) return a; }
         return null;
     }
+    // Own lanes: native role gets push (aggressive) or farm (safe); others rotate
+    // Enemy lanes: gank (needs laner pushing) or splitpush
     switch (location) {
         case 'myBase':      return null;
         case 'topLane':
-            return role === 'TOP' ? pick(['farm']) : pick(['rotate','farm']);
+            return role === 'TOP' ? pick(['push','farm']) : pick(['rotate','farm']);
         case 'midLane':
-            return role === 'MID' ? pick(['farm']) : pick(['rotate','farm']);
+            return role === 'MID' ? pick(['push','farm']) : pick(['rotate','farm']);
         case 'botLane':
-            return role === 'ADC' || role === 'SUP' ? pick(['farm']) : pick(['rotate','farm']);
+            return role === 'ADC' || role === 'SUP' ? pick(['push','farm']) : pick(['rotate','farm']);
         case 'jungle':
             return role === 'JNG' ? pick(['farm']) : pick(['rotate','farm']);
         case 'dragonPit':   return pick(['elder','dragon']);
@@ -6165,14 +6198,22 @@ function executeSimTurn() {
     }
 
     // ---- Resolve player actions ----
+    // Shared objectives resolve once (dragon/herald/baron/elder/grubs) — extra roles boost the check
+    const sharedObjectives = ['dragon','herald','baron','elder','grubs'];
+    const resolvedShared = new Set();
     let totalGold = 0;
     roles.forEach(r => {
-        const action = simState.assignments[r];
+        let action = simState.assignments[r];
+        // Skip if this shared objective was already resolved by another role this turn
+        if (sharedObjectives.includes(action) && resolvedShared.has(action)) {
+            simState.log.push({ turn, msg: `${squad[r]?.name || r} assisted with ${_SIM_ACTIONS[action]?.label || action}`, type: 'player' });
+            return;
+        }
         const result = _simResolveAction(r, action);
+        if (sharedObjectives.includes(action)) resolvedShared.add(action);
 
         totalGold += result.gold;
 
-        // Apply tower damage
         if (result.towerDmg > 0) {
             _simApplyTowerDamage('cpu', result.towerDmg, result.lane);
         }
