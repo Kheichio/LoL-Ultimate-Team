@@ -519,7 +519,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_4', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_5c', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -695,7 +695,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_6_4';
+    const patchKey = 'lol_patch_seen_v0_6_5c';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -6304,8 +6304,8 @@ function executeSimTurn() {
 
 function _simEndGame(result) {
     const isWin = result === 'win';
-    const beReward = isWin ? 1500 : 500;
-    const xpReward = isWin ? 200 : 50;
+    const beReward = isWin ? 500 : 100;
+    const xpReward = isWin ? 100 : 25;
 
     blueEssence += beReward;
     addXP(xpReward);
