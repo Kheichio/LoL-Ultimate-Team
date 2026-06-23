@@ -146,7 +146,25 @@ let quests = [
     { id: 'q32', desc: 'Reach Floor 50 in Infinite Tower', target: 50, type: 'towerHighestFloor', reward: 10000, claimed: false },
     { id: 'q33', desc: 'Win a Salary Cap Draft', target: 1, type: 'salaryCapWon', reward: 3000, claimed: false },
     { id: 'q34', desc: 'Win 5 Salary Cap Drafts', target: 5, type: 'salaryCapWon', reward: 8000, claimed: false },
-    { id: 'q35', desc: 'Pull a Signature Card', target: 1, type: 'signaturesPulled', reward: 5000, claimed: false }
+    { id: 'q35', desc: 'Pull a Signature Card', target: 1, type: 'signaturesPulled', reward: 5000, claimed: false },
+    // Progression milestones (0.6.8)
+    { id: 'q36', desc: 'Win 3 World Championships', target: 3, type: 'worldsWon', reward: 15000, claimed: false },
+    { id: 'q37', desc: 'Win 5 MSI Tournaments', target: 5, type: 'msiWon', reward: 10000, claimed: false },
+    { id: 'q38', desc: 'Win 10 First Stand Events', target: 10, type: 'firstStandWon', reward: 6000, claimed: false },
+    { id: 'q39', desc: 'Win 25 Regional Splits', target: 25, type: 'regionalSplitWon', reward: 8000, claimed: false },
+    { id: 'q40', desc: 'Win 50 Gaming Cafe Tournaments', target: 50, type: 'cafeWins', reward: 5000, claimed: false },
+    { id: 'q41', desc: 'Complete 5 Golden Roads', target: 5, type: 'goldenRoads', reward: 20000, claimed: false },
+    { id: 'q42', desc: 'Reach Floor 100 in Infinite Tower', target: 100, type: 'towerHighestFloor', reward: 20000, claimed: false },
+    { id: 'q43', desc: 'Win 10 Salary Cap Drafts', target: 10, type: 'salaryCapWon', reward: 15000, claimed: false },
+    { id: 'q44', desc: 'Win 25 Draft Modes', target: 25, type: 'draftModesWon', reward: 12000, claimed: false },
+    { id: 'q45', desc: 'Complete 10 Season Splits', target: 10, type: 'splitsCompleted', reward: 8000, claimed: false },
+    { id: 'q46', desc: 'Complete 25 Season Splits', target: 25, type: 'splitsCompleted', reward: 15000, claimed: false },
+    { id: 'q47', desc: 'Open 100 Card Packs', target: 100, type: 'packs', reward: 6000, claimed: false },
+    { id: 'q48', desc: 'Liquidate 200 Players', target: 200, type: 'soldCount', reward: 5000, claimed: false },
+    { id: 'q49', desc: 'Perform 50 Card Upgrades', target: 50, type: 'upgradesPerformed', reward: 8000, claimed: false },
+    // Repeatable advanced contracts (0.6.8)
+    { id: 'rq7', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1200, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    { id: 'rq8', desc: 'Reach a new Tower Floor record', target: 1, type: 'towerNewRecord', reward: 500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 }
 ];
 
 // Achievements — live state checks (squad rating, archive progress) rather than tracked counters. Replaces Timed Challenges.
@@ -158,7 +176,16 @@ let achievements = [
     { id: 'a5', desc: 'Archive 50 Unique Cards', type: 'archiveCount', target: 50, reward: 1500, claimed: false },
     { id: 'a6', desc: 'Archive 150 Unique Cards', type: 'archiveCount', target: 150, reward: 3500, claimed: false },
     { id: 'a7', desc: 'Archive 300 Unique Cards', type: 'archiveCount', target: 300, reward: 7000, claimed: false },
-    { id: 'a8', desc: 'Complete a Full Region Archive', type: 'fullRegionArchive', target: 1, reward: 6000, claimed: false }
+    { id: 'a8', desc: 'Complete a Full Region Archive', type: 'fullRegionArchive', target: 1, reward: 6000, claimed: false },
+    { id: 'a9', desc: 'Earn 100 Weighted Trophy Points', type: 'weightedTrophies', target: 100, reward: 5000, claimed: false },
+    { id: 'a10', desc: 'Earn 500 Weighted Trophy Points', type: 'weightedTrophies', target: 500, reward: 15000, claimed: false },
+    { id: 'a11', desc: 'Own 500 Cards in Club', type: 'clubSize', target: 500, reward: 5000, claimed: false },
+    { id: 'a12', desc: 'Own 1000 Cards in Club', type: 'clubSize', target: 1000, reward: 12000, claimed: false },
+    { id: 'a13', desc: 'Archive 600 Unique Cards', type: 'archiveCount', target: 600, reward: 12000, claimed: false },
+    { id: 'a14', desc: 'Archive 1000 Unique Cards', type: 'archiveCount', target: 1000, reward: 25000, claimed: false },
+    { id: 'a15', desc: 'Complete Battle Pass Season 1', type: 'battlePassSeason', target: 1, reward: 5000, claimed: false },
+    { id: 'a16', desc: 'Complete 3 Battle Pass Seasons', type: 'battlePassSeason', target: 3, reward: 12000, claimed: false },
+    { id: 'a17', desc: 'Own 3 Signature Cards', type: 'signatureCount', target: 3, reward: 10000, claimed: false }
 ];
 
 let isGoldenRoad = false;
@@ -536,10 +563,18 @@ function _hasFullRegionArchive() {
     });
 }
 
+function getWeightedTrophies() {
+    return ((trackStats.worldsWon || 0) * 10) + ((trackStats.msiWon || 0) * 7) + ((trackStats.firstStandWon || 0) * 5) + ((trackStats.regionalSplitWon || 0) * 3) + ((trackStats.cafeWins || 0) * 1) + ((trackStats.goldenRoads || 0) * 15);
+}
+
 function _achievementProgress(a) {
     if (a.type === 'squadAvg') return Math.min(a.target, Math.round(_squadAvgRating()));
     if (a.type === 'archiveCount') return Math.min(a.target, Object.keys(collectionRegistry).length);
     if (a.type === 'fullRegionArchive') return _hasFullRegionArchive() ? 1 : 0;
+    if (a.type === 'weightedTrophies') return Math.min(a.target, getWeightedTrophies());
+    if (a.type === 'clubSize') return Math.min(a.target, club.length);
+    if (a.type === 'battlePassSeason') return Math.min(a.target, Math.max(0, (battlePass.season || 1) - 1));
+    if (a.type === 'signatureCount') return Math.min(a.target, Object.values(collectionRegistry).filter(r => r.signature).length);
     return 0;
 }
 
@@ -555,7 +590,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_7', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_8', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -738,7 +773,7 @@ window.onload = () => {
     if ((trackStats.regionalSplitWon || 0) >= 1 && (trackStats.firstStandWon || 0) >= 1) unlocks.tower = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_6_7';
+    const patchKey = 'lol_patch_seen_v0_6_8';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -782,22 +817,6 @@ window.onload = () => {
     // so balance changes (stat buffs/nerfs, rating adjustments) apply to cards already in the player's club
     const db = getDB();
     if (db && club.length > 0) {
-        club.forEach((card, idx) => {
-            const base = db.find(p => p.id === card.id);
-            if (base && !card.signature) {
-                club[idx] = { ...card, rating: base.rating, stats: { ...base.stats }, quality: base.quality, name: base.name, team: base.team, region: base.region };
-            }
-        });
-        // Also refresh squad references
-        Object.keys(squad).forEach(slot => {
-            if (squad[slot]) {
-                const base = db.find(p => p.id === squad[slot].id);
-                if (base && !squad[slot].signature) {
-                    squad[slot] = { ...squad[slot], rating: base.rating, stats: { ...base.stats }, quality: base.quality, name: base.name, team: base.team, region: base.region };
-                }
-            }
-        });
-
         // Remove orphaned cards that no longer exist in database
         const validIds = new Set(db.map(p => p.id));
         const beforeCount = club.length;
@@ -805,6 +824,22 @@ window.onload = () => {
         if (club.length < beforeCount) {
             console.log(`Removed ${beforeCount - club.length} orphaned cards from club`);
         }
+        // Sync all club cards with database definitions — enforce correct role/stats/quality
+        club.forEach((card, idx) => {
+            const base = db.find(p => p.id === card.id);
+            if (base) {
+                club[idx] = { ...card, rating: base.rating, stats: { ...base.stats }, quality: card.signature ? card.quality : base.quality, name: base.name, team: base.team, region: base.region, role: base.role };
+            }
+        });
+        // Refresh squad references
+        Object.keys(squad).forEach(slot => {
+            if (squad[slot]) {
+                const base = db.find(p => p.id === squad[slot].id);
+                if (base) {
+                    squad[slot] = { ...squad[slot], rating: base.rating, stats: { ...base.stats }, quality: squad[slot].signature ? squad[slot].quality : base.quality, name: base.name, team: base.team, region: base.region, role: base.role };
+                }
+            }
+        });
         Object.keys(squad).forEach(slot => {
             if (squad[slot] && !validIds.has(squad[slot].id)) squad[slot] = null;
         });
@@ -946,6 +981,16 @@ function updateBadges() {
         }
     } else if (collBadge) {
         collBadge.classList.add('hidden');
+    }
+
+    const rewardsBadge = document.getElementById("badge-rewards");
+    if (rewardsBadge) {
+        let hasClaimable = false;
+        if (battlePass && _BP_REWARDS) {
+            hasClaimable = _BP_REWARDS.some(r => r.tier <= battlePass.tier && !battlePass.claimed.includes(r.tier));
+        }
+        if (hasClaimable) rewardsBadge.classList.remove('hidden');
+        else rewardsBadge.classList.add('hidden');
     }
 }
 
@@ -1986,7 +2031,7 @@ function updateTeamCustomization() {
 }
 
 function updateClubStatsUI() {
-    document.getElementById("stat-wins").innerText = trackStats.tournamentsWon || 0;
+    document.getElementById("stat-wins").innerText = getWeightedTrophies();
     document.getElementById("stat-packs").innerText = trackStats.packs || 0;
     document.getElementById("stat-liquidated").innerText = trackStats.soldBE || 0;
     let mvp = "None"; let highestMatches = 0;
@@ -5107,6 +5152,7 @@ function makeTowerPlay(playId) {
             // Track best
             if (!trackStats.towerHighestFloor || towerState.floor > trackStats.towerHighestFloor) {
                 trackStats.towerHighestFloor = towerState.floor;
+                trackStats.towerNewRecord = (trackStats.towerNewRecord || 0) + 1;
             }
             towerState.phase = 'buff';
             _towerGenBuffOptions();
@@ -6806,7 +6852,7 @@ function pushToLeaderboard() {
         teamName: teamIdentity.name || 'My Team',
         teamLogo: teamIdentity.logo || '🛡️',
         teamColor: teamIdentity.color || '#3b82f6',
-        trophies: ((trackStats.worldsWon || 0) * 10) + ((trackStats.msiWon || 0) * 7) + ((trackStats.firstStandWon || 0) * 5) + ((trackStats.regionalSplitWon || 0) * 3) + ((trackStats.cafeWins || 0) * 1) + ((trackStats.goldenRoads || 0) * 15),
+        trophies: getWeightedTrophies(),
         splitsCompleted: trackStats.splitsCompleted || 0,
         goldenRoads: trackStats.goldenRoads || 0,
         towerBest: trackStats.towerHighestFloor || 0,
@@ -6902,8 +6948,8 @@ function _renderLbFromCache() {
         const teamColor = d.teamColor || '#3b82f6';
         const rowBg = isMe ? 'border-l-4' : '';
         const rowStyle = isMe
-            ? `border-color: ${teamColor}; background: linear-gradient(90deg, ${teamColor}22 0%, ${teamColor}0A 100%);`
-            : `background: linear-gradient(90deg, ${teamColor}12 0%, transparent 60%);`;
+            ? `border-color: ${teamColor}; background: linear-gradient(90deg, ${teamColor}30 0%, ${teamColor}12 100%);`
+            : `background: linear-gradient(90deg, ${teamColor}20 0%, ${teamColor}08 100%);`;
         const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
         const rankColor = rank <= 3 ? 'text-amber-400 font-black' : 'text-slate-500';
         html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/50 text-sm ${rowBg}" style="${rowStyle}">
