@@ -1756,6 +1756,16 @@
                 <button onclick="cloudSave()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">☁️ Save to Cloud</button>
                 <button onclick="cloudLoad()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-2">📥 Load from Cloud</button>
                 <button onclick="pushToLeaderboard()" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-900 font-bold py-2.5 rounded-xl cursor-pointer transition text-sm mb-4">🏆 Update Leaderboard</button>
+
+                <div class="border-t border-slate-700 pt-4 mb-4">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Redeem Code</h4>
+                    <div class="flex gap-2">
+                        <input type="text" id="redeem-code-input" placeholder="Enter code..." class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono uppercase focus:outline-none focus:border-amber-500 tracking-widest">
+                        <button onclick="redeemCode()" class="bg-amber-600 hover:bg-amber-500 text-slate-900 font-black px-4 py-2 rounded-lg cursor-pointer transition text-sm">Redeem</button>
+                    </div>
+                    <p id="redeem-status" class="text-[10px] text-slate-600 mt-1.5 font-mono"></p>
+                </div>
+
                 <button onclick="firebaseSignOut()" class="text-red-400 text-xs cursor-pointer hover:text-red-300">Sign Out</button>
                 <button onclick="toggleAuthPanel()" class="text-slate-500 text-xs cursor-pointer hover:text-slate-300 ml-4">Close</button>
             </div>

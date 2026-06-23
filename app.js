@@ -6777,6 +6777,56 @@ function firebaseSignOut() {
     });
 }
 
+// === REDEEM CODE SYSTEM ===
+const _REDEEM_CODES = {
+    'LOLUT-MSI-2026': {
+        desc: 'MSI Signature Card',
+        oncePerAccount: true,
+        reward(statusEl) {
+            const db = getDB();
+            if (!db) { showToast('Database not loaded.', 'error'); return false; }
+            const msiCards = db.filter(c => c.quality === 'MSI');
+            if (msiCards.length === 0) { showToast('No MSI cards available.', 'error'); return false; }
+            const pick = msiCards[Math.floor(Math.random() * msiCards.length)];
+            const card = { ...pick, uniqueId: Date.now() + '_' + Math.random().toString(36).slice(2, 8), signature: true, locked: true };
+            if (club.length >= getClubCapacity()) { showToast('Club is full! Make room first.', 'error'); return false; }
+            club.push(card);
+            if (!collectionRegistry[card.id]) collectionRegistry[card.id] = {};
+            collectionRegistry[card.id].signature = true;
+            saveGame();
+            updateDisplays();
+            showToast(`Code redeemed! Signature ${card.name} (${card.team} ${card.year}) added to your club!`, 'success');
+            if (statusEl) statusEl.innerHTML = `<span class="text-emerald-400">✓ Received: Signature ${card.name} (${card.quality})</span>`;
+            return true;
+        }
+    }
+};
+
+function redeemCode() {
+    const input = document.getElementById('redeem-code-input');
+    const statusEl = document.getElementById('redeem-status');
+    if (!input || !statusEl) return;
+    const code = input.value.trim().toUpperCase();
+    if (!code) { statusEl.innerHTML = '<span class="text-red-400">Enter a code.</span>'; return; }
+
+    const entry = _REDEEM_CODES[code];
+    if (!entry) { statusEl.innerHTML = '<span class="text-red-400">Invalid code.</span>'; return; }
+
+    const redeemedList = JSON.parse(localStorage.getItem('lol_redeemed_codes') || '[]');
+    if (entry.oncePerAccount && redeemedList.includes(code)) {
+        statusEl.innerHTML = '<span class="text-amber-400">Already redeemed.</span>';
+        return;
+    }
+
+    const success = entry.reward(statusEl);
+    if (success) {
+        redeemedList.push(code);
+        localStorage.setItem('lol_redeemed_codes', JSON.stringify(redeemedList));
+        input.value = '';
+        autoCloudSave();
+    }
+}
+
 // Listen for auth state changes
 if (typeof fbAuth !== 'undefined') {
     fbAuth.onAuthStateChanged(user => updateAuthUI(user));
@@ -6791,7 +6841,7 @@ function cloudSave() {
         'lol_identity_v7_pro','lol_stats_v7_pro','lol_new_items_v7_pro','lol_prog_v7_pro','lol_collection_v7_pro',
         'lol_archive_seen_v1','lol_trade_v7_pro','lol_team_complete_v8','lol_season_v1','lol_quests_v8_pro',
         'lol_achievements_v1','lol_unlocks_v1','lol_training_expiry','lol_training_tier',
-        'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode','lol_battlepass_v1'];
+        'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode','lol_battlepass_v1','lol_redeemed_codes'];
     keys.forEach(k => { const v = localStorage.getItem(k); if (v !== null) data[k] = v; });
     data.savedAt = Date.now();
     data.teamName = teamIdentity.name || 'My Team';
@@ -6814,7 +6864,7 @@ function autoCloudSave() {
             'lol_identity_v7_pro','lol_stats_v7_pro','lol_new_items_v7_pro','lol_prog_v7_pro','lol_collection_v7_pro',
             'lol_archive_seen_v1','lol_trade_v7_pro','lol_team_complete_v8','lol_season_v1','lol_quests_v8_pro',
             'lol_achievements_v1','lol_unlocks_v1','lol_training_expiry','lol_training_tier',
-            'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode','lol_battlepass_v1'];
+            'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode','lol_battlepass_v1','lol_redeemed_codes'];
         keys.forEach(k => { const v = localStorage.getItem(k); if (v !== null) data[k] = v; });
         data.savedAt = Date.now();
         data.teamName = teamIdentity.name || 'My Team';
