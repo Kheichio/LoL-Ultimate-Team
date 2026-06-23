@@ -602,7 +602,7 @@ function showToast(message, type = 'info') {
     let colorClasses = 'bg-slate-800/90 text-slate-200 border-slate-600'; 
     if (type === 'error') colorClasses = 'bg-red-950/90 text-red-200 border-red-800';
     if (type === 'success') colorClasses = 'bg-emerald-950/90 text-emerald-200 border-emerald-800';
-    toast.className = `p-4 rounded-xl shadow-2xl font-bold text-sm transform transition-all duration-300 translate-y-full opacity-0 flex items-center gap-3 border ${colorClasses}`;
+    toast.className = `p-3 rounded-xl shadow-2xl font-bold text-xs transform transition-all duration-300 translate-y-full opacity-0 flex items-center gap-2 border pointer-events-auto backdrop-blur-sm ${colorClasses}`;
     toast.innerHTML = `<span>${message}</span>`;
     container.appendChild(toast);
     requestAnimationFrame(() => {

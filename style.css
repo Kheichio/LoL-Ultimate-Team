@@ -1,8 +1,11 @@
 /* style.css */
 
 /* Global Smooth Transitions and Core Aesthetics Pass */
-* {
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease-out;
+*, *::before, *::after {
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+button, a, .nav-btn {
+    transition: all 0.2s ease;
 }
 
 /* Custom Scrollbar Polish for Picker Grids */
@@ -341,9 +344,9 @@
 }
 
 .tab-content { animation: pageEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes pageEnter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pageEnter { from { opacity: 0; transform: translateY(16px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-body { color: #cbd5e1; }
+body { color: #cbd5e1; max-width: 1920px; margin: 0 auto; }
 h1, h2, h3, h4 { color: #f1f5f9; }
 
 /* Player Picker Drawer filter buttons */
@@ -365,17 +368,26 @@ h1, h2, h3, h4 { color: #f1f5f9; }
 
 /* Active nav tab highlight — bottom-border underline glow */
 .nav-active {
-    background: rgba(30, 58, 95, 0.65) !important;
-    box-shadow: inset 0 -2px 0 #60a5fa, 0 0 14px rgba(96, 165, 250, 0.12) !important;
+    background: rgba(30, 58, 138, 0.4) !important;
+    box-shadow: inset 0 -2px 0 #3b82f6, 0 0 20px rgba(59, 130, 246, 0.15) !important;
     color: #93c5fd !important;
+    border-radius: 8px !important;
 }
 
 /* ===== PREMIUM FEEL PASS ===== */
 
-/* Deeper background for page depth */
+/* Deeper background for page depth — subtle animated gradient */
 body {
-    background: linear-gradient(170deg, #0d1424 0%, #090d18 60%, #060910 100%) !important;
+    background: linear-gradient(170deg, #0d1424 0%, #090d18 30%, #0a0f1e 60%, #060910 100%) !important;
+    background-size: 400% 400% !important;
     background-attachment: fixed !important;
+    animation: bgShift 30s ease infinite !important;
+}
+@keyframes bgShift {
+    0%, 100% { background-position: 0% 50%; }
+    25% { background-position: 50% 0%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 100%; }
 }
 
 /* Header: glass panel with subtle border glow */
@@ -385,6 +397,7 @@ header {
     -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
     border-bottom: 1px solid rgba(96, 165, 250, 0.1) !important;
     box-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 4px 30px rgba(0,0,0,0.55) !important;
+    padding: 0.6rem 1rem !important;
 }
 
 /* Archive section cards: more breathing room between groups */
@@ -405,8 +418,10 @@ header {
 .nav-btn {
     border-radius: 8px !important;
     letter-spacing: 0.01em;
-    min-width: 92px;
+    min-width: 80px;
     text-align: center;
+    font-size: 12px;
+    padding: 6px 12px;
 }
 .nav-btn:hover {
     background: rgba(71, 85, 105, 0.8) !important;
@@ -599,3 +614,111 @@ html.light-mode .card-face-down {
 @keyframes pullBurst { 0% { transform: scale(1); filter: brightness(1); } 30% { transform: scale(1.15); filter: brightness(1.8); } 100% { transform: scale(1); filter: brightness(1); } }
 @keyframes sparkFly { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--sx), var(--sy)) scale(0); opacity: 0; } }
 @keyframes sigReveal { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.1) rotate(2deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+
+/* ======= VISUAL REFRESH — New Styles ======= */
+
+/* Smooth scroll for everything */
+html { scroll-behavior: smooth; }
+
+/* Section panels — glassmorphism containers */
+.section-panel {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Button hover lift — universal for buttons in main content */
+.tab-content button:not(.nav-btn):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Toast notification entrance animation */
+@keyframes toastSlide {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+#toast-container > div {
+    animation: toastSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stat numbers glow — clubhouse stat values */
+.stat-glow { text-shadow: 0 0 8px currentColor; }
+
+/* Leaderboard row hover */
+#leaderboard-content > div > div:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Card hover effect improvement — better transition for cards in club/picker */
+.tab-content .rounded-xl[style*="card-bg"] {
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Badge notification pulse — smoother */
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+.nav-btn .absolute { animation: badgePulse 2s ease-in-out infinite; }
+
+/* Custom focus outline for inputs */
+input:focus, select:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Confirm modal — polish */
+#confirm-modal-box {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-color: rgba(51, 65, 85, 0.6) !important;
+}
+
+/* Store pack cards — subtle hover glow */
+.pack-glass:hover {
+    transform: translateY(-2px);
+}
+
+/* Modals — smoother backdrop */
+.fixed.inset-0.bg-black\/80 {
+    backdrop-filter: blur(6px) saturate(150%);
+}
+
+/* Club grid cards — hover lift */
+#club-grid > div:hover {
+    transform: translateY(-3px);
+    z-index: 5;
+    position: relative;
+}
+
+/* Welcome step cards — subtle left border accent */
+#tab-welcome .flex.gap-4 {
+    border-left: 3px solid transparent;
+    transition: border-color 0.2s ease;
+}
+#tab-welcome .flex.gap-4:hover {
+    border-left-color: currentColor;
+}
+
+/* Guide sections — cleaner spacing */
+#tab-guide .bg-slate-800 {
+    border-radius: 12px;
+}
+
+/* Tournament mode cards — hover glow */
+#tab-tournament .rounded-2xl:hover {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ======= 1080p Scale Constraints ======= */
+@media (max-height: 900px) {
+    header { padding: 0.4rem 0.75rem !important; }
+    .nav-btn { padding: 4px 10px !important; font-size: 11px !important; min-width: 70px !important; }
+    main { padding: 0.75rem 1rem !important; }
+}
+
+@media (max-width: 1400px) {
+    .nav-btn { min-width: 65px !important; padding: 5px 8px !important; font-size: 11px !important; }
+}
