@@ -5702,26 +5702,34 @@ function closeSimulation() {
 // ---- VISUAL MAP SIMULATION SYSTEM ----
 
 const _SIM_MAP_LOCATIONS = {
-    // Row 0: Enemy side + objectives
-    baronPit:    { label: 'Baron Pit',     type: 'river-obj',    row: 0, col: 0 },
-    enemyTop:    { label: 'Enemy TOP',     type: 'lane-enemy',   row: 0, col: 1, lane: 'top' },
-    enemyBase:   { label: 'Enemy Base',    type: 'base-red',     row: 0, col: 2 },
-    enemyBot:    { label: 'Enemy BOT',     type: 'lane-enemy',   row: 0, col: 3, lane: 'bot' },
-    // Row 1: Lanes + enemy jungle
-    topLane:     { label: 'TOP Lane',      type: 'lane',         row: 1, col: 0, lane: 'top' },
-    enemyJungle: { label: 'Enemy Jungle',  type: 'jungle-enemy', row: 1, col: 1 },
-    enemyMid:    { label: 'Enemy MID',     type: 'lane-enemy',   row: 1, col: 2, lane: 'mid' },
-    dragonPit:   { label: 'Dragon Pit',    type: 'river-obj',    row: 1, col: 3 },
-    // Row 2: Your towers + mid + bot
-    myTop:       { label: 'Your TOP',      type: 'lane',         row: 2, col: 0, lane: 'top' },
-    myJungle1:   { label: 'Your Jungle',   type: 'jungle',       row: 2, col: 1 },
-    midLane:     { label: 'MID Lane',      type: 'lane',         row: 2, col: 2, lane: 'mid' },
-    botLane:     { label: 'BOT Lane',      type: 'lane',         row: 2, col: 3, lane: 'bot' },
-    // Row 3: Your base side
-    grubWard:    { label: 'Grub Pit',      type: 'river-obj',    row: 3, col: 0 },
-    myBase:      { label: 'Your Base',     type: 'base-blue',    row: 3, col: 1 },
-    myJungle2:   { label: 'Your Jungle',   type: 'jungle',       row: 3, col: 2 },
-    myBot:       { label: 'Your BOT',      type: 'lane',         row: 3, col: 3, lane: 'bot' },
+    // Left-to-right: BLUE (you) left → River center → RED (cpu) right
+    // 5 columns × 3 rows — clean horizontal lanes
+    //
+    //  YOUR TOWERS  |  YOUR LANES  |  RIVER/OBJ    |  ENEMY LANES  |  ENEMY TOWERS
+    //  ─────────────┼──────────────┼───────────────┼───────────────┼──────────────
+    //  Your TOP 🏰  │  TOP Lane    │  Baron Pit 🟣 │  Enemy TOP 🏰 │  Enemy Base
+    //  Your JNG 🌲  │  MID Lane    │  Grub/Ward    │  Enemy MID 🏰 │  Enemy JNG 🌲
+    //  Your BOT 🏰  │  BOT Lane    │  Dragon Pit 🐉│  Enemy BOT 🏰 │  Your Base ← (wraps)
+    //
+    // 7 columns × 3 rows: BASE | JUNGLE | LANE | RIVER | ENEMY LANE | ENEMY JNG | ENEMY BASE
+    //
+    // Row 0 — TOP corridor
+    myBase:      { label: 'Your Base',     type: 'base-blue',    row: 0, col: 0 },
+    myJungle1:   { label: 'Your Jungle',   type: 'jungle',       row: 0, col: 1 },
+    topLane:     { label: 'TOP Lane',      type: 'lane',         row: 0, col: 2, lane: 'top' },
+    baronPit:    { label: 'Baron Pit',     type: 'river-obj',    row: 0, col: 3 },
+    enemyTop:    { label: 'Enemy TOP',     type: 'lane-enemy',   row: 0, col: 4, lane: 'top' },
+    enemyJungle: { label: 'Enemy Jungle',  type: 'jungle-enemy', row: 0, col: 5 },
+    enemyBase:   { label: 'Enemy Base',    type: 'base-red',     row: 0, col: 6 },
+    // Row 1 — MID corridor (bases span from row 0/2)
+    midLane:     { label: 'MID Lane',      type: 'lane',         row: 1, col: 2, lane: 'mid' },
+    grubWard:    { label: 'Grub Pit',      type: 'river-obj',    row: 1, col: 3 },
+    enemyMid:    { label: 'Enemy MID',     type: 'lane-enemy',   row: 1, col: 4, lane: 'mid' },
+    // Row 2 — BOT corridor
+    myJungle2:   { label: 'Your Jungle',   type: 'jungle',       row: 2, col: 1 },
+    botLane:     { label: 'BOT Lane',      type: 'lane',         row: 2, col: 2, lane: 'bot' },
+    dragonPit:   { label: 'Dragon Pit',    type: 'river-obj',    row: 2, col: 3 },
+    enemyBot:    { label: 'Enemy BOT',     type: 'lane-enemy',   row: 2, col: 4, lane: 'bot' },
 };
 
 function _simLocationToAction(role, location) {
@@ -5734,11 +5742,9 @@ function _simLocationToAction(role, location) {
     switch (location) {
         // Your side — safe zones
         case 'myBase': return null;
-        case 'myTop': return role === 'TOP' ? pick(['farm']) : null;
-        case 'myBot': return (role === 'ADC' || role === 'SUP') ? pick(['farm']) : null;
         case 'myJungle1': case 'myJungle2': return role === 'JNG' ? pick(['farm']) : null;
 
-        // Lanes — farm your own, rotate to others
+        // Lanes (col 1) — farm here, always safe
         case 'topLane': return pick(['farm']);
         case 'midLane': return pick(['farm']);
         case 'botLane': return pick(['farm']);
@@ -5800,7 +5806,7 @@ function moveSimPlayer(role, location) {
 function _simHasVision(location) {
     if (!simState) return false;
     // Your side always visible
-    const mySide = ['myBase','myTop','myBot','myJungle1','myJungle2','topLane','midLane','botLane','grubWard'];
+    const mySide = ['myBase','myJungle1','myJungle2','topLane','midLane','botLane','grubWard'];
     if (mySide.includes(location)) return true;
     // Vision wards
     if ((simState.visionAreas || []).includes(location)) return true;
@@ -6071,35 +6077,51 @@ function renderSimulation() {
         <div class="text-center text-xs font-black text-violet-400 uppercase tracking-widest mb-3">
             ${simState.actionPhase ? (simState.selectedPlayer ? `Moving <span class="text-yellow-300">${simState.selectedPlayer}</span> — click a highlighted cell` : 'Click a player token to select, then click a map location') : 'Actions resolving...'}
         </div>
-        <div class="text-center text-[9px] text-red-400 font-black uppercase tracking-widest mb-1">Enemy Side (Top-Right)</div>
+        <div class="flex justify-between text-[9px] font-black uppercase tracking-widest mb-1 px-2">
+            <span class="text-blue-400">← YOUR SIDE (Blue)</span>
+            <span class="text-slate-500">RIVER</span>
+            <span class="text-red-400">ENEMY SIDE (Red) →</span>
+        </div>
         <div class="sim-map-grid">`;
 
-    // Row 0: Baron/Herald Pit, Enemy TOP, Enemy Base, Enemy BOT
+    // Your Base — spans all 3 rows on the far left
+    html += `<div class="sim-cell sim-base-blue" style="grid-row: 1/4; grid-column: 1; display:flex; flex-direction:column; align-items:center; justify-content:center;" onclick="moveSimPlayer(simState?.selectedPlayer,'myBase')">
+        <div class="sim-cell-label text-blue-400 font-black">YOUR BASE</div>
+        <div class="text-2xl">🔵</div>
+        <div class="text-[8px] text-slate-400 mt-1">Nexus: ${simState.myTowers.nexus > 0 ? '❤️' : '💀'}</div>
+        <div class="text-[8px] text-slate-400">Inhibs: ${simState.myTowers.topInhib + simState.myTowers.midInhib + simState.myTowers.botInhib}/3</div>
+    </div>`;
+
+    // Row 0 (TOP): Jungle → TOP Lane → Baron Pit → Enemy TOP → Enemy Jungle
+    html += _simRenderMapCell('myJungle1', _SIM_MAP_LOCATIONS.myJungle1, 0);
+    html += _simRenderMapCell('topLane', _SIM_MAP_LOCATIONS.topLane, 0);
     html += _simRenderMapCell('baronPit', _SIM_MAP_LOCATIONS.baronPit, 0);
     html += _simRenderMapCell('enemyTop', _SIM_MAP_LOCATIONS.enemyTop, 0);
-    html += _simRenderMapCell('enemyBase', _SIM_MAP_LOCATIONS.enemyBase, 0);
-    html += _simRenderMapCell('enemyBot', _SIM_MAP_LOCATIONS.enemyBot, 0);
-
-    // Row 1: TOP Lane, Enemy Jungle, Enemy MID, Dragon Pit
-    html += _simRenderMapCell('topLane', _SIM_MAP_LOCATIONS.topLane, 0);
     html += _simRenderMapCell('enemyJungle', _SIM_MAP_LOCATIONS.enemyJungle, 0);
-    html += _simRenderMapCell('enemyMid', _SIM_MAP_LOCATIONS.enemyMid, 0);
-    html += _simRenderMapCell('dragonPit', _SIM_MAP_LOCATIONS.dragonPit, 0);
 
-    // Row 2: Your TOP, Your Jungle, MID Lane, BOT Lane
-    html += _simRenderMapCell('myTop', _SIM_MAP_LOCATIONS.myTop, 0);
-    html += _simRenderMapCell('myJungle1', _SIM_MAP_LOCATIONS.myJungle1, 0);
+    // Enemy Base — spans all 3 rows on the far right
+    html += `<div class="sim-cell sim-base-red" style="grid-row: 1/4; grid-column: 7; display:flex; flex-direction:column; align-items:center; justify-content:center;" onclick="moveSimPlayer(simState?.selectedPlayer,'enemyBase')">
+        <div class="sim-cell-label text-red-400 font-black">ENEMY BASE</div>
+        <div class="text-2xl">🔴</div>
+        <div class="text-[8px] text-slate-400 mt-1">Nexus: ${simState.cpuTowers.nexus > 0 ? '❤️' : '💀'}</div>
+        <div class="text-[8px] text-slate-400">Inhibs: ${simState.cpuTowers.topInhib + simState.cpuTowers.midInhib + simState.cpuTowers.botInhib}/3</div>
+    </div>`;
+
+    // Row 1 (MID): (empty col 2) → MID Lane → Grub/Ward → Enemy MID → (empty col 6)
+    html += `<div class="sim-cell-spacer"></div>`; // empty jungle row 1 col 2
     html += _simRenderMapCell('midLane', _SIM_MAP_LOCATIONS.midLane, 0);
-    html += _simRenderMapCell('botLane', _SIM_MAP_LOCATIONS.botLane, 0);
-
-    // Row 3: Grub/Ward Spot, Your Base, Your Jungle, Your BOT
     html += _simRenderMapCell('grubWard', _SIM_MAP_LOCATIONS.grubWard, 0);
-    html += _simRenderMapCell('myBase', _SIM_MAP_LOCATIONS.myBase, 0);
-    html += _simRenderMapCell('myJungle2', _SIM_MAP_LOCATIONS.myJungle2, 0);
-    html += _simRenderMapCell('myBot', _SIM_MAP_LOCATIONS.myBot, 0);
+    html += _simRenderMapCell('enemyMid', _SIM_MAP_LOCATIONS.enemyMid, 0);
+    html += `<div class="sim-cell-spacer"></div>`; // empty enemy jungle row 1 col 6
 
-    html += `</div>
-        <div class="text-center text-[9px] text-blue-400 font-black uppercase tracking-widest mt-1">Your Side (Bottom-Left)</div>`;
+    // Row 2 (BOT): Jungle → BOT Lane → Dragon Pit → Enemy BOT → (empty)
+    html += _simRenderMapCell('myJungle2', _SIM_MAP_LOCATIONS.myJungle2, 0);
+    html += _simRenderMapCell('botLane', _SIM_MAP_LOCATIONS.botLane, 0);
+    html += _simRenderMapCell('dragonPit', _SIM_MAP_LOCATIONS.dragonPit, 0);
+    html += _simRenderMapCell('enemyBot', _SIM_MAP_LOCATIONS.enemyBot, 0);
+    html += `<div class="sim-cell-spacer"></div>`;
+
+    html += `</div>`;
 
     // ---- ASSIGNMENT SUMMARY + EXECUTE BUTTON ----
     if (simState.actionPhase) {
