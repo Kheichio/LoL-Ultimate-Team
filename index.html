@@ -704,15 +704,14 @@
                 <div class="bg-slate-900/60 p-4 rounded-xl border border-amber-700/40 mb-3">
                     <span class="text-amber-400 font-black block mb-2">🏆 Weighted Trophy Scoring</span>
                     <span class="text-slate-400 block mb-2">Trophy points are weighted by tournament prestige. Higher-tier wins are worth more:</span>
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center mb-2">
-                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-green-400 font-black text-sm">×1</div><div class="text-[9px] text-slate-500">Cafe</div></div>
-                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-slate-200 font-black text-sm">×3</div><div class="text-[9px] text-slate-500">Regional</div></div>
-                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-teal-400 font-black text-sm">×5</div><div class="text-[9px] text-slate-500">First Stand</div></div>
-                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-purple-400 font-black text-sm">×7</div><div class="text-[9px] text-slate-500">MSI</div></div>
-                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-amber-400 font-black text-sm">×10</div><div class="text-[9px] text-slate-500">Worlds</div></div>
-                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-yellow-400 font-black text-sm">×15</div><div class="text-[9px] text-slate-500">Golden Road</div></div>
+                    <div class="grid grid-cols-5 gap-2 text-center mb-2">
+                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-slate-200 font-black text-sm">×1</div><div class="text-[9px] text-slate-500">Regional</div></div>
+                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-teal-400 font-black text-sm">×2</div><div class="text-[9px] text-slate-500">First Stand</div></div>
+                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-purple-400 font-black text-sm">×4</div><div class="text-[9px] text-slate-500">MSI</div></div>
+                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-amber-400 font-black text-sm">×6</div><div class="text-[9px] text-slate-500">Worlds</div></div>
+                        <div class="bg-slate-800 p-2 rounded-lg"><div class="text-yellow-400 font-black text-sm">×10</div><div class="text-[9px] text-slate-500">Golden Road</div></div>
                     </div>
-                    <span class="text-slate-500 text-[10px]">Example: 2 Worlds wins + 1 MSI + 3 Cafe = (2×10) + (1×7) + (3×1) = 30 trophy points</span>
+                    <span class="text-slate-500 text-[10px]">Gaming Cafe wins do not count toward Trophy Score. Example: 2 Worlds + 1 MSI + 5 Regional = (2×6) + (1×4) + (5×1) = 21 pts</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
                     <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
@@ -941,7 +940,7 @@
                 <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow">
                     <span class="text-slate-500 block font-bold text-xs uppercase mb-1">Trophy Score</span>
                     <span class="font-mono font-bold text-amber-400 text-xl" id="stat-wins">0</span>
-                    <span class="text-slate-600 block text-[9px] font-mono mt-0.5">Weighted: W×10 M×7 FS×5 R×3 C×1 GR×15</span>
+                    <span class="text-slate-600 block text-[9px] font-mono mt-0.5">Weighted: W×6 M×4 FS×2 R×1 GR×10</span>
                 </div>
                 <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 shadow">
                     <span class="text-slate-500 block font-bold text-xs uppercase mb-1">Packs Opened</span>
@@ -961,27 +960,26 @@
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/60">
                     <span class="text-green-500 block font-bold uppercase mb-1" style="font-size:9px">Cafe Wins</span>
                     <span class="font-mono font-bold text-green-300 text-base" id="stat-cafe-wins">0</span>
-                    <span class="text-green-800 block text-[8px] font-mono">×1 pt</span>
                 </div>
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/60">
                     <span class="text-slate-400 block font-bold uppercase mb-1" style="font-size:9px">Regional Wins</span>
                     <span class="font-mono font-bold text-slate-200 text-base" id="stat-regional-wins">0</span>
-                    <span class="text-slate-600 block text-[8px] font-mono">×3 pts</span>
+                    <span class="text-slate-600 block text-[8px] font-mono">×1 pt</span>
                 </div>
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-teal-900/40">
                     <span class="text-teal-400 block font-bold uppercase mb-1" style="font-size:9px">First Stand</span>
                     <span class="font-mono font-bold text-teal-300 text-base" id="stat-firststand-wins">0</span>
-                    <span class="text-teal-800 block text-[8px] font-mono">×5 pts</span>
+                    <span class="text-teal-800 block text-[8px] font-mono">×2 pts</span>
                 </div>
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-purple-900/40">
                     <span class="text-purple-400 block font-bold uppercase mb-1" style="font-size:9px">MSI Wins</span>
                     <span class="font-mono font-bold text-purple-300 text-base" id="stat-msi-wins">0</span>
-                    <span class="text-purple-800 block text-[8px] font-mono">×7 pts</span>
+                    <span class="text-purple-800 block text-[8px] font-mono">×4 pts</span>
                 </div>
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-amber-900/40">
                     <span class="text-amber-400 block font-bold uppercase mb-1" style="font-size:9px">World Wins</span>
                     <span class="font-mono font-bold text-amber-300 text-base" id="stat-world-wins">0</span>
-                    <span class="text-amber-800 block text-[8px] font-mono">×10 pts</span>
+                    <span class="text-amber-800 block text-[8px] font-mono">×6 pts</span>
                 </div>
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-red-900/40">
                     <span class="text-red-400 block font-bold uppercase mb-1" style="font-size:9px">Losses</span>
@@ -990,7 +988,7 @@
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-yellow-900/40">
                     <span class="text-yellow-400 block font-bold uppercase mb-1" style="font-size:9px">Golden Roads</span>
                     <span class="font-mono font-bold text-yellow-300 text-base" id="stat-golden-road-wins">0</span>
-                    <span class="text-yellow-800 block text-[8px] font-mono">×15 pts</span>
+                    <span class="text-yellow-800 block text-[8px] font-mono">×10 pts</span>
                 </div>
                 <div class="bg-slate-800/60 p-2 rounded-lg border border-cyan-900/40">
                     <span class="text-cyan-400 block font-bold uppercase mb-1" style="font-size:9px">Draft Wins</span>
@@ -1801,7 +1799,7 @@
                 <li><span class="text-emerald-400 font-bold">Team Color Rows</span> — Leaderboard gradient now visible for every player, stronger tint for clarity.</li>
                 <li><span class="text-amber-300 font-bold">Nav Reorder</span> — Rewards between Guide/Quests. Board between Season/Upgrade.</li>
                 <li><span class="text-cyan-400 font-bold">16 Quests + 9 Achievements</span> — Win 3 Worlds, Floor 100 Tower, 500 Trophy pts, own 1000 cards, and more.</li>
-                <li><span class="text-amber-400 font-bold">Trophy Score</span> — Clubhouse uses weighted math (W×10, M×7, FS×5, R×3, C×1, GR×15). Weights shown per tournament.</li>
+                <li><span class="text-amber-400 font-bold">Trophy Score</span> — Clubhouse uses weighted math (W×6, M×4, FS×2, R×1, GR×10). Cafe wins excluded. Weights shown per tournament.</li>
                 <li><span class="text-yellow-400 font-bold">Rewards Badge</span> — Notification pulse on Rewards tab when Battle Pass tiers are claimable.</li>
             </ul>
 

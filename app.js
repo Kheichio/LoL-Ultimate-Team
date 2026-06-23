@@ -177,8 +177,8 @@ let achievements = [
     { id: 'a6', desc: 'Archive 150 Unique Cards', type: 'archiveCount', target: 150, reward: 3500, claimed: false },
     { id: 'a7', desc: 'Archive 300 Unique Cards', type: 'archiveCount', target: 300, reward: 7000, claimed: false },
     { id: 'a8', desc: 'Complete a Full Region Archive', type: 'fullRegionArchive', target: 1, reward: 6000, claimed: false },
-    { id: 'a9', desc: 'Earn 100 Weighted Trophy Points', type: 'weightedTrophies', target: 100, reward: 5000, claimed: false },
-    { id: 'a10', desc: 'Earn 500 Weighted Trophy Points', type: 'weightedTrophies', target: 500, reward: 15000, claimed: false },
+    { id: 'a9', desc: 'Earn 50 Trophy Points', type: 'weightedTrophies', target: 50, reward: 5000, claimed: false },
+    { id: 'a10', desc: 'Earn 200 Trophy Points', type: 'weightedTrophies', target: 200, reward: 15000, claimed: false },
     { id: 'a11', desc: 'Own 500 Cards in Club', type: 'clubSize', target: 500, reward: 5000, claimed: false },
     { id: 'a12', desc: 'Own 1000 Cards in Club', type: 'clubSize', target: 1000, reward: 12000, claimed: false },
     { id: 'a13', desc: 'Archive 600 Unique Cards', type: 'archiveCount', target: 600, reward: 12000, claimed: false },
@@ -564,7 +564,7 @@ function _hasFullRegionArchive() {
 }
 
 function getWeightedTrophies() {
-    return ((trackStats.worldsWon || 0) * 10) + ((trackStats.msiWon || 0) * 7) + ((trackStats.firstStandWon || 0) * 5) + ((trackStats.regionalSplitWon || 0) * 3) + ((trackStats.cafeWins || 0) * 1) + ((trackStats.goldenRoads || 0) * 15);
+    return ((trackStats.worldsWon || 0) * 6) + ((trackStats.msiWon || 0) * 4) + ((trackStats.firstStandWon || 0) * 2) + ((trackStats.regionalSplitWon || 0) * 1) + ((trackStats.goldenRoads || 0) * 10);
 }
 
 function _achievementProgress(a) {
