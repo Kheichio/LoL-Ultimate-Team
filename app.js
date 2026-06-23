@@ -62,6 +62,42 @@ let simState = null; // Summoner's Rift simulation state
 let compareMode = false;
 let compareSlots = [];
 
+// Battle Pass State
+let battlePass = { tier: 0, xp: 0, claimed: [], season: 1 };
+
+const _BP_REWARDS = [
+    { tier: 1, type: 'be', amount: 200 },
+    { tier: 2, type: 'be', amount: 300 },
+    { tier: 3, type: 'sp', amount: 1 },
+    { tier: 4, type: 'be', amount: 400 },
+    { tier: 5, type: 'card', tier_min: 'Diamond' },
+    { tier: 6, type: 'be', amount: 500 },
+    { tier: 7, type: 'icon', icon: '🐲' },
+    { tier: 8, type: 'be', amount: 600 },
+    { tier: 9, type: 'sp', amount: 2 },
+    { tier: 10, type: 'card', tier_min: 'Diamond' },
+    { tier: 11, type: 'be', amount: 700 },
+    { tier: 12, type: 'icon', icon: '🦅' },
+    { tier: 13, type: 'be', amount: 800 },
+    { tier: 14, type: 'sp', amount: 2 },
+    { tier: 15, type: 'card', tier_min: 'Master' },
+    { tier: 16, type: 'be', amount: 1000 },
+    { tier: 17, type: 'icon', icon: '🐺' },
+    { tier: 18, type: 'be', amount: 1200 },
+    { tier: 19, type: 'sp', amount: 3 },
+    { tier: 20, type: 'card', tier_min: 'Master' },
+    { tier: 21, type: 'be', amount: 1500 },
+    { tier: 22, type: 'icon', icon: '🦁' },
+    { tier: 23, type: 'be', amount: 1800 },
+    { tier: 24, type: 'sp', amount: 3 },
+    { tier: 25, type: 'card', tier_min: 'Grandmaster' },
+    { tier: 26, type: 'be', amount: 2000 },
+    { tier: 27, type: 'icon', icon: '🐉' },
+    { tier: 28, type: 'sp', amount: 5 },
+    { tier: 29, type: 'be', amount: 3000 },
+    { tier: 30, type: 'card', tier_min: 'Challenger' },
+];
+
 let quests = [
     // One-time milestones (rewards nerfed ~20% in 0.4.6 to slow progression)
     { id: 'q1', desc: 'Open 5 Card Packs', target: 5, type: 'packs', reward: 650, claimed: false },
@@ -494,7 +530,7 @@ function _squadAvgRating() {
 
 function _hasFullRegionArchive() {
     const db = getDB(); if (!db) return false;
-    return ['LCK', 'LPL', 'LEC', 'LCS', 'LCP', 'PCS'].some(region => {
+    return ['LCK', 'LPL', 'LEC', 'LCS', 'LCP'].some(region => {
         const regionCards = db.filter(c => c.region === region && !_SPECIAL_QUALITIES.has(c.quality));
         return regionCards.length > 0 && regionCards.every(c => collectionRegistry[c.id]);
     });
@@ -519,7 +555,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_5c', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_6', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -680,6 +716,9 @@ window.onload = () => {
     if(!trackStats.towerHighestFloor) trackStats.towerHighestFloor = 0;
     if(!trackStats.towerRuns) trackStats.towerRuns = 0;
 
+    const savedBP = localStorage.getItem('lol_battlepass_v1');
+    if (savedBP) battlePass = JSON.parse(savedBP);
+
     const savedUnlocks = localStorage.getItem("lol_unlocks_v1");
     if (savedUnlocks) unlocks = JSON.parse(savedUnlocks);
     if (unlocks.firstStand === undefined) unlocks.firstStand = false;
@@ -695,7 +734,7 @@ window.onload = () => {
     if (trackStats.worldsWon >= 1) unlocks.goldenRoad = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_6_5c';
+    const patchKey = 'lol_patch_seen_v0_6_6';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -754,6 +793,18 @@ window.onload = () => {
                 }
             }
         });
+
+        // Remove orphaned cards that no longer exist in database
+        const validIds = new Set(db.map(p => p.id));
+        const beforeCount = club.length;
+        club = club.filter(c => validIds.has(c.id));
+        if (club.length < beforeCount) {
+            console.log(`Removed ${beforeCount - club.length} orphaned cards from club`);
+        }
+        Object.keys(squad).forEach(slot => {
+            if (squad[slot] && !validIds.has(squad[slot].id)) squad[slot] = null;
+        });
+
         saveGame();
     }
 
@@ -802,6 +853,11 @@ window.onload = () => {
     renderEventBanner();
 
     switchTab('welcome');
+
+    // Starter pack reminder for new players
+    if (!hasBoughtStarter && club.length === 0) {
+        setTimeout(() => showToast('Welcome! Head to the Store to claim your free Starter Pack!', 'success'), 2000);
+    }
 };
 
 function saveGame() {
@@ -821,6 +877,7 @@ function saveGame() {
     localStorage.setItem("lol_team_complete_v8", JSON.stringify(teamCompletionRewards));
     localStorage.setItem("lol_season_v1", JSON.stringify(seasonData));
     localStorage.setItem("lol_unlocks_v1", JSON.stringify(unlocks));
+    localStorage.setItem('lol_battlepass_v1', JSON.stringify(battlePass));
     updateDisplays();
 }
 
@@ -996,6 +1053,7 @@ function processNewCards(cards) {
             collectionRegistry[c.id] = { claimed: false, acquiredAt: Date.now() };
         }
         if (c.signature) collectionRegistry[c.id].signature = true;
+        if (c.signature) c.locked = true;
     });
 }
 
@@ -1271,8 +1329,8 @@ function renderCollection() {
 
     // Region button styles
     if (currentArchiveCategory === 'regular') {
-        const regionLabels = { LCK: '🇰🇷 LCK', LPL: '🇨🇳 LPL', LEC: '🇪🇺 LEC', LCS: '🇺🇸 LCS', LCP: '🌏 LCP', PCS: '🌏 PCS' };
-        ['LCK', 'LPL', 'LEC', 'LCS', 'LCP', 'PCS'].forEach(r => {
+        const regionLabels = { LCK: '🇰🇷 LCK', LPL: '🇨🇳 LPL', LEC: '🇪🇺 LEC', LCS: '🇺🇸 LCS', LCP: '🌏 LCP' };
+        ['LCK', 'LPL', 'LEC', 'LCS', 'LCP'].forEach(r => {
             let btn = document.getElementById(`col-reg-${r}`); if (!btn) return;
             let hasClaimable = db.filter(c => c.region === r).some(c => collectionRegistry[c.id] && !collectionRegistry[c.id].claimed);
             btn.className = r === currentCollectionRegion
@@ -1432,7 +1490,121 @@ function addXP(amount) {
     managerXP += boosted; let needed = managerLevel * 250; let leveledUp = false;
     while(managerXP >= needed) { managerXP -= needed; managerLevel++; skillPoints++; needed = managerLevel * 250; leveledUp = true; }
     if (leveledUp) showToast(`LEVEL UP! You are now Level ${managerLevel}. +1 Skill Point!`, "success");
+    if (typeof battlePass !== 'undefined') {
+        battlePass.xp += amount;
+        const xpPerTier = 500;
+        while (battlePass.xp >= xpPerTier && battlePass.tier < 30) {
+            battlePass.xp -= xpPerTier;
+            battlePass.tier++;
+        }
+        saveBattlePass();
+    }
     saveGame();
+}
+
+// --- BATTLE PASS FUNCTIONS ---
+function saveBattlePass() {
+    localStorage.setItem('lol_battlepass_v1', JSON.stringify(battlePass));
+}
+
+function claimBattlePassReward(tier) {
+    if (battlePass.claimed.includes(tier)) return;
+    if (tier > battlePass.tier) return;
+    const reward = _BP_REWARDS.find(r => r.tier === tier);
+    if (!reward) return;
+
+    battlePass.claimed.push(tier);
+
+    switch (reward.type) {
+        case 'be':
+            blueEssence += reward.amount;
+            showToast(`Battle Pass Tier ${tier}: +${reward.amount} BE!`, 'success');
+            break;
+        case 'sp':
+            skillPoints += reward.amount;
+            showToast(`Battle Pass Tier ${tier}: +${reward.amount} Skill Points!`, 'success');
+            break;
+        case 'card': {
+            const db = getDB();
+            const tiers = reward.tier_min === 'Challenger' ? ['Challenger'] :
+                          reward.tier_min === 'Grandmaster' ? ['Grandmaster','Challenger'] :
+                          reward.tier_min === 'Master' ? ['Master','Grandmaster','Challenger'] :
+                          ['Diamond','Master','Grandmaster','Challenger'];
+            const pool = db.filter(p => tiers.includes(p.quality) && !['Champion','MVP','Finalist','MSI','FirstStand'].includes(p.quality));
+            if (pool.length) {
+                const card = pool[Math.floor(Math.random() * pool.length)];
+                const inst = { ...card, uniqueId: 'bp_' + Date.now() + '_' + Math.random().toString(36).substring(2) };
+                club.push(inst);
+                processNewCards([inst]);
+                showToast(`Battle Pass Tier ${tier}: ${card.name} (${card.quality})!`, 'success');
+            }
+            break;
+        }
+        case 'icon': {
+            const dropdown = document.getElementById('custom-team-logo');
+            if (dropdown && ![...dropdown.options].some(o => o.value === reward.icon)) {
+                const opt = document.createElement('option');
+                opt.value = reward.icon;
+                opt.textContent = `${reward.icon} BP Reward`;
+                dropdown.appendChild(opt);
+            }
+            showToast(`Battle Pass Tier ${tier}: New team icon ${reward.icon} unlocked!`, 'success');
+            break;
+        }
+    }
+    saveBattlePass();
+    saveGame();
+    renderBattlePass();
+}
+
+function renderBattlePass() {
+    const container = document.getElementById('battlepass-content');
+    if (!container) return;
+    const xpPerTier = 500;
+    const progress = battlePass.tier >= 30 ? 100 : Math.round((battlePass.xp / xpPerTier) * 100);
+
+    let html = `<div class="flex items-center justify-between mb-3">
+        <div>
+            <span class="text-amber-400 font-black text-lg">Season ${battlePass.season}</span>
+            <span class="text-slate-500 text-xs ml-2">Tier ${battlePass.tier}/30</span>
+        </div>
+        <div class="text-xs font-mono text-slate-400">${battlePass.xp}/${xpPerTier} XP to next tier</div>
+    </div>
+    <div class="w-full bg-slate-700 rounded-full h-2 mb-4"><div class="bg-amber-500 h-2 rounded-full" style="width:${progress}%"></div></div>
+    <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">`;
+
+    _BP_REWARDS.forEach(r => {
+        const unlocked = r.tier <= battlePass.tier;
+        const claimed = battlePass.claimed.includes(r.tier);
+        const canClaim = unlocked && !claimed;
+        const icon = r.type === 'be' ? '\u{1F48E}' : r.type === 'sp' ? '\u{2B50}' : r.type === 'card' ? '\u{1F0CF}' : '\u{1F3A8}';
+        const label = r.type === 'be' ? `${r.amount}` : r.type === 'sp' ? `${r.amount} SP` : r.type === 'card' ? r.tier_min : r.icon;
+        const bg = claimed ? 'bg-emerald-900/40 border-emerald-700/50' : canClaim ? 'bg-amber-900/40 border-amber-500/60 animate-pulse cursor-pointer' : 'bg-slate-800/60 border-slate-700/50';
+        html += `<div class="p-2 rounded-lg border text-center text-[10px] ${bg}" ${canClaim ? `onclick="claimBattlePassReward(${r.tier})"` : ''}>
+            <div class="font-black text-slate-400 mb-0.5">${r.tier}</div>
+            <div class="text-lg">${icon}</div>
+            <div class="text-slate-300 font-bold truncate">${label}</div>
+            ${claimed ? '<div class="text-emerald-400 text-[8px] font-black">✓</div>' : canClaim ? '<div class="text-amber-300 text-[8px] font-black">CLAIM</div>' : '<div class="text-slate-600 text-[8px]">\u{1F512}</div>'}
+        </div>`;
+    });
+
+    html += '</div>';
+    if (battlePass.tier >= 30 && battlePass.claimed.length >= 30) {
+        html += `<div class="mt-4 text-center">
+            <button onclick="resetBattlePass()" class="bg-amber-600 hover:bg-amber-500 text-slate-900 font-black px-6 py-2 rounded-xl cursor-pointer transition text-sm">Start Season ${battlePass.season + 1} →</button>
+        </div>`;
+    }
+    container.innerHTML = html;
+}
+
+function resetBattlePass() {
+    battlePass.season++;
+    battlePass.tier = 0;
+    battlePass.xp = 0;
+    battlePass.claimed = [];
+    saveBattlePass();
+    renderBattlePass();
+    showToast(`Battle Pass Season ${battlePass.season} started!`, 'success');
 }
 
 const _SKILL_DOUBLE_COST = new Set(['bootcamp']);
@@ -2016,6 +2188,12 @@ function renderClubGrid() {
     const grid = document.getElementById("club-grid"); if(!grid) return; grid.innerHTML = "";
     let q = document.getElementById("club-search-input").value.toLowerCase();
     let filtered = club.filter(c => c.name.toLowerCase().includes(q));
+    const tierFilter = document.getElementById('club-filter-tier')?.value || 'ALL';
+    const roleFilter = document.getElementById('club-filter-role')?.value || 'ALL';
+    const teamFilter = (document.getElementById('club-filter-team')?.value || '').toLowerCase().trim();
+    if (tierFilter !== 'ALL') filtered = filtered.filter(c => c.quality === tierFilter);
+    if (roleFilter !== 'ALL') filtered = filtered.filter(c => c.role === roleFilter);
+    if (teamFilter) filtered = filtered.filter(c => c.team.toLowerCase().includes(teamFilter));
     filtered.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
 
     filtered.forEach((card) => {
@@ -3089,6 +3267,10 @@ function renderSeasonTab() {
         : `<div class="text-slate-500 text-center py-8 text-sm">No completed splits yet.<br>Play Season Matches in the <strong class="text-indigo-400">Play</strong> tab to get started.</div>`;
 
     tab.innerHTML = `<div class="space-y-5 pb-10 pt-2">
+        <div class="bg-gradient-to-r from-amber-950/30 to-slate-900 p-5 rounded-2xl border border-amber-700/40 mb-6">
+            <h3 class="text-lg font-black text-amber-400 uppercase tracking-widest mb-3">\u{1F396}\u{FE0F} Battle Pass</h3>
+            <div id="battlepass-content"></div>
+        </div>
         <div class="bg-gradient-to-br from-indigo-900/30 to-slate-900 p-5 rounded-2xl border border-indigo-700/40 shadow-xl flex flex-wrap gap-4 items-center justify-between">
             <div>
                 <div class="text-xs text-indigo-400 font-black uppercase tracking-widest mb-1">Current Season</div>
@@ -3116,6 +3298,7 @@ function renderSeasonTab() {
             <div class="space-y-2">${trophyHTML}</div>
         </div>
     </div>`;
+    renderBattlePass();
 }
 
 function toggleDarkMode() {
@@ -6502,7 +6685,7 @@ function cloudSave() {
         'lol_identity_v7_pro','lol_stats_v7_pro','lol_new_items_v7_pro','lol_prog_v7_pro','lol_collection_v7_pro',
         'lol_archive_seen_v1','lol_trade_v7_pro','lol_team_complete_v8','lol_season_v1','lol_quests_v8_pro',
         'lol_achievements_v1','lol_unlocks_v1','lol_training_expiry','lol_training_tier',
-        'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode'];
+        'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode','lol_battlepass_v1'];
     keys.forEach(k => { const v = localStorage.getItem(k); if (v !== null) data[k] = v; });
     data.savedAt = Date.now();
     data.teamName = teamIdentity.name || 'My Team';
@@ -6525,7 +6708,7 @@ function autoCloudSave() {
             'lol_identity_v7_pro','lol_stats_v7_pro','lol_new_items_v7_pro','lol_prog_v7_pro','lol_collection_v7_pro',
             'lol_archive_seen_v1','lol_trade_v7_pro','lol_team_complete_v8','lol_season_v1','lol_quests_v8_pro',
             'lol_achievements_v1','lol_unlocks_v1','lol_training_expiry','lol_training_tier',
-            'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode'];
+            'lol_gr_last_run_ts','lol_tower_v1','lol_light_mode','lol_battlepass_v1'];
         keys.forEach(k => { const v = localStorage.getItem(k); if (v !== null) data[k] = v; });
         data.savedAt = Date.now();
         data.teamName = teamIdentity.name || 'My Team';
@@ -6562,6 +6745,7 @@ function pushToLeaderboard() {
         photoURL: currentUser.photoURL || '',
         teamName: teamIdentity.name || 'My Team',
         teamLogo: teamIdentity.logo || '🛡️',
+        teamColor: teamIdentity.color || '#3b82f6',
         trophies: trackStats.tournamentsWon || 0,
         splitsCompleted: trackStats.splitsCompleted || 0,
         goldenRoads: trackStats.goldenRoads || 0,
@@ -6655,10 +6839,12 @@ function _renderLbFromCache() {
     sorted.forEach((d, i) => {
         const rank = i + 1;
         const isMe = currentUser && d.id === currentUser.uid;
-        const rowBg = isMe ? 'bg-indigo-900/40 border-l-4 border-indigo-400' : rank <= 3 ? 'bg-amber-950/20' : '';
+        const teamColor = d.teamColor || '#3b82f6';
+        const rowBg = isMe ? `border-l-4` : rank <= 3 ? 'bg-amber-950/20' : '';
+        const rowStyle = isMe ? `border-color: ${teamColor}; background: ${teamColor}15;` : '';
         const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
         const rankColor = rank <= 3 ? 'text-amber-400 font-black' : 'text-slate-500';
-        html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/50 text-sm ${rowBg}">
+        html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-slate-700/50 text-sm ${rowBg}" style="${rowStyle}">
             <span class="w-8 text-center ${rankColor}">${medal || rank}</span>
             <div class="flex-1 flex items-center gap-2 min-w-0">
                 <img src="${d.photoURL || ''}" class="w-6 h-6 rounded-full" onerror="this.style.display='none'">
@@ -6705,9 +6891,10 @@ function viewProfile(uid) {
             } catch(e) {}
         }
 
+        const profileColor = d.teamColor || '#3b82f6';
         content.innerHTML = `
-            <div class="flex items-center gap-4 mb-4">
-                <img src="${d.photoURL || ''}" class="w-14 h-14 rounded-full border-2 border-indigo-500" onerror="this.style.display='none'">
+            <div class="flex items-center gap-4 mb-4 pl-3 border-l-4 rounded-l" style="border-color: ${profileColor};">
+                <img src="${d.photoURL || ''}" class="w-14 h-14 rounded-full border-2" style="border-color: ${profileColor};" onerror="this.style.display='none'">
                 <div>
                     <div class="text-2xl font-black text-slate-200">${d.teamLogo || '🛡️'} ${d.teamName || 'Unknown'}</div>
                     <div class="text-sm text-slate-400">${d.displayName || 'Anonymous'}</div>
