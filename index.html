@@ -54,7 +54,6 @@
 
         <div id="desktop-nav" class="flex items-center justify-center flex-wrap gap-1.5 flex-grow">
             <button id="dark-mode-btn" onclick="toggleDarkMode()" class="nav-btn bg-slate-700/60 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-slate-400 whitespace-nowrap" title="Toggle light/dark mode">☀️</button>
-            <button id="sound-toggle-btn" onclick="toggleSoundMute()" class="nav-btn bg-slate-700/60 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-slate-400 whitespace-nowrap" title="Toggle sound">🔊</button>
             <button onclick="switchTab('welcome')" data-tab="welcome" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-green-400 whitespace-nowrap text-sm">Welcome</button>
             <button onclick="switchTab('guide')" data-tab="guide" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-cyan-400 whitespace-nowrap text-sm">Guide</button>
             <button onclick="switchTab('rewards'); renderRewardsTab();" data-tab="rewards" class="nav-btn bg-slate-700 px-4 py-2 rounded-lg font-bold cursor-pointer hover:bg-slate-600 transition text-amber-300 whitespace-nowrap text-sm relative">
@@ -112,6 +111,7 @@
 
         <div class="flex-shrink-0 flex items-center gap-1.5">
             <button onclick="switchTab('tournament')" class="hidden mobile-only bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-4 py-1.5 rounded-full text-[10px] tracking-widest uppercase cursor-pointer border border-blue-400/60 shadow">PLAY</button>
+            <button id="sound-toggle-btn" onclick="toggleSoundMute()" class="bg-slate-700/50 hover:bg-slate-600 text-slate-400 font-bold px-2 py-1.5 rounded-lg cursor-pointer transition text-[11px]" title="Toggle sound">🔊</button>
             <button id="auth-btn" onclick="toggleAuthPanel()" class="bg-indigo-900/50 hover:bg-indigo-800 text-indigo-300 font-bold px-2.5 py-1.5 rounded-lg cursor-pointer transition text-[11px] border border-indigo-700/30">👤 Sign In</button>
             <button onclick="triggerWipe()" class="text-[11px] bg-red-950/30 hover:bg-red-600 text-red-400 hover:text-white font-bold px-2.5 py-1.5 rounded-lg cursor-pointer transition border border-red-900/30 desktop-only">Wipe</button>
         </div>
@@ -1078,7 +1078,7 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div class="bg-slate-900/60 p-3 rounded-lg">
-                            <div class="text-slate-500 font-bold uppercase text-[9px] mb-2">Win Rate by Tier</div>
+                            <div class="text-slate-500 font-bold uppercase text-[9px] mb-2">Collection Breakdown</div>
                             <div id="stat-tier-rates" class="space-y-1 text-xs font-mono"></div>
                         </div>
                         <div class="bg-slate-900/60 p-3 rounded-lg">
@@ -1093,6 +1093,9 @@
                 <input type="text" id="club-search-input" oninput="renderClubGrid()" placeholder="Filter by pro name..." class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 w-full max-w-sm text-sm focus:outline-none text-slate-200">
                 <select id="club-filter-tier" onchange="renderClubGrid()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none cursor-pointer">
                     <option value="ALL">All Tiers</option>
+                    <option value="Holographic">◆ Holographic</option>
+                    <option value="Signature">✦ Signature</option>
+                    <option value="HoloSig">◆✦ Holo + Sig</option>
                     <option value="Silver">Silver</option>
                     <option value="Gold">Gold</option>
                     <option value="Platinum">Platinum</option>

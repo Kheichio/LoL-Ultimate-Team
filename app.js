@@ -166,7 +166,11 @@ let quests = [
     { id: 'q49', desc: 'Perform 50 Card Upgrades', target: 50, type: 'upgradesPerformed', reward: 8000, claimed: false },
     // Repeatable advanced contracts (0.6.8)
     { id: 'rq7', desc: 'Win 3 Tournaments', target: 3, type: 'tournamentsWon', reward: 1200, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
-    { id: 'rq8', desc: 'Reach a new Tower Floor record', target: 1, type: 'towerNewRecord', reward: 500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 }
+    { id: 'rq8', desc: 'Reach a new Tower Floor record', target: 1, type: 'towerNewRecord', reward: 500, repeatable: true, claimed: false, baselineAtReset: 0, timesCompleted: 0 },
+    // Holographic quests (0.6.9+)
+    { id: 'q50', desc: 'Pull a Holographic Card', target: 1, type: 'holographicPulled', reward: 2000, claimed: false },
+    { id: 'q51', desc: 'Pull 5 Holographic Cards', target: 5, type: 'holographicPulled', reward: 5000, claimed: false },
+    { id: 'q52', desc: 'Pull 3 Signature Cards', target: 3, type: 'signaturesPulled', reward: 8000, claimed: false }
 ];
 
 // Achievements — live state checks (squad rating, archive progress) rather than tracked counters. Replaces Timed Challenges.
@@ -187,7 +191,11 @@ let achievements = [
     { id: 'a14', desc: 'Archive 1000 Unique Cards', type: 'archiveCount', target: 1000, reward: 25000, claimed: false },
     { id: 'a15', desc: 'Complete Battle Pass Season 1', type: 'battlePassSeason', target: 1, reward: 5000, claimed: false },
     { id: 'a16', desc: 'Complete 3 Battle Pass Seasons', type: 'battlePassSeason', target: 3, reward: 12000, claimed: false },
-    { id: 'a17', desc: 'Own 3 Signature Cards', type: 'signatureCount', target: 3, reward: 10000, claimed: false }
+    { id: 'a17', desc: 'Own 3 Signature Cards', type: 'signatureCount', target: 3, reward: 10000, claimed: false },
+    { id: 'a18', desc: 'Own a Holographic Signature Card', type: 'holoSigCount', target: 1, reward: 15000, claimed: false },
+    { id: 'a19', desc: 'Field a Full Holographic Squad (5 starters)', type: 'fullHoloSquad', target: 1, reward: 20000, claimed: false },
+    { id: 'a20', desc: 'Field a Full Signature Squad (5 starters)', type: 'fullSigSquad', target: 1, reward: 25000, claimed: false },
+    { id: 'a21', desc: 'Field a Full Holo+Sig Squad (5 starters)', type: 'fullHoloSigSquad', target: 1, reward: 50000, claimed: false }
 ];
 
 let isGoldenRoad = false;
@@ -424,6 +432,39 @@ function showPulls(cards, title) {
                 }
             }
 
+            // Action buttons under revealed card
+            const actions = document.createElement('div');
+            actions.className = 'flex gap-1 mt-1.5 justify-center';
+            const favBtn = document.createElement('button');
+            favBtn.className = `text-[10px] px-2 py-1 rounded cursor-pointer transition font-bold ${card.favorite ? 'bg-yellow-600 text-yellow-100' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
+            favBtn.textContent = card.favorite ? '★ Fav' : '☆ Fav';
+            favBtn.onclick = () => { card.favorite = !card.favorite; favBtn.textContent = card.favorite ? '★ Fav' : '☆ Fav'; favBtn.className = `text-[10px] px-2 py-1 rounded cursor-pointer transition font-bold ${card.favorite ? 'bg-yellow-600 text-yellow-100' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`; saveGame(); };
+            actions.appendChild(favBtn);
+
+            const lockBtn = document.createElement('button');
+            lockBtn.className = `text-[10px] px-2 py-1 rounded cursor-pointer transition font-bold ${card.locked ? 'bg-amber-700 text-amber-100' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
+            lockBtn.textContent = card.locked ? '🔒' : '🔓';
+            lockBtn.onclick = () => { card.locked = !card.locked; lockBtn.textContent = card.locked ? '🔒' : '🔓'; lockBtn.className = `text-[10px] px-2 py-1 rounded cursor-pointer transition font-bold ${card.locked ? 'bg-amber-700 text-amber-100' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`; saveGame(); };
+            actions.appendChild(lockBtn);
+
+            if (!card.locked && !card.signature && !card.holographic) {
+                const sellBtn = document.createElement('button');
+                const price = getSellValue(card.quality, card);
+                sellBtn.className = 'text-[10px] px-2 py-1 rounded cursor-pointer transition font-bold bg-red-900/60 text-red-300 hover:bg-red-700';
+                sellBtn.textContent = `Sell ${price}`;
+                sellBtn.onclick = () => {
+                    club = club.filter(c => c.uniqueId !== card.uniqueId);
+                    blueEssence += price;
+                    trackStats.soldCount++; trackStats.soldBE += price;
+                    wrappers[i].style.opacity = '0.3';
+                    sellBtn.disabled = true; sellBtn.textContent = 'Sold';
+                    saveGame(); updateDisplays();
+                    showToast(`Sold ${card.name} for ${price} BE`, 'info');
+                };
+                actions.appendChild(sellBtn);
+            }
+            wrappers[i].appendChild(actions);
+
             if (i === cards.length - 1 && confirmBtn) {
                 setTimeout(() => confirmBtn.classList.remove("hidden"), 500);
             }
@@ -543,7 +584,7 @@ function renderQuests() {
     const categories = [
         { name: 'Tournament Victories', icon: '⚔️', color: 'amber', types: ['tournamentsWon','cafeWins','regionalSplitWon','firstStandWon','msiWon','worldsWon','goldenRoads'] },
         { name: 'Competitive Modes', icon: '🎯', color: 'cyan', types: ['draftModesWon','salaryCapWon','towerHighestFloor','towerNewRecord','splitsCompleted','undefeatedSplits','eliteSplitsCompleted','splitsWithDebuffedWin','splitsWithoutMeta','seasonMatchesPlayed'] },
-        { name: 'Collection', icon: '📦', color: 'blue', types: ['packs','standardPacksOpened','elitePacksOpened','supremePacksOpened','firstStandPacksOpened','msiPacksOpened','champPacksOpened','mvpPacksOpened','signaturesPulled','challengerPulled'] },
+        { name: 'Collection', icon: '📦', color: 'blue', types: ['packs','standardPacksOpened','elitePacksOpened','supremePacksOpened','firstStandPacksOpened','msiPacksOpened','champPacksOpened','mvpPacksOpened','signaturesPulled','challengerPulled','holographicPulled'] },
         { name: 'Economy', icon: '💰', color: 'emerald', types: ['soldCount','gmSoldCount','upgradesPerformed'] },
     ];
 
@@ -674,6 +715,10 @@ function _achievementProgress(a) {
     if (a.type === 'clubSize') return Math.min(a.target, club.length);
     if (a.type === 'battlePassSeason') return Math.min(a.target, Math.max(0, (battlePass.season || 1) - 1));
     if (a.type === 'signatureCount') return Math.min(a.target, Object.values(collectionRegistry).filter(r => r.signature).length);
+    if (a.type === 'holoSigCount') return Math.min(a.target, club.filter(c => c.holographic && c.signature).length);
+    if (a.type === 'fullHoloSquad') { const s = ['TOP','JNG','MID','ADC','SUP']; return s.every(r => squad[r] && squad[r].holographic) ? 1 : 0; }
+    if (a.type === 'fullSigSquad') { const s = ['TOP','JNG','MID','ADC','SUP']; return s.every(r => squad[r] && squad[r].signature) ? 1 : 0; }
+    if (a.type === 'fullHoloSigSquad') { const s = ['TOP','JNG','MID','ADC','SUP']; return s.every(r => squad[r] && squad[r].holographic && squad[r].signature) ? 1 : 0; }
     return 0;
 }
 
@@ -927,7 +972,8 @@ window.onload = () => {
         club.forEach((card, idx) => {
             const base = db.find(p => p.id === card.id);
             if (base) {
-                club[idx] = { ...card, rating: base.rating, stats: { ...base.stats }, quality: card.signature ? card.quality : base.quality, name: base.name, team: base.team, region: base.region, role: base.role };
+                club[idx] = { ...card, rating: base.rating, stats: { ...base.stats }, quality: card.signature ? card.quality : base.quality, name: base.name, team: base.team, region: base.region, role: base.role, _holoApplied: false };
+                if (club[idx].holographic) _applyHoloBoost(club[idx]);
             }
         });
         // Refresh squad references
@@ -935,7 +981,8 @@ window.onload = () => {
             if (squad[slot]) {
                 const base = db.find(p => p.id === squad[slot].id);
                 if (base) {
-                    squad[slot] = { ...squad[slot], rating: base.rating, stats: { ...base.stats }, quality: squad[slot].signature ? squad[slot].quality : base.quality, name: base.name, team: base.team, region: base.region, role: base.role };
+                    squad[slot] = { ...squad[slot], rating: base.rating, stats: { ...base.stats }, quality: squad[slot].signature ? squad[slot].quality : base.quality, name: base.name, team: base.team, region: base.region, role: base.role, _holoApplied: false };
+                    if (squad[slot].holographic) _applyHoloBoost(squad[slot]);
                 }
             }
         });
@@ -1000,6 +1047,10 @@ window.onload = () => {
 
     // Seasonal Event System init
     eventData = JSON.parse(localStorage.getItem('lol_event_v1') || 'null');
+    if (eventData && eventData.type === 'firststand2026') {
+        const correctEnd = Date.UTC(2026, 5, 24, 23, 59, 59);
+        if (eventData.endsAt > correctEnd) { eventData.endsAt = correctEnd; localStorage.setItem('lol_event_v1', JSON.stringify(eventData)); }
+    }
     if (!getActiveEvent()) startFirstStand2026Event();
     renderEventBanner();
 
@@ -1218,11 +1269,24 @@ function processNewCards(cards) {
         }
         if (c.signature) collectionRegistry[c.id].signature = true;
         if (c.signature) c.locked = true;
-        if (!c.signature && !c.holographic && Math.random() < 0.02) {
+        if (!c.holographic && Math.random() < 0.02) {
             c.holographic = true;
+            c.locked = true;
             trackStats.holographicPulled = (trackStats.holographicPulled || 0) + 1;
         }
+        if (c.holographic) {
+            c.locked = true;
+            _applyHoloBoost(c);
+        }
     });
+}
+
+function _applyHoloBoost(card) {
+    if (!card.stats || card._holoApplied) return;
+    const boost = card.signature ? 3 : 1;
+    card.rating = Math.min(100, card.rating + boost);
+    ['mec','tmf','frm','cmp','map','ldr'].forEach(s => { card.stats[s] = Math.min(100, (card.stats[s] || 0) + boost); });
+    card._holoApplied = true;
 }
 
 function startTradeMarketTimer() {
@@ -1956,7 +2020,7 @@ function getActiveEvent() {
 
 function startFirstStand2026Event() {
     if (eventData && eventData.endsAt > Date.now()) return;
-    const endDate = Date.UTC(2026, 6, 31, 23, 59, 59);
+    const endDate = Date.UTC(2026, 5, 24, 23, 59, 59);
     if (Date.now() > endDate) return;
     eventData = {
         name: 'First Stand 2026 Drop Rate Up',
@@ -2185,15 +2249,20 @@ function _renderStatsDashboard() {
 
     const tierRates = document.getElementById('stat-tier-rates');
     if (tierRates) {
-        const tiers = [
-            { name: 'Cafe', w: trackStats.cafeWins || 0, color: 'text-green-400' },
-            { name: 'Regional', w: trackStats.regionalSplitWon || 0, color: 'text-slate-300' },
-            { name: 'First Stand', w: trackStats.firstStandWon || 0, color: 'text-teal-400' },
-            { name: 'MSI', w: trackStats.msiWon || 0, color: 'text-purple-400' },
-            { name: 'Worlds', w: trackStats.worldsWon || 0, color: 'text-amber-400' },
+        const holoCount = club.filter(c => c.holographic).length;
+        const sigCount = club.filter(c => c.signature).length;
+        const holoSigCount = club.filter(c => c.holographic && c.signature).length;
+        const avgRating = club.length > 0 ? Math.round(club.reduce((s, c) => s + c.rating, 0) / club.length) : 0;
+        const rows = [
+            { label: 'Avg Card Rating', val: avgRating, color: 'text-blue-300' },
+            { label: 'Holographic Cards', val: holoCount, color: 'text-yellow-300' },
+            { label: 'Signature Cards', val: sigCount, color: 'text-purple-300' },
+            { label: 'Holo+Sig Cards', val: holoSigCount, color: 'text-pink-300' },
+            { label: 'Upgrades Done', val: trackStats.upgradesPerformed || 0, color: 'text-emerald-300' },
+            { label: 'Packs Opened', val: trackStats.packs || 0, color: 'text-orange-300' },
         ];
-        tierRates.innerHTML = tiers.map(t =>
-            `<div class="flex justify-between"><span class="${t.color}">${t.name}</span><span class="text-slate-300">${t.w} wins</span></div>`
+        tierRates.innerHTML = rows.map(r =>
+            `<div class="flex justify-between"><span class="text-slate-400">${r.label}</span><span class="${r.color} font-bold">${r.val}</span></div>`
         ).join('');
     }
 
@@ -2442,7 +2511,10 @@ function renderClubGrid() {
     const tierFilter = document.getElementById('club-filter-tier')?.value || 'ALL';
     const roleFilter = document.getElementById('club-filter-role')?.value || 'ALL';
     const teamFilter = (document.getElementById('club-filter-team')?.value || '').toLowerCase().trim();
-    if (tierFilter !== 'ALL') filtered = filtered.filter(c => c.quality === tierFilter);
+    if (tierFilter === 'Holographic') filtered = filtered.filter(c => c.holographic);
+    else if (tierFilter === 'Signature') filtered = filtered.filter(c => c.signature);
+    else if (tierFilter === 'HoloSig') filtered = filtered.filter(c => c.holographic && c.signature);
+    else if (tierFilter !== 'ALL') filtered = filtered.filter(c => c.quality === tierFilter);
     if (roleFilter !== 'ALL') filtered = filtered.filter(c => c.role === roleFilter);
     if (teamFilter) filtered = filtered.filter(c => c.team.toLowerCase().includes(teamFilter));
     filtered.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
@@ -7127,6 +7199,8 @@ function pushToLeaderboard() {
         totalBE: blueEssence || 0,
         archiveCards: Object.keys(collectionRegistry).length,
         signatureCards: Object.values(collectionRegistry).filter(r => r.signature).length,
+        holographicCards: club.filter(c => c.holographic).length,
+        holoSignatureCards: club.filter(c => c.holographic && c.signature).length,
         showcaseCards: [...club].sort((a, b) => {
             const aScore = (a.signature ? 1000 : 0) + (a.holographic ? 500 : 0) + a.rating;
             const bScore = (b.signature ? 1000 : 0) + (b.holographic ? 500 : 0) + b.rating;
@@ -7182,6 +7256,7 @@ function _renderLbFromCache() {
         { key: 'totalBE', label: 'BE' },
         { key: 'archiveCards', label: 'Cards' },
         { key: 'signatureCards', label: 'Sig' },
+        { key: 'holographicCards', label: 'Holo' },
     ];
 
     const sorted = [..._lbCache].sort((a, b) => (b[_lbSortBy] || 0) - (a[_lbSortBy] || 0));
@@ -7208,6 +7283,7 @@ function _renderLbFromCache() {
             <span class="w-16 text-center ${colCls('totalBE')}">BE</span>
             <span class="w-12 text-center ${colCls('archiveCards')}">Cards</span>
             <span class="w-10 text-center ${colCls('signatureCards')}">Sig</span>
+            <span class="w-10 text-center ${colCls('holographicCards')}">Holo</span>
             <span class="w-16 text-center">Title</span>
         </div>`;
 
@@ -7239,6 +7315,7 @@ function _renderLbFromCache() {
             <span class="w-16 text-center text-blue-300 text-xs font-mono ${colCls('totalBE')}">${d.totalBE != null ? (d.totalBE >= 1000 ? Math.floor(d.totalBE/1000) + 'k' : d.totalBE) : '—'}</span>
             <span class="w-12 text-center text-yellow-200 text-xs ${colCls('archiveCards')}">${d.archiveCards || '—'}</span>
             <span class="w-10 text-center text-purple-300 text-xs font-bold ${colCls('signatureCards')}">${d.signatureCards || 0}</span>
+            <span class="w-10 text-center text-yellow-300 text-xs ${colCls('holographicCards')}">${d.holographicCards || 0}</span>
             <span class="w-16 text-center text-xs text-slate-400">${d.prestigeTitle || ''}</span>
         </div>`;
     });
