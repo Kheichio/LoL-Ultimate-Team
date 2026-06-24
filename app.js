@@ -193,7 +193,20 @@ let quests = [
     // Holographic quests (0.6.9+)
     { id: 'q50', desc: 'Pull a Holographic Card', target: 1, type: 'holographicPulled', reward: 2000, claimed: false },
     { id: 'q51', desc: 'Pull 5 Holographic Cards', target: 5, type: 'holographicPulled', reward: 5000, claimed: false },
-    { id: 'q52', desc: 'Pull 3 Signature Cards', target: 3, type: 'signaturesPulled', reward: 8000, claimed: false }
+    { id: 'q52', desc: 'Pull 3 Signature Cards', target: 3, type: 'signaturesPulled', reward: 8000, claimed: false },
+    // Full tier squad wins (0.7.0)
+    { id: 'q60', desc: 'Win 5 games with a full Silver squad', target: 5, type: 'winsFullSilver', reward: 1000, claimed: false },
+    { id: 'q61', desc: 'Win 5 games with a full Gold squad', target: 5, type: 'winsFullGold', reward: 1500, claimed: false },
+    { id: 'q62', desc: 'Win 5 games with a full Platinum squad', target: 5, type: 'winsFullPlatinum', reward: 2000, claimed: false },
+    { id: 'q63', desc: 'Win 5 games with a full Diamond squad', target: 5, type: 'winsFullDiamond', reward: 3000, claimed: false },
+    { id: 'q64', desc: 'Win 5 games with a full Master squad', target: 5, type: 'winsFullMaster', reward: 5000, claimed: false },
+    { id: 'q65', desc: 'Win 5 games with a full Grandmaster squad', target: 5, type: 'winsFullGrandmaster', reward: 8000, claimed: false },
+    { id: 'q66', desc: 'Win 5 games with a full Challenger squad', target: 5, type: 'winsFullChallenger', reward: 12000, claimed: false },
+    { id: 'q67', desc: 'Win 5 games with a full Champion squad', target: 5, type: 'winsFullChampion', reward: 15000, claimed: false },
+    { id: 'q68', desc: 'Win 5 games with a full MVP squad', target: 5, type: 'winsFullMVP', reward: 20000, claimed: false },
+    { id: 'q69', desc: 'Win 5 games with a full Finalist squad', target: 5, type: 'winsFullFinalist', reward: 12000, claimed: false },
+    { id: 'q70', desc: 'Win 5 games with a full MSI squad', target: 5, type: 'winsFullMSI', reward: 15000, claimed: false },
+    { id: 'q71', desc: 'Win 5 games with a full First Stand squad', target: 5, type: 'winsFullFirstStand', reward: 10000, claimed: false }
 ];
 
 // Achievements — live state checks (squad rating, archive progress) rather than tracked counters. Replaces Timed Challenges.
@@ -333,6 +346,7 @@ function switchTab(tabId) {
     if (tabId === 'club') {
         hasNewClubItems = false;
         saveGame();
+        renderClubGrid();
     }
 
     if (tabId === 'quests') renderQuests();
@@ -606,6 +620,7 @@ function renderQuests() {
 
     const categories = [
         { name: 'Tournament Victories', icon: '⚔️', color: 'amber', types: ['tournamentsWon','cafeWins','regionalSplitWon','firstStandWon','msiWon','worldsWon','goldenRoads'] },
+        { name: 'Full Tier Squads', icon: '🏅', color: 'yellow', types: ['winsFullSilver','winsFullGold','winsFullPlatinum','winsFullDiamond','winsFullMaster','winsFullGrandmaster','winsFullChallenger','winsFullChampion','winsFullMVP','winsFullFinalist','winsFullMSI','winsFullFirstStand'] },
         { name: 'Competitive Modes', icon: '🎯', color: 'cyan', types: ['draftModesWon','salaryCapWon','towerHighestFloor','towerNewRecord','splitsCompleted','undefeatedSplits','eliteSplitsCompleted','splitsWithDebuffedWin','splitsWithoutMeta','seasonMatchesPlayed'] },
         { name: 'Collection', icon: '📦', color: 'blue', types: ['packs','standardPacksOpened','elitePacksOpened','supremePacksOpened','firstStandPacksOpened','msiPacksOpened','champPacksOpened','mvpPacksOpened','signaturesPulled','challengerPulled','holographicPulled'] },
         { name: 'Economy', icon: '💰', color: 'emerald', types: ['soldCount','gmSoldCount','upgradesPerformed'] },
@@ -2383,8 +2398,7 @@ function updateDisplays() {
         }
     }
     updateTournamentLocks();
-    updateBadges(); updateClubStatsUI(); renderClubGrid(); renderSquadView(); renderQuests(); renderUpgradeLab();
-    if(currentCollectionRegion) renderCollection();
+    updateBadges(); updateClubStatsUI(); renderSquadView(); renderQuests(); renderUpgradeLab();
 }
 
 function buyStarterPack() {
@@ -4461,6 +4475,16 @@ function playMatchStep() {
     }, 700);
 }
 
+function _trackFullTierWin() {
+    const starters = ['TOP','JNG','MID','ADC','SUP'].map(r => squad[r]).filter(Boolean);
+    if (starters.length < 5) return;
+    const qualities = starters.map(c => c.quality);
+    if (new Set(qualities).size !== 1) return;
+    const tier = qualities[0];
+    const key = 'winsFull' + tier;
+    trackStats[key] = (trackStats[key] || 0) + 1;
+}
+
 function handleTournamentWin() {
     playSound('win');
     blueEssence += tourData.reward1; addXP(200);
@@ -4472,6 +4496,7 @@ function handleTournamentWin() {
     else if (stageName === 'First Stand') trackStats.firstStandWon = (trackStats.firstStandWon || 0) + 1;
     else if (stageName === 'MSI Arena' || stageName === 'MSI') trackStats.msiWon = (trackStats.msiWon || 0) + 1;
     else if (stageName === 'World Championship' || stageName === 'Worlds') trackStats.worldsWon = (trackStats.worldsWon || 0) + 1;
+    _trackFullTierWin();
     checkProgressionUnlocks();
     autoCloudSave();
 
@@ -5092,7 +5117,7 @@ function endDraftMode() {
     const reward = won ? (isSalaryCap ? 4000 : 2500) : 0;
     blueEssence += reward;
     trackStats.draftModesPlayed = (trackStats.draftModesPlayed || 0) + 1;
-    if (won) trackStats.draftModesWon = (trackStats.draftModesWon || 0) + 1;
+    if (won) { trackStats.draftModesWon = (trackStats.draftModesWon || 0) + 1; _trackFullTierWin(); }
     else trackStats.losses = (trackStats.losses || 0) + 1;
     draftModeActive = false;
     window._salaryCapMode = false;
