@@ -12,10 +12,20 @@ function ratingToQuality(rating) {
     return 'Silver';
 }
 
+let _dbCache = null;
+let _dbMap = null;
 function getDB() {
+    if (_dbCache) return _dbCache;
     const raw = typeof playerDatabase !== 'undefined' ? playerDatabase : window.playerDatabase;
     if (!raw) return raw;
-    return raw.map(c => _SPECIAL_QUALITIES.has(c.quality) ? c : { ...c, quality: ratingToQuality(c.rating) });
+    _dbCache = raw.map(c => _SPECIAL_QUALITIES.has(c.quality) ? c : { ...c, quality: ratingToQuality(c.rating) });
+    _dbMap = new Map();
+    _dbCache.forEach(c => _dbMap.set(c.id, c));
+    return _dbCache;
+}
+function getCardById(id) {
+    if (!_dbMap) getDB();
+    return _dbMap ? _dbMap.get(id) : null;
 }
 
 function getSellValue(quality, card) {
@@ -27,19 +37,32 @@ function getSellValue(quality, card) {
 
 const collectionRewards = { Silver: 10, Gold: 20, Platinum: 40, Diamond: 80, Master: 150, Grandmaster: 300, Challenger: 500, Champion: 500, MVP: 500, Finalist: 400, MSI: 420, FirstStand: 350 };
 
-// --- GLOBAL STATE ---
+// --- GLOBAL STATE (unified store — globals remain for backward compat) ---
 let blueEssence = 1000;
 let club = [];
 let squad = { COACH: null, TOP: null, JNG: null, MID: null, ADC: null, SUP: null, SUB1: null, SUB2: null, SUB3: null };
 let hasBoughtStarter = false;
 let teamIdentity = { name: "My Team", logo: "🛡️" };
-let hasNewClubItems = false; 
+let hasNewClubItems = false;
 
-// Progression State
 let managerXP = 0;
 let managerLevel = 1;
 let skillPoints = 0;
 let skills = { scouting: 0, tactics: 0, transfer: 0, conditioning: 0, mentorship: 0, bootcamp: 0 };
+
+const GameState = {
+    get be() { return blueEssence; }, set be(v) { blueEssence = v; },
+    get club() { return club; }, set club(v) { club = v; },
+    get squad() { return squad; }, set squad(v) { squad = v; },
+    get xp() { return managerXP; }, set xp(v) { managerXP = v; },
+    get level() { return managerLevel; }, set level(v) { managerLevel = v; },
+    get sp() { return skillPoints; }, set sp(v) { skillPoints = v; },
+    get skills() { return skills; },
+    get identity() { return teamIdentity; },
+    get stats() { return trackStats; },
+    get db() { return getDB(); },
+    getCard(id) { return getCardById(id); },
+};
 let tradeRoleFilter = null;
 
 // New Systems State
@@ -734,7 +757,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_9f', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_7_0', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -917,7 +940,7 @@ window.onload = () => {
     if ((trackStats.regionalSplitWon || 0) >= 1 && (trackStats.firstStandWon || 0) >= 1) unlocks.tower = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_6_9f';
+    const patchKey = 'lol_patch_seen_v0_7_0';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -970,7 +993,7 @@ window.onload = () => {
         }
         // Sync all club cards with database definitions — enforce correct role/stats/quality
         club.forEach((card, idx) => {
-            const base = db.find(p => p.id === card.id);
+            const base = getCardById(card.id);
             if (base) {
                 club[idx] = { ...card, rating: base.rating, stats: { ...base.stats }, quality: card.signature ? card.quality : base.quality, name: base.name, team: base.team, region: base.region, role: base.role, _holoApplied: false };
                 if (club[idx].holographic) _applyHoloBoost(club[idx]);
@@ -979,7 +1002,7 @@ window.onload = () => {
         // Refresh squad references
         Object.keys(squad).forEach(slot => {
             if (squad[slot]) {
-                const base = db.find(p => p.id === squad[slot].id);
+                const base = getCardById(squad[slot].id);
                 if (base) {
                     squad[slot] = { ...squad[slot], rating: base.rating, stats: { ...base.stats }, quality: squad[slot].signature ? squad[slot].quality : base.quality, name: base.name, team: base.team, region: base.region, role: base.role, _holoApplied: false };
                     if (squad[slot].holographic) _applyHoloBoost(squad[slot]);
@@ -992,14 +1015,14 @@ window.onload = () => {
         const _flexQualities = ["Champion", "Finalist", "MSI", "FirstStand"];
         ['TOP','JNG','MID','ADC','SUP'].forEach(slot => {
             if (!squad[slot]) return;
-            const base = db.find(p => p.id === squad[slot].id);
+            const base = getCardById(squad[slot].id);
             if (base && base.role !== slot && !_flexQualities.includes(base.quality)) {
                 console.log(`Removed ${squad[slot].name} from ${slot} — role mismatch (actual: ${base.role})`);
                 squad[slot] = null;
             }
         });
         if (squad.COACH) {
-            const base = db.find(p => p.id === squad.COACH.id);
+            const base = getCardById(squad.COACH.id);
             if (base && base.role !== 'COACH') { squad.COACH = null; }
         }
 
@@ -1406,7 +1429,7 @@ function renderTradeMarket() {
     let visibleOffers = tradeMarket.offers;
     if (tradeRoleFilter) {
         visibleOffers = tradeMarket.offers.filter(offer => {
-            const card = db.find(p => p.id === offer.rewardBaseId);
+            const card = getCardById(offer.rewardBaseId);
             return card && card.role === tradeRoleFilter;
         });
     }
@@ -1421,7 +1444,7 @@ function renderTradeMarket() {
     }
 
     visibleOffers.forEach(offer => {
-        let rewardCardDef = db.find(p => p.id === offer.rewardBaseId);
+        let rewardCardDef = getCardById(offer.rewardBaseId);
         if(!rewardCardDef) return;
         let availableFodder = club.filter(c => c.quality === offer.reqQuality && !Object.values(squad).some(s => s && s.uniqueId === c.uniqueId) && !c.locked);
         let hasEnough = availableFodder.length >= offer.reqCount;
@@ -1473,7 +1496,7 @@ function executeTrade(offerId) {
         club = club.filter(c => c.uniqueId !== burnId);
     }
     let db = getDB();
-    let rewardDef = db.find(p => p.id === offer.rewardBaseId);
+    let rewardDef = getCardById(offer.rewardBaseId);
     let newCard = { ...rewardDef, uniqueId: Date.now() + "T" + Math.random().toString(36).substring(2) };
     club.push(newCard);
     processNewCards([newCard]);
@@ -2538,6 +2561,11 @@ function buyTargetPack(targetType) {
     processNewCards(pulled); saveGame(); showPulls(pulled, `${regionVal} Regional Allocation Pack`);
 }
 
+let _clubFiltered = [];
+let _clubRendered = 0;
+const _CLUB_BATCH = 40;
+let _clubObserver = null;
+
 function renderClubGrid() {
     const grid = document.getElementById("club-grid"); if(!grid) return; grid.innerHTML = "";
     let q = document.getElementById("club-search-input").value.toLowerCase();
@@ -2553,7 +2581,45 @@ function renderClubGrid() {
     if (teamFilter) filtered = filtered.filter(c => c.team.toLowerCase().includes(teamFilter));
     filtered.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
 
-    filtered.forEach((card) => {
+    _clubFiltered = filtered;
+    _clubRendered = 0;
+    if (_clubObserver) _clubObserver.disconnect();
+
+    const count = document.createElement('div');
+    count.className = 'w-full text-center text-xs text-slate-500 font-mono mb-2';
+    count.textContent = `${filtered.length} cards`;
+    grid.appendChild(count);
+
+    _renderClubBatch(grid);
+
+    if (_clubRendered < _clubFiltered.length) {
+        const sentinel = document.createElement('div');
+        sentinel.id = 'club-scroll-sentinel';
+        sentinel.className = 'w-full h-8';
+        grid.appendChild(sentinel);
+        _clubObserver = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && _clubRendered < _clubFiltered.length) {
+                _renderClubBatch(grid);
+                if (_clubRendered >= _clubFiltered.length && _clubObserver) _clubObserver.disconnect();
+            }
+        }, { rootMargin: '200px' });
+        _clubObserver.observe(sentinel);
+    }
+}
+
+function _renderClubBatch(grid) {
+    const end = Math.min(_clubRendered + _CLUB_BATCH, _clubFiltered.length);
+    const sentinel = document.getElementById('club-scroll-sentinel');
+    for (let i = _clubRendered; i < end; i++) {
+        const card = _clubFiltered[i];
+        const wrap = _renderClubCard(card);
+        if (sentinel) grid.insertBefore(wrap, sentinel);
+        else grid.appendChild(wrap);
+    }
+    _clubRendered = end;
+}
+
+function _renderClubCard(card) {
         let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1.5 transform transition hover:-translate-y-1";
         const cardEl = createCardElement(card, true, null, null);
         cardEl.ondblclick = (e) => { e.stopPropagation(); inspectCard(card); };
@@ -2607,8 +2673,7 @@ function renderClubGrid() {
             btnRow.appendChild(btn);
             wrap.appendChild(btnRow);
         }
-        grid.appendChild(wrap);
-    });
+    return wrap;
 }
 
 function sortClub(by) {
@@ -4155,10 +4220,11 @@ function computeChemistry() {
     return { totalPower, avgStats: { mec: count>0?sums.mec/count:0, tmf: count>0?sums.tmf/count:0, map: count>0?sums.map/count:0 } };
 }
 
+const _cardTemplate = document.getElementById('card-template');
+
 function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
-    const cardDiv = document.createElement("div");
-    let isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
-    let displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
+    const isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
+    const displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
 
     let bgClass = `card-bg-${card.quality}`;
     if (card.role === "COACH") {
@@ -4168,56 +4234,56 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
 
     const darkCardTypes = ["Challenger", "Champion", "MVP", "Finalist", "MSI", "FirstStand", "Diamond"];
     const isDarkCard = darkCardTypes.includes(card.quality) || card.role === "COACH";
-    // Master/Grandmaster use dark text — their gradients start very light, white text disappears
     const isMidCard = ["Master", "Grandmaster"].includes(card.quality);
-    const textBase = isDarkCard ? "text-white" : isMidCard ? "text-slate-900" : "text-slate-900";
+    const textBase = isDarkCard ? "text-white" : "text-slate-900";
     const textMuted = isDarkCard ? "text-slate-300" : isMidCard ? "text-slate-800 font-black" : "text-slate-700 font-black";
     const textOpacity = isDarkCard ? "text-white/80" : isMidCard ? "text-slate-700 font-black" : "text-slate-800 font-black";
     const dividerColor = isDarkCard ? "border-white/15" : "border-black/20";
-
-    const scaleClass = isMini ? '' : 'hover:scale-105';
-    // overflow-hidden on ALL cards: tier badge is now an inside header, no floating badge needed
-    cardDiv.className = `${bgClass} rounded-xl w-52 flex flex-col items-center select-none relative transition-transform ${scaleClass} shadow-xl overflow-hidden`;
-    if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
-
+    const flag = (window.playerNationalityOverrides && window.playerNationalityOverrides[card.name]) || (window.regionDefaultFlags && window.regionDefaultFlags[card.region]) || '';
+    const roleIconHtml = (window.roleIcons && window.roleIcons[card.role]) || '';
+    const tierLabel = card.signature ? '✦ SIGNATURE ✦' : (card.role === "COACH" ? "COACH STAFF" : card.quality);
     const initials = card.name.slice(0, 2).toUpperCase();
 
-    // Nationality flag: specific override first, then region default
-    const flag = (window.playerNationalityOverrides && window.playerNationalityOverrides[card.name])
-        || (window.regionDefaultFlags && window.regionDefaultFlags[card.region])
-        || '';
+    let cardDiv;
+    if (_cardTemplate) {
+        const clone = _cardTemplate.content.cloneNode(true);
+        cardDiv = clone.querySelector('.card-el');
+        cardDiv.dataset.quality = card.quality;
+        cardDiv.dataset.darkText = String(!isDarkCard);
+        if (card.signature) cardDiv.dataset.sig = '';
+        if (card.holographic) cardDiv.dataset.holo = '';
 
-    // Official LoL role icon
-    const roleIconHtml = (window.roleIcons && window.roleIcons[card.role]) || '';
+        const header = cardDiv.querySelector('.card-tier-header');
+        header.textContent = tierLabel;
+        header.classList.add(dividerColor, textBase);
+        cardDiv.querySelector('.card-role').innerHTML = `${roleIconHtml} ${card.role}`;
+        cardDiv.querySelector('.card-role').classList.add(textBase);
+        cardDiv.querySelector('.card-region').innerHTML = `${flag} ${card.region}`;
+        cardDiv.querySelector('.card-region').classList.add(textOpacity);
+        cardDiv.querySelector('.card-rating').textContent = displayRating;
+        cardDiv.querySelector('.card-rating').classList.add(textBase);
+        cardDiv.querySelector('.card-initials').textContent = initials;
+        cardDiv.querySelector('.card-initials').classList.add(textBase);
+        cardDiv.querySelector('.card-name').textContent = card.name;
+        cardDiv.querySelector('.card-name').classList.add(textBase);
+        cardDiv.querySelector('.card-team').textContent = `${card.team} [${card.year}]`;
+        cardDiv.querySelector('.card-team').classList.add(textMuted);
+        cardDiv.querySelector('.stat-grid').classList.add(dividerColor);
+        const stats = ['mec','tmf','frm','cmp','map','ldr'];
+        stats.forEach(s => {
+            const el = cardDiv.querySelector(`.card-${s}`);
+            if (el) { el.textContent = card.stats[s]; el.classList.add(textBase); }
+        });
+        cardDiv.querySelectorAll('.stat-label').forEach(l => l.classList.add(textMuted));
+    } else {
+        cardDiv = document.createElement("div");
+    }
 
-    // Tier header — always inside the card (no clipping bugs)
-    const tierLabel = card.signature ? '✦ SIGNATURE ✦' : (card.role === "COACH" ? "COACH STAFF" : card.quality);
+    const scaleClass = isMini ? '' : 'hover:scale-105';
+    cardDiv.className += ` ${bgClass} rounded-xl w-52 flex flex-col items-center select-none relative transition-transform ${scaleClass} shadow-xl overflow-hidden`;
+    if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
     if (card.signature) cardDiv.classList.add('card-signature');
     if (card.holographic) cardDiv.classList.add('card-holographic');
-
-    cardDiv.innerHTML = `
-        <div class="w-full text-center py-1.5 px-3 bg-black/25 border-b ${dividerColor} text-[10px] font-black uppercase tracking-widest ${textBase} rounded-t-xl">${tierLabel}</div>
-        <div class="p-4 w-full flex flex-col items-center">
-            <div class="w-full flex justify-between text-[11px] font-black uppercase mb-1 items-center">
-                <span class="bg-black/20 ${textBase} px-2 py-0.5 rounded-md flex items-center gap-1">${roleIconHtml} ${card.role}</span>
-                <span class="${textOpacity} tracking-tight flex items-center gap-1">${flag} ${card.region}</span>
-            </div>
-            <div class="flex items-center gap-3 w-full mt-2">
-                <div class="text-4xl font-black tracking-tighter drop-shadow-md ${textBase}"><span>${displayRating}</span></div>
-                <div class="w-16 h-16 rounded-full border-2 border-white/30 shadow mx-auto bg-black/30 flex items-center justify-center text-lg font-black ${textBase} select-none">${initials}</div>
-            </div>
-            <div class="font-black text-base truncate w-full mt-3 text-center drop-shadow-sm ${textBase}">${card.name}</div>
-            <div class="text-xs font-bold truncate w-full mb-2 text-center ${textMuted}">${card.team} [${card.year}]</div>
-            <div class="stat-grid border-t ${dividerColor} pt-2 text-xs w-full">
-                <div class="${textBase}"><span class="${textMuted} mr-1">MEC</span>${card.stats.mec}</div>
-                <div class="${textBase}"><span class="${textMuted} mr-1">TMF</span>${card.stats.tmf}</div>
-                <div class="${textBase}"><span class="${textMuted} mr-1">FRM</span>${card.stats.frm}</div>
-                <div class="${textBase}"><span class="${textMuted} mr-1">CMP</span>${card.stats.cmp}</div>
-                <div class="${textBase}"><span class="${textMuted} mr-1">MAP</span>${card.stats.map}</div>
-                <div class="${textBase}"><span class="${textMuted} mr-1">LDR</span>${card.stats.ldr}</div>
-            </div>
-        </div>
-    `;
     if (window._salaryCapMode && draftModeActive && typeof getCardSalary === 'function') {
         const baseSal = getCardSalary(card);
         const flexSal = draftActivePickRole ? getCardSalary(card, draftActivePickRole) : baseSal;
@@ -7475,7 +7541,7 @@ function viewProfile(uid) {
                     if (!card) return;
                     if (validIds && !validIds.has(card.id)) return;
                     if (db) {
-                        const base = db.find(p => p.id === card.id);
+                        const base = getCardById(card.id);
                         if (base) {
                             if (role === 'COACH' && base.role !== 'COACH') return;
                             if (role !== 'COACH' && base.role !== role && !_flexQ.includes(base.quality)) return;
