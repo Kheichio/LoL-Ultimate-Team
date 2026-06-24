@@ -734,7 +734,7 @@ function claimAchievement(id) {
 }
 
 function closePatchModal(dontShowAgain) {
-    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_9', '1');
+    if (dontShowAgain) localStorage.setItem('lol_patch_seen_v0_6_9f', '1');
     const modal = document.getElementById('patch-modal');
     if (modal) modal.classList.add('hidden');
 }
@@ -917,7 +917,7 @@ window.onload = () => {
     if ((trackStats.regionalSplitWon || 0) >= 1 && (trackStats.firstStandWon || 0) >= 1) unlocks.tower = true;
     updateTournamentLocks();
 
-    const patchKey = 'lol_patch_seen_v0_6_9';
+    const patchKey = 'lol_patch_seen_v0_6_9f';
     if (!localStorage.getItem(patchKey)) {
         const modal = document.getElementById('patch-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1580,7 +1580,7 @@ function renderCollection() {
     }
 
     // Sort button styles
-    ["team", "completion", "latest"].forEach(s => {
+    ["team", "completion", "least", "latest"].forEach(s => {
         let btn = document.getElementById(`col-sort-${s}`); if (!btn) return;
         btn.className = s === currentCollectionSort
             ? "flex-1 py-1.5 px-4 rounded-lg font-black text-xs transition bg-slate-600 border border-slate-500 text-slate-100 uppercase tracking-widest shadow-inner cursor-pointer"
@@ -1640,6 +1640,15 @@ function renderCollection() {
             if (aPct === 1) return -1;
             if (bPct === 1) return 1;
             return bPct - aPct;
+        });
+    } else if (currentCollectionSort === 'least') {
+        groupArray.sort((a, b) => {
+            const aPct = a.total > 0 ? a.owned / a.total : 0;
+            const bPct = b.total > 0 ? b.owned / b.total : 0;
+            if (aPct === 0 && bPct === 0) return a.team.localeCompare(b.team);
+            if (aPct === 0) return 1;
+            if (bPct === 0) return -1;
+            return aPct - bPct;
         });
     } else groupArray.sort((a, b) => a.team.localeCompare(b.team));
 
@@ -1949,20 +1958,29 @@ function renderPrestigeTitlePanel() {
     const container = document.getElementById('prestige-panel');
     if (!container) return;
     const currentTitle = getPrestigeTitle();
+    const tp = getWeightedTrophies();
     const titleTiers = [
-        { title: 'Scout', emoji: '🔍', color: 'text-slate-400', req: 'Default' },
-        { title: 'Director', emoji: '📋', color: 'text-emerald-400', req: '5 wins OR 2 splits' },
-        { title: 'GM', emoji: '⭐', color: 'text-blue-400', req: '15 wins + 5 splits + 1 GR' },
-        { title: 'President', emoji: '🏛️', color: 'text-purple-400', req: '30 wins + 10 splits + 3 GR' },
-        { title: 'Legend', emoji: '👑', color: 'text-yellow-400', req: '50 wins + 20 splits + 5 GR + 3 drafts' },
+        { title: 'Scout', emoji: '🔍', color: 'text-slate-400', req: 'Starting title' },
+        { title: 'Coach', emoji: '🏅', color: 'text-cyan-400', req: '1 Split completed' },
+        { title: 'Manager', emoji: '📊', color: 'text-teal-400', req: '5 Trophy Pts' },
+        { title: 'Director', emoji: '📋', color: 'text-emerald-400', req: '15 Trophy Pts' },
+        { title: 'GM', emoji: '⭐', color: 'text-blue-400', req: '30 Trophy Pts + 5 Splits' },
+        { title: 'Executive', emoji: '💼', color: 'text-indigo-400', req: '50 Trophy Pts + 8 Splits' },
+        { title: 'President', emoji: '🎖️', color: 'text-purple-400', req: '70 Trophy Pts + 10 Splits' },
+        { title: 'Hall of Fame', emoji: '🏛️', color: 'text-amber-400', req: '100 Trophy Pts + 15 Splits' },
+        { title: 'Legend', emoji: '👑', color: 'text-yellow-400', req: '150 Trophy Pts + 20 Splits + 3 GR' },
+        { title: 'Immortal', emoji: '🌟', color: 'text-yellow-300', req: '200 Trophy Pts + 30 Splits + 5 GR' },
     ];
     let html = `<h4 class="text-purple-400 font-black mb-2 text-xs uppercase tracking-widest">Manager Title Progression</h4>
-        <p class="text-slate-400 text-xs mb-2">Current: <span class="${currentTitle.color} font-bold">${currentTitle.emoji} ${currentTitle.title}</span></p>
+        <p class="text-slate-400 text-xs mb-2">Current: <span class="${currentTitle.color} font-bold">${currentTitle.emoji} ${currentTitle.title}</span> <span class="text-slate-600 font-mono ml-1">(${tp} Trophy Pts)</span></p>
         <div class="space-y-1 text-xs font-mono">`;
+    let reached = true;
     titleTiers.forEach(t => {
         const isCurrent = t.title === currentTitle.title;
-        const hl = isCurrent ? 'bg-slate-800/80 border border-slate-600 rounded-lg px-2 py-1' : 'px-2 py-1';
-        html += `<div class="flex justify-between ${hl}"><span class="${t.color}">${t.emoji} ${t.title}${isCurrent ? ' ◀' : ''}</span><span class="text-slate-500">${t.req}</span></div>`;
+        if (isCurrent) reached = false;
+        const opacity = reached && !isCurrent ? 'opacity-40' : '';
+        const hl = isCurrent ? 'bg-purple-950/40 border border-purple-700/40 rounded-lg px-2 py-1.5' : 'px-2 py-1';
+        html += `<div class="flex justify-between items-center ${hl} ${opacity}"><span class="${t.color}">${t.emoji} ${t.title}${isCurrent ? ' ◀' : ''}</span><span class="text-slate-600 text-[10px]">${t.req}</span></div>`;
     });
     html += `</div>`;
     container.innerHTML = html;
