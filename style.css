@@ -612,32 +612,18 @@ html.light-mode .card-face-down {
 /* HOLOGRAPHIC CARD VARIANT — rainbow prismatic border */
 .card-holographic {
     position: relative;
-    animation: holoGlow 3s linear infinite !important;
+    outline: 3px solid transparent;
+    outline-offset: 2px;
+    animation: holoOutline 2s linear infinite;
 }
-@keyframes holoGlow {
-    0%   { box-shadow: 0 0 12px 3px #ff0000, 0 0 24px 6px rgba(255,0,0,0.3) !important; }
-    16%  { box-shadow: 0 0 12px 3px #ff7700, 0 0 24px 6px rgba(255,119,0,0.3) !important; }
-    33%  { box-shadow: 0 0 12px 3px #ffff00, 0 0 24px 6px rgba(255,255,0,0.3) !important; }
-    50%  { box-shadow: 0 0 12px 3px #00ff00, 0 0 24px 6px rgba(0,255,0,0.3) !important; }
-    66%  { box-shadow: 0 0 12px 3px #0077ff, 0 0 24px 6px rgba(0,119,255,0.3) !important; }
-    83%  { box-shadow: 0 0 12px 3px #8b00ff, 0 0 24px 6px rgba(139,0,255,0.3) !important; }
-    100% { box-shadow: 0 0 12px 3px #ff0000, 0 0 24px 6px rgba(255,0,0,0.3) !important; }
-}
-.card-holographic .holo-badge {
-    background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #ff6b6b);
-    background-size: 200% 100%;
-    animation: holoTextShift 2s linear infinite;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-@keyframes holoShift {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 400% 50%; }
-}
-@keyframes holoTextShift {
-    0% { background-position: 0% 0%; }
-    100% { background-position: 200% 0%; }
+@keyframes holoOutline {
+    0%   { outline-color: #ff0000; filter: drop-shadow(0 0 8px #ff0000); }
+    16%  { outline-color: #ff7700; filter: drop-shadow(0 0 8px #ff7700); }
+    33%  { outline-color: #ffff00; filter: drop-shadow(0 0 8px #cccc00); }
+    50%  { outline-color: #00ff00; filter: drop-shadow(0 0 8px #00cc00); }
+    66%  { outline-color: #0077ff; filter: drop-shadow(0 0 8px #0077ff); }
+    83%  { outline-color: #8b00ff; filter: drop-shadow(0 0 8px #8b00ff); }
+    100% { outline-color: #ff0000; filter: drop-shadow(0 0 8px #ff0000); }
 }
 
 /* Pack pull special effects */
