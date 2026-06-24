@@ -76,26 +76,26 @@ const _BP_REWARDS = [
     { tier: 6, type: 'be', amount: 500 },
     { tier: 7, type: 'icon', icon: '🐲' },
     { tier: 8, type: 'be', amount: 600 },
-    { tier: 9, type: 'sp', amount: 2 },
+    { tier: 9, type: 'sp', amount: 1 },
     { tier: 10, type: 'card', tier_min: 'Diamond' },
     { tier: 11, type: 'be', amount: 700 },
     { tier: 12, type: 'icon', icon: '🦅' },
     { tier: 13, type: 'be', amount: 800 },
-    { tier: 14, type: 'sp', amount: 2 },
+    { tier: 14, type: 'sp', amount: 1 },
     { tier: 15, type: 'card', tier_min: 'Master' },
     { tier: 16, type: 'be', amount: 1000 },
     { tier: 17, type: 'icon', icon: '🐺' },
     { tier: 18, type: 'be', amount: 1200 },
-    { tier: 19, type: 'sp', amount: 3 },
+    { tier: 19, type: 'sp', amount: 2 },
     { tier: 20, type: 'card', tier_min: 'Master' },
     { tier: 21, type: 'be', amount: 1500 },
     { tier: 22, type: 'icon', icon: '🦁' },
     { tier: 23, type: 'be', amount: 1800 },
-    { tier: 24, type: 'sp', amount: 3 },
+    { tier: 24, type: 'sp', amount: 2 },
     { tier: 25, type: 'card', tier_min: 'Grandmaster' },
     { tier: 26, type: 'be', amount: 2000 },
     { tier: 27, type: 'icon', icon: '🐉' },
-    { tier: 28, type: 'sp', amount: 5 },
+    { tier: 28, type: 'sp', amount: 2 },
     { tier: 29, type: 'be', amount: 3000 },
     { tier: 30, type: 'card', tier_min: 'Challenger' },
 ];
@@ -1632,8 +1632,16 @@ function renderCollection() {
         if (collectionRegistry[c.id]) grouped[tName].owned++;
     });
     let groupArray = Object.values(grouped);
-    if (currentCollectionSort === 'completion') groupArray.sort((a, b) => (b.total - b.owned) - (a.total - a.owned));
-    else groupArray.sort((a, b) => a.team.localeCompare(b.team));
+    if (currentCollectionSort === 'completion') {
+        groupArray.sort((a, b) => {
+            const aPct = a.total > 0 ? a.owned / a.total : 0;
+            const bPct = b.total > 0 ? b.owned / b.total : 0;
+            if (aPct === 1 && bPct === 1) return a.team.localeCompare(b.team);
+            if (aPct === 1) return -1;
+            if (bPct === 1) return 1;
+            return bPct - aPct;
+        });
+    } else groupArray.sort((a, b) => a.team.localeCompare(b.team));
 
     if (groupArray.length === 0) { grid.innerHTML = `<p class="text-slate-500 text-center py-10 font-mono">No cards archived yet in this category.</p>`; return; }
 
@@ -1667,7 +1675,11 @@ function renderCollection() {
             });
         }
 
-        let countEl = document.createElement("span"); countEl.className = `text-xs font-mono ${displayOwned === displayCards.length && displayCards.length > 0 ? 'text-emerald-400 font-bold' : 'text-slate-500'}`; countEl.textContent = `${displayOwned}/${displayCards.length}`;
+        const isComplete = displayOwned === displayCards.length && displayCards.length > 0;
+        const pct = displayCards.length > 0 ? Math.round((displayOwned / displayCards.length) * 100) : 0;
+        let countEl = document.createElement("span");
+        countEl.className = `text-xs font-mono ${isComplete ? 'text-emerald-400 font-bold' : 'text-slate-500'}`;
+        countEl.innerHTML = isComplete ? `✓ ${displayOwned}/${displayCards.length}` : `${displayOwned}/${displayCards.length} <span class="text-slate-600">(${pct}%)</span>`;
         header.appendChild(countEl);
         section.appendChild(header);
 
@@ -2286,14 +2298,18 @@ function recalculateRegionalPrice() {
 }
 
 function getPrestigeTitle() {
-    const tw = (trackStats.tournamentsWon || 0) + (trackStats.goldenRoads || 0);
+    const tp = getWeightedTrophies();
     const gr = trackStats.goldenRoads || 0;
     const sc = trackStats.splitsCompleted || 0;
-    const dw = trackStats.draftModesWon || 0;
-    if (tw >= 50 && sc >= 20 && gr >= 5 && dw >= 3) return { title: 'Legend', emoji: '👑', color: 'text-yellow-400' };
-    if (tw >= 30 && sc >= 10 && gr >= 3) return { title: 'President', emoji: '🏛️', color: 'text-purple-400' };
-    if (tw >= 15 && sc >= 5 && gr >= 1) return { title: 'GM', emoji: '⭐', color: 'text-blue-400' };
-    if (tw >= 5 || sc >= 2) return { title: 'Director', emoji: '📋', color: 'text-emerald-400' };
+    if (tp >= 200 && gr >= 5 && sc >= 30) return { title: 'Immortal', emoji: '🌟', color: 'text-yellow-300' };
+    if (tp >= 150 && gr >= 3 && sc >= 20) return { title: 'Legend', emoji: '👑', color: 'text-yellow-400' };
+    if (tp >= 100 && sc >= 15) return { title: 'Hall of Fame', emoji: '🏛️', color: 'text-amber-400' };
+    if (tp >= 70 && sc >= 10) return { title: 'President', emoji: '🎖️', color: 'text-purple-400' };
+    if (tp >= 50 && sc >= 8) return { title: 'Executive', emoji: '💼', color: 'text-indigo-400' };
+    if (tp >= 30 && sc >= 5) return { title: 'GM', emoji: '⭐', color: 'text-blue-400' };
+    if (tp >= 15) return { title: 'Director', emoji: '📋', color: 'text-emerald-400' };
+    if (tp >= 5) return { title: 'Manager', emoji: '📊', color: 'text-teal-400' };
+    if (sc >= 1) return { title: 'Coach', emoji: '🏅', color: 'text-cyan-400' };
     return { title: 'Scout', emoji: '🔍', color: 'text-slate-400' };
 }
 
@@ -2522,6 +2538,8 @@ function renderClubGrid() {
     filtered.forEach((card) => {
         let wrap = document.createElement("div"); wrap.className = "flex flex-col items-center gap-1.5 transform transition hover:-translate-y-1";
         const cardEl = createCardElement(card, true, null, null);
+        cardEl.ondblclick = (e) => { e.stopPropagation(); inspectCard(card); };
+        cardEl.title = 'Double-click to inspect';
         const isSelected = compareMode && compareSlots.some(c => c.uniqueId === card.uniqueId);
         if (isSelected) { cardEl.style.outline = "3px solid #a855f7"; cardEl.style.outlineOffset = "2px"; }
         wrap.appendChild(cardEl);
@@ -3618,6 +3636,33 @@ function renderSeasonTab() {
         </div>
     </div>`;
 }
+
+// --- Card Inspection ---
+function inspectCard(card) {
+    const modal = document.getElementById('card-inspect-modal');
+    const container = document.getElementById('card-inspect-card');
+    if (!modal || !container) return;
+    container.innerHTML = '';
+    container.appendChild(createCardElement(card, false, null, null));
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closeCardInspect() {
+    const modal = document.getElementById('card-inspect-modal');
+    if (modal) modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+document.addEventListener('mousemove', e => {
+    const modal = document.getElementById('card-inspect-modal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    const card = document.getElementById('card-inspect-card');
+    if (!card) return;
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const rotY = ((e.clientX - cx) / cx) * 15;
+    const rotX = ((cy - e.clientY) / cy) * 15;
+    card.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+});
 
 function toggleDarkMode() {
     const isLight = document.documentElement.classList.toggle("light-mode");
@@ -7155,7 +7200,32 @@ function autoCloudSave() {
         data.savedAt = Date.now();
         data.teamName = teamIdentity.name || 'My Team';
         fbDb.collection('saves').doc(currentUser.uid).set(data).catch(() => {});
+        _autoLeaderboardPush();
     }, 3000);
+}
+
+let _lastLbPush = 0;
+function _autoLeaderboardPush() {
+    if (!currentUser) return;
+    if (Date.now() - _lastLbPush < 300000) return;
+    _lastLbPush = Date.now();
+    let rawPower = 0, sc = 0;
+    ['TOP','JNG','MID','ADC','SUP'].forEach(r => { if (squad[r]) { rawPower += squad[r].rating; sc++; } });
+    rawPower = sc > 0 ? Math.round(rawPower / sc) : 0;
+    const chemData = computeChemistry();
+    const entry = {
+        uid: currentUser.uid, displayName: currentUser.displayName || 'Anonymous', photoURL: currentUser.photoURL || '',
+        teamName: teamIdentity.name || 'My Team', teamLogo: teamIdentity.logo || '🛡️', teamColor: teamIdentity.color || '#3b82f6',
+        trophies: getWeightedTrophies(), splitsCompleted: trackStats.splitsCompleted || 0,
+        goldenRoads: trackStats.goldenRoads || 0, towerBest: trackStats.towerHighestFloor || 0,
+        prestigeTitle: getPrestigeTitle().title, clubSize: club.length, rawPower, totalPower: chemData.totalPower || 0,
+        totalBE: blueEssence || 0, archiveCards: Object.keys(collectionRegistry).length,
+        signatureCards: Object.values(collectionRegistry).filter(r => r.signature).length,
+        holographicCards: club.filter(c => c.holographic).length, holoSignatureCards: club.filter(c => c.holographic && c.signature).length,
+        showcaseCards: [...club].sort((a, b) => ((b.signature?1000:0)+(b.holographic?500:0)+b.rating) - ((a.signature?1000:0)+(a.holographic?500:0)+a.rating)).slice(0,3).map(c => ({id:c.id,name:c.name,team:c.team,year:c.year,rating:c.rating,quality:c.quality,role:c.role,region:c.region,stats:c.stats,signature:c.signature||false,holographic:c.holographic||false})),
+        updatedAt: Date.now(),
+    };
+    fbDb.collection('leaderboard').doc(currentUser.uid).set(entry).catch(() => {});
 }
 
 // Cloud Load — pull from Firestore into localStorage, then reload

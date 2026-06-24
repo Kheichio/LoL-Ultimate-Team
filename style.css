@@ -473,8 +473,31 @@ html.light-mode .card-face-down {
 }
 
 /* SIGNATURE — Gold + purple glow */
-.card-signature { box-shadow: 0 0 25px rgba(255,215,0,0.7), 0 0 50px rgba(168,85,247,0.3); animation: signature-glow 2s ease-in-out infinite; }
-@keyframes signature-glow { 0%,100% { box-shadow: 0 0 25px rgba(255,215,0,0.7), 0 0 50px rgba(168,85,247,0.3); } 50% { box-shadow: 0 0 35px rgba(255,215,0,0.9), 0 0 70px rgba(168,85,247,0.5); } }
+.card-signature {
+    box-shadow: 0 0 20px rgba(255,215,0,0.6), 0 0 45px rgba(168,85,247,0.25);
+    animation: signature-glow 2s ease-in-out infinite;
+    outline: 2px solid rgba(255,215,0,0.5);
+    outline-offset: 1px;
+}
+.card-signature::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important; left: -100% !important;
+    width: 60% !important; height: 100% !important;
+    background: linear-gradient(105deg, transparent 20%, rgba(255,215,0,0.12) 40%, rgba(255,215,0,0.25) 50%, rgba(255,215,0,0.12) 60%, transparent 80%) !important;
+    animation: sigSweep 3s ease-in-out infinite !important;
+    z-index: 5 !important;
+    pointer-events: none !important;
+    border-radius: inherit !important;
+}
+@keyframes signature-glow {
+    0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.6), 0 0 45px rgba(168,85,247,0.25); outline-color: rgba(255,215,0,0.5); }
+    50% { box-shadow: 0 0 30px rgba(255,215,0,0.85), 0 0 65px rgba(168,85,247,0.4); outline-color: rgba(255,215,0,0.8); }
+}
+@keyframes sigSweep {
+    0%, 100% { left: -100%; }
+    50% { left: 140%; }
+}
 
 /* ======= SUMMONER'S RIFT VISUAL MAP ======= */
 .sim-map-grid {
@@ -624,6 +647,20 @@ html.light-mode .card-face-down {
     66%  { outline-color: #0077ff; filter: drop-shadow(0 0 8px #0077ff); }
     83%  { outline-color: #8b00ff; filter: drop-shadow(0 0 8px #8b00ff); }
     100% { outline-color: #ff0000; filter: drop-shadow(0 0 8px #ff0000); }
+}
+
+/* Card inspection tilt */
+#card-inspect-modal {
+    perspective: 800px;
+}
+#card-inspect-card {
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+    will-change: transform;
+}
+#card-inspect-card .rounded-xl {
+    transform: none !important;
+    width: 260px !important;
 }
 
 /* Pack pull special effects */
