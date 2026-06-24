@@ -2585,11 +2585,6 @@ function renderClubGrid() {
     _clubRendered = 0;
     if (_clubObserver) _clubObserver.disconnect();
 
-    const count = document.createElement('div');
-    count.className = 'w-full text-center text-xs text-slate-500 font-mono mb-2';
-    count.textContent = `${filtered.length} cards`;
-    grid.appendChild(count);
-
     _renderClubBatch(grid);
 
     if (_clubRendered < _clubFiltered.length) {
@@ -2651,14 +2646,24 @@ function _renderClubCard(card) {
             favBtn.className = `text-xs px-2 py-1.5 rounded-lg font-bold cursor-pointer transition shadow-md ${card.favorite ? 'bg-yellow-900/60 text-yellow-300 hover:bg-yellow-800' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
             favBtn.innerHTML = card.favorite ? '★' : '☆';
             favBtn.title = card.favorite ? 'Unfavorite' : 'Favorite (pin to top)';
-            favBtn.onclick = () => { card.favorite = !card.favorite; saveGame(); renderClubGrid(); };
+            favBtn.onclick = () => {
+                card.favorite = !card.favorite;
+                favBtn.innerHTML = card.favorite ? '★' : '☆';
+                favBtn.className = `text-xs px-2 py-1.5 rounded-lg font-bold cursor-pointer transition shadow-md ${card.favorite ? 'bg-yellow-900/60 text-yellow-300 hover:bg-yellow-800' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
+                saveGame();
+            };
             btnRow.appendChild(favBtn);
             // Lock/unlock toggle
             const lockBtn = document.createElement("button");
             lockBtn.className = `text-xs px-2 py-1.5 rounded-lg font-bold cursor-pointer transition shadow-md ${card.locked ? 'bg-amber-900/60 text-amber-300 hover:bg-amber-800' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
             lockBtn.innerHTML = card.locked ? '🔓' : '🔒';
             lockBtn.title = card.locked ? 'Unlock' : 'Lock (protect from sell/purge)';
-            lockBtn.onclick = () => { card.locked = !card.locked; saveGame(); renderClubGrid(); };
+            lockBtn.onclick = () => {
+                card.locked = !card.locked;
+                lockBtn.innerHTML = card.locked ? '🔓' : '🔒';
+                lockBtn.className = `text-xs px-2 py-1.5 rounded-lg font-bold cursor-pointer transition shadow-md ${card.locked ? 'bg-amber-900/60 text-amber-300 hover:bg-amber-800' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`;
+                saveGame();
+            };
             btnRow.appendChild(lockBtn);
             // Sell button
             let btn = document.createElement("button"); let price = getSellValue(card.quality, card);
