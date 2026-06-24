@@ -25,32 +25,6 @@
 </head>
 <body class="bg-slate-900 font-sans min-h-screen flex flex-col select-none text-sm overflow-x-hidden text-slate-300 antialiased">
 
-    <template id="card-template">
-        <div class="card-el rounded-xl w-52 flex flex-col items-center select-none relative shadow-xl overflow-hidden">
-            <div class="card-tier-header w-full text-center py-1.5 px-3 bg-black/25 border-b text-[10px] font-black uppercase tracking-widest rounded-t-xl"></div>
-            <div class="p-4 w-full flex flex-col items-center">
-                <div class="w-full flex justify-between text-[11px] font-black uppercase mb-1 items-center">
-                    <span class="card-role bg-black/20 px-2 py-0.5 rounded-md flex items-center gap-1"></span>
-                    <span class="card-region tracking-tight flex items-center gap-1"></span>
-                </div>
-                <div class="flex items-center gap-3 w-full mt-2">
-                    <div class="card-rating text-4xl font-black tracking-tighter drop-shadow-md"></div>
-                    <div class="card-initials w-16 h-16 rounded-full border-2 border-white/30 shadow mx-auto bg-black/30 flex items-center justify-center text-lg font-black select-none"></div>
-                </div>
-                <div class="card-name font-black text-base truncate w-full mt-3 text-center drop-shadow-sm"></div>
-                <div class="card-team text-xs font-bold truncate w-full mb-2 text-center"></div>
-                <div class="stat-grid border-t pt-2 text-xs w-full">
-                    <div><span class="stat-label mr-1">MEC</span><span class="card-mec"></span></div>
-                    <div><span class="stat-label mr-1">TMF</span><span class="card-tmf"></span></div>
-                    <div><span class="stat-label mr-1">FRM</span><span class="card-frm"></span></div>
-                    <div><span class="stat-label mr-1">CMP</span><span class="card-cmp"></span></div>
-                    <div><span class="stat-label mr-1">MAP</span><span class="card-map"></span></div>
-                    <div><span class="stat-label mr-1">LDR</span><span class="card-ldr"></span></div>
-                </div>
-            </div>
-        </div>
-    </template>
-
     <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     <div id="confirm-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-200">

@@ -4220,9 +4220,8 @@ function computeChemistry() {
     return { totalPower, avgStats: { mec: count>0?sums.mec/count:0, tmf: count>0?sums.tmf/count:0, map: count>0?sums.map/count:0 } };
 }
 
-const _cardTemplate = document.getElementById('card-template');
-
 function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
+    const cardDiv = document.createElement("div");
     const isOutOfPosition = activeAssignedRole && card.role !== activeAssignedRole && !activeAssignedRole.includes('SUB') && activeAssignedRole !== 'COACH';
     const displayRating = isOutOfPosition && card.role !== "COACH" ? Math.max(0, card.rating - 20) : card.rating;
 
@@ -4235,55 +4234,48 @@ function createCardElement(card, isMini, onClickAction, activeAssignedRole) {
     const darkCardTypes = ["Challenger", "Champion", "MVP", "Finalist", "MSI", "FirstStand", "Diamond"];
     const isDarkCard = darkCardTypes.includes(card.quality) || card.role === "COACH";
     const isMidCard = ["Master", "Grandmaster"].includes(card.quality);
-    const textBase = isDarkCard ? "text-white" : "text-slate-900";
+    const textBase = isDarkCard ? "text-white" : isMidCard ? "text-slate-900" : "text-slate-900";
     const textMuted = isDarkCard ? "text-slate-300" : isMidCard ? "text-slate-800 font-black" : "text-slate-700 font-black";
     const textOpacity = isDarkCard ? "text-white/80" : isMidCard ? "text-slate-700 font-black" : "text-slate-800 font-black";
     const dividerColor = isDarkCard ? "border-white/15" : "border-black/20";
+
+    const scaleClass = isMini ? '' : 'hover:scale-105';
+    cardDiv.className = `${bgClass} rounded-xl w-52 flex flex-col items-center select-none relative transition-transform ${scaleClass} shadow-xl overflow-hidden`;
+    cardDiv.dataset.quality = card.quality;
+    if (card.signature) cardDiv.dataset.sig = '';
+    if (card.holographic) cardDiv.dataset.holo = '';
+    if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
+
+    const initials = card.name.slice(0, 2).toUpperCase();
     const flag = (window.playerNationalityOverrides && window.playerNationalityOverrides[card.name]) || (window.regionDefaultFlags && window.regionDefaultFlags[card.region]) || '';
     const roleIconHtml = (window.roleIcons && window.roleIcons[card.role]) || '';
     const tierLabel = card.signature ? '✦ SIGNATURE ✦' : (card.role === "COACH" ? "COACH STAFF" : card.quality);
-    const initials = card.name.slice(0, 2).toUpperCase();
-
-    let cardDiv;
-    if (_cardTemplate) {
-        const clone = _cardTemplate.content.cloneNode(true);
-        cardDiv = clone.querySelector('.card-el');
-        cardDiv.dataset.quality = card.quality;
-        cardDiv.dataset.darkText = String(!isDarkCard);
-        if (card.signature) cardDiv.dataset.sig = '';
-        if (card.holographic) cardDiv.dataset.holo = '';
-
-        const header = cardDiv.querySelector('.card-tier-header');
-        header.textContent = tierLabel;
-        header.classList.add(dividerColor, textBase);
-        cardDiv.querySelector('.card-role').innerHTML = `${roleIconHtml} ${card.role}`;
-        cardDiv.querySelector('.card-role').classList.add(textBase);
-        cardDiv.querySelector('.card-region').innerHTML = `${flag} ${card.region}`;
-        cardDiv.querySelector('.card-region').classList.add(textOpacity);
-        cardDiv.querySelector('.card-rating').textContent = displayRating;
-        cardDiv.querySelector('.card-rating').classList.add(textBase);
-        cardDiv.querySelector('.card-initials').textContent = initials;
-        cardDiv.querySelector('.card-initials').classList.add(textBase);
-        cardDiv.querySelector('.card-name').textContent = card.name;
-        cardDiv.querySelector('.card-name').classList.add(textBase);
-        cardDiv.querySelector('.card-team').textContent = `${card.team} [${card.year}]`;
-        cardDiv.querySelector('.card-team').classList.add(textMuted);
-        cardDiv.querySelector('.stat-grid').classList.add(dividerColor);
-        const stats = ['mec','tmf','frm','cmp','map','ldr'];
-        stats.forEach(s => {
-            const el = cardDiv.querySelector(`.card-${s}`);
-            if (el) { el.textContent = card.stats[s]; el.classList.add(textBase); }
-        });
-        cardDiv.querySelectorAll('.stat-label').forEach(l => l.classList.add(textMuted));
-    } else {
-        cardDiv = document.createElement("div");
-    }
-
-    const scaleClass = isMini ? '' : 'hover:scale-105';
-    cardDiv.className += ` ${bgClass} rounded-xl w-52 flex flex-col items-center select-none relative transition-transform ${scaleClass} shadow-xl overflow-hidden`;
-    if (onClickAction) { cardDiv.onclick = onClickAction; cardDiv.className += " cursor-pointer"; }
     if (card.signature) cardDiv.classList.add('card-signature');
     if (card.holographic) cardDiv.classList.add('card-holographic');
+
+    cardDiv.innerHTML = `
+        <div class="w-full text-center py-1.5 px-3 bg-black/25 border-b ${dividerColor} text-[10px] font-black uppercase tracking-widest ${textBase} rounded-t-xl">${tierLabel}</div>
+        <div class="p-4 w-full flex flex-col items-center">
+            <div class="w-full flex justify-between text-[11px] font-black uppercase mb-1 items-center">
+                <span class="bg-black/20 ${textBase} px-2 py-0.5 rounded-md flex items-center gap-1">${roleIconHtml} ${card.role}</span>
+                <span class="${textOpacity} tracking-tight flex items-center gap-1">${flag} ${card.region}</span>
+            </div>
+            <div class="flex items-center gap-3 w-full mt-2">
+                <div class="text-4xl font-black tracking-tighter drop-shadow-md ${textBase}"><span>${displayRating}</span></div>
+                <div class="w-16 h-16 rounded-full border-2 border-white/30 shadow mx-auto bg-black/30 flex items-center justify-center text-lg font-black ${textBase} select-none">${initials}</div>
+            </div>
+            <div class="font-black text-base truncate w-full mt-3 text-center drop-shadow-sm ${textBase}">${card.name}</div>
+            <div class="text-xs font-bold truncate w-full mb-2 text-center ${textMuted}">${card.team} [${card.year}]</div>
+            <div class="stat-grid border-t ${dividerColor} pt-2 text-xs w-full">
+                <div class="${textBase}"><span class="${textMuted} mr-1">MEC</span>${card.stats.mec}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">TMF</span>${card.stats.tmf}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">FRM</span>${card.stats.frm}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">CMP</span>${card.stats.cmp}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">MAP</span>${card.stats.map}</div>
+                <div class="${textBase}"><span class="${textMuted} mr-1">LDR</span>${card.stats.ldr}</div>
+            </div>
+        </div>
+    `;
     if (window._salaryCapMode && draftModeActive && typeof getCardSalary === 'function') {
         const baseSal = getCardSalary(card);
         const flexSal = draftActivePickRole ? getCardSalary(card, draftActivePickRole) : baseSal;
