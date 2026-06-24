@@ -612,18 +612,16 @@ html.light-mode .card-face-down {
 /* HOLOGRAPHIC CARD VARIANT — rainbow prismatic border */
 .card-holographic {
     position: relative;
+    animation: holoGlow 3s linear infinite !important;
 }
-.card-holographic::after {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: inherit;
-    background: linear-gradient(45deg, #ff0000, #ff7700, #ffff00, #00ff00, #0077ff, #8b00ff, #ff0000);
-    background-size: 400% 400%;
-    animation: holoShift 3s linear infinite;
-    z-index: -1;
-    filter: blur(5px);
-    opacity: 0.8;
+@keyframes holoGlow {
+    0%   { box-shadow: 0 0 12px 3px #ff0000, 0 0 24px 6px rgba(255,0,0,0.3) !important; }
+    16%  { box-shadow: 0 0 12px 3px #ff7700, 0 0 24px 6px rgba(255,119,0,0.3) !important; }
+    33%  { box-shadow: 0 0 12px 3px #ffff00, 0 0 24px 6px rgba(255,255,0,0.3) !important; }
+    50%  { box-shadow: 0 0 12px 3px #00ff00, 0 0 24px 6px rgba(0,255,0,0.3) !important; }
+    66%  { box-shadow: 0 0 12px 3px #0077ff, 0 0 24px 6px rgba(0,119,255,0.3) !important; }
+    83%  { box-shadow: 0 0 12px 3px #8b00ff, 0 0 24px 6px rgba(139,0,255,0.3) !important; }
+    100% { box-shadow: 0 0 12px 3px #ff0000, 0 0 24px 6px rgba(255,0,0,0.3) !important; }
 }
 .card-holographic .holo-badge {
     background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #ff6b6b);
